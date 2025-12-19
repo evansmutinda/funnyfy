@@ -9,6 +9,7 @@ export default {
     version: '0.1.0',
     platforms: ['android', 'ios'],
     orientation: 'portrait',
+    icon: './assets/icon.jpg',
     updates: { fallbackToCacheTimeout: 0 },
     assetBundlePatterns: ['**/*'],
     ios: { supportsTablet: true },
@@ -20,6 +21,10 @@ export default {
         'WRITE_EXTERNAL_STORAGE',
         'READ_MEDIA_IMAGES',
       ],
+      navigationBar: {
+        backgroundColor: '#f9fafb',
+        barStyle: 'light-content',
+      },
     },
     web: { bundler: 'metro' },
     extra: {
