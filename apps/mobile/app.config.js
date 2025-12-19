@@ -1,0 +1,30 @@
+// Expo app configuration
+// Note: EXPO_PUBLIC_* environment variables are automatically available in the app
+// Set EXPO_PUBLIC_API_URL in your environment before running 'expo start'
+
+export default {
+  expo: {
+    name: 'FunnyfyApp',
+    slug: 'funnyfyapp',
+    version: '0.1.0',
+    platforms: ['android', 'ios'],
+    orientation: 'portrait',
+    updates: { fallbackToCacheTimeout: 0 },
+    assetBundlePatterns: ['**/*'],
+    ios: { supportsTablet: true },
+    android: {
+      package: 'com.evansks.funnyfyapp',
+      permissions: [
+        'CAMERA',
+        'READ_EXTERNAL_STORAGE',
+        'WRITE_EXTERNAL_STORAGE',
+        'READ_MEDIA_IMAGES',
+      ],
+    },
+    web: { bundler: 'metro' },
+    extra: {
+      // Correct EAS project ID provided by `eas build`
+      eas: { projectId: '09895e1f-da8e-4d28-88e1-e8ba89949281' }
+    }
+  }
+};
