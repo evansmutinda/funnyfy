@@ -17,6 +17,7 @@ import {
   Share,
   Dimensions
 } from 'react-native';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
@@ -31,6 +32,10 @@ const STYLE_CARD_IMAGE_CHIBI = require('./assets/chibi.jpg');
 const STYLE_CARD_IMAGE_NEON = require('./assets/neon.png');
 const STYLE_CARD_IMAGE_ANIME = require('./assets/anime.jpg');
 const STYLE_CARD_IMAGE_CUSTOM1 = require('./assets/custom1.jpg');
+const STYLE_CARD_IMAGE_CUSTOM2 = require('./assets/custom2.jpg');
+const STYLE_CARD_IMAGE_NEANDC = require('./assets/neandc.jpeg');
+const STYLE_CARD_IMAGE_NEAND3D = require('./assets/neand3d.jpeg');
+const STYLE_CARD_IMAGE_HANDD = require('./assets/handd.jpeg');
 const STYLE_CARD_IMAGE_3DCLAY = require('./assets/3dclay.jpg');
 const STYLE_CARD_IMAGE_OILPAINT = require('./assets/oilpaint.jpg');
 const STYLE_CARD_IMAGE_LOWPOLY = require('./assets/lowpoly.jpg');
@@ -47,6 +52,10 @@ function getStyleImage(style) {
   if (id === 'neon' || label.includes('neon')) return STYLE_CARD_IMAGE_NEON;
   if (id === 'anime' || label.includes('anime')) return STYLE_CARD_IMAGE_ANIME;
   if (id === 'custom1' || label.includes('custom1')) return STYLE_CARD_IMAGE_CUSTOM1;
+  if (id === 'custom2' || label.includes('custom2')) return STYLE_CARD_IMAGE_CUSTOM2;
+  if (id === 'neandc' || (label.includes('neanderthal') && !label.includes('3d'))) return STYLE_CARD_IMAGE_NEANDC;
+  if (id === 'neand3d' || label.includes('neanderthal 3d') || label.includes('neand3d')) return STYLE_CARD_IMAGE_NEAND3D;
+  if (id === 'handd' || label.includes('hand-drawn') || label.includes('handd')) return STYLE_CARD_IMAGE_HANDD;
   if (id === '3dclay' || label.includes('3dclay') || label.includes('3d clay')) return STYLE_CARD_IMAGE_3DCLAY;
   if (id === 'oil-paint' || label.includes('oil paint') || label.includes('oilpaint')) return STYLE_CARD_IMAGE_OILPAINT;
   if (id === 'low-poly' || label.includes('low-poly') || label.includes('lowpoly')) return STYLE_CARD_IMAGE_LOWPOLY;
@@ -82,6 +91,7 @@ function SplashScreen({ onComplete }) {
 }
 
 function StyleScreen({ selectedStyle, availableStyles, onNext }) {
+  const insets = useSafeAreaInsets();
   const styleList = Array.isArray(availableStyles) && availableStyles.length > 0
     ? availableStyles
     : [STYLE_90S_CARTOON];
@@ -89,7 +99,7 @@ function StyleScreen({ selectedStyle, availableStyles, onNext }) {
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="dark-content" />
-      <ScrollView contentContainerStyle={styles.styleContainer}>
+      <ScrollView contentContainerStyle={[styles.styleContainer, { paddingBottom: Math.max(insets.bottom, 24) }]}>
         <Text style={styles.title}>✨ Choose Your Style</Text>
         <Text style={styles.subtitle}>
           {styleList.length > 1
@@ -127,6 +137,7 @@ function StyleScreen({ selectedStyle, availableStyles, onNext }) {
 }
 
 function UploadScreen({ style, onStart, onBackToStyle }) {
+  const insets = useSafeAreaInsets();
   const [imageUri, setImageUri] = useState(null);
   const [imageDataUrl, setImageDataUrl] = useState(null);
   const [picking, setPicking] = useState(false);
@@ -204,7 +215,7 @@ function UploadScreen({ style, onStart, onBackToStyle }) {
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="dark-content" />
-      <View style={styles.uploadContainer}>
+      <View style={[styles.uploadContainer, { paddingBottom: Math.max(insets.bottom, 24) }]}>
         <View style={styles.uploadHeader}>
           <TouchableOpacity onPress={onBackToStyle} style={styles.backButton}>
             <Text style={styles.backButtonIcon}>‹</Text>
@@ -253,7 +264,8 @@ function UploadScreen({ style, onStart, onBackToStyle }) {
   );
 }
 
-function ResultScreen({ original, result, loading, error, onBack }) {
+function ResultScreen({ original, result, loading, error, onBack, onHome }) {
+  const insets = useSafeAreaInsets();
   const imageUrl = result ? getImageUrlFromOutput(result.output) : null;
   const [mix, setMix] = useState(0);
   const [canvasWidth, setCanvasWidth] = useState(0);
@@ -392,10 +404,13 @@ function ResultScreen({ original, result, loading, error, onBack }) {
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="dark-content" />
-      <View style={styles.resultContainer}>
+      <View style={[styles.resultContainer, { paddingBottom: Math.max(insets.bottom, 20) }]}>
         <View style={styles.resultHeader}>
           <TouchableOpacity onPress={onBack} style={styles.backButton}>
             <Text style={styles.backButtonIcon}>‹</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={onHome} style={styles.homeButton}>
+            <Text style={styles.homeButtonIcon}>🏠</Text>
           </TouchableOpacity>
         </View>
 
@@ -440,48 +455,50 @@ function ResultScreen({ original, result, loading, error, onBack }) {
               </>
             ) : null}
             
-            {loading ? (
-              <View style={styles.progressContainer}>
-                <Text style={styles.progressLabel}>
-                  {progressPercent < 20
-                    ? 'Starting…'
-                    : progressPercent < 70
-                    ? 'Processing…'
-                    : 'Almost done…'}
-                </Text>
-                <View style={styles.progressBarTrack}>
-                  <View style={[styles.progressBarFill, { width: `${progressPercent}%` }]} />
-                  <View style={styles.progressBarLabelWrapper}>
-                    <Text
-                      style={[
-                        styles.progressBarLabelText,
-                        progressPercent > 20
-                          ? styles.progressBarLabelTextLight
-                          : styles.progressBarLabelTextDark,
-                      ]}
-                    >
-                      {Math.round(progressPercent)}%
-                    </Text>
+            <View style={styles.bottomActionsContainer}>
+              {loading ? (
+                <View style={styles.progressContainer}>
+                  <Text style={styles.progressLabel}>
+                    {progressPercent < 20
+                      ? 'Starting…'
+                      : progressPercent < 70
+                      ? 'Processing…'
+                      : 'Almost done…'}
+                  </Text>
+                  <View style={styles.progressBarTrack}>
+                    <View style={[styles.progressBarFill, { width: `${progressPercent}%` }]} />
+                    <View style={styles.progressBarLabelWrapper}>
+                      <Text
+                        style={[
+                          styles.progressBarLabelText,
+                          progressPercent > 20
+                            ? styles.progressBarLabelTextLight
+                            : styles.progressBarLabelTextDark,
+                        ]}
+                      >
+                        {Math.round(progressPercent)}%
+                      </Text>
+                    </View>
                   </View>
                 </View>
+              ) : null}
+              
+              <View style={styles.actionsRow}>
+                <TouchableOpacity
+                  style={[styles.actionButton, (!hasResult || loading) && styles.buttonDisabled]}
+                  onPress={handleDownload}
+                  disabled={!hasResult || loading}
+                >
+                  <Text style={styles.actionButtonText}>💾 Save</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.actionButton, (!hasResult || loading) && styles.buttonDisabled]}
+                  onPress={handleShare}
+                  disabled={!hasResult || loading}
+                >
+                  <Text style={styles.actionButtonText}>📤 Share</Text>
+                </TouchableOpacity>
               </View>
-            ) : null}
-            
-            <View style={styles.actionsRow}>
-              <TouchableOpacity
-                style={[styles.actionButton, (!hasResult || loading) && styles.buttonDisabled]}
-                onPress={handleDownload}
-                disabled={!hasResult || loading}
-              >
-                <Text style={styles.actionButtonText}>💾 Save</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.actionButton, (!hasResult || loading) && styles.buttonDisabled]}
-                onPress={handleShare}
-                disabled={!hasResult || loading}
-              >
-                <Text style={styles.actionButtonText}>📤 Share</Text>
-              </TouchableOpacity>
             </View>
           </View>
         ) : null}
@@ -545,6 +562,7 @@ export default function App() {
         setLoading(true);
         setError('');
         setJob(null);
+        setResult(null);
 
         const payload = {
           payload: {
@@ -650,41 +668,52 @@ export default function App() {
   }, [screen]);
 
   if (screen === 'splash') {
-    return <SplashScreen onComplete={() => setScreen('style')} />;
+    return (
+      <SafeAreaProvider>
+        <SplashScreen onComplete={() => setScreen('style')} />
+      </SafeAreaProvider>
+    );
   }
 
   if (screen === 'style') {
     return (
-      <StyleScreen
-        selectedStyle={style}
-        availableStyles={availableStyles}
-        onNext={(s) => {
-          setStyle(s);
-          setScreen('upload');
-        }}
-      />
+      <SafeAreaProvider>
+        <StyleScreen
+          selectedStyle={style}
+          availableStyles={availableStyles}
+          onNext={(s) => {
+            setStyle(s);
+            setScreen('upload');
+          }}
+        />
+      </SafeAreaProvider>
     );
   }
 
   if (screen === 'upload') {
     return (
-      <UploadScreen
-        style={style}
-        onStart={handleUploadStart}
-        onBackToStyle={() => setScreen('style')}
-      />
+      <SafeAreaProvider>
+        <UploadScreen
+          style={style}
+          onStart={handleUploadStart}
+          onBackToStyle={() => setScreen('style')}
+        />
+      </SafeAreaProvider>
     );
   }
 
   if (screen === 'result') {
     return (
-      <ResultScreen
-        original={original}
-        result={result}
-        loading={loading}
-        error={error}
-        onBack={() => setScreen('upload')}
-      />
+      <SafeAreaProvider>
+        <ResultScreen
+          original={original}
+          result={result}
+          loading={loading}
+          error={error}
+          onBack={() => setScreen('upload')}
+          onHome={() => setScreen('style')}
+        />
+      </SafeAreaProvider>
     );
   }
 
@@ -730,9 +759,9 @@ const styles = StyleSheet.create({
   },
   resultContainer: {
     flex: 1,
-    padding: 24,
-    paddingTop: 8,
-    gap: 16,
+    padding: 20,
+    paddingTop: 16,
+    gap: 0,
   },
   styleContainer: {
     padding: 24,
@@ -752,9 +781,12 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   resultHeader: {
-    paddingTop: 16,
-    paddingBottom: 8,
-    marginBottom: 4,
+    paddingTop: 8,
+    paddingBottom: 12,
+    marginBottom: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   uploadImageContainer: {
     flex: 1,
@@ -763,7 +795,7 @@ const styles = StyleSheet.create({
   },
   uploadButtonsContainer: {
     gap: 12,
-    paddingBottom: 8,
+    paddingBottom: Platform.OS === 'android' ? 8 : 8,
   },
   title: {
     fontSize: 32,
@@ -784,7 +816,9 @@ const styles = StyleSheet.create({
     color: '#9ca3af',
     textTransform: 'uppercase',
     letterSpacing: 1,
-    marginBottom: 6,
+    marginTop: 4,
+    marginBottom: 0,
+    textAlign: 'center',
   },
   sectionLabelSelected: {
     color: '#f97316',
@@ -853,15 +887,15 @@ const styles = StyleSheet.create({
   previewContainer: {
     flex: 1,
     width: '100%',
-    gap: 12,
+    gap: 16,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     minHeight: 200,
   },
   previewCanvas: {
     width: '100%',
     flex: 1,
-    maxHeight: SCREEN_HEIGHT * 0.6,
+    maxHeight: 'none',
     minHeight: 300,
     borderRadius: 20,
     overflow: 'hidden',
@@ -1022,10 +1056,16 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     lineHeight: 18,
   },
+  bottomActionsContainer: {
+    width: '100%',
+    gap: 12,
+    alignItems: 'center',
+    paddingBottom: Platform.OS === 'android' ? 8 : 0,
+  },
   progressContainer: {
     width: '100%',
-    marginTop: 8,
-    marginBottom: 8,
+    marginTop: 0,
+    marginBottom: 0,
     gap: 8,
   },
   progressBarTrack: {
@@ -1069,7 +1109,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 12,
-    paddingBottom: 8,
+    marginTop: 0,
+    paddingBottom: 0,
   },
   actionButton: {
     flex: 1,
@@ -1115,6 +1156,27 @@ const styles = StyleSheet.create({
     lineHeight: 32,
     width: 32,
     height: 32,
+  },
+  homeButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#ffffff',
+    borderWidth: 1.5,
+    borderColor: '#e5e7eb',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  homeButtonIcon: {
+    fontSize: 20,
+    color: '#111827',
+    fontWeight: '900',
+    textAlign: 'center',
   },
   divider: {
     height: 1,
