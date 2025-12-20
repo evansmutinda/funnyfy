@@ -4,17 +4,21 @@
 
 export default {
   expo: {
-    name: 'FunnyfyApp',
-    slug: 'funnyfyapp',
-    version: '0.1.0',
+    name: 'FunnyFy',
+    slug: 'funnyfy',
+    version: '1.0.0',
     platforms: ['android', 'ios'],
     orientation: 'portrait',
     icon: './assets/icon.jpg',
     updates: { fallbackToCacheTimeout: 0 },
     assetBundlePatterns: ['**/*'],
-    ios: { supportsTablet: true },
+    ios: { 
+      supportsTablet: true,
+      buildNumber: '1'
+    },
     android: {
       package: 'com.evansks.funnyfyapp',
+      versionCode: 1,
       permissions: [
         'CAMERA',
         'READ_EXTERNAL_STORAGE',

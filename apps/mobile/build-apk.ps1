@@ -1,8 +1,8 @@
-# FunnyfyApp - APK Build Script (PowerShell)
+# FunnyFy - APK Build Script (PowerShell)
 # This script builds a production APK for Android using EAS Build
 
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "FunnyfyApp - APK Build Script" -ForegroundColor Cyan
+Write-Host "FunnyFy - APK Build Script" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -120,7 +120,7 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "========================================" -ForegroundColor Green
     Write-Host ""
     Write-Host "Your APK will be available in the EAS dashboard." -ForegroundColor Cyan
-    Write-Host "Visit: https://expo.dev/accounts/[your-account]/projects/funnyfyapp/builds" -ForegroundColor Cyan
+    Write-Host "Visit: https://expo.dev/accounts/[your-account]/projects/funnyfy/builds" -ForegroundColor Cyan
     Write-Host ""
 } else {
     Write-Host ""

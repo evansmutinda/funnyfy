@@ -89,7 +89,7 @@ function SplashScreen({ onComplete }) {
     <SafeAreaView style={[styles.safe, styles.splashSafe]}>
       <StatusBar barStyle="light-content" />
       <View style={styles.splashContainer}>
-        <Text style={styles.splashLogo}>🎨 Funnyfy</Text>
+        <Text style={styles.splashLogo}>🎨 FunnyFy</Text>
         <Text style={styles.splashTagline}>Transform photos into amazing caricatures</Text>
       </View>
     </SafeAreaView>

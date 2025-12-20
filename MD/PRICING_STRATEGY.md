@@ -2,13 +2,14 @@
 
 ## Executive Summary
 
-**FunnyfyApp** transforms user photos into caricatures using AI (Replicate API). This guide provides a **SaaS subscription-based pricing strategy** focused on recurring revenue, predictable income, and scalable business growth.
+**FunnyFy** transforms user photos into caricatures using AI (Replicate API). This guide provides the **finalized SaaS subscription-based pricing strategy** for launch, focused on recurring revenue, predictable income, and scalable business growth.
 
-### Recommended SaaS Pricing Model (Updated with $0.04/generation cost):
-- **Free Tier**: 10 generations/month (watermarked) - cost: $0.40/month
-- **Starter**: $9.99/month - 100 generations/month - cost: $4.00, profit: $5.99 (60% margin)
-- **Pro**: $29.99/month - 500 generations/month - cost: $20.00, profit: $9.99 (33% margin)
-- **Premium**: $49.99/month - Unlimited (fair use: 2,000/month) - professionals/businesses
+### Final Pricing Model (January 2025 - Launch Pricing):
+- **Starter**: $5/month - 50 images/month - cost: $2.00, profit: $3.00 (60% margin)
+- **Popular**: $10/month - 100 images/month - cost: $4.00, profit: $6.00 (60% margin)
+- **Pro**: $25/month - 250 images/month - cost: $10.00, profit: $15.00 (60% margin)
+
+**Note**: No yearly plans initially - monitoring API usage and costs first before introducing annual subscriptions.
 
 **Why SaaS Model?**
 - ✅ **Recurring Revenue**: Predictable MRR (Monthly Recurring Revenue)
