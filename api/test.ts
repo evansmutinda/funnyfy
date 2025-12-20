@@ -87,10 +87,22 @@ export default async function handler(
     prompt: prompt // Always use protected server prompt
   };
 
-  // Add image if provided (required for flux-kontext-pro)
+  // Add image if provided
+  // Different models may use different parameter names
   if (imageUrl) {
-    input.input_image = imageUrl;
-    input.aspect_ratio = 'match_input_image'; // Required for flux-kontext-pro
+    // For flux-kontext-pro and similar models
+    if (modelVersion.includes('flux-kontext-pro') || modelVersion.includes('flux')) {
+      input.input_image = imageUrl;
+      input.aspect_ratio = 'match_input_image';
+    } 
+    // For nano-banana and other models
+    else if (modelVersion.includes('nano-banana')) {
+      input.image = imageUrl; // nano-banana uses 'image' parameter
+    }
+    // Default fallback for other models
+    else {
+      input.input_image = imageUrl;
+    }
   }
 
   const upstreamBody = {

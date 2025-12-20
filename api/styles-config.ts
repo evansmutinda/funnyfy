@@ -121,6 +121,15 @@ export const STYLES_CONFIG: Record<string, StyleConfig> = {
     enabled: true,
     premium: false
   },
+  'nano-banana': {
+    id: 'nano-banana',
+    label: 'Nano Banana',
+    description: 'Google Nano Banana model style',
+    prompt: 'Create a stylized caricature of the subject, maintaining recognizable facial features and expression',
+    model: 'google/nano-banana',
+    enabled: true,
+    premium: false
+  },
 };
 
 // Helper function to get style by ID
