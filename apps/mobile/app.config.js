@@ -9,6 +9,7 @@ export default {
     version: '0.1.0',
     platforms: ['android', 'ios'],
     orientation: 'portrait',
+    icon: './assets/icon.jpg',
     updates: { fallbackToCacheTimeout: 0 },
     assetBundlePatterns: ['**/*'],
     ios: { supportsTablet: true },
