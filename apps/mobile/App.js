@@ -38,6 +38,7 @@ const STYLE_CARD_IMAGE_NEAND3D = require('./assets/neand3d.jpeg');
 const STYLE_CARD_IMAGE_HANDD = require('./assets/handd.jpeg');
 const STYLE_CARD_IMAGE_SUPERHERO = require('./assets/superhero.jpeg');
 const STYLE_CARD_IMAGE_VILLIAN = require('./assets/villian.jpeg');
+const STYLE_CARD_IMAGE_CYBORG = require('./assets/cyborg.jpeg');
 const STYLE_CARD_IMAGE_3DCLAY = require('./assets/3dclay.jpg');
 const STYLE_CARD_IMAGE_OILPAINT = require('./assets/oilpaint.jpg');
 const STYLE_CARD_IMAGE_LOWPOLY = require('./assets/lowpoly.jpg');
@@ -60,6 +61,7 @@ function getStyleImage(style) {
   if (id === 'handd' || label.includes('hand-drawn') || label.includes('handd')) return STYLE_CARD_IMAGE_HANDD;
   if (id === 'superhero' || label.includes('superhero')) return STYLE_CARD_IMAGE_SUPERHERO;
   if (id === 'villian' || label.includes('villain') || label.includes('villian')) return STYLE_CARD_IMAGE_VILLIAN;
+  if (id === 'cyborg' || label.includes('cyborg')) return STYLE_CARD_IMAGE_CYBORG;
   if (id === '3dclay' || label.includes('3dclay') || label.includes('3d clay')) return STYLE_CARD_IMAGE_3DCLAY;
   if (id === 'oil-paint' || label.includes('oil paint') || label.includes('oilpaint')) return STYLE_CARD_IMAGE_OILPAINT;
   if (id === 'low-poly' || label.includes('low-poly') || label.includes('lowpoly')) return STYLE_CARD_IMAGE_LOWPOLY;

@@ -166,6 +166,15 @@ export const STYLES_CONFIG: Record<string, StyleConfig> = {
     enabled: true,
     premium: false
   },
+  cyborg: {
+    id: 'cyborg',
+    label: 'Cyborg',
+    description: 'Cyborg cartoon caricature maintaining facial and body features, set in futuristic city settings',
+    prompt: 'make a cyborg cartoon caricature, maintaining subjects facial and body features, set in futuristic random city in random settings',
+    model: 'google/nano-banana',
+    enabled: true,
+    premium: false
+  },
 };
 
 // Helper function to get style by ID

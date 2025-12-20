@@ -10,6 +10,25 @@ Write-Host ""
 $scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $scriptPath
 
+# Check for uncommitted changes
+Write-Host "Checking git status..." -ForegroundColor Yellow
+$gitStatus = git status --porcelain 2>&1
+if ($gitStatus) {
+    Write-Host "Warning: You have uncommitted changes:" -ForegroundColor Yellow
+    Write-Host $gitStatus -ForegroundColor Yellow
+    Write-Host ""
+    $continue = Read-Host "Continue anyway? (y/n)"
+    if ($continue -ne "y" -and $continue -ne "Y") {
+        Write-Host "Build cancelled." -ForegroundColor Red
+        Read-Host "Press Enter to exit"
+        exit 1
+    }
+} else {
+    Write-Host "Git working directory is clean." -ForegroundColor Green
+}
+
+Write-Host ""
+
 # Check if EAS CLI is installed
 Write-Host "Checking EAS CLI..." -ForegroundColor Yellow
 $easInstalled = Get-Command eas -ErrorAction SilentlyContinue
@@ -50,6 +69,40 @@ Write-Host "This will build a production APK for Android." -ForegroundColor Yell
 Write-Host "The build will be uploaded to EAS servers." -ForegroundColor Yellow
 Write-Host ""
 $confirm = Read-Host "Press Enter to continue, or Ctrl+C to cancel"
+
+Write-Host ""
+Write-Host "Verifying required assets..." -ForegroundColor Yellow
+$requiredAssets = @(
+    "assets/custom2.jpg",
+    "assets/neandc.jpeg",
+    "assets/neand3d.jpeg",
+    "assets/handd.jpeg",
+    "assets/superhero.jpeg",
+    "assets/villian.jpeg"
+)
+
+$missingAssets = @()
+foreach ($asset in $requiredAssets) {
+    if (-not (Test-Path $asset)) {
+        $missingAssets += $asset
+    }
+}
+
+if ($missingAssets.Count -gt 0) {
+    Write-Host "Warning: Missing assets:" -ForegroundColor Yellow
+    foreach ($asset in $missingAssets) {
+        Write-Host "  - $asset" -ForegroundColor Yellow
+    }
+    Write-Host ""
+    $continue = Read-Host "Continue anyway? (y/n)"
+    if ($continue -ne "y" -and $continue -ne "Y") {
+        Write-Host "Build cancelled." -ForegroundColor Red
+        Read-Host "Press Enter to exit"
+        exit 1
+    }
+} else {
+    Write-Host "All required assets found." -ForegroundColor Green
+}
 
 Write-Host ""
 Write-Host "Building APK..." -ForegroundColor Green
