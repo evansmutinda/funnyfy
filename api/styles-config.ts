@@ -148,6 +148,24 @@ export const STYLES_CONFIG: Record<string, StyleConfig> = {
     enabled: true,
     premium: false
   },
+  superhero: {
+    id: 'superhero',
+    label: 'Superhero',
+    description: 'Superhero caricature in action, avoiding trademarked themes, maintaining facial and body features',
+    prompt: 'make a superhero caricature, in superhero costumes, avoid trademarked themes, set super hero actions like saving victims, stopping trains, stopping bad guys, etc. in random settings. maintain subjects facial and body features',
+    model: 'google/nano-banana',
+    enabled: true,
+    premium: false
+  },
+  villian: {
+    id: 'villian',
+    label: 'Super Villain',
+    description: 'Super villain caricature in action, avoiding trademarked themes, maintaining facial and body features',
+    prompt: 'make a super villain caricature, in superhero costumes, avoid trademarked themes, set super villan actions like chasing victims, destroying stuff being bad guys, etc, in random settings. maintain subjects facial and body features',
+    model: 'google/nano-banana',
+    enabled: true,
+    premium: false
+  },
 };
 
 // Helper function to get style by ID
