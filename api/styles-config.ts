@@ -130,6 +130,33 @@ export const STYLES_CONFIG: Record<string, StyleConfig> = {
     enabled: true,
     premium: false
   },
+  neandc: {
+    id: 'neandc',
+    label: 'Neanderthal',
+    description: 'Funny neanderthal cartoon maintaining facial features in a random Neanderthalic setting',
+    prompt: 'make this a funny neanderthal cartoon maintaining facial features, in a random Neanderthalic setting',
+    model: 'google/nano-banana',
+    enabled: true,
+    premium: false
+  },
+  neand3d: {
+    id: 'neand3d',
+    label: 'Neanderthal 3D',
+    description: 'Funny neanderthal 3D caricature maintaining facial features, detects and includes all humans',
+    prompt: 'make this a funny neanderthal 3d caricature maintaining facial features, in a random Neanderthalic setting. detect and include all humans in the photo, caricaturize all humans once detected',
+    model: 'google/nano-banana',
+    enabled: true,
+    premium: false
+  },
+  handd: {
+    id: 'handd',
+    label: 'Hand-Drawn',
+    description: 'Traditional hand-drawn editorial caricature with colored-pencil and ink illustration style',
+    prompt: 'Using the uploaded photo as the visual reference, create a hand-drawn editorial caricature of the subject. The caricature should feature a very large, exaggerated head and a small, simplified body, preserving the subject\'s core facial likeness while emphasizing distinctive features. Strongly exaggerate: Head size and facial proportions, Nose, cheeks, jaw, and brow, Eye spacing and expression. Style: Traditional colored-pencil and ink illustration, Visible pencil strokes, Cross-hatching and line shading, Slightly uneven, hand-drawn outlines, Subtle paper texture. Shading should be: Built with layered pencil tones, Warm, earthy colors, No smooth digital gradients. Facial expression should be expressive and characterful, leaning slightly humorous or serious depending on the reference photo. Clothing should be simplified and secondary, drawn with minimal detail to keep focus on the face. Background: Plain, light, off-white or beige, Minimal texture only, No scenery, no environment. Overall look: Classic newspaper / magazine caricature, Hand-drawn, imperfect, human, Exaggerated but recognizable. Full-bleed illustration. No borders. Avoid 3D, avoid painterly styles, avoid realism.',
+    model: 'google/nano-banana',
+    enabled: true,
+    premium: false
+  },
 };
 
 // Helper function to get style by ID
