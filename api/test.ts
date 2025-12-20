@@ -75,7 +75,7 @@ export default async function handler(
   }
   
   // Use protected prompt from server config (never from client)
-  const prompt = styleConfig.prompt;
+  let prompt = styleConfig.prompt;
   const imageUrl = typeof (payload as any)?.imageUrl === 'string'
     ? (payload as any).imageUrl
     : null;
@@ -95,9 +95,18 @@ export default async function handler(
       input.input_image = imageUrl;
       input.aspect_ratio = 'match_input_image';
     } 
-    // For nano-banana and other models
+    // For nano-banana - check Replicate API docs for correct parameter
+    // Common parameter names: 'image', 'image_url', 'input_image'
     else if (modelVersion.includes('nano-banana')) {
-      input.image = imageUrl; // nano-banana uses 'image' parameter
+      // Try 'image' parameter first (most common for image-to-image models)
+      input.image = imageUrl;
+      // Also try 'image_url' as some Replicate models use this
+      input.image_url = imageUrl;
+      // Ensure prompt explicitly references using the uploaded image
+      if (!prompt.toLowerCase().includes('uploaded') && !prompt.toLowerCase().includes('photo') && !prompt.toLowerCase().includes('image') && !prompt.toLowerCase().includes('reference') && !prompt.toLowerCase().includes('provided')) {
+        prompt = `Using the uploaded image as reference: ${prompt}`;
+        input.prompt = prompt;
+      }
     }
     // Default fallback for other models
     else {
