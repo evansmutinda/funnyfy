@@ -95,12 +95,13 @@ export default async function handler(
       input.input_image = imageUrl;
       input.aspect_ratio = 'match_input_image';
     } 
-    // For nano-banana - check Replicate API docs for correct parameter
-    // Common parameter names: 'image', 'image_url', 'input_image'
+    // For nano-banana - try multiple parameter formats
     else if (modelVersion.includes('nano-banana')) {
-      // Try 'image' parameter first (most common for image-to-image models)
+      // nano-banana may use 'image_input' as array, or 'image', or 'image_url'
+      // Try image_input as array first (based on Replicate docs)
+      input.image_input = [imageUrl];
+      // Also include as single value in case it accepts both formats
       input.image = imageUrl;
-      // Also try 'image_url' as some Replicate models use this
       input.image_url = imageUrl;
       // Ensure prompt explicitly references using the uploaded image
       if (!prompt.toLowerCase().includes('uploaded') && !prompt.toLowerCase().includes('photo') && !prompt.toLowerCase().includes('image') && !prompt.toLowerCase().includes('reference') && !prompt.toLowerCase().includes('provided')) {
