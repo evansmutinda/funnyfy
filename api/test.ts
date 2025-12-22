@@ -32,10 +32,26 @@ function getImageUrlFromOutput(output: any): string | null {
 
 // Global monthly quota for now (no auth yet) – can be tuned per environment
 const GLOBAL_MONTHLY_QUOTA = Number(process.env.GLOBAL_MONTHLY_QUOTA || 1000);
+// Simple per-IP rate limit (requests per rolling minute)
+const IP_RATE_LIMIT_PER_MINUTE = Number(process.env.IP_RATE_LIMIT_PER_MINUTE || 30);
 
 function getCurrentMonthDate(): string {
   const d = new Date();
   return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0, 10);
+}
+
+function getClientIp(req: VercelRequest): string {
+  const xfwd = (req.headers['x-forwarded-for'] || '') as string;
+  if (xfwd) {
+    return xfwd.split(',')[0].trim();
+  }
+  return (req.headers['x-real-ip'] as string) || req.socket.remoteAddress || 'unknown';
+}
+
+function getCurrentMinuteWindow(): string {
+  const d = new Date();
+  d.setSeconds(0, 0);
+  return d.toISOString();
 }
 
 export default async function handler(
@@ -148,6 +164,58 @@ export default async function handler(
 
   // TODO: replace null user_id with real authenticated user when auth is added
   const userId: string | null = null;
+
+  // --- Per-IP rate limiting (simple 1-minute window) ---
+  const clientIp = getClientIp(req);
+  const windowStart = getCurrentMinuteWindow();
+
+  try {
+    const rateResult = await query<{ id: string; request_count: number }>(
+      `
+        SELECT id, request_count
+        FROM rate_limits
+        WHERE identifier = $1
+          AND type = 'ip'
+          AND window_start = $2
+      `,
+      [clientIp, windowStart]
+    );
+
+    let currentCount = 0;
+
+    if (rateResult.rows.length === 0) {
+      const insertRate = await query<{ id: string }>(
+        `
+          INSERT INTO rate_limits (identifier, type, window_start, request_count)
+          VALUES ($1, 'ip', $2, 1)
+          RETURNING id
+        `,
+        [clientIp, windowStart]
+      );
+      currentCount = 1;
+    } else {
+      currentCount = (rateResult.rows[0].request_count ?? 0) + 1;
+      await query(
+        `
+          UPDATE rate_limits
+          SET request_count = $1
+          WHERE id = $2
+        `,
+        [currentCount, rateResult.rows[0].id]
+      );
+    }
+
+    if (currentCount > IP_RATE_LIMIT_PER_MINUTE) {
+      return res.status(429).json({
+        ok: false,
+        error: 'RATE_LIMIT_EXCEEDED',
+        message: 'Too many requests from this IP. Please wait a moment and try again.',
+      });
+    }
+  } catch (rateErr) {
+    console.error('IP rate limit check failed (continuing without limit):', rateErr);
+    // Do not block generation on rate limit DB issues (for now)
+  }
 
   // Global, anonymous quota check using usage_tracking where user_id IS NULL
   const currentMonth = getCurrentMonthDate();
