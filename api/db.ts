@@ -9,26 +9,34 @@
 
 import { Pool, QueryResult } from 'pg';
 
-const connectionString = process.env.DATABASE_URL;
+// Create a new pool per invocation. This is slightly less efficient than
+// a global pool but much safer in serverless and easier to debug.
+function createPool(): Pool {
+  const connectionString = process.env.DATABASE_URL;
 
-if (!connectionString) {
-  console.warn(
-    '[db] DATABASE_URL is not set. Database queries will fail until this is configured.'
-  );
+  if (!connectionString) {
+    throw new Error(
+      'DATABASE_URL environment variable is not set. Please configure it in your Vercel project settings.'
+    );
+  }
+
+  return new Pool({
+    connectionString,
+    ssl: { rejectUnauthorized: false },
+  });
 }
-
-// Supabase requires TLS; disable certificate verification in serverless environments.
-// For production hardening, you can configure proper CA trust instead.
-export const pool = new Pool({
-  connectionString,
-  ssl: { rejectUnauthorized: false },
-});
 
 export async function query<T = any>(
   text: string,
   params?: any[]
 ): Promise<QueryResult<T>> {
-  return pool.query<T>(text, params);
+  const pool = createPool();
+  try {
+    return await pool.query<T>(text, params);
+  } finally {
+    // Ensure connections are cleaned up quickly in serverless
+    await pool.end().catch(() => {});
+  }
 }
 
 // Tagged template helper:

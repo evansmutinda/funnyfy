@@ -34,7 +34,7 @@ export default async function handler(
     return res.status(500).json({
       ok: false,
       error: 'Database connection failed',
-      detail: process.env.NODE_ENV === 'development' ? String(err?.message || err) : undefined,
+      detail: String(err?.message || err),
     });
   }
 }
