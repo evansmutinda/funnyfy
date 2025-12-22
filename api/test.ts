@@ -30,10 +30,22 @@ function getImageUrlFromOutput(output: any): string | null {
   return null;
 }
 
-// Global monthly quota for now (no auth yet) – can be tuned per environment
-const GLOBAL_MONTHLY_QUOTA = Number(process.env.GLOBAL_MONTHLY_QUOTA || 1000);
 // Simple per-IP rate limit (requests per rolling minute)
 const IP_RATE_LIMIT_PER_MINUTE = Number(process.env.IP_RATE_LIMIT_PER_MINUTE || 30);
+
+// Subscription tier quotas (per month)
+const TIER_QUOTAS: Record<string, number> = {
+  'starter': 50,
+  'popular': 100,
+  'pro': 250,
+};
+
+function getQuotaForTier(tier: string | null): number {
+  if (!tier) {
+    throw new Error('User tier is required');
+  }
+  return TIER_QUOTAS[tier.toLowerCase()] || 0;
+}
 
 function getCurrentMonthDate(): string {
   const d = new Date();
@@ -53,6 +65,14 @@ function getCurrentMinuteWindow(): string {
   d.setSeconds(0, 0);
   return d.toISOString();
 }
+
+// Helper to extract userId from JWT/auth token (placeholder - implement based on your auth system)
+function extractUserIdFromAuth(authHeader: string): string | null {
+  // TODO: Implement JWT verification and extract userId
+  // For now, return null (requires proper implementation)
+  return null;
+}
+
 
 export default async function handler(
   req: VercelRequest,
@@ -162,8 +182,90 @@ export default async function handler(
     input: input
   };
 
-  // TODO: replace null user_id with real authenticated user when auth is added
-  const userId: string | null = null;
+  // User authentication required - no anonymous access
+  // In production, this should come from authenticated session/JWT
+  const userId: string | null = 
+    (req.headers['x-user-id'] as string) || 
+    (req.headers['authorization'] && extractUserIdFromAuth(req.headers['authorization'] as string)) ||
+    (body?.userId as string) || 
+    null;
+
+  if (!userId) {
+    return res.status(401).json({
+      ok: false,
+      error: 'AUTHENTICATION_REQUIRED',
+      message: 'User authentication required. Please sign in to continue.'
+    });
+  }
+
+  // --- Look up user tier and trial status (required) ---
+  let userTier: string | null = null;
+  let subscriptionStatus: string | null = null;
+  let trialGenerationsUsed: number = 0;
+  const TRIAL_LIMIT = 3;
+
+  try {
+    const userResult = await query<{ 
+      subscription_tier: string; 
+      subscription_status: string;
+      trial_generations_used: number;
+    }>(
+      `
+        SELECT subscription_tier, subscription_status, trial_generations_used
+        FROM users
+        WHERE id = $1
+      `,
+      [userId]
+    );
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({
+        ok: false,
+        error: 'USER_NOT_FOUND',
+        message: 'User account not found. Please sign up.'
+      });
+    }
+    
+    subscriptionStatus = userResult.rows[0].subscription_status;
+    userTier = userResult.rows[0].subscription_tier;
+    trialGenerationsUsed = userResult.rows[0].trial_generations_used ?? 0;
+
+    // Check if user is in trial and has remaining free generations
+    if (subscriptionStatus === 'trial' || (subscriptionStatus !== 'active' && trialGenerationsUsed < TRIAL_LIMIT)) {
+      // User is in trial - check if they've used all 3 free generations
+      if (trialGenerationsUsed >= TRIAL_LIMIT) {
+        return res.status(403).json({
+          ok: false,
+          error: 'TRIAL_EXPIRED',
+          message: 'You\'ve used all 3 free trial generations. Please subscribe to continue.',
+          trialUsed: trialGenerationsUsed,
+          trialLimit: TRIAL_LIMIT
+        });
+      }
+      // Trial user with remaining generations - allow this request
+      // We'll increment trial_generations_used after successful generation
+    } else if (subscriptionStatus !== 'active') {
+      // Not in trial and not active subscription
+      return res.status(403).json({
+        ok: false,
+        error: 'SUBSCRIPTION_INACTIVE',
+        message: 'Your subscription is not active. Please subscribe to continue.'
+      });
+    }
+  } catch (userErr) {
+    console.error('Failed to look up user:', userErr);
+    return res.status(500).json({
+      ok: false,
+      error: 'Failed to verify user account'
+    });
+  }
+
+  if (!userTier) {
+    return res.status(400).json({
+      ok: false,
+      error: 'INVALID_SUBSCRIPTION_TIER',
+      message: 'User subscription tier is invalid.'
+    });
+  }
 
   // --- Per-IP rate limiting (simple 1-minute window) ---
   const clientIp = getClientIp(req);
@@ -217,52 +319,76 @@ export default async function handler(
     // Do not block generation on rate limit DB issues (for now)
   }
 
-  // Global, anonymous quota check using usage_tracking where user_id IS NULL
-  const currentMonth = getCurrentMonthDate();
-  let usageRowId: string | null = null;
-  let currentCount = 0;
-
-  try {
-    const usageResult = await query<{ id: string; count: number }>(
-      `
-        SELECT id, count
-        FROM usage_tracking
-        WHERE user_id IS NULL AND month = $1
-      `,
-      [currentMonth]
-    );
-
-    if (usageResult.rows.length === 0) {
-      const insertUsage = await query<{ id: string }>(
-        `
-          INSERT INTO usage_tracking (user_id, month, count, last_reset_at)
-          VALUES (NULL, $1, 0, NOW())
-          RETURNING id
-        `,
-        [currentMonth]
-      );
-      usageRowId = insertUsage.rows[0]?.id ?? null;
-    } else {
-      usageRowId = usageResult.rows[0].id;
-      currentCount = usageResult.rows[0].count ?? 0;
-    }
-
-    if (currentCount >= GLOBAL_MONTHLY_QUOTA) {
-      return res.status(429).json({
+  // --- Quota check: trial users vs subscribed users ---
+  const isTrialUser = subscriptionStatus === 'trial' || (subscriptionStatus !== 'active' && trialGenerationsUsed < TRIAL_LIMIT);
+  
+  if (isTrialUser) {
+    // Trial user: check trial_generations_used (max 3)
+    if (trialGenerationsUsed >= TRIAL_LIMIT) {
+      return res.status(403).json({
         ok: false,
-        error: 'QUOTA_EXCEEDED',
-        message: 'Monthly image generation quota reached. Please try again next month.',
-        usage: {
-          current: currentCount,
-          limit: GLOBAL_MONTHLY_QUOTA,
-          month: currentMonth
-        }
+        error: 'TRIAL_EXPIRED',
+        message: 'You\'ve used all 3 free trial generations. Please subscribe to continue.',
+        trialUsed: trialGenerationsUsed,
+        trialLimit: TRIAL_LIMIT
       });
     }
-  } catch (quotaErr) {
-    console.error('Quota check failed (continuing without limit):', quotaErr);
-    // Do not block generation on quota DB issues (for now)
+  } else {
+    // Subscribed user: check monthly quota
+    const currentMonth = getCurrentMonthDate();
+    const quotaLimit = getQuotaForTier(userTier);
+    let usageRowId: string | null = null;
+    let currentCount = 0;
+
+    try {
+      const usageResult = await query<{ id: string; count: number }>(
+        `
+          SELECT id, count
+          FROM usage_tracking
+          WHERE user_id = $1 AND month = $2
+        `,
+        [userId, currentMonth]
+      );
+
+      if (usageResult.rows.length === 0) {
+        const insertUsage = await query<{ id: string }>(
+          `
+            INSERT INTO usage_tracking (user_id, month, count, last_reset_at)
+            VALUES ($1, $2, 0, NOW())
+            RETURNING id
+          `,
+          [userId, currentMonth]
+        );
+        usageRowId = insertUsage.rows[0]?.id ?? null;
+      } else {
+        usageRowId = usageResult.rows[0].id;
+        currentCount = usageResult.rows[0].count ?? 0;
+      }
+
+      if (currentCount >= quotaLimit) {
+        return res.status(429).json({
+          ok: false,
+          error: 'QUOTA_EXCEEDED',
+          message: `You've used all ${quotaLimit} images this month (${userTier} plan). Upgrade your plan or wait until next month.`,
+          usage: {
+            current: currentCount,
+            limit: quotaLimit,
+            month: currentMonth,
+            tier: userTier
+          }
+        });
+      }
+    } catch (quotaErr) {
+      console.error('Quota check failed:', quotaErr);
+      return res.status(500).json({
+        ok: false,
+        error: 'Failed to check usage quota'
+      });
+    }
   }
+
+  // Determine priority based on tier (Pro=10, Popular=5, Starter=1)
+  const priority = userTier === 'pro' ? 10 : userTier === 'popular' ? 5 : 1;
 
   // Create a job record before calling Replicate
   let jobId: string | null = null;
@@ -273,7 +399,7 @@ export default async function handler(
       VALUES ($1, $2, $3, $4, $5, NOW())
       RETURNING id
     `,
-      [userId, styleId, 'processing', 0, imageUrl]
+      [userId, styleId, 'processing', priority, imageUrl]
     );
     jobId = insertResult.rows[0]?.id ?? null;
   } catch (dbErr) {
@@ -404,16 +530,32 @@ export default async function handler(
       }
     }
 
-    // Increment usage count if we have a usage row
-    if (usageRowId) {
+    // Increment usage: trial users vs subscribed users
+    if (isTrialUser) {
+      // Increment trial_generations_used
+      try {
+        await query(
+          `
+            UPDATE users
+            SET trial_generations_used = trial_generations_used + 1
+            WHERE id = $1
+          `,
+          [userId]
+        );
+      } catch (trialUpdateErr) {
+        console.error('Failed to increment trial usage:', trialUpdateErr);
+      }
+    } else {
+      // Increment monthly usage count
+      const currentMonth = getCurrentMonthDate();
       try {
         await query(
           `
             UPDATE usage_tracking
             SET count = count + 1
-            WHERE id = $1
+            WHERE user_id = $1 AND month = $2
           `,
-          [usageRowId]
+          [userId, currentMonth]
         );
       } catch (usageUpdateErr) {
         console.error('Failed to increment usage count:', usageUpdateErr);

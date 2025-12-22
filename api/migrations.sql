@@ -10,9 +10,10 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email VARCHAR(255) UNIQUE,
-  subscription_tier VARCHAR(20) NOT NULL,   -- 'starter', 'popular', 'pro'
-  subscription_status VARCHAR(20) NOT NULL, -- 'active', 'canceled', 'expired'
+  subscription_tier VARCHAR(20) NOT NULL,   -- 'starter', 'popular', 'pro', 'trial'
+  subscription_status VARCHAR(20) NOT NULL, -- 'active', 'canceled', 'expired', 'trial'
   billing_date DATE NOT NULL,               -- when monthly quota resets
+  trial_generations_used INTEGER DEFAULT 0,  -- count of free trial generations used (max 3)
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
