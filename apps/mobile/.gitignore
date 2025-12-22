@@ -1,0 +1,33 @@
+# Expo
+.expo/
+.expo-shared/
+dist/
+web-build/
+
+# Native
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+android/
+ios/
+
+# Vercel
+.vercel
+.env*.local
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
