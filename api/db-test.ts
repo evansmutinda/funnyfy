@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getEnabledStyles } from './styles-config';
+import { query } from './db';
 
 const allowedOrigin = process.env.ALLOWED_ORIGIN || '*';
 
@@ -23,16 +23,19 @@ export default async function handler(
     return res.status(405).json({ ok: false, error: 'Only GET allowed' });
   }
 
-  // Get all enabled styles from shared config
-  const styles = getEnabledStyles();
-
-  // Return styles (prompts are protected on server - not sent to client)
-  return res.status(200).json({
-    ok: true,
-    styles: styles.map(({ prompt, model, ...style }) => ({
-      ...style,
-      // Don't send prompt or model to client - they're protected
-      // Prompt and model will be used server-side only in test.ts
-    }))
-  });
+  try {
+    const result = await query<{ now: string }>('SELECT NOW() as now');
+    return res.status(200).json({
+      ok: true,
+      now: result.rows[0]?.now,
+    });
+  } catch (err: any) {
+    console.error('[db-test] DB connection failed:', err);
+    return res.status(500).json({
+      ok: false,
+      error: 'Database connection failed',
+      detail: process.env.NODE_ENV === 'development' ? String(err?.message || err) : undefined,
+    });
+  }
 }
+
