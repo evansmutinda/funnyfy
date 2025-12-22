@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { query } from './db';
 
 const allowedOrigin = process.env.ALLOWED_ORIGIN || '*';
 const targetUrl = process.env.TARGET_API_URL;
@@ -11,6 +12,31 @@ const setCors = (res: VercelResponse) => {
   res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 };
+
+// Very simple helper to extract an image URL from Replicate output
+function getImageUrlFromOutput(output: any): string | null {
+  if (!output) return null;
+  if (typeof output === 'string') return output;
+  if (Array.isArray(output) && output.length > 0) {
+    const first = output[0];
+    if (typeof first === 'string') return first;
+    if (first && typeof first === 'object' && typeof first.url === 'string') {
+      return first.url;
+    }
+  }
+  if (output && typeof output === 'object' && typeof (output as any).url === 'string') {
+    return (output as any).url;
+  }
+  return null;
+}
+
+// Global monthly quota for now (no auth yet) – can be tuned per environment
+const GLOBAL_MONTHLY_QUOTA = Number(process.env.GLOBAL_MONTHLY_QUOTA || 1000);
+
+function getCurrentMonthDate(): string {
+  const d = new Date();
+  return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0, 10);
+}
 
 export default async function handler(
   req: VercelRequest,
@@ -120,6 +146,73 @@ export default async function handler(
     input: input
   };
 
+  // TODO: replace null user_id with real authenticated user when auth is added
+  const userId: string | null = null;
+
+  // Global, anonymous quota check using usage_tracking where user_id IS NULL
+  const currentMonth = getCurrentMonthDate();
+  let usageRowId: string | null = null;
+  let currentCount = 0;
+
+  try {
+    const usageResult = await query<{ id: string; count: number }>(
+      `
+        SELECT id, count
+        FROM usage_tracking
+        WHERE user_id IS NULL AND month = $1
+      `,
+      [currentMonth]
+    );
+
+    if (usageResult.rows.length === 0) {
+      const insertUsage = await query<{ id: string }>(
+        `
+          INSERT INTO usage_tracking (user_id, month, count, last_reset_at)
+          VALUES (NULL, $1, 0, NOW())
+          RETURNING id
+        `,
+        [currentMonth]
+      );
+      usageRowId = insertUsage.rows[0]?.id ?? null;
+    } else {
+      usageRowId = usageResult.rows[0].id;
+      currentCount = usageResult.rows[0].count ?? 0;
+    }
+
+    if (currentCount >= GLOBAL_MONTHLY_QUOTA) {
+      return res.status(429).json({
+        ok: false,
+        error: 'QUOTA_EXCEEDED',
+        message: 'Monthly image generation quota reached. Please try again next month.',
+        usage: {
+          current: currentCount,
+          limit: GLOBAL_MONTHLY_QUOTA,
+          month: currentMonth
+        }
+      });
+    }
+  } catch (quotaErr) {
+    console.error('Quota check failed (continuing without limit):', quotaErr);
+    // Do not block generation on quota DB issues (for now)
+  }
+
+  // Create a job record before calling Replicate
+  let jobId: string | null = null;
+  try {
+    const insertResult = await query<{ id: string }>(
+      `
+      INSERT INTO jobs (user_id, style_id, status, priority, input_image_url, created_at)
+      VALUES ($1, $2, $3, $4, $5, NOW())
+      RETURNING id
+    `,
+      [userId, styleId, 'processing', 0, imageUrl]
+    );
+    jobId = insertResult.rows[0]?.id ?? null;
+  } catch (dbErr) {
+    console.error('Failed to insert job record:', dbErr);
+    // We don't fail the whole request here; just continue without job tracking.
+  }
+
   try {
     const fetchRes = await fetch(targetUrl, {
       method: 'POST',
@@ -144,7 +237,29 @@ export default async function handler(
         requestBody: upstreamBody,
         responseData: data
       });
-      
+
+      // Update job as failed, if we created one
+      if (jobId) {
+        try {
+          await query(
+            `
+            UPDATE jobs
+            SET status = $1,
+                error_message = $2,
+                completed_at = NOW()
+            WHERE id = $3
+          `,
+            [
+              'failed',
+              typeof data === 'object' ? JSON.stringify(data) : String(data),
+              jobId
+            ]
+          );
+        } catch (dbErr) {
+          console.error('Failed to update job as failed:', dbErr);
+        }
+      }
+
       // Return generic error to client (don't expose internal details)
       const statusCode = fetchRes.status >= 500 ? 500 : 400;
       return res.status(statusCode).json({
@@ -199,15 +314,71 @@ export default async function handler(
       // Fall back to returning the initial prediction if polling fails.
     }
 
+    // Update job as completed, if we created one
+    if (jobId) {
+      const outputUrl = getImageUrlFromOutput((data as any)?.output);
+      const replicateId = (data as any)?.id ?? null;
+
+      try {
+        await query(
+          `
+          UPDATE jobs
+          SET status = $1,
+              output_image_url = $2,
+              replicate_prediction_id = $3,
+              completed_at = NOW()
+          WHERE id = $4
+        `,
+          ['completed', outputUrl, replicateId, jobId]
+        );
+      } catch (dbErr) {
+        console.error('Failed to update job as completed:', dbErr);
+      }
+    }
+
+    // Increment usage count if we have a usage row
+    if (usageRowId) {
+      try {
+        await query(
+          `
+            UPDATE usage_tracking
+            SET count = count + 1
+            WHERE id = $1
+          `,
+          [usageRowId]
+        );
+      } catch (usageUpdateErr) {
+        console.error('Failed to increment usage count:', usageUpdateErr);
+      }
+    }
+
     return res.status(200).json({
       ok: true,
       status: fetchRes.status,
       data
     });
-  } catch (err) {
+  } catch (err: any) {
     // Log full error details for debugging (server-side only)
     console.error('Upstream API call failed:', err);
-    
+
+    // Update job as failed, if we created one
+    if (jobId) {
+      try {
+        await query(
+          `
+          UPDATE jobs
+          SET status = $1,
+              error_message = $2,
+              completed_at = NOW()
+          WHERE id = $3
+        `,
+          ['failed', String(err?.message || err), jobId]
+        );
+      } catch (dbErr) {
+        console.error('Failed to update job as failed (exception path):', dbErr);
+      }
+    }
+
     // Return generic error to client (don't expose internal details)
     return res
       .status(500)
