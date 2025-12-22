@@ -9,25 +9,34 @@
 
 import { Pool, QueryResult } from 'pg';
 
-const connectionString = process.env.DATABASE_URL;
+let poolInstance: Pool | null = null;
 
-if (!connectionString) {
-  console.warn(
-    '[db] DATABASE_URL is not set. Database queries will fail until this is configured.'
-  );
+function getPool(): Pool {
+  if (!poolInstance) {
+    const connectionString = process.env.DATABASE_URL;
+    
+    if (!connectionString) {
+      throw new Error(
+        'DATABASE_URL environment variable is not set. Please configure it in Vercel project settings.'
+      );
+    }
+
+    // Supabase requires TLS; disable certificate verification in serverless environments.
+    // For production hardening, you can configure proper CA trust instead.
+    poolInstance = new Pool({
+      connectionString,
+      ssl: { rejectUnauthorized: false },
+    });
+  }
+  
+  return poolInstance;
 }
-
-// Supabase requires TLS; disable certificate verification in serverless environments.
-// For production hardening, you can configure proper CA trust instead.
-export const pool = new Pool({
-  connectionString,
-  ssl: { rejectUnauthorized: false },
-});
 
 export async function query<T = any>(
   text: string,
   params?: any[]
 ): Promise<QueryResult<T>> {
+  const pool = getPool();
   return pool.query<T>(text, params);
 }
 

@@ -31,10 +31,18 @@ export default async function handler(
     });
   } catch (err: any) {
     console.error('[db-test] DB connection failed:', err);
+    const errorMessage = err?.message || String(err);
+    const hasDbUrl = !!process.env.DATABASE_URL;
+    
     return res.status(500).json({
       ok: false,
       error: 'Database connection failed',
-      detail: process.env.NODE_ENV === 'development' ? String(err?.message || err) : undefined,
+      detail: errorMessage,
+      hasDatabaseUrl: hasDbUrl,
+      // Show first few chars of connection string for debugging (safe - no password)
+      connectionHint: hasDbUrl 
+        ? process.env.DATABASE_URL?.substring(0, 30) + '...' 
+        : 'DATABASE_URL not set',
     });
   }
 }
