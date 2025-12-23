@@ -51,6 +51,8 @@ export default async function handler(
     });
   }
 
+  const debug = req.query.debug === '1' || req.query.debug === 'true';
+
   try {
     // Get user info
     // Look up user by primary key OR by revenuecat_user_id (for appUserID-based auth)
@@ -155,7 +157,8 @@ export default async function handler(
     console.error('[user/subscription] Failed to get subscription:', err);
     return res.status(500).json({
       ok: false,
-      error: 'Failed to get subscription info'
+      error: 'Failed to get subscription info',
+      ...(debug ? { detail: String(err?.message || err) } : {})
     });
   }
 }
