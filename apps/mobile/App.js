@@ -25,6 +25,8 @@ import * as Sharing from 'expo-sharing';
 import { initRevenueCat, getOfferings, purchasePackage, hasRevenueCatKey } from './services/revenuecat';
 
 const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'https://funnyfyapp.vercel.app';
+// Temporary test user id used for RevenueCat appUserID and FunnyFy backend (via x-user-id)
+const TEST_USER_ID = 'test-user-123';
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 // Style preview images used for pictorial style cards
@@ -152,7 +154,7 @@ function StyleScreen({ selectedStyle, availableStyles, onNext, onSubscribe, subs
   );
 }
 
-function UploadScreen({ style, onStart, onBackToStyle }) {
+function UploadScreen({ style, onStart, onBackToStyle, canGenerateMore, subscriptionInfo }) {
   const insets = useSafeAreaInsets();
   const [imageUri, setImageUri] = useState(null);
   const [imageDataUrl, setImageDataUrl] = useState(null);
@@ -226,7 +228,8 @@ function UploadScreen({ style, onStart, onBackToStyle }) {
     }
   };
 
-  const canGenerate = !!imageUri && !picking;
+  const quotaOk = canGenerateMore !== false;
+  const canGenerate = !!imageUri && !picking && quotaOk;
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -272,7 +275,9 @@ function UploadScreen({ style, onStart, onBackToStyle }) {
             onPress={() => onStart({ imageUri, imageDataUrl })}
             disabled={!canGenerate || picking}
           >
-            <Text style={styles.buttonText}>✨ Generate Caricature</Text>
+            <Text style={styles.buttonText}>
+              {quotaOk ? '✨ Generate Caricature' : 'Quota reached – upgrade to continue'}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -543,20 +548,53 @@ export default function App() {
   const [availableStyles, setAvailableStyles] = useState([]);
   const [subscribeLoading, setSubscribeLoading] = useState(false);
   const [hasRcKey, setHasRcKey] = useState(false);
+  const [subscriptionInfo, setSubscriptionInfo] = useState(null);
+  const [subscriptionLoading, setSubscriptionLoading] = useState(false);
 
   useEffect(() => {
     // Initialize RevenueCat with a placeholder user id (replace with real auth later)
-    const userId = 'test-user-123';
     const hasKey = hasRevenueCatKey();
     setHasRcKey(hasKey);
     if (!hasKey) {
       console.warn('[RevenueCat] Missing SDK key, skipping init');
       return;
     }
-    initRevenueCat(userId).catch((err) => {
+    initRevenueCat(TEST_USER_ID).catch((err) => {
       console.error('[RevenueCat] init error:', err);
     });
   }, []);
+
+  const refreshSubscription = async () => {
+    setSubscriptionLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/user/subscription?userId=${encodeURIComponent(TEST_USER_ID)}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': TEST_USER_ID,
+        },
+      });
+      const text = await res.text();
+      console.log('[subscription] response:', text);
+      let json;
+      try {
+        json = JSON.parse(text);
+      } catch {
+        console.error('[subscription] invalid JSON');
+        return;
+      }
+      if (!res.ok || !json.ok) {
+        console.warn('[subscription] non-ok response:', json);
+        setSubscriptionInfo(null);
+        return;
+      }
+      setSubscriptionInfo(json);
+    } catch (err) {
+      console.error('[subscription] error:', err);
+    } finally {
+      setSubscriptionLoading(false);
+    }
+  };
 
   useEffect(() => {
     const fetchStyles = async () => {
@@ -582,6 +620,8 @@ export default function App() {
     };
 
     fetchStyles();
+    // Also try to load subscription info on startup
+    refreshSubscription();
   }, []);
 
   useEffect(() => {
@@ -690,6 +730,8 @@ export default function App() {
       const selected = pkgs[0];
       await purchasePackage(selected);
       Alert.alert('Subscriptions', 'Purchase successful. Thank you!');
+      // After purchase, refresh subscription info from backend
+      await refreshSubscription();
     } catch (err) {
       console.error('[RevenueCat] purchase error:', err);
       Alert.alert('Subscriptions', 'Purchase failed or was cancelled.');
@@ -754,6 +796,18 @@ export default function App() {
         <UploadScreen
           style={style}
           onStart={handleUploadStart}
+          canGenerateMore={
+            subscriptionInfo
+              ? // If not trial and we have usage + limit, enforce quota
+                !(
+                  !subscriptionInfo.isTrial &&
+                  subscriptionInfo.usage &&
+                  subscriptionInfo.usage.limit > 0 &&
+                  subscriptionInfo.usage.current >= subscriptionInfo.usage.limit
+                )
+              : true
+          }
+          subscriptionInfo={subscriptionInfo}
           onBackToStyle={() => setScreen('style')}
         />
       </SafeAreaProvider>
