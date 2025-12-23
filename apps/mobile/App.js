@@ -637,6 +637,7 @@ export default function App() {
         setResult(null);
 
         const payload = {
+          userId: TEST_USER_ID,
           payload: {
             styleId: style.id,
             imageUrl: imageDataUrl || null,
@@ -646,7 +647,10 @@ export default function App() {
         try {
           const res = await fetch(`${API_BASE}/api/test`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+              'x-user-id': TEST_USER_ID,
+            },
             body: JSON.stringify(payload),
           });
 

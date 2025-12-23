@@ -199,24 +199,30 @@ export default async function handler(
   }
 
   // --- Look up user tier and trial status (required) ---
+  let dbUserId: string | null = null;
   let userTier: string | null = null;
   let subscriptionStatus: string | null = null;
   let trialGenerationsUsed: number = 0;
   const TRIAL_LIMIT = 3;
 
   try {
-    const userResult = await query<{ 
-      subscription_tier: string; 
+    const userResult = await query<{
+      id: string;
+      subscription_tier: string;
       subscription_status: string;
-      trial_generations_used: number;
+      trial_generations_used: number | null;
     }>(
       `
-        SELECT subscription_tier, subscription_status, trial_generations_used
+        SELECT id, subscription_tier, subscription_status, trial_generations_used
         FROM users
-        WHERE id = $1
+        WHERE id::text = $1
+           OR revenuecat_user_id = $1
+        ORDER BY created_at DESC
+        LIMIT 1
       `,
       [userId]
     );
+
     if (userResult.rows.length === 0) {
       return res.status(404).json({
         ok: false,
@@ -224,10 +230,12 @@ export default async function handler(
         message: 'User account not found. Please sign up.'
       });
     }
-    
-    subscriptionStatus = userResult.rows[0].subscription_status;
-    userTier = userResult.rows[0].subscription_tier;
-    trialGenerationsUsed = userResult.rows[0].trial_generations_used ?? 0;
+
+    const user = userResult.rows[0];
+    dbUserId = user.id;
+    subscriptionStatus = user.subscription_status;
+    userTier = user.subscription_tier;
+    trialGenerationsUsed = user.trial_generations_used ?? 0;
 
     // Check if user is in trial and has remaining free generations
     if (subscriptionStatus === 'trial' || (subscriptionStatus !== 'active' && trialGenerationsUsed < TRIAL_LIMIT)) {
@@ -259,11 +267,11 @@ export default async function handler(
     });
   }
 
-  if (!userTier) {
+  if (!userTier || !dbUserId) {
     return res.status(400).json({
-      ok: false,
-      error: 'INVALID_SUBSCRIPTION_TIER',
-      message: 'User subscription tier is invalid.'
+    ok: false,
+    error: 'INVALID_SUBSCRIPTION_TIER',
+    message: 'User subscription is not configured correctly.'
     });
   }
 
@@ -333,59 +341,59 @@ export default async function handler(
         trialLimit: TRIAL_LIMIT
       });
     }
-  } else {
-    // Subscribed user: check monthly quota
-    const currentMonth = getCurrentMonthDate();
-    const quotaLimit = getQuotaForTier(userTier);
-    let usageRowId: string | null = null;
-    let currentCount = 0;
+    } else {
+      // Subscribed user: check monthly quota
+      const currentMonth = getCurrentMonthDate();
+      const quotaLimit = getQuotaForTier(userTier);
+      let usageRowId: string | null = null;
+      let currentCount = 0;
 
-    try {
-      const usageResult = await query<{ id: string; count: number }>(
-        `
-          SELECT id, count
-          FROM usage_tracking
-          WHERE user_id = $1 AND month = $2
-        `,
-        [userId, currentMonth]
-      );
-
-      if (usageResult.rows.length === 0) {
-        const insertUsage = await query<{ id: string }>(
+      try {
+        const usageResult = await query<{ id: string; count: number }>(
           `
-            INSERT INTO usage_tracking (user_id, month, count, last_reset_at)
-            VALUES ($1, $2, 0, NOW())
-            RETURNING id
+            SELECT id, count
+            FROM usage_tracking
+            WHERE user_id = $1 AND month = $2
           `,
-          [userId, currentMonth]
+          [dbUserId, currentMonth]
         );
-        usageRowId = insertUsage.rows[0]?.id ?? null;
-      } else {
-        usageRowId = usageResult.rows[0].id;
-        currentCount = usageResult.rows[0].count ?? 0;
-      }
 
-      if (currentCount >= quotaLimit) {
-        return res.status(429).json({
+        if (usageResult.rows.length === 0) {
+          const insertUsage = await query<{ id: string }>(
+            `
+              INSERT INTO usage_tracking (user_id, month, count, last_reset_at)
+              VALUES ($1, $2, 0, NOW())
+              RETURNING id
+            `,
+            [dbUserId, currentMonth]
+          );
+          usageRowId = insertUsage.rows[0]?.id ?? null;
+        } else {
+          usageRowId = usageResult.rows[0].id;
+          currentCount = usageResult.rows[0].count ?? 0;
+        }
+
+        if (currentCount >= quotaLimit) {
+          return res.status(429).json({
+            ok: false,
+            error: 'QUOTA_EXCEEDED',
+            message: `You've used all ${quotaLimit} images this month (${userTier} plan). Upgrade your plan or wait until next month.`,
+            usage: {
+              current: currentCount,
+              limit: quotaLimit,
+              month: currentMonth,
+              tier: userTier
+            }
+          });
+        }
+      } catch (quotaErr) {
+        console.error('Quota check failed:', quotaErr);
+        return res.status(500).json({
           ok: false,
-          error: 'QUOTA_EXCEEDED',
-          message: `You've used all ${quotaLimit} images this month (${userTier} plan). Upgrade your plan or wait until next month.`,
-          usage: {
-            current: currentCount,
-            limit: quotaLimit,
-            month: currentMonth,
-            tier: userTier
-          }
+          error: 'Failed to check usage quota'
         });
       }
-    } catch (quotaErr) {
-      console.error('Quota check failed:', quotaErr);
-      return res.status(500).json({
-        ok: false,
-        error: 'Failed to check usage quota'
-      });
     }
-  }
 
   // Determine priority based on tier (Pro=10, Popular=5, Starter=1)
   const priority = userTier === 'pro' ? 10 : userTier === 'popular' ? 5 : 1;
@@ -399,7 +407,7 @@ export default async function handler(
       VALUES ($1, $2, $3, $4, $5, NOW())
       RETURNING id
     `,
-      [userId, styleId, 'processing', priority, imageUrl]
+      [dbUserId, styleId, 'processing', priority, imageUrl]
     );
     jobId = insertResult.rows[0]?.id ?? null;
   } catch (dbErr) {
