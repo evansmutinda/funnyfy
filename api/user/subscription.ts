@@ -38,12 +38,12 @@ export default async function handler(
   }
 
   // User authentication required
-  const userId: string | null = 
+  const userIdRaw: string | null = 
     (req.headers['x-user-id'] as string) || 
     (req.query.userId as string) ||
     null;
 
-  if (!userId) {
+  if (!userIdRaw) {
     return res.status(401).json({
       ok: false,
       error: 'AUTHENTICATION_REQUIRED',
@@ -53,18 +53,23 @@ export default async function handler(
 
   try {
     // Get user info
+    // Look up user by primary key OR by revenuecat_user_id (for appUserID-based auth)
     const userResult = await query<{
-      subscription_tier: string;
-      subscription_status: string;
-      trial_generations_used: number;
-      billing_date: string;
+      id: string;
+      subscription_tier: string | null;
+      subscription_status: string | null;
+      trial_generations_used: number | null;
+      billing_date: string | null;
     }>(
       `
-        SELECT subscription_tier, subscription_status, trial_generations_used, billing_date
+        SELECT id, subscription_tier, subscription_status, trial_generations_used, billing_date
         FROM users
-        WHERE id = $1
+        WHERE id::text = $1
+           OR revenuecat_user_id = $1
+        ORDER BY created_at DESC
+        LIMIT 1
       `,
-      [userId]
+      [userIdRaw]
     );
 
     if (userResult.rows.length === 0) {
@@ -75,7 +80,8 @@ export default async function handler(
     }
 
     const user = userResult.rows[0];
-    const subscriptionStatus = user.subscription_status;
+    const userId = user.id;
+    const subscriptionStatus = user.subscription_status ?? 'trial';
     const trialGenerationsUsed = user.trial_generations_used ?? 0;
     const TRIAL_LIMIT = 3;
     const isTrialUser = subscriptionStatus === 'trial' || 
