@@ -7,27 +7,34 @@ import crypto from 'crypto';
 
 const REVENUECAT_WEBHOOK_SECRET = process.env.REVENUECAT_WEBHOOK_SECRET;
 
-// Verify webhook signature (RevenueCat sends Authorization header)
-function verifyWebhookSignature(authHeader: string | undefined, body: string): boolean {
+// Verify webhook auth header from RevenueCat.
+// In RevenueCat, you configure an Authorization header value (e.g. `Bearer <secret>`).
+// We compare that value to the shared secret from REVENUECAT_WEBHOOK_SECRET.
+function verifyWebhookSignature(authHeader: string | string[] | undefined): boolean {
   if (!REVENUECAT_WEBHOOK_SECRET) {
     console.warn('[revenuecat-webhook] REVENUECAT_WEBHOOK_SECRET not set, skipping verification');
     return true; // Allow in development if secret not set
   }
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  if (!authHeader) {
     return false;
   }
 
-  const signature = authHeader.replace('Bearer ', '');
-  const expectedSignature = crypto
-    .createHmac('sha256', REVENUECAT_WEBHOOK_SECRET)
-    .update(body)
-    .digest('hex');
+  const headerValue = Array.isArray(authHeader) ? authHeader[0] : authHeader;
+  if (!headerValue) return false;
 
-  return crypto.timingSafeEqual(
-    Buffer.from(signature),
-    Buffer.from(expectedSignature)
-  );
+  const candidate = headerValue.trim();
+  const bare = REVENUECAT_WEBHOOK_SECRET;
+  const bearer = `Bearer ${REVENUECAT_WEBHOOK_SECRET}`;
+
+  const safeEquals = (a: string, b: string) => {
+    const aBuf = Buffer.from(a);
+    const bBuf = Buffer.from(b);
+    if (aBuf.length !== bBuf.length) return false;
+    return crypto.timingSafeEqual(aBuf, bBuf);
+  };
+
+  return safeEquals(candidate, bare) || safeEquals(candidate, bearer);
 }
 
 // Map RevenueCat product ID to tier
@@ -93,9 +100,9 @@ export default async function handler(
     ? req.body 
     : JSON.stringify(req.body);
 
-  // Verify webhook signature
-  const authHeader = req.headers['authorization'] as string | undefined;
-  if (!verifyWebhookSignature(authHeader, rawBody)) {
+  // Verify webhook auth header matches our shared secret
+  const authHeader = req.headers['authorization'];
+  if (!verifyWebhookSignature(authHeader)) {
     console.error('[revenuecat-webhook] Invalid signature');
     return res.status(401).json({ ok: false, error: 'Invalid signature' });
   }
