@@ -22,6 +22,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
 import * as Sharing from 'expo-sharing';
+import { initRevenueCat, getOfferings, purchasePackage, hasRevenueCatKey } from './services/revenuecat';
 
 const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'https://funnyfyapp.vercel.app';
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -96,7 +97,7 @@ function SplashScreen({ onComplete }) {
   );
 }
 
-function StyleScreen({ selectedStyle, availableStyles, onNext }) {
+function StyleScreen({ selectedStyle, availableStyles, onNext, onSubscribe, subscribeLoading }) {
   const insets = useSafeAreaInsets();
   const styleList = Array.isArray(availableStyles) && availableStyles.length > 0
     ? availableStyles
@@ -112,6 +113,15 @@ function StyleScreen({ selectedStyle, availableStyles, onNext }) {
             ? `Pick from ${styleList.length} amazing styles`
             : 'Transform your photos with our signature styles'}
         </Text>
+        <TouchableOpacity
+          style={[styles.subscribeButton, (subscribeLoading) && styles.buttonDisabled]}
+          onPress={onSubscribe}
+          disabled={subscribeLoading}
+        >
+          <Text style={styles.subscribeButtonText}>
+            {subscribeLoading ? 'Checking...' : 'Manage Subscription'}
+          </Text>
+        </TouchableOpacity>
 
         <View style={styles.styleGrid}>
           {styleList.map((s) => (
@@ -531,6 +541,22 @@ export default function App() {
   const [error, setError] = useState('');
   const [job, setJob] = useState(null);
   const [availableStyles, setAvailableStyles] = useState([]);
+  const [subscribeLoading, setSubscribeLoading] = useState(false);
+  const [hasRcKey, setHasRcKey] = useState(false);
+
+  useEffect(() => {
+    // Initialize RevenueCat with a placeholder user id (replace with real auth later)
+    const userId = 'test-user-123';
+    const hasKey = hasRevenueCatKey();
+    setHasRcKey(hasKey);
+    if (!hasKey) {
+      console.warn('[RevenueCat] Missing SDK key, skipping init');
+      return;
+    }
+    initRevenueCat(userId).catch((err) => {
+      console.error('[RevenueCat] init error:', err);
+    });
+  }, []);
 
   useEffect(() => {
     const fetchStyles = async () => {
@@ -648,6 +674,30 @@ export default function App() {
     [style]
   );
 
+  const handleSubscribe = async () => {
+    setSubscribeLoading(true);
+    setError('');
+    try {
+      if (!hasRcKey) {
+        Alert.alert('Subscriptions', 'RevenueCat SDK key is missing. Please set EXPO_PUBLIC_REVENUECAT_* env vars.');
+        return;
+      }
+      const pkgs = await getOfferings();
+      if (!pkgs || pkgs.length === 0) {
+        Alert.alert('Subscriptions', 'No offerings available yet.');
+        return;
+      }
+      const selected = pkgs[0];
+      await purchasePackage(selected);
+      Alert.alert('Subscriptions', 'Purchase successful. Thank you!');
+    } catch (err) {
+      console.error('[RevenueCat] purchase error:', err);
+      Alert.alert('Subscriptions', 'Purchase failed or was cancelled.');
+    } finally {
+      setSubscribeLoading(false);
+    }
+  };
+
   const handleUploadStart = async ({ imageUri, imageDataUrl }) => {
     setOriginal({ imageUri, prompt: style?.prompt });
     setScreen('result');
@@ -687,6 +737,8 @@ export default function App() {
         <StyleScreen
           selectedStyle={style}
           availableStyles={availableStyles}
+          onSubscribe={handleSubscribe}
+          subscribeLoading={subscribeLoading}
           onNext={(s) => {
             setStyle(s);
             setScreen('upload');
@@ -815,6 +867,19 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     fontWeight: '500',
     lineHeight: 22,
+  },
+  subscribeButton: {
+    alignSelf: 'center',
+    marginTop: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    backgroundColor: '#111827',
+    borderRadius: 12,
+  },
+  subscribeButtonText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 15,
   },
   sectionLabel: {
     fontSize: 11,
