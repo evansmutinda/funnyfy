@@ -104,63 +104,21 @@ function StyleScreen({
   selectedStyle,
   availableStyles,
   onNext,
-  onSubscribe,
-  subscribeLoading,
-  subscriptionInfo,
-  subscriptionLoading,
-  onRefreshSubscription,
+  onOpenSubscription,
 }) {
   const insets = useSafeAreaInsets();
   const styleList = Array.isArray(availableStyles) && availableStyles.length > 0
     ? availableStyles
     : [STYLE_90S_CARTOON];
 
-  const renderPlanLabel = () => {
-    if (subscriptionLoading) {
-      return 'Loading your plan…';
-    }
-
-    if (!subscriptionInfo) {
-      return 'Free trial • Limited caricatures until you subscribe';
-    }
-
-    const { subscription, usage, isTrial } = subscriptionInfo;
-
-    if (isTrial || !subscription) {
-      const current = usage?.current ?? 0;
-      const limit = usage?.limit ?? 3;
-      return `Free trial • ${current}/${limit} caricatures used this month`;
-    }
-
-    const tierLabel = (subscription.tier || 'starter')
-      .toString()
-      .replace(/^\w/, (c) => c.toUpperCase());
-
-    if (usage && typeof usage.current === 'number' && typeof usage.limit === 'number' && usage.limit > 0) {
-      const remaining = Math.max(0, usage.limit - usage.current);
-      return `${tierLabel} plan • ${remaining} of ${usage.limit} caricatures remaining this month`;
-    }
-
-    return `${tierLabel} plan`;
-  };
-
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="dark-content" />
       <ScrollView contentContainerStyle={[styles.styleContainer, { paddingBottom: Math.max(insets.bottom, 24) }]}>
-        <Text style={styles.title}>✨ Choose Your Style</Text>
-        <View style={styles.subscriptionSummaryContainer}>
-          <View style={styles.subscriptionPlanPill}>
-            <Text style={styles.subscriptionPlanPillText}>{renderPlanLabel()}</Text>
-          </View>
-          <TouchableOpacity
-            style={styles.subscriptionRefreshButton}
-            onPress={onRefreshSubscription}
-            disabled={subscriptionLoading}
-          >
-            <Text style={styles.subscriptionRefreshText}>
-              {subscriptionLoading ? 'Refreshing…' : 'Refresh'}
-            </Text>
+        <View style={styles.styleHeader}>
+          <Text style={styles.title}>✨ Choose Your Style</Text>
+          <TouchableOpacity onPress={onOpenSubscription} style={styles.menuButton}>
+            <Text style={styles.menuButtonIcon}>⚙️</Text>
           </TouchableOpacity>
         </View>
         <Text style={styles.subtitle}>
@@ -168,15 +126,6 @@ function StyleScreen({
             ? `Pick from ${styleList.length} amazing styles`
             : 'Transform your photos with our signature styles'}
         </Text>
-        <TouchableOpacity
-          style={[styles.subscribeButton, (subscribeLoading) && styles.buttonDisabled]}
-          onPress={onSubscribe}
-          disabled={subscribeLoading}
-        >
-          <Text style={styles.subscribeButtonText}>
-            {subscribeLoading ? 'Checking...' : subscriptionInfo?.subscription ? 'Manage Subscription' : 'Subscribe Now'}
-          </Text>
-        </TouchableOpacity>
 
         <View style={styles.styleGrid}>
           {styleList.map((s) => (
@@ -401,6 +350,236 @@ function UploadScreen({ style, onStart, onBackToStyle, canGenerateMore, subscrip
           </TouchableOpacity>
         </View>
       </View>
+    </SafeAreaView>
+  );
+}
+
+function SubscriptionScreen({
+  subscriptionInfo,
+  subscriptionLoading,
+  onRefreshSubscription,
+  onSubscribe,
+  subscribeLoading,
+  onClose,
+}) {
+  const insets = useSafeAreaInsets();
+
+  const getQuotaInfo = () => {
+    if (!subscriptionInfo || !subscriptionInfo.usage) {
+      return { current: 0, limit: 3, percentage: 0, remaining: 3 };
+    }
+    const { current, limit } = subscriptionInfo.usage;
+    const percentage = limit > 0 ? (current / limit) * 100 : 0;
+    const remaining = Math.max(0, limit - current);
+    return { current, limit, percentage, remaining };
+  };
+
+  const quotaInfo = getQuotaInfo();
+  const isTrial = subscriptionInfo?.isTrial || !subscriptionInfo?.subscription;
+  const subscription = subscriptionInfo?.subscription;
+
+  const TIER_INFO = {
+    starter: { name: 'Starter', price: '$4.99', quota: 50, features: ['50 caricatures/month', 'All styles', 'HD quality'] },
+    popular: { name: 'Popular', price: '$9.99', quota: 100, features: ['100 caricatures/month', 'All styles', 'HD quality', 'Priority processing'] },
+    pro: { name: 'Pro', price: '$24.99', quota: 250, features: ['250 caricatures/month', 'All styles', 'HD quality', 'Priority processing', 'Early access to new styles'] },
+  };
+
+  return (
+    <SafeAreaView style={styles.safe}>
+      <StatusBar barStyle="dark-content" />
+      <ScrollView contentContainerStyle={[styles.subscriptionContainer, { paddingBottom: Math.max(insets.bottom, 24) }]}>
+        <View style={styles.subscriptionHeader}>
+          <Text style={styles.subscriptionTitle}>Subscription & Usage</Text>
+          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <Text style={styles.closeButtonIcon}>✕</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Current Plan Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Current Plan</Text>
+          {subscriptionLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color="#f97316" />
+              <Text style={styles.loadingText}>Loading subscription...</Text>
+            </View>
+          ) : isTrial ? (
+            <View style={styles.planCard}>
+              <View style={styles.planCardHeader}>
+                <Text style={styles.planCardTitle}>Free Trial</Text>
+                <View style={styles.trialBadge}>
+                  <Text style={styles.trialBadgeText}>Trial</Text>
+                </View>
+              </View>
+              <Text style={styles.planCardDescription}>
+                You're currently on the free trial. Subscribe to unlock more caricatures!
+              </Text>
+              <View style={styles.quotaInfoContainer}>
+                <Text style={styles.quotaInfoText}>
+                  {quotaInfo.current} of {quotaInfo.limit} caricatures used
+                </Text>
+                <View style={styles.quotaProgressBarFull}>
+                  <View 
+                    style={[
+                      styles.quotaProgressFillFull,
+                      { 
+                        width: `${Math.min(quotaInfo.percentage, 100)}%`,
+                        backgroundColor: quotaInfo.percentage >= 100 ? '#ef4444' : '#10b981'
+                      }
+                    ]} 
+                  />
+                </View>
+              </View>
+            </View>
+          ) : subscription ? (
+            <View style={styles.planCard}>
+              <View style={styles.planCardHeader}>
+                <Text style={styles.planCardTitle}>
+                  {TIER_INFO[subscription.tier]?.name || subscription.tier.charAt(0).toUpperCase() + subscription.tier.slice(1)} Plan
+                </Text>
+                <View style={styles.activeBadge}>
+                  <Text style={styles.activeBadgeText}>Active</Text>
+                </View>
+              </View>
+              {subscription.cancelAtPeriodEnd && (
+                <View style={styles.cancelWarning}>
+                  <Text style={styles.cancelWarningText}>
+                    ⚠️ Your subscription will cancel on {new Date(subscription.periodEnd).toLocaleDateString()}
+                  </Text>
+                </View>
+              )}
+              <Text style={styles.planCardDescription}>
+                Renews on {new Date(subscription.periodEnd).toLocaleDateString()}
+              </Text>
+              <View style={styles.quotaInfoContainer}>
+                <Text style={styles.quotaInfoText}>
+                  {quotaInfo.remaining} of {quotaInfo.limit} caricatures remaining this month
+                </Text>
+                <View style={styles.quotaProgressBarFull}>
+                  <View 
+                    style={[
+                      styles.quotaProgressFillFull,
+                      { 
+                        width: `${Math.min(quotaInfo.percentage, 100)}%`,
+                        backgroundColor: quotaInfo.percentage >= 100 ? '#ef4444' : quotaInfo.percentage >= 80 ? '#f59e0b' : '#10b981'
+                      }
+                    ]} 
+                  />
+                </View>
+                {quotaInfo.percentage >= 80 && quotaInfo.percentage < 100 && (
+                  <Text style={styles.quotaWarningText}>
+                    ⚠️ Running low on caricatures
+                  </Text>
+                )}
+                {quotaInfo.percentage >= 100 && (
+                  <Text style={styles.quotaExceededTextFull}>
+                    ❌ Quota exceeded - upgrade to continue
+                  </Text>
+                )}
+              </View>
+            </View>
+          ) : (
+            <View style={styles.planCard}>
+              <Text style={styles.planCardDescription}>No active subscription</Text>
+            </View>
+          )}
+        </View>
+
+        {/* Usage Statistics */}
+        {subscriptionInfo && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Usage This Month</Text>
+            <View style={styles.statsCard}>
+              <View style={styles.statRow}>
+                <Text style={styles.statLabel}>Caricatures Generated</Text>
+                <Text style={styles.statValue}>{quotaInfo.current}</Text>
+              </View>
+              <View style={styles.statRow}>
+                <Text style={styles.statLabel}>Remaining</Text>
+                <Text style={styles.statValue}>{quotaInfo.remaining}</Text>
+              </View>
+              <View style={styles.statRow}>
+                <Text style={styles.statLabel}>Monthly Limit</Text>
+                <Text style={styles.statValue}>{quotaInfo.limit}</Text>
+              </View>
+              <View style={styles.statRow}>
+                <Text style={styles.statLabel}>Reset Date</Text>
+                <Text style={styles.statValue}>
+                  {subscription?.periodEnd 
+                    ? new Date(subscription.periodEnd).toLocaleDateString()
+                    : 'End of month'}
+                </Text>
+              </View>
+            </View>
+          </View>
+        )}
+
+        {/* Subscription Plans */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Available Plans</Text>
+          {Object.entries(TIER_INFO).map(([tier, info]) => (
+            <TouchableOpacity
+              key={tier}
+              style={[
+                styles.tierCard,
+                subscription?.tier === tier && styles.tierCardActive
+              ]}
+              onPress={() => {
+                if (subscription?.tier !== tier) {
+                  onSubscribe();
+                }
+              }}
+            >
+              <View style={styles.tierCardHeader}>
+                <View>
+                  <Text style={styles.tierCardTitle}>{info.name}</Text>
+                  <Text style={styles.tierCardPrice}>{info.price}/month</Text>
+                </View>
+                {subscription?.tier === tier && (
+                  <View style={styles.currentBadge}>
+                    <Text style={styles.currentBadgeText}>Current</Text>
+                  </View>
+                )}
+              </View>
+              <Text style={styles.tierCardQuota}>{info.quota} caricatures/month</Text>
+              <View style={styles.tierFeatures}>
+                {info.features.map((feature, idx) => (
+                  <View key={idx} style={styles.tierFeature}>
+                    <Text style={styles.tierFeatureIcon}>✓</Text>
+                    <Text style={styles.tierFeatureText}>{feature}</Text>
+                  </View>
+                ))}
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Actions */}
+        <View style={styles.section}>
+          <TouchableOpacity
+            style={[styles.actionButton, subscribeLoading && styles.buttonDisabled]}
+            onPress={onSubscribe}
+            disabled={subscribeLoading}
+          >
+            <Text style={styles.actionButtonText}>
+              {subscribeLoading 
+                ? 'Processing...' 
+                : subscription 
+                  ? 'Change Subscription' 
+                  : 'Subscribe Now'}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.actionButton, styles.secondaryActionButton, subscriptionLoading && styles.buttonDisabled]}
+            onPress={onRefreshSubscription}
+            disabled={subscriptionLoading}
+          >
+            <Text style={styles.secondaryActionButtonText}>
+              {subscriptionLoading ? 'Refreshing...' : 'Refresh Status'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -1047,6 +1226,10 @@ export default function App() {
         setScreen('style');
         return true;
       }
+      if (screen === 'subscription') {
+        setScreen('style');
+        return true;
+      }
       if (screen === 'style') return false;
       if (screen === 'splash') return true;
       return false;
@@ -1070,15 +1253,26 @@ export default function App() {
         <StyleScreen
           selectedStyle={style}
           availableStyles={availableStyles}
+          onOpenSubscription={() => setScreen('subscription')}
+          onNext={(s) => {
+            setStyle(s);
+            setScreen('upload');
+          }}
+        />
+      </SafeAreaProvider>
+    );
+  }
+
+  if (screen === 'subscription') {
+    return (
+      <SafeAreaProvider>
+        <SubscriptionScreen
           subscriptionInfo={subscriptionInfo}
           subscriptionLoading={subscriptionLoading}
           onRefreshSubscription={refreshSubscription}
           onSubscribe={handleSubscribe}
           subscribeLoading={subscribeLoading}
-          onNext={(s) => {
-            setStyle(s);
-            setScreen('upload');
-          }}
+          onClose={() => setScreen('style')}
         />
       </SafeAreaProvider>
     );
@@ -1102,6 +1296,7 @@ export default function App() {
               : true
           }
           subscriptionInfo={subscriptionInfo}
+          onSubscribe={handleSubscribe}
           onBackToStyle={() => setScreen('style')}
         />
       </SafeAreaProvider>
@@ -1711,5 +1906,300 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: '#991b1b',
+  },
+  // Style screen header
+  styleHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  menuButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#ffffff',
+    borderWidth: 1.5,
+    borderColor: '#e5e7eb',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  menuButtonIcon: {
+    fontSize: 20,
+    color: '#111827',
+    fontWeight: '900',
+  },
+  // Subscription screen
+  subscriptionContainer: {
+    padding: 24,
+    paddingTop: 60,
+    gap: 24,
+    flexGrow: 1,
+  },
+  subscriptionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+    marginTop: 8,
+  },
+  subscriptionTitle: {
+    fontSize: 28,
+    fontWeight: '900',
+    color: '#111827',
+    letterSpacing: -0.5,
+  },
+  closeButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#ffffff',
+    borderWidth: 1.5,
+    borderColor: '#e5e7eb',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  closeButtonIcon: {
+    fontSize: 20,
+    color: '#111827',
+    fontWeight: '900',
+  },
+  section: {
+    gap: 12,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    padding: 16,
+  },
+  loadingText: {
+    fontSize: 14,
+    color: '#6b7280',
+  },
+  planCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 2,
+    borderColor: '#e5e7eb',
+    gap: 12,
+  },
+  planCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  planCardTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#111827',
+  },
+  planCardDescription: {
+    fontSize: 14,
+    color: '#6b7280',
+    lineHeight: 20,
+  },
+  trialBadge: {
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 999,
+    backgroundColor: '#eef2ff',
+  },
+  trialBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#4f46e5',
+  },
+  activeBadge: {
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 999,
+    backgroundColor: '#d1fae5',
+  },
+  activeBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#065f46',
+  },
+  cancelWarning: {
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: '#fef3c7',
+    borderWidth: 1,
+    borderColor: '#f59e0b',
+  },
+  cancelWarningText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#92400e',
+  },
+  quotaInfoContainer: {
+    gap: 8,
+    marginTop: 8,
+  },
+  quotaInfoText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  quotaProgressBarFull: {
+    width: '100%',
+    height: 8,
+    borderRadius: 999,
+    backgroundColor: '#e5e7eb',
+    overflow: 'hidden',
+  },
+  quotaProgressFillFull: {
+    height: '100%',
+    borderRadius: 999,
+  },
+  quotaWarningText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#92400e',
+  },
+  quotaExceededTextFull: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#991b1b',
+  },
+  statsCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    gap: 16,
+  },
+  statRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+  },
+  statLabel: {
+    fontSize: 14,
+    color: '#6b7280',
+    fontWeight: '500',
+  },
+  statValue: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  tierCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 2,
+    borderColor: '#e5e7eb',
+    marginBottom: 12,
+    gap: 12,
+  },
+  tierCardActive: {
+    borderColor: '#f97316',
+    backgroundColor: '#fff7ed',
+  },
+  tierCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  tierCardTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#111827',
+  },
+  tierCardPrice: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#f97316',
+    marginTop: 4,
+  },
+  tierCardQuota: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+    marginTop: 4,
+  },
+  currentBadge: {
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 999,
+    backgroundColor: '#d1fae5',
+  },
+  currentBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#065f46',
+  },
+  tierFeatures: {
+    gap: 8,
+    marginTop: 8,
+  },
+  tierFeature: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  tierFeatureIcon: {
+    fontSize: 14,
+    color: '#10b981',
+    fontWeight: '700',
+  },
+  tierFeatureText: {
+    fontSize: 13,
+    color: '#6b7280',
+    flex: 1,
+  },
+  actionButton: {
+    backgroundColor: '#f97316',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+    shadowColor: '#f97316',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  actionButtonText: {
+    color: '#ffffff',
+    fontWeight: '800',
+    fontSize: 16,
+    letterSpacing: 0.5,
+  },
+  secondaryActionButton: {
+    backgroundColor: '#ffffff',
+    borderWidth: 2,
+    borderColor: '#e5e7eb',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+  },
+  secondaryActionButtonText: {
+    color: '#111827',
+    fontWeight: '700',
+    fontSize: 15,
   },
 });
