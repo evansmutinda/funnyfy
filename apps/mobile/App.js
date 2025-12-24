@@ -99,17 +99,69 @@ function SplashScreen({ onComplete }) {
   );
 }
 
-function StyleScreen({ selectedStyle, availableStyles, onNext, onSubscribe, subscribeLoading }) {
+function StyleScreen({
+  selectedStyle,
+  availableStyles,
+  onNext,
+  onSubscribe,
+  subscribeLoading,
+  subscriptionInfo,
+  subscriptionLoading,
+  onRefreshSubscription,
+}) {
   const insets = useSafeAreaInsets();
   const styleList = Array.isArray(availableStyles) && availableStyles.length > 0
     ? availableStyles
     : [STYLE_90S_CARTOON];
+
+  const renderPlanLabel = () => {
+    if (subscriptionLoading) {
+      return 'Loading your plan…';
+    }
+
+    if (!subscriptionInfo) {
+      return 'Free trial • Limited caricatures until you subscribe';
+    }
+
+    const { subscription, usage, isTrial } = subscriptionInfo;
+
+    if (isTrial || !subscription) {
+      const current = usage?.current ?? 0;
+      const limit = usage?.limit ?? 3;
+      return `Free trial • ${current}/${limit} caricatures used this month`;
+    }
+
+    const tierLabel = (subscription.tier || 'starter')
+      .toString()
+      .replace(/^\w/, (c) => c.toUpperCase());
+
+    if (usage && typeof usage.current === 'number' && typeof usage.limit === 'number' && usage.limit > 0) {
+      const remaining = Math.max(0, usage.limit - usage.current);
+      return `${tierLabel} plan • ${remaining} of ${usage.limit} caricatures remaining this month`;
+    }
+
+    return `${tierLabel} plan`;
+  };
 
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="dark-content" />
       <ScrollView contentContainerStyle={[styles.styleContainer, { paddingBottom: Math.max(insets.bottom, 24) }]}>
         <Text style={styles.title}>✨ Choose Your Style</Text>
+        <View style={styles.subscriptionSummaryContainer}>
+          <View style={styles.subscriptionPlanPill}>
+            <Text style={styles.subscriptionPlanPillText}>{renderPlanLabel()}</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.subscriptionRefreshButton}
+            onPress={onRefreshSubscription}
+            disabled={subscriptionLoading}
+          >
+            <Text style={styles.subscriptionRefreshText}>
+              {subscriptionLoading ? 'Refreshing…' : 'Refresh'}
+            </Text>
+          </TouchableOpacity>
+        </View>
         <Text style={styles.subtitle}>
           {styleList.length > 1
             ? `Pick from ${styleList.length} amazing styles`
@@ -783,6 +835,9 @@ export default function App() {
         <StyleScreen
           selectedStyle={style}
           availableStyles={availableStyles}
+          subscriptionInfo={subscriptionInfo}
+          subscriptionLoading={subscriptionLoading}
+          onRefreshSubscription={refreshSubscription}
           onSubscribe={handleSubscribe}
           subscribeLoading={subscribeLoading}
           onNext={(s) => {
@@ -925,6 +980,39 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     fontWeight: '500',
     lineHeight: 22,
+  },
+  subscriptionSummaryContainer: {
+    marginTop: 8,
+    marginBottom: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  subscriptionPlanPill: {
+    flex: 1,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 999,
+    backgroundColor: '#eef2ff',
+  },
+  subscriptionPlanPillText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#4f46e5',
+  },
+  subscriptionRefreshButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    backgroundColor: '#ffffff',
+  },
+  subscriptionRefreshText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#4b5563',
   },
   subscribeButton: {
     alignSelf: 'center',
