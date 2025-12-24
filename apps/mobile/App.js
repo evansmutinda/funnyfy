@@ -776,21 +776,99 @@ export default function App() {
     try {
       if (!hasRcKey) {
         Alert.alert('Subscriptions', 'RevenueCat SDK key is missing. Please set EXPO_PUBLIC_REVENUECAT_* env vars.');
+        setSubscribeLoading(false);
         return;
       }
+
+      console.log('[RevenueCat] Fetching offerings...');
       const pkgs = await getOfferings();
+      
       if (!pkgs || pkgs.length === 0) {
-        Alert.alert('Subscriptions', 'No offerings available yet.');
+        Alert.alert('Subscriptions', 'No subscription packages available yet. Please check your RevenueCat configuration.');
+        setSubscribeLoading(false);
         return;
       }
+
+      console.log(`[RevenueCat] Found ${pkgs.length} package(s):`, pkgs.map(p => ({
+        identifier: p.identifier,
+        product: p.product?.identifier,
+        price: p.product?.priceString
+      })));
+
+      // Show package selection (for now, use first package; can add UI later)
       const selected = pkgs[0];
-      await purchasePackage(selected);
-      Alert.alert('Subscriptions', 'Purchase successful. Thank you!');
-      // After purchase, refresh subscription info from backend
-      await refreshSubscription();
+      const packageInfo = selected.product;
+      const priceString = packageInfo?.priceString || 'N/A';
+      const packageId = packageInfo?.identifier || selected.identifier;
+
+      console.log(`[RevenueCat] Purchasing package: ${packageId} (${priceString})`);
+
+      // Attempt purchase
+      const purchaseResult = await purchasePackage(selected);
+      
+      console.log('[RevenueCat] Purchase result:', {
+        customerInfo: purchaseResult?.customerInfo,
+        productIdentifier: purchaseResult?.productIdentifier
+      });
+
+      // Check if purchase was successful
+      if (purchaseResult?.customerInfo) {
+        const customerInfo = purchaseResult.customerInfo;
+        const activeEntitlements = customerInfo.entitlements?.active || {};
+        const hasActiveSubscription = Object.keys(activeEntitlements).length > 0;
+
+        if (hasActiveSubscription) {
+          console.log('[RevenueCat] Purchase successful, active entitlements:', Object.keys(activeEntitlements));
+          
+          // Wait a moment for webhook to process (RevenueCat sends webhook async)
+          Alert.alert(
+            'Purchase Successful! 🎉',
+            `Your subscription is now active. Your plan will update in a moment.`,
+            [{ text: 'OK' }]
+          );
+
+          // Wait 2 seconds for webhook to process, then refresh
+          setTimeout(async () => {
+            console.log('[RevenueCat] Refreshing subscription after purchase...');
+            await refreshSubscription();
+          }, 2000);
+        } else {
+          console.warn('[RevenueCat] Purchase completed but no active entitlements found');
+          Alert.alert(
+            'Purchase Completed',
+            'Your purchase was processed, but no active subscription was found. Please wait a moment and refresh, or contact support if this persists.',
+            [{ text: 'OK' }]
+          );
+          // Still try to refresh
+          setTimeout(async () => {
+            await refreshSubscription();
+          }, 3000);
+        }
+      } else {
+        console.warn('[RevenueCat] Purchase result missing customerInfo');
+        Alert.alert(
+          'Purchase Processing',
+          'Your purchase is being processed. Please wait a moment and refresh your subscription status.',
+          [{ text: 'OK' }]
+        );
+        setTimeout(async () => {
+          await refreshSubscription();
+        }, 3000);
+      }
     } catch (err) {
-      console.error('[RevenueCat] purchase error:', err);
-      Alert.alert('Subscriptions', 'Purchase failed or was cancelled.');
+      console.error('[RevenueCat] Purchase error:', err);
+      
+      // Better error messages based on error type
+      let errorMessage = 'Purchase failed or was cancelled.';
+      if (err?.userCancelled) {
+        errorMessage = 'Purchase was cancelled.';
+      } else if (err?.message) {
+        errorMessage = err.message;
+      } else if (err?.code) {
+        errorMessage = `Purchase error: ${err.code}`;
+      }
+
+      Alert.alert('Purchase Failed', errorMessage);
     } finally {
       setSubscribeLoading(false);
     }
