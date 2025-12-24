@@ -113,7 +113,8 @@ function StyleScreen({
 
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      <View style={{ height: insets.top, backgroundColor: '#ffffff' }} />
       <ScrollView 
         contentContainerStyle={styles.styleContainer}
         style={{ flex: 1 }}
@@ -248,7 +249,8 @@ function UploadScreen({ style, onStart, onBackToStyle, canGenerateMore, subscrip
 
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      <View style={{ height: insets.top, backgroundColor: '#ffffff' }} />
       <View style={[styles.uploadContainer, { paddingBottom: Math.max(insets.bottom, 24) }]}>
         <View style={styles.uploadHeader}>
           <TouchableOpacity onPress={onBackToStyle} style={styles.backButton}>
@@ -359,6 +361,7 @@ function SubscriptionScreen({
   onRefreshSubscription,
   onSubscribe,
   subscribeLoading,
+  onCancelSubscription,
   onClose,
 }) {
   const insets = useSafeAreaInsets();
@@ -385,7 +388,8 @@ function SubscriptionScreen({
 
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      <View style={{ height: insets.top, backgroundColor: '#ffffff' }} />
       <ScrollView 
         contentContainerStyle={styles.subscriptionContainer}
         style={{ flex: 1 }}
@@ -580,6 +584,17 @@ function SubscriptionScreen({
               {subscriptionLoading ? 'Refreshing...' : 'Refresh Status'}
             </Text>
           </TouchableOpacity>
+          {subscription && !subscription.cancelAtPeriodEnd && (
+            <TouchableOpacity
+              style={[styles.actionButton, styles.cancelButton, subscribeLoading && styles.buttonDisabled]}
+              onPress={onCancelSubscription}
+              disabled={subscribeLoading}
+            >
+              <Text style={styles.cancelButtonText}>
+                Cancel Subscription
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
         <View style={{ height: Math.max(insets.bottom, 24) }} />
       </ScrollView>
@@ -726,7 +741,8 @@ function ResultScreen({ original, result, loading, error, onBack, onHome, subscr
 
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      <View style={{ height: insets.top, backgroundColor: '#ffffff' }} />
       <View style={[styles.resultContainer, { paddingBottom: Math.max(insets.bottom, 20) }]}>
         <View style={styles.resultHeader}>
           <TouchableOpacity onPress={onBack} style={styles.backButton}>
@@ -1213,6 +1229,56 @@ export default function App() {
     }
   };
 
+  const handleCancelSubscription = async () => {
+    Alert.alert(
+      'Cancel Subscription',
+      'Are you sure you want to cancel your subscription? Your subscription will remain active until the end of the current billing period.',
+      [
+        { text: 'Keep Subscription', style: 'cancel' },
+        {
+          text: 'Cancel Subscription',
+          style: 'destructive',
+          onPress: async () => {
+            setSubscribeLoading(true);
+            try {
+              // Call backend to mark subscription for cancellation
+              const res = await fetch(`${API_BASE}/api/test-cancel-subscription`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'x-user-id': TEST_USER_ID,
+                },
+                body: JSON.stringify({
+                  userId: TEST_USER_ID,
+                }),
+              });
+
+              const json = await res.json();
+              if (json.ok) {
+                Alert.alert(
+                  'Subscription Cancelled',
+                  'Your subscription will remain active until the end of the current billing period. You can resubscribe anytime before then.',
+                  [{ text: 'OK' }]
+                );
+                // Refresh subscription status
+                setTimeout(async () => {
+                  await refreshSubscription();
+                }, 1000);
+              } else {
+                Alert.alert('Error', json.error || 'Failed to cancel subscription. Please try again.');
+              }
+            } catch (err) {
+              console.error('[Cancel Subscription] error:', err);
+              Alert.alert('Error', 'Failed to cancel subscription. Please try again later.');
+            } finally {
+              setSubscribeLoading(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const handleUploadStart = async ({ imageUri, imageDataUrl }) => {
     setOriginal({ imageUri, prompt: style?.prompt });
     setScreen('result');
@@ -1275,6 +1341,7 @@ export default function App() {
           onRefreshSubscription={refreshSubscription}
           onSubscribe={handleSubscribe}
           subscribeLoading={subscribeLoading}
+          onCancelSubscription={handleCancelSubscription}
           onClose={() => setScreen('style')}
         />
       </SafeAreaProvider>
@@ -2202,6 +2269,17 @@ const styles = StyleSheet.create({
   },
   secondaryActionButtonText: {
     color: '#111827',
+    fontWeight: '700',
+    fontSize: 15,
+  },
+  cancelButton: {
+    backgroundColor: '#ffffff',
+    borderWidth: 2,
+    borderColor: '#ef4444',
+    marginTop: 8,
+  },
+  cancelButtonText: {
+    color: '#ef4444',
     fontWeight: '700',
     fontSize: 15,
   },
