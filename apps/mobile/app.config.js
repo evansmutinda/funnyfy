@@ -1,6 +1,9 @@
 // Expo app configuration
 // Note: EXPO_PUBLIC_* environment variables are automatically available in the app
-// Set EXPO_PUBLIC_API_URL in your environment before running 'expo start'
+// They are loaded from:
+// 1. .env file in this directory (for local development)
+// 2. EAS secrets (for EAS builds - set via: eas secret:create)
+// 3. System environment variables
 
 export default {
   expo: {
