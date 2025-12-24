@@ -816,22 +816,57 @@ export default function App() {
         const customerInfo = purchaseResult.customerInfo;
         const activeEntitlements = customerInfo.entitlements?.active || {};
         const hasActiveSubscription = Object.keys(activeEntitlements).length > 0;
+        const productIdentifier = purchaseResult.productIdentifier || customerInfo.allPurchasedProductIdentifiers?.[0];
 
-        if (hasActiveSubscription) {
+        if (hasActiveSubscription && productIdentifier) {
           console.log('[RevenueCat] Purchase successful, active entitlements:', Object.keys(activeEntitlements));
           
-          // Wait a moment for webhook to process (RevenueCat sends webhook async)
+          // Get expiration date from purchase result
+          const expirationDate = customerInfo.allExpirationDates?.[productIdentifier] || 
+                                customerInfo.latestExpirationDate;
+
+          // Manually sync subscription to backend (in case webhook is delayed or not configured)
+          try {
+            console.log('[RevenueCat] Syncing subscription to backend...');
+            const syncResponse = await fetch(`${API_BASE}/api/sync-subscription`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-user-id': TEST_USER_ID,
+              },
+              body: JSON.stringify({
+                userId: TEST_USER_ID,
+                productId: productIdentifier,
+                tier: productIdentifier.includes('starter') ? 'starter' : 
+                      productIdentifier.includes('popular') ? 'popular' : 
+                      productIdentifier.includes('pro') ? 'pro' : 'starter',
+                expirationDate: expirationDate,
+                platform: Platform.OS,
+              }),
+            });
+
+            const syncResult = await syncResponse.json();
+            if (syncResult.ok) {
+              console.log('[RevenueCat] Subscription synced successfully:', syncResult.subscription);
+            } else {
+              console.warn('[RevenueCat] Sync failed:', syncResult.error);
+            }
+          } catch (syncErr) {
+            console.error('[RevenueCat] Sync error (non-fatal):', syncErr);
+            // Don't block the user - webhook might still work
+          }
+
           Alert.alert(
             'Purchase Successful! 🎉',
             `Your subscription is now active. Your plan will update in a moment.`,
             [{ text: 'OK' }]
           );
 
-          // Wait 2 seconds for webhook to process, then refresh
+          // Refresh subscription immediately (sync should have updated it)
           setTimeout(async () => {
             console.log('[RevenueCat] Refreshing subscription after purchase...');
             await refreshSubscription();
-          }, 2000);
+          }, 1000);
         } else {
           console.warn('[RevenueCat] Purchase completed but no active entitlements found');
           Alert.alert(
