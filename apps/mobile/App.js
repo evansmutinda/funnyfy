@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  AppState,
   BackHandler,
   Image,
   Platform,
@@ -173,7 +174,7 @@ function StyleScreen({
           disabled={subscribeLoading}
         >
           <Text style={styles.subscribeButtonText}>
-            {subscribeLoading ? 'Checking...' : 'Manage Subscription'}
+            {subscribeLoading ? 'Checking...' : subscriptionInfo?.subscription ? 'Manage Subscription' : 'Subscribe Now'}
           </Text>
         </TouchableOpacity>
 
@@ -206,7 +207,7 @@ function StyleScreen({
   );
 }
 
-function UploadScreen({ style, onStart, onBackToStyle, canGenerateMore, subscriptionInfo }) {
+function UploadScreen({ style, onStart, onBackToStyle, canGenerateMore, subscriptionInfo, onSubscribe }) {
   const insets = useSafeAreaInsets();
   const [imageUri, setImageUri] = useState(null);
   const [imageDataUrl, setImageDataUrl] = useState(null);
@@ -219,6 +220,20 @@ function UploadScreen({ style, onStart, onBackToStyle, canGenerateMore, subscrip
       Alert.alert('Error', error, [{ text: 'OK', onPress: () => setError('') }]);
     }
   }, [error]);
+
+  // Calculate quota percentage for progress bar
+  const getQuotaInfo = () => {
+    if (!subscriptionInfo || !subscriptionInfo.usage) {
+      return { current: 0, limit: 3, percentage: 0, isLow: false, isExceeded: false };
+    }
+    const { current, limit } = subscriptionInfo.usage;
+    const percentage = limit > 0 ? (current / limit) * 100 : 0;
+    const isLow = percentage >= 80 && percentage < 100;
+    const isExceeded = percentage >= 100;
+    return { current, limit, percentage, isLow, isExceeded };
+  };
+
+  const quotaInfo = getQuotaInfo();
 
   const pickImage = async (useCamera = false) => {
     if (picking) return;
@@ -291,7 +306,47 @@ function UploadScreen({ style, onStart, onBackToStyle, canGenerateMore, subscrip
           <TouchableOpacity onPress={onBackToStyle} style={styles.backButton}>
             <Text style={styles.backButtonIcon}>‹</Text>
           </TouchableOpacity>
+          {/* Subscription badge */}
+          {subscriptionInfo && (
+            <View style={styles.uploadSubscriptionBadge}>
+              {subscriptionInfo.isTrial || !subscriptionInfo.subscription ? (
+                <Text style={styles.uploadSubscriptionBadgeText}>
+                  Trial • {quotaInfo.current}/{quotaInfo.limit}
+                </Text>
+              ) : (
+                <Text style={styles.uploadSubscriptionBadgeText}>
+                  {subscriptionInfo.subscription.tier.charAt(0).toUpperCase() + subscriptionInfo.subscription.tier.slice(1)} • {quotaInfo.current}/{quotaInfo.limit}
+                </Text>
+              )}
+            </View>
+          )}
         </View>
+        {/* Quota progress bar */}
+        {subscriptionInfo && subscriptionInfo.usage && subscriptionInfo.usage.limit > 0 && (
+          <View style={styles.quotaProgressContainer}>
+            <View style={styles.quotaProgressBar}>
+              <View 
+                style={[
+                  styles.quotaProgressFill,
+                  { 
+                    width: `${Math.min(quotaInfo.percentage, 100)}%`,
+                    backgroundColor: quotaInfo.isExceeded ? '#ef4444' : quotaInfo.isLow ? '#f59e0b' : '#10b981'
+                  }
+                ]} 
+              />
+            </View>
+            {quotaInfo.isLow && !quotaInfo.isExceeded && (
+              <TouchableOpacity onPress={onSubscribe} style={styles.quotaWarningButton}>
+                <Text style={styles.quotaWarningText}>⚠️ Running low - Upgrade now</Text>
+              </TouchableOpacity>
+            )}
+            {quotaInfo.isExceeded && (
+              <TouchableOpacity onPress={onSubscribe} style={styles.quotaExceededButton}>
+                <Text style={styles.quotaExceededText}>❌ Quota exceeded - Upgrade to continue</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
         <View style={styles.uploadImageContainer}>
           {imageUri ? (
             <Image source={{ uri: imageUri }} style={styles.photoPreview} />
@@ -324,7 +379,20 @@ function UploadScreen({ style, onStart, onBackToStyle, canGenerateMore, subscrip
 
           <TouchableOpacity
             style={[styles.button, (!canGenerate || picking) && styles.buttonDisabled]}
-            onPress={() => onStart({ imageUri, imageDataUrl })}
+            onPress={() => {
+              if (!quotaOk && onSubscribe) {
+                Alert.alert(
+                  'Quota Exceeded',
+                  `You've used all ${quotaInfo.limit} caricatures this month. Upgrade your plan to continue generating amazing caricatures!`,
+                  [
+                    { text: 'Cancel', style: 'cancel' },
+                    { text: 'Upgrade', onPress: onSubscribe }
+                  ]
+                );
+              } else {
+                onStart({ imageUri, imageDataUrl });
+              }
+            }}
             disabled={!canGenerate || picking}
           >
             <Text style={styles.buttonText}>
@@ -337,7 +405,7 @@ function UploadScreen({ style, onStart, onBackToStyle, canGenerateMore, subscrip
   );
 }
 
-function ResultScreen({ original, result, loading, error, onBack, onHome }) {
+function ResultScreen({ original, result, loading, error, onBack, onHome, subscriptionInfo }) {
   const insets = useSafeAreaInsets();
   const imageUrl = result ? getImageUrlFromOutput(result.output) : null;
   const [mix, setMix] = useState(0);
@@ -482,6 +550,20 @@ function ResultScreen({ original, result, loading, error, onBack, onHome }) {
           <TouchableOpacity onPress={onBack} style={styles.backButton}>
             <Text style={styles.backButtonIcon}>‹</Text>
           </TouchableOpacity>
+          {/* Subscription badge */}
+          {subscriptionInfo && (
+            <View style={styles.resultSubscriptionBadge}>
+              {subscriptionInfo.isTrial || !subscriptionInfo.subscription ? (
+                <Text style={styles.resultSubscriptionBadgeText}>
+                  Trial • {subscriptionInfo.usage?.current || 0}/{subscriptionInfo.usage?.limit || 3}
+                </Text>
+              ) : (
+                <Text style={styles.resultSubscriptionBadgeText}>
+                  {subscriptionInfo.subscription.tier.charAt(0).toUpperCase() + subscriptionInfo.subscription.tier.slice(1)} • {subscriptionInfo.usage?.current || 0}/{subscriptionInfo.usage?.limit || 0}
+                </Text>
+              )}
+            </View>
+          )}
           <TouchableOpacity onPress={onHome} style={styles.homeButton}>
             <Text style={styles.homeButtonIcon}>🏠</Text>
           </TouchableOpacity>
@@ -616,8 +698,10 @@ export default function App() {
     });
   }, []);
 
-  const refreshSubscription = async () => {
+  const refreshSubscription = async (retryCount = 0) => {
     setSubscriptionLoading(true);
+    const maxRetries = 2;
+    
     try {
       const res = await fetch(`${API_BASE}/api/user/subscription?userId=${encodeURIComponent(TEST_USER_ID)}`, {
         method: 'GET',
@@ -633,16 +717,34 @@ export default function App() {
         json = JSON.parse(text);
       } catch {
         console.error('[subscription] invalid JSON');
+        // Retry on parse error
+        if (retryCount < maxRetries) {
+          setTimeout(() => refreshSubscription(retryCount + 1), 1000);
+          return;
+        }
         return;
       }
       if (!res.ok || !json.ok) {
         console.warn('[subscription] non-ok response:', json);
-        setSubscriptionInfo(null);
+        // Retry on error response
+        if (retryCount < maxRetries && res.status >= 500) {
+          setTimeout(() => refreshSubscription(retryCount + 1), 1000);
+          return;
+        }
+        // Don't clear subscription info on client errors (keep last known state)
+        if (res.status >= 500) {
+          setSubscriptionInfo(null);
+        }
         return;
       }
       setSubscriptionInfo(json);
     } catch (err) {
       console.error('[subscription] error:', err);
+      // Retry on network errors
+      if (retryCount < maxRetries) {
+        setTimeout(() => refreshSubscription(retryCount + 1), 1000);
+        return;
+      }
     } finally {
       setSubscriptionLoading(false);
     }
@@ -674,6 +776,20 @@ export default function App() {
     fetchStyles();
     // Also try to load subscription info on startup
     refreshSubscription();
+  }, []);
+
+  // Refresh subscription when app comes to foreground
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'active') {
+        console.log('[App] App came to foreground, refreshing subscription...');
+        refreshSubscription();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
   }, []);
 
   useEffect(() => {
@@ -730,6 +846,12 @@ export default function App() {
 
           // Backend now returns a fully-polled prediction; use it directly
           setResult(json.data);
+          
+          // Auto-refresh subscription after successful generation
+          setTimeout(async () => {
+            console.log('[App] Auto-refreshing subscription after generation...');
+            await refreshSubscription();
+          }, 500);
         } catch (err) {
           console.error('API error:', err);
           const errorMessage = err.message || String(err);
@@ -994,6 +1116,7 @@ export default function App() {
           result={result}
           loading={loading}
           error={error}
+          subscriptionInfo={subscriptionInfo}
           onBack={() => setScreen('upload')}
           onHome={() => setScreen('style')}
         />
@@ -1512,5 +1635,81 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: '#e5e7eb',
     marginVertical: 12,
+  },
+  // Upload screen subscription badge
+  uploadSubscriptionBadge: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 999,
+    backgroundColor: '#eef2ff',
+  },
+  uploadSubscriptionBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#4f46e5',
+  },
+  // Result screen subscription badge
+  resultSubscriptionBadge: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 999,
+    backgroundColor: '#eef2ff',
+    marginHorizontal: 8,
+  },
+  resultSubscriptionBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#4f46e5',
+  },
+  // Quota progress bar
+  quotaProgressContainer: {
+    marginTop: 8,
+    marginBottom: 12,
+    gap: 8,
+  },
+  quotaProgressBar: {
+    width: '100%',
+    height: 6,
+    borderRadius: 999,
+    backgroundColor: '#e5e7eb',
+    overflow: 'hidden',
+  },
+  quotaProgressFill: {
+    height: '100%',
+    borderRadius: 999,
+    transition: 'width 0.3s ease',
+  },
+  quotaWarningButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    backgroundColor: '#fef3c7',
+    borderWidth: 1,
+    borderColor: '#f59e0b',
+    alignItems: 'center',
+  },
+  quotaWarningText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#92400e',
+  },
+  quotaExceededButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    backgroundColor: '#fee2e2',
+    borderWidth: 1,
+    borderColor: '#ef4444',
+    alignItems: 'center',
+  },
+  quotaExceededText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#991b1b',
   },
 });
