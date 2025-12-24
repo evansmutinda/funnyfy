@@ -114,20 +114,18 @@ function StyleScreen({
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="dark-content" />
-      <ScrollView contentContainerStyle={[styles.styleContainer, { paddingBottom: Math.max(insets.bottom, 24) }]}>
+      <ScrollView 
+        contentContainerStyle={styles.styleContainer}
+        style={{ flex: 1 }}
+      >
         <View style={styles.styleHeader}>
-          <Text style={styles.title}>✨ Choose Your Style</Text>
+          <View style={{ flex: 1 }} />
           <TouchableOpacity onPress={onOpenSubscription} style={styles.menuButton}>
-            <Text style={styles.menuButtonIcon}>⚙️</Text>
+            <Text style={styles.menuButtonIcon}>☰</Text>
           </TouchableOpacity>
         </View>
-        <Text style={styles.subtitle}>
-          {styleList.length > 1
-            ? `Pick from ${styleList.length} amazing styles`
-            : 'Transform your photos with our signature styles'}
-        </Text>
 
-        <View style={styles.styleGrid}>
+        <View style={[styles.styleGrid, { paddingBottom: Math.max(insets.bottom, 24) }]}>
           {styleList.map((s) => (
             <TouchableOpacity
               key={s.id}
@@ -151,6 +149,7 @@ function StyleScreen({
             </TouchableOpacity>
           ))}
         </View>
+        <View style={{ height: Math.max(insets.bottom, 24) }} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -387,7 +386,10 @@ function SubscriptionScreen({
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="dark-content" />
-      <ScrollView contentContainerStyle={[styles.subscriptionContainer, { paddingBottom: Math.max(insets.bottom, 24) }]}>
+      <ScrollView 
+        contentContainerStyle={styles.subscriptionContainer}
+        style={{ flex: 1 }}
+      >
         <View style={styles.subscriptionHeader}>
           <Text style={styles.subscriptionTitle}>Subscription & Usage</Text>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
@@ -579,6 +581,7 @@ function SubscriptionScreen({
             </Text>
           </TouchableOpacity>
         </View>
+        <View style={{ height: Math.max(insets.bottom, 24) }} />
       </ScrollView>
     </SafeAreaView>
   );
