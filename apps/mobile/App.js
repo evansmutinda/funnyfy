@@ -1328,7 +1328,7 @@ export default function App() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#ffffff',
   },
   splashSafe: {
     backgroundColor: '#0f172a',
