@@ -548,7 +548,7 @@ export default async function handler(
             SET trial_generations_used = trial_generations_used + 1
             WHERE id = $1
           `,
-          [userId]
+          [dbUserId]
         );
       } catch (trialUpdateErr) {
         console.error('Failed to increment trial usage:', trialUpdateErr);
@@ -563,7 +563,7 @@ export default async function handler(
             SET count = count + 1
             WHERE user_id = $1 AND month = $2
           `,
-          [userId, currentMonth]
+          [dbUserId, currentMonth]
         );
       } catch (usageUpdateErr) {
         console.error('Failed to increment usage count:', usageUpdateErr);
