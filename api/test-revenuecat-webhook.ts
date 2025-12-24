@@ -37,9 +37,13 @@ export default async function handler(
     return res.status(405).json({ ok: false, error: 'Only POST allowed' });
   }
 
-  // Only allow in development/staging (add auth check in production)
-  if (process.env.NODE_ENV === 'production' && !process.env.ALLOW_TEST_WEBHOOK) {
-    return res.status(403).json({ ok: false, error: 'Test endpoint disabled in production' });
+  // Allow in staging (check URL) or if explicitly enabled
+  const isStaging = req.headers.host?.includes('staging') || 
+                    process.env.VERCEL_URL?.includes('staging') ||
+                    process.env.ALLOW_TEST_WEBHOOK === 'true';
+  
+  if (!isStaging && process.env.NODE_ENV === 'production') {
+    return res.status(403).json({ ok: false, error: 'Test endpoint disabled in production. Set ALLOW_TEST_WEBHOOK=true to enable.' });
   }
 
   let body: any = {};
