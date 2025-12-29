@@ -156,7 +156,11 @@
     </div>
 
     <script>
+        // Get API base URL - handle both /admin/login and direct access
         const API_BASE = window.location.origin;
+        
+        // Debug: log the URL we're trying to fetch
+        console.log('API Base:', API_BASE);
         
         const form = document.getElementById('loginForm');
         const userIdInput = document.getElementById('userId');
@@ -208,13 +212,23 @@
             showSuccess('');
 
             try {
-                const response = await fetch(`${API_BASE}/api/admin/login`, {
+                // Try relative URL first, fallback to absolute
+                const loginUrl = '/api/admin/login';
+                const fullUrl = `${API_BASE}${loginUrl}`;
+                console.log('Fetching:', fullUrl);
+                console.log('Body:', JSON.stringify({ userId }));
+                
+                const response = await fetch(loginUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({ userId }),
+                    credentials: 'same-origin', // Include cookies if any
                 });
+                
+                console.log('Response status:', response.status);
+                console.log('Response ok:', response.ok);
 
                 // Check if response is ok
                 if (!response.ok) {
@@ -241,7 +255,22 @@
                 }
             } catch (err) {
                 console.error('Login error:', err);
-                showError('Network error: ' + err.message);
+                console.error('Error details:', {
+                    name: err.name,
+                    message: err.message,
+                    stack: err.stack
+                });
+                
+                // More specific error messages
+                let errorMsg = 'Network error: ' + err.message;
+                if (err.message.includes('Failed to fetch')) {
+                    errorMsg = 'Cannot connect to server. Please check:\n' +
+                              '1. You are connected to the internet\n' +
+                              '2. The API endpoint is accessible\n' +
+                              '3. Try refreshing the page';
+                }
+                
+                showError(errorMsg);
                 setLoading(false);
             }
         });
