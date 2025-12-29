@@ -216,6 +216,14 @@
                     body: JSON.stringify({ userId }),
                 });
 
+                // Check if response is ok
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                    showError(errorData.error || errorData.message || `Error: ${response.status} ${response.statusText}`);
+                    setLoading(false);
+                    return;
+                }
+
                 const data = await response.json();
 
                 if (data.ok && data.token) {
@@ -232,6 +240,7 @@
                     setLoading(false);
                 }
             } catch (err) {
+                console.error('Login error:', err);
                 showError('Network error: ' + err.message);
                 setLoading(false);
             }
