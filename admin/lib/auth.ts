@@ -1,6 +1,6 @@
 // Admin authentication utilities (client-side)
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://funnyfyapp.vercel.app';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || (typeof window !== 'undefined' ? window.location.origin : 'https://funnyfy-staging.vercel.app');
 
 export interface AdminUser {
   userId: string;
