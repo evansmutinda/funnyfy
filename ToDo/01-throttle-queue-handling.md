@@ -377,26 +377,39 @@ GROUP BY u.subscription_tier;
 
 ## Implementation Phases
 
-### Phase 1: Basic Quota System (Week 1)
-- [ ] Database schema setup
-- [ ] Basic quota checking
-- [ ] Usage tracking
-- [ ] Simple queue (database-based)
+### Phase 1: Basic Quota System (Week 1) 🟡 PARTIALLY COMPLETE
+- [x] Database schema setup (migrations-subscriptions.sql exists)
+- [x] Basic quota checking (implemented in `api/test.ts`)
+- [x] Usage tracking (usage_tracking table and logic)
+- [ ] Simple queue (database-based) - PENDING
 
-### Phase 2: Rate Limiting (Week 2)
+### Phase 2: Rate Limiting (Week 2) ⏸️ PENDING
 - [ ] Hourly rate limits
 - [ ] IP-based limiting (optional)
 - [ ] Burst protection
 
-### Phase 3: Priority Queue (Week 3)
+### Phase 3: Priority Queue (Week 3) ⏸️ PENDING
 - [ ] Priority-based processing
 - [ ] Queue position tracking
 - [ ] Estimated wait times
 
-### Phase 4: Cost Protection (Week 4)
+### Phase 4: Cost Protection (Week 4) ⏸️ PENDING
 - [ ] Daily spending caps
 - [ ] Alerts and monitoring
 - [ ] Admin dashboard integration
+
+## ✅ Completed Work (January 2025)
+- ✅ Database schema for users, subscriptions, usage_tracking
+- ✅ Quota checking logic in API endpoint
+- ✅ Usage incrementing for trial and subscribed users
+- ✅ Subscription tier-based quota limits (50/100/250)
+
+## 🟡 Pending Work
+- [ ] Queue system implementation
+- [ ] Rate limiting per tier
+- [ ] Priority-based job processing
+- [ ] Cost protection mechanisms
+- [ ] Background worker for queue processing
 
 ---
 
