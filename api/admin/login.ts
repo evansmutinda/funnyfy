@@ -44,24 +44,37 @@ export default async function handler(
   }
 
   try {
-    // Verify user exists
-    const userResult = await query<{ id: string }>(
-      `SELECT id FROM users WHERE id = $1 OR revenuecat_user_id = $1 LIMIT 1`,
-      [userId]
-    );
+    let finalUserId: string = userId;
 
-    if (userResult.rows.length === 0) {
-      return safeErrorResponse(res, 401, 'INVALID_CREDENTIALS', 'Invalid user ID');
-    }
+    // If ADMIN_USER_IDS is empty, skip database check (for testing)
+    // This allows login with any UUID when database isn't set up
+    if (ADMIN_USER_IDS.length === 0) {
+      // Skip database check - allow any UUID for testing
+      // Validate it's a valid UUID format
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(userId)) {
+        return safeErrorResponse(res, 400, 'INVALID_USER_ID', 'User ID must be a valid UUID format');
+      }
+      finalUserId = userId;
+    } else {
+      // ADMIN_USER_IDS is set - verify user exists in database
+      const userResult = await query<{ id: string }>(
+        `SELECT id FROM users WHERE id = $1 OR revenuecat_user_id = $1 LIMIT 1`,
+        [userId]
+      );
 
-    const finalUserId = userResult.rows[0].id;
+      if (userResult.rows.length === 0) {
+        return safeErrorResponse(res, 401, 'INVALID_CREDENTIALS', 'Invalid user ID');
+      }
 
-    // Check if user is admin (for now, check against env var or allow all)
-    // TODO: Add admin_users table and check there
-    const isAdmin = ADMIN_USER_IDS.length === 0 || ADMIN_USER_IDS.includes(userId) || ADMIN_USER_IDS.includes(finalUserId);
+      finalUserId = userResult.rows[0].id;
 
-    if (!isAdmin && ADMIN_USER_IDS.length > 0) {
-      return safeErrorResponse(res, 403, 'ACCESS_DENIED', 'Admin access required');
+      // Check if user is in admin list
+      const isAdmin = ADMIN_USER_IDS.includes(userId) || ADMIN_USER_IDS.includes(finalUserId);
+
+      if (!isAdmin) {
+        return safeErrorResponse(res, 403, 'ACCESS_DENIED', 'Admin access required. Add your user ID to ADMIN_USER_IDS in Vercel.');
+      }
     }
 
     // Generate JWT token with admin role
