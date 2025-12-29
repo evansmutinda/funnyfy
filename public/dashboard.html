@@ -166,9 +166,12 @@
 
         <div class="section">
             <h3>Quick Actions</h3>
-            <p style="margin-bottom: 15px; color: #666;">API endpoints are working. Full dashboard features coming soon.</p>
-            <a href="/api/admin/queue-stats" class="btn" target="_blank">View Queue Stats (API)</a>
-            <a href="/api/admin/security-logs" class="btn" style="margin-left: 10px;" target="_blank">View Security Logs (API)</a>
+            <p style="margin-bottom: 15px; color: #666;">View detailed information from API endpoints.</p>
+            <button class="btn" onclick="viewQueueStats()">View Queue Stats</button>
+            <button class="btn" style="margin-left: 10px;" onclick="viewSecurityLogs()">View Security Logs</button>
+            <div id="apiResult" style="margin-top: 20px; display: none;">
+                <pre id="apiResultContent" style="background: #f5f5f5; padding: 15px; border-radius: 6px; overflow-x: auto; max-height: 400px; font-size: 12px;"></pre>
+            </div>
         </div>
     </div>
 
@@ -221,6 +224,48 @@
         // Load stats on page load
         loadQueueStats();
         setInterval(loadQueueStats, 30000); // Refresh every 30 seconds
+
+        // View queue stats in detail
+        async function viewQueueStats() {
+            const resultDiv = document.getElementById('apiResult');
+            const resultContent = document.getElementById('apiResultContent');
+            resultDiv.style.display = 'block';
+            resultContent.textContent = 'Loading...';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/queue-stats`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
+
+                const data = await response.json();
+                resultContent.textContent = JSON.stringify(data, null, 2);
+            } catch (err) {
+                resultContent.textContent = 'Error: ' + err.message;
+            }
+        }
+
+        // View security logs
+        async function viewSecurityLogs() {
+            const resultDiv = document.getElementById('apiResult');
+            const resultContent = document.getElementById('apiResultContent');
+            resultDiv.style.display = 'block';
+            resultContent.textContent = 'Loading...';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/security-logs`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
+
+                const data = await response.json();
+                resultContent.textContent = JSON.stringify(data, null, 2);
+            } catch (err) {
+                resultContent.textContent = 'Error: ' + err.message;
+            }
+        }
     </script>
 </body>
 </html>
