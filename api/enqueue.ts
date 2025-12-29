@@ -189,10 +189,27 @@ export default async function handler(
 
     const jobId = insertResult.rows[0]?.id;
 
+    // Calculate queue position
+    const queuePositionResult = await query<{ count: number }>(
+      `
+        SELECT COUNT(*)::int AS count
+        FROM jobs
+        WHERE status = 'pending'
+          AND (
+            priority > $1
+            OR (priority = $1 AND created_at < NOW())
+          )
+      `,
+      [priority]
+    );
+    const queuePosition = queuePositionResult.rows[0]?.count ?? 0;
+
     return res.status(200).json({
       ok: true,
       jobId,
       status: 'pending',
+      queuePosition,
+      priority,
       message: 'Job queued for processing'
     });
   } catch (dbErr) {

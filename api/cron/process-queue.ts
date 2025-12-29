@@ -4,6 +4,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { query } from '../db';
 import { processJob, type JobRow } from '../process-job';
+import { checkDailySpendingCap, shouldPauseQueue, recordJobCost, getEstimatedCost } from '../utils/cost-protection';
+import { getStyleById } from '../styles-config';
 
 const MAX_CONCURRENT_JOBS = Number(process.env.MAX_CONCURRENT_JOBS || 10);
 
@@ -20,6 +22,20 @@ export default async function handler(
   }
 
   try {
+    // Check if queue should be paused due to cost protection
+    const pauseCheck = await shouldPauseQueue();
+    if (pauseCheck.paused) {
+      console.warn('[process-queue] Queue paused due to cost protection:', pauseCheck.reason);
+      return res.status(200).json({
+        ok: true,
+        message: 'Queue paused - daily spending cap reached',
+        paused: true,
+        reason: pauseCheck.reason,
+        currentSpending: pauseCheck.currentSpending,
+        cap: pauseCheck.cap,
+      });
+    }
+
     // Check how many jobs are currently processing
     const activeResult = await query<{ count: number }>(
       `
@@ -40,7 +56,8 @@ export default async function handler(
     }
 
     // Get next pending job (priority-based, oldest first)
-    const jobResult = await query<JobRow>(
+    // Also get style_id to estimate cost
+    const jobResult = await query<JobRow & { style_id: string }>(
       `
         SELECT id, user_id, style_id, input_image_url
         FROM jobs
@@ -60,6 +77,23 @@ export default async function handler(
 
     const job = jobResult.rows[0];
 
+    // Check cost before processing (estimate based on style)
+    const styleConfig = getStyleById(job.style_id);
+    const estimatedCost = styleConfig ? getEstimatedCost(styleConfig.model) : 0.004;
+    const costCheck = await checkDailySpendingCap(estimatedCost);
+
+    if (!costCheck.allowed) {
+      // Don't process if it would exceed daily cap
+      console.warn(`[process-queue] Skipping job ${job.id} - would exceed daily spending cap`);
+      return res.status(200).json({
+        ok: true,
+        message: 'Job skipped - daily spending cap would be exceeded',
+        currentSpending: costCheck.currentSpending,
+        cap: costCheck.cap,
+        estimatedCost,
+      });
+    }
+
     // Mark job as processing
     await query(
       `
@@ -74,6 +108,11 @@ export default async function handler(
     // Process the job (this may take a while)
     try {
       await processJob(job);
+
+      // Record cost after successful completion
+      if (styleConfig) {
+        await recordJobCost(job.id, styleConfig.model);
+      }
 
       // Update usage tracking after successful completion
       const currentMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10);
@@ -126,13 +165,31 @@ export default async function handler(
         jobId: job.id
       });
     } catch (processErr: any) {
-      // Job processing failed - already marked as failed in processJob
-      console.error(`[process-queue] Job ${job.id} failed:`, processErr);
+      // Job processing failed - mark as failed if not already marked
+      const errorMessage = String(processErr?.message || processErr);
+      console.error(`[process-queue] Job ${job.id} failed:`, errorMessage);
+
+      // Update job status to failed if not already updated by processJob
+      try {
+        await query(
+          `
+            UPDATE jobs
+            SET status = 'failed',
+                error_message = $1,
+                completed_at = NOW()
+            WHERE id = $2 AND status = 'processing'
+          `,
+          [errorMessage.slice(0, 1000), job.id] // Limit error message length
+        );
+      } catch (updateErr) {
+        console.error(`[process-queue] Failed to update job ${job.id} status:`, updateErr);
+      }
+
       return res.status(200).json({
         ok: true,
         message: 'Job failed',
         jobId: job.id,
-        error: String(processErr?.message || processErr)
+        error: errorMessage
       });
     }
   } catch (err: any) {

@@ -1,27 +1,14 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { query } from './db';
-
-const allowedOrigin = process.env.ALLOWED_ORIGIN || '*';
-
-const setCors = (res: VercelResponse) => {
-  res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-};
+import { applyMiddleware } from './utils/middleware';
+import { safeErrorResponse } from './utils/security';
 
 export default async function handler(
   req: VercelRequest,
   res: VercelResponse
 ) {
-  setCors(res);
-
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
-  if (req.method !== 'GET') {
-    return res.status(405).json({ ok: false, error: 'Only GET allowed' });
-  }
+  // Apply security middleware
+  if (!applyMiddleware(req, res, ['GET', 'OPTIONS'])) return;
 
   const jobId = (req.query.id || req.query.jobId) as string | undefined;
 
@@ -70,8 +57,9 @@ export default async function handler(
 
     const job = jobResult.rows[0];
 
-    // Rough queue position: how many pending jobs have higher priority / earlier created_at
+    // Calculate queue position and estimated wait time
     let queuePosition: number | null = null;
+    let estimatedWaitTime: number | null = null;
 
     if (job.status === 'pending') {
       try {
@@ -88,9 +76,13 @@ export default async function handler(
           [job.priority, job.created_at]
         );
         queuePosition = queueResult.rows[0]?.count ?? 0;
+
+        // Estimate wait time: queue position * average processing time (~30 seconds)
+        estimatedWaitTime = queuePosition * 30;
       } catch (queueErr) {
         console.error('[job] Failed to compute queue position:', queueErr);
         queuePosition = null;
+        estimatedWaitTime = null;
       }
     }
 
@@ -107,15 +99,13 @@ export default async function handler(
         createdAt: job.created_at,
         startedAt: job.started_at,
         completedAt: job.completed_at,
-        queuePosition
+        queuePosition,
+        estimatedWaitTime
       }
     });
   } catch (err: any) {
     console.error('[job] Failed to fetch job status:', err);
-    return res.status(500).json({
-      ok: false,
-      error: 'Failed to fetch job status'
-    });
+    return safeErrorResponse(res, 500, 'JOB_FETCH_FAILED', 'Failed to fetch job status');
   }
 }
 

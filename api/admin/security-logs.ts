@@ -3,7 +3,7 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { applyMiddleware } from '../utils/middleware';
-import { requireAuth } from '../utils/auth';
+import { requireAdminAuth } from '../utils/admin-auth';
 import { safeErrorResponse } from '../utils/security';
 import { getRecentSecurityEvents, countSecurityEvents } from '../utils/security-logging';
 
@@ -14,12 +14,9 @@ export default async function handler(
   // Apply security middleware
   if (!applyMiddleware(req, res, ['GET', 'OPTIONS'])) return;
 
-  // Require authentication
-  const userId = requireAuth(req, res);
-  if (!userId) return;
-
-  // TODO: Add admin role check here
-  // For now, any authenticated user can view logs (restrict in production)
+  // Require admin authentication
+  const admin = requireAdminAuth(req, res);
+  if (!admin) return;
 
   try {
     const limit = Number(req.query.limit) || 100;
