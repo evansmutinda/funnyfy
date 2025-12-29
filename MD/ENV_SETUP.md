@@ -48,9 +48,10 @@ This guide explains all environment variables needed for FunnyFy and how to conf
 
 #### **Rate Limiting**
 - **`IP_RATE_LIMIT_PER_MINUTE`** (Optional)
-  - **Description**: Maximum requests per IP per minute
-  - **Default**: `30`
-  - **Format**: Number (e.g., `30`, `60`, `100`)
+  - **Description**: Maximum requests per IP per minute (burst protection)
+  - **Default**: `60` (prevents abuse while allowing normal usage)
+  - **Format**: Number (e.g., `60`, `100`, `200`)
+  - **Note**: This is burst protection only. Users are primarily limited by monthly quota, not rate limits.
 
 #### **Queue Processing**
 - **`MAX_CONCURRENT_JOBS`** (Optional)

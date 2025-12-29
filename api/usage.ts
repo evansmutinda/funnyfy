@@ -1,19 +1,14 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { query } from './db';
-
-const allowedOrigin = process.env.ALLOWED_ORIGIN || '*';
+import { applyMiddleware } from './utils/middleware';
+import { requireAuth } from './utils/auth';
+import { safeErrorResponse } from './utils/security';
 
 // Subscription tier quotas (per month)
 const TIER_QUOTAS: Record<string, number> = {
   'starter': 50,
   'popular': 100,
   'pro': 250,
-};
-
-const setCors = (res: VercelResponse) => {
-  res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 };
 
 function getCurrentMonthDate(): string {
@@ -25,29 +20,12 @@ export default async function handler(
   req: VercelRequest,
   res: VercelResponse
 ) {
-  setCors(res);
+  // Apply security middleware (CORS, headers, OPTIONS handling)
+  if (!applyMiddleware(req, res, ['GET', 'OPTIONS'])) return;
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
-  if (req.method !== 'GET') {
-    return res.status(405).json({ ok: false, error: 'Only GET allowed' });
-  }
-
-  // User authentication required
-  const userId: string | null = 
-    (req.headers['x-user-id'] as string) || 
-    (req.query.userId as string) ||
-    null;
-
-  if (!userId) {
-    return res.status(401).json({
-      ok: false,
-      error: 'AUTHENTICATION_REQUIRED',
-      message: 'User authentication required.'
-    });
-  }
+  // Require authentication
+  const userId = requireAuth(req, res);
+  if (!userId) return; // Response already sent by requireAuth
 
   const currentMonth = getCurrentMonthDate();
 
@@ -120,10 +98,7 @@ export default async function handler(
     }
   } catch (err: any) {
     console.error('[usage] Failed to read usage:', err);
-    return res.status(500).json({
-      ok: false,
-      error: 'Failed to read usage info'
-    });
+    return safeErrorResponse(res, 500, 'INTERNAL_ERROR', 'Failed to read usage info');
   }
 }
 

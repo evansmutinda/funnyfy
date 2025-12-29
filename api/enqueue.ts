@@ -5,29 +5,10 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { query } from './db';
 import { getStyleById } from './styles-config';
-
-const allowedOrigin = process.env.ALLOWED_ORIGIN || '*';
-const IP_RATE_LIMIT_PER_MINUTE = Number(process.env.IP_RATE_LIMIT_PER_MINUTE || 30);
-
-const setCors = (res: VercelResponse) => {
-  res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
-  res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-};
-
-function getClientIp(req: VercelRequest): string {
-  const xfwd = (req.headers['x-forwarded-for'] || '') as string;
-  if (xfwd) {
-    return xfwd.split(',')[0].trim();
-  }
-  return (req.headers['x-real-ip'] as string) || req.socket.remoteAddress || 'unknown';
-}
-
-function getCurrentMinuteWindow(): string {
-  const d = new Date();
-  d.setSeconds(0, 0);
-  return d.toISOString();
-}
+import { applyMiddleware, parseBody, validateGenerateRequest } from './utils/middleware';
+import { requireAuth } from './utils/auth';
+import { safeErrorResponse } from './utils/security';
+import { checkAllRateLimits } from './utils/ratelimit';
 
 function getCurrentMonthDate(): string {
   const d = new Date();
@@ -51,42 +32,28 @@ export default async function handler(
   req: VercelRequest,
   res: VercelResponse
 ) {
-  setCors(res);
+  // Apply security middleware (CORS, headers, OPTIONS handling)
+  if (!applyMiddleware(req, res, ['POST', 'OPTIONS'])) return;
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+  // Require authentication
+  const userId = requireAuth(req, res);
+  if (!userId) return; // Response already sent by requireAuth
+
+  // Parse and validate request body
+  const bodyResult = parseBody(req);
+  if (!bodyResult.success) {
+    return safeErrorResponse(res, bodyResult.status, bodyResult.error);
   }
 
-  if (req.method !== 'POST') {
-    return res.status(405).json({ ok: false, error: 'Only POST allowed' });
+  const payload = (bodyResult.data?.payload as Record<string, unknown>) ?? {};
+
+  // Validate generation request (styleId, imageUrl)
+  const validation = validateGenerateRequest(payload);
+  if (!validation.success) {
+    return safeErrorResponse(res, 400, validation.error);
   }
 
-  let body: Record<string, unknown> = {};
-  try {
-    if (typeof req.body === 'string') {
-      body = req.body ? JSON.parse(req.body) : {};
-    } else if (req.body) {
-      body = req.body as Record<string, unknown>;
-    }
-  } catch (err) {
-    return res.status(400).json({ ok: false, error: 'Invalid JSON body' });
-  }
-
-  const payload = (body?.payload as Record<string, unknown>) ?? {};
-
-  // User authentication required
-  const userId: string | null = 
-    (req.headers['x-user-id'] as string) || 
-    (body?.userId as string) || 
-    null;
-
-  if (!userId) {
-    return res.status(401).json({
-      ok: false,
-      error: 'AUTHENTICATION_REQUIRED',
-      message: 'User authentication required. Please sign in to continue.'
-    });
-  }
+  const { styleId, imageUrl } = validation.data;
 
   // Look up user
   let userTier: string | null = null;
@@ -108,11 +75,7 @@ export default async function handler(
       [userId]
     );
     if (userResult.rows.length === 0) {
-      return res.status(404).json({
-        ok: false,
-        error: 'USER_NOT_FOUND',
-        message: 'User account not found. Please sign up.'
-      });
+      return safeErrorResponse(res, 404, 'USER_NOT_FOUND', 'User account not found. Please sign up.');
     }
     
     subscriptionStatus = userResult.rows[0].subscription_status;
@@ -121,100 +84,49 @@ export default async function handler(
 
     if (subscriptionStatus === 'trial' || (subscriptionStatus !== 'active' && trialGenerationsUsed < TRIAL_LIMIT)) {
       if (trialGenerationsUsed >= TRIAL_LIMIT) {
-        return res.status(403).json({
-          ok: false,
-          error: 'TRIAL_EXPIRED',
-          message: 'You\'ve used all 3 free trial generations. Please subscribe to continue.',
-        });
+        return safeErrorResponse(
+          res,
+          403,
+          'TRIAL_EXPIRED',
+          'You\'ve used all 3 free trial generations. Please subscribe to continue.'
+        );
       }
     } else if (subscriptionStatus !== 'active') {
-      return res.status(403).json({
-        ok: false,
-        error: 'SUBSCRIPTION_INACTIVE',
-        message: 'Your subscription is not active. Please subscribe to continue.'
-      });
+      return safeErrorResponse(
+        res,
+        403,
+        'SUBSCRIPTION_INACTIVE',
+        'Your subscription is not active. Please subscribe to continue.'
+      );
     }
   } catch (userErr) {
     console.error('Failed to look up user:', userErr);
-    return res.status(500).json({
-      ok: false,
-      error: 'Failed to verify user account'
-    });
+    return safeErrorResponse(res, 500, 'USER_LOOKUP_FAILED', 'Failed to verify user account');
   }
 
-  // Validate styleId
-  const styleId = typeof (payload as any)?.styleId === 'string' 
-    ? (payload as any).styleId 
-    : null;
-  
-  if (!styleId) {
-    return res.status(400).json({
-      ok: false,
-      error: 'styleId is required.'
-    });
-  }
-  
+  // Validate style exists
   const styleConfig = getStyleById(styleId);
   if (!styleConfig) {
-    return res.status(400).json({
+    return safeErrorResponse(res, 400, 'INVALID_STYLE_ID', `Invalid styleId: ${styleId}`);
+  }
+
+  // Determine user tier and quota
+  const isTrialUser = subscriptionStatus === 'trial' || (subscriptionStatus !== 'active' && trialGenerationsUsed < TRIAL_LIMIT);
+  const effectiveTier = isTrialUser ? 'trial' : (userTier || 'trial');
+  const monthlyQuota = isTrialUser ? TRIAL_LIMIT : getQuotaForTier(userTier);
+
+  // Check all rate limits (IP + Tier Burst + Daily Safety)
+  const rateLimitCheck = await checkAllRateLimits(req, userId, effectiveTier, monthlyQuota);
+  if (!rateLimitCheck.allowed) {
+    return res.status(429).json({
       ok: false,
-      error: `Invalid styleId: ${styleId}`
+      error: 'RATE_LIMIT_EXCEEDED',
+      message: rateLimitCheck.error,
+      ...(rateLimitCheck.details ? { limits: rateLimitCheck.details } : {}),
     });
   }
 
-  const imageUrl = typeof (payload as any)?.imageUrl === 'string'
-    ? (payload as any).imageUrl
-    : null;
-
-  // Per-IP rate limiting
-  const clientIp = getClientIp(req);
-  const windowStart = getCurrentMinuteWindow();
-
-  try {
-    const rateResult = await query<{ id: string; request_count: number }>(
-      `
-        SELECT id, request_count
-        FROM rate_limits
-        WHERE identifier = $1 AND type = 'ip' AND window_start = $2
-      `,
-      [clientIp, windowStart]
-    );
-
-    let currentCount = 0;
-    if (rateResult.rows.length === 0) {
-      await query(
-        `
-          INSERT INTO rate_limits (identifier, type, window_start, request_count)
-          VALUES ($1, 'ip', $2, 1)
-        `,
-        [clientIp, windowStart]
-      );
-      currentCount = 1;
-    } else {
-      currentCount = (rateResult.rows[0].request_count ?? 0) + 1;
-      await query(
-        `
-          UPDATE rate_limits
-          SET request_count = $1
-          WHERE id = $2
-        `,
-        [currentCount, rateResult.rows[0].id]
-      );
-    }
-
-    if (currentCount > IP_RATE_LIMIT_PER_MINUTE) {
-      return res.status(429).json({
-        ok: false,
-        error: 'RATE_LIMIT_EXCEEDED',
-        message: 'Too many requests from this IP. Please wait a moment and try again.',
-      });
-    }
-  } catch (rateErr) {
-    console.error('IP rate limit check failed (continuing without limit):', rateErr);
-  }
-
-  // Quota check
-  const isTrialUser = subscriptionStatus === 'trial' || (subscriptionStatus !== 'active' && trialGenerationsUsed < TRIAL_LIMIT);
+  // Monthly quota check (primary limit)
   
   if (!isTrialUser) {
     const currentMonth = getCurrentMonthDate();
@@ -258,10 +170,7 @@ export default async function handler(
       }
     } catch (quotaErr) {
       console.error('Quota check failed:', quotaErr);
-      return res.status(500).json({
-        ok: false,
-        error: 'Failed to check usage quota'
-      });
+      return safeErrorResponse(res, 500, 'QUOTA_CHECK_FAILED', 'Failed to check usage quota');
     }
   }
 
@@ -288,9 +197,6 @@ export default async function handler(
     });
   } catch (dbErr) {
     console.error('Failed to create job:', dbErr);
-    return res.status(500).json({
-      ok: false,
-      error: 'Failed to queue job'
-    });
+    return safeErrorResponse(res, 500, 'JOB_CREATION_FAILED', 'Failed to queue job');
   }
 }

@@ -131,7 +131,7 @@ import { Redis } from '@upstash/redis';
 
 const ratelimit = new Ratelimit({
   redis: Redis.fromEnv(),
-  limiter: Ratelimit.slidingWindow(10, '1 m'), // 10 requests per minute
+  limiter: Ratelimit.slidingWindow(30, '1 m'), // 30 requests per minute (burst protection)
 });
 
 // Apply to endpoints

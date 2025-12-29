@@ -3,19 +3,14 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { query } from '../db';
-
-const allowedOrigin = process.env.ALLOWED_ORIGIN || '*';
+import { applyMiddleware } from '../utils/middleware';
+import { requireAuth } from '../utils/auth';
+import { safeErrorResponse } from '../utils/security';
 
 const TIER_QUOTAS: Record<string, number> = {
   'starter': 50,
   'popular': 100,
   'pro': 250,
-};
-
-const setCors = (res: VercelResponse) => {
-  res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 };
 
 function getCurrentMonthDate(): string {
@@ -27,29 +22,12 @@ export default async function handler(
   req: VercelRequest,
   res: VercelResponse
 ) {
-  setCors(res);
+  // Apply security middleware (CORS, headers, OPTIONS handling)
+  if (!applyMiddleware(req, res, ['GET', 'OPTIONS'])) return;
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
-  if (req.method !== 'GET') {
-    return res.status(405).json({ ok: false, error: 'Only GET allowed' });
-  }
-
-  // User authentication required
-  const userIdRaw: string | null = 
-    (req.headers['x-user-id'] as string) || 
-    (req.query.userId as string) ||
-    null;
-
-  if (!userIdRaw) {
-    return res.status(401).json({
-      ok: false,
-      error: 'AUTHENTICATION_REQUIRED',
-      message: 'User authentication required.'
-    });
-  }
+  // Require authentication
+  const userIdRaw = requireAuth(req, res);
+  if (!userIdRaw) return; // Response already sent by requireAuth
 
   const debug = req.query.debug === '1' || req.query.debug === 'true';
 
@@ -75,10 +53,7 @@ export default async function handler(
     );
 
     if (userResult.rows.length === 0) {
-      return res.status(404).json({
-        ok: false,
-        error: 'USER_NOT_FOUND'
-      });
+      return safeErrorResponse(res, 404, 'USER_NOT_FOUND', 'User not found');
     }
 
     const user = userResult.rows[0];
@@ -155,10 +130,12 @@ export default async function handler(
     });
   } catch (err: any) {
     console.error('[user/subscription] Failed to get subscription:', err);
-    return res.status(500).json({
-      ok: false,
-      error: 'Failed to get subscription info',
-      ...(debug ? { detail: String(err?.message || err) } : {})
-    });
+    const debug = req.query.debug === '1' || req.query.debug === 'true';
+    return safeErrorResponse(
+      res,
+      500,
+      'INTERNAL_ERROR',
+      debug ? String(err?.message || err) : 'Failed to get subscription info'
+    );
   }
 }

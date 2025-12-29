@@ -111,11 +111,13 @@ CREATE TABLE rate_limits (
 
 ### Per-User Quota Limits
 
-| Tier | Monthly Quota | Hourly Burst Limit | Daily Burst Limit |
-|------|--------------|-------------------|-------------------|
-| Starter | 50/month | 10/hour | 20/day |
-| Popular | 100/month | 20/hour | 40/day |
-| Pro | 250/month | 50/hour | 100/day |
+| Tier | Monthly Quota | Burst Protection (per minute) | Daily Safety Limit |
+|------|--------------|-------------------------------|-------------------|
+| Starter | 50/month | 20/minute | 50/day (matches monthly quota) |
+| Popular | 100/month | 30/minute | 100/day (matches monthly quota) |
+| Pro | 250/month | 50/minute | 250/day (matches monthly quota) |
+
+**Note**: Monthly quota is the primary limit. Burst protection prevents abuse (e.g., someone trying to generate 100 images in 1 minute). Daily limit is a safety net to prevent accidental overuse, but matches monthly quota so users can use their quota however they want.
 
 ### Implementation Logic
 
@@ -133,13 +135,15 @@ async function checkQuota(userId: string, tier: string): Promise<boolean> {
 }
 ```
 
-### Rate Limiting (Per Hour)
+### Rate Limiting (Burst Protection)
+
+**Strategy**: Focus on preventing abuse bursts, not restricting normal usage. Monthly quota is the real limit.
 
 ```typescript
-// Rate limit check (sliding window)
-async function checkRateLimit(userId: string, tier: string): Promise<boolean> {
-  const windowStart = getCurrentHour(); // Round to hour
-  const limit = getHourlyLimitForTier(tier); // 10, 20, or 50
+// Burst protection (per minute) - prevents abuse, not normal usage
+async function checkBurstLimit(userId: string, tier: string): Promise<boolean> {
+  const windowStart = getCurrentMinute(); // Round to minute
+  const limit = getBurstLimitForTier(tier); // 20, 30, or 50 per minute
   
   const count = await db.query(`
     SELECT COUNT(*) FROM jobs
@@ -149,7 +153,27 @@ async function checkRateLimit(userId: string, tier: string): Promise<boolean> {
   
   return count < limit;
 }
+
+// Daily safety limit (matches monthly quota - prevents accidental overuse)
+async function checkDailyLimit(userId: string, tier: string): Promise<boolean> {
+  const today = getCurrentDay(); // Round to day
+  const limit = getQuotaForTier(tier); // Same as monthly quota
+  
+  const count = await db.query(`
+    SELECT COUNT(*) FROM jobs
+    WHERE user_id = $1 
+    AND DATE(created_at) = $2
+  `, [userId, today]);
+  
+  return count < limit;
+}
 ```
+
+**Why this approach:**
+- ✅ Users can use their monthly quota however they want (all in one day if needed)
+- ✅ Burst protection prevents abuse (can't generate 100 images in 1 minute)
+- ✅ Daily limit is a safety net, not a restriction (matches monthly quota)
+- ✅ Better UX: No artificial hourly restrictions
 
 ---
 

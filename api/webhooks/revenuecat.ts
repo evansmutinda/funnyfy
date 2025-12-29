@@ -4,24 +4,60 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { query } from '../db';
 import crypto from 'crypto';
+import { setSecurityHeaders, safeErrorResponse, getClientIp } from '../utils/security';
+import { logSecurityEventFromRequest } from '../utils/security-logging';
+import { z } from 'zod';
 
 const REVENUECAT_WEBHOOK_SECRET = process.env.REVENUECAT_WEBHOOK_SECRET;
+
+// Webhook event schema validation
+const webhookEventSchema = z.object({
+  type: z.string().optional(),
+  event: z.object({
+    type: z.string(),
+    id: z.string().optional(),
+    product_id: z.string().optional(),
+    customer_info: z.any().optional(),
+  }).optional(),
+  customer_info: z.any().optional(),
+  product_id: z.string().optional(),
+  subscription_id: z.string().optional(),
+  store: z.string().optional(),
+});
 
 // Verify webhook auth header from RevenueCat.
 // In RevenueCat, you configure an Authorization header value (e.g. `Bearer <secret>`).
 // We compare that value to the shared secret from REVENUECAT_WEBHOOK_SECRET.
-function verifyWebhookSignature(authHeader: string | string[] | undefined): boolean {
+function verifyWebhookSignature(authHeader: string | string[] | undefined): {
+  valid: boolean;
+  error?: string;
+} {
   if (!REVENUECAT_WEBHOOK_SECRET) {
-    console.warn('[revenuecat-webhook] REVENUECAT_WEBHOOK_SECRET not set, skipping verification');
-    return true; // Allow in development if secret not set
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    if (isDevelopment) {
+      console.warn('[revenuecat-webhook] REVENUECAT_WEBHOOK_SECRET not set, allowing in development');
+      return { valid: true };
+    }
+    return {
+      valid: false,
+      error: 'Webhook secret not configured',
+    };
   }
 
   if (!authHeader) {
-    return false;
+    return {
+      valid: false,
+      error: 'Missing Authorization header',
+    };
   }
 
   const headerValue = Array.isArray(authHeader) ? authHeader[0] : authHeader;
-  if (!headerValue) return false;
+  if (!headerValue) {
+    return {
+      valid: false,
+      error: 'Invalid Authorization header format',
+    };
+  }
 
   const candidate = headerValue.trim();
   const bare = REVENUECAT_WEBHOOK_SECRET;
@@ -34,8 +70,14 @@ function verifyWebhookSignature(authHeader: string | string[] | undefined): bool
     return crypto.timingSafeEqual(aBuf, bBuf);
   };
 
-  return safeEquals(candidate, bare) || safeEquals(candidate, bearer);
+  const isValid = safeEquals(candidate, bare) || safeEquals(candidate, bearer);
+  
+  return {
+    valid: isValid,
+    error: isValid ? undefined : 'Invalid webhook signature',
+  };
 }
+
 
 // Map RevenueCat product ID to tier
 function mapProductIdToTier(productId: string): string {
@@ -91,65 +133,139 @@ export default async function handler(
   req: VercelRequest,
   res: VercelResponse
 ) {
+  // Set security headers
+  setSecurityHeaders(res);
+
+  // Only allow POST
   if (req.method !== 'POST') {
-    return res.status(405).json({ ok: false, error: 'Method not allowed' });
+    return safeErrorResponse(res, 405, 'METHOD_NOT_ALLOWED', 'Only POST method allowed');
   }
 
-  // Get raw body for signature verification
-  const rawBody = typeof req.body === 'string' 
-    ? req.body 
-    : JSON.stringify(req.body);
+  // Get client IP for logging
+  const clientIp = getClientIp(req);
 
   // Verify webhook auth header matches our shared secret
   const authHeader = req.headers['authorization'];
-  if (!verifyWebhookSignature(authHeader)) {
-    console.error('[revenuecat-webhook] Invalid signature');
-    return res.status(401).json({ ok: false, error: 'Invalid signature' });
+  const signatureCheck = verifyWebhookSignature(authHeader);
+  
+  if (!signatureCheck.valid) {
+    await logSecurityEventFromRequest(req, 'webhook_auth_failed', false, {
+      error: signatureCheck.error,
+    });
+    return safeErrorResponse(res, 401, 'INVALID_SIGNATURE', signatureCheck.error || 'Invalid webhook signature');
   }
 
+  // Parse and validate event
   let event: any;
   try {
     event = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
   } catch (err) {
-    return res.status(400).json({ ok: false, error: 'Invalid JSON' });
+    await logSecurityEventFromRequest(req, 'webhook_parse_error', false, {
+      error: String(err),
+    });
+    return safeErrorResponse(res, 400, 'INVALID_JSON', 'Invalid JSON in request body');
+  }
+
+  // Validate event structure
+  const validation = webhookEventSchema.safeParse(event);
+  if (!validation.success) {
+    await logSecurityEventFromRequest(req, 'webhook_validation_failed', false, {
+      errors: validation.error.errors,
+    });
+    return safeErrorResponse(res, 400, 'INVALID_EVENT_FORMAT', 'Event structure validation failed');
   }
 
   const eventType = event.type || event.event?.type;
-  console.log(`[revenuecat-webhook] Received event: ${eventType}`);
+  if (!eventType) {
+    return safeErrorResponse(res, 400, 'MISSING_EVENT_TYPE', 'Event type is required');
+  }
+
+  console.log(`[revenuecat-webhook] Received event: ${eventType} from ${clientIp}`);
+  
+  // Log successful authentication
+  await logSecurityEventFromRequest(req, 'webhook_received', true, {
+    eventType,
+  });
+
+  // Check for duplicate processing (idempotency)
+  const eventId = event.event?.id || event.id || `${eventType}_${Date.now()}`;
+  try {
+    // Check if we've already processed this event
+    const existingEvent = await query<{ id: string }>(
+      `
+        SELECT id FROM subscription_history
+        WHERE metadata->>'eventId' = $1
+        LIMIT 1
+      `,
+      [eventId]
+    );
+
+    if (existingEvent.rows.length > 0) {
+      console.log(`[revenuecat-webhook] Event ${eventId} already processed, skipping`);
+      return res.status(200).json({ 
+        ok: true, 
+        received: true,
+        message: 'Event already processed',
+      });
+    }
+  } catch (idempotencyErr) {
+    console.error('[revenuecat-webhook] Idempotency check failed:', idempotencyErr);
+    await logSecurityEventFromRequest(req, 'webhook_idempotency_check_failed', false, {
+      error: String(idempotencyErr),
+    });
+    // Continue processing (fail open)
+  }
 
   try {
     switch (eventType) {
       case 'INITIAL_PURCHASE':
-        await handleInitialPurchase(event);
+        await handleInitialPurchase(event, eventId);
         break;
       case 'RENEWAL':
-        await handleRenewal(event);
+        await handleRenewal(event, eventId);
         break;
       case 'CANCELLATION':
-        await handleCancellation(event);
+        await handleCancellation(event, eventId);
         break;
       case 'UNCANCELLATION':
-        await handleUncancellation(event);
+        await handleUncancellation(event, eventId);
         break;
       case 'EXPIRATION':
-        await handleExpiration(event);
+        await handleExpiration(event, eventId);
         break;
       default:
         console.log(`[revenuecat-webhook] Unhandled event type: ${eventType}`);
+        await logSecurityEventFromRequest(req, 'webhook_unhandled_event', true, {
+          eventType,
+          eventId,
+        });
     }
+
+    await logSecurityEventFromRequest(req, 'webhook_processed', true, {
+      eventType,
+      eventId,
+    });
 
     return res.status(200).json({ ok: true, received: true });
   } catch (err: any) {
     console.error(`[revenuecat-webhook] Error processing ${eventType}:`, err);
-    return res.status(500).json({ 
-      ok: false, 
-      error: 'Webhook processing failed',
-      detail: process.env.NODE_ENV === 'development' ? String(err?.message || err) : undefined
+    
+    await logSecurityEventFromRequest(req, 'webhook_processing_error', false, {
+      eventType,
+      eventId,
+      error: String(err?.message || err),
     });
+
+    return safeErrorResponse(
+      res,
+      500,
+      'WEBHOOK_PROCESSING_FAILED',
+      process.env.NODE_ENV === 'development' ? String(err?.message || err) : 'Webhook processing failed'
+    );
   }
 }
 
-async function handleInitialPurchase(event: any) {
+async function handleInitialPurchase(event: any, eventId: string) {
   const customerInfo = event.event?.customer_info || event.customer_info;
   const productId = event.event?.product_id || event.product_id;
   const appUserId = customerInfo?.original_app_user_id;
@@ -246,14 +362,15 @@ async function handleInitialPurchase(event: any) {
     [tier, periodEnd.toISOString().slice(0, 10), userId]
   );
 
-  // Log history
+  // Log history with event ID for idempotency
   await logSubscriptionEvent(subscriptionId, userId, 'created', null, tier, null, 'active', {
     productId,
-    platform
+    platform,
+    eventId, // Store event ID for idempotency check
   });
 }
 
-async function handleRenewal(event: any) {
+async function handleRenewal(event: any, eventId: string) {
   const revenuecatSubId = event.event?.id || event.subscription_id;
   if (!revenuecatSubId) {
     throw new Error('Missing subscription_id');
@@ -315,10 +432,12 @@ async function handleRenewal(event: any) {
   );
 
   await logSubscriptionEvent(subscription.id, subscription.user_id, 'renewed', 
-    subscription.tier, subscription.tier, 'active', 'active', {});
+    subscription.tier, subscription.tier, 'active', 'active', {
+      eventId, // Store event ID for idempotency check
+    });
 }
 
-async function handleCancellation(event: any) {
+async function handleCancellation(event: any, eventId: string) {
   const revenuecatSubId = event.event?.id || event.subscription_id;
   if (!revenuecatSubId) {
     throw new Error('Missing subscription_id');
@@ -353,10 +472,12 @@ async function handleCancellation(event: any) {
   );
 
   await logSubscriptionEvent(subscription.id, subscription.user_id, 'canceled',
-    subscription.tier, subscription.tier, 'active', 'active', {});
+    subscription.tier, subscription.tier, 'active', 'active', {
+      eventId, // Store event ID for idempotency check
+    });
 }
 
-async function handleUncancellation(event: any) {
+async function handleUncancellation(event: any, eventId: string) {
   const revenuecatSubId = event.event?.id || event.subscription_id;
   if (!revenuecatSubId) {
     throw new Error('Missing subscription_id');
@@ -391,10 +512,12 @@ async function handleUncancellation(event: any) {
   );
 
   await logSubscriptionEvent(subscription.id, subscription.user_id, 'uncanceled',
-    null, null, 'active', 'active', {});
+    null, null, 'active', 'active', {
+      eventId, // Store event ID for idempotency check
+    });
 }
 
-async function handleExpiration(event: any) {
+async function handleExpiration(event: any, eventId: string) {
   const revenuecatSubId = event.event?.id || event.subscription_id;
   if (!revenuecatSubId) {
     throw new Error('Missing subscription_id');
@@ -438,5 +561,7 @@ async function handleExpiration(event: any) {
   );
 
   await logSubscriptionEvent(subscription.id, subscription.user_id, 'expired',
-    subscription.tier, subscription.tier, 'active', 'expired', {});
+    subscription.tier, subscription.tier, 'active', 'expired', {
+      eventId, // Store event ID for idempotency check
+    });
 }

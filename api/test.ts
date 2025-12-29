@@ -30,8 +30,9 @@ function getImageUrlFromOutput(output: any): string | null {
   return null;
 }
 
-// Simple per-IP rate limit (requests per rolling minute)
-const IP_RATE_LIMIT_PER_MINUTE = Number(process.env.IP_RATE_LIMIT_PER_MINUTE || 30);
+// Burst protection: 60 requests per minute (prevents abuse, allows normal usage)
+// Users are primarily limited by monthly quota, not rate limits
+const IP_RATE_LIMIT_PER_MINUTE = Number(process.env.IP_RATE_LIMIT_PER_MINUTE || 60);
 
 // Subscription tier quotas (per month)
 const TIER_QUOTAS: Record<string, number> = {

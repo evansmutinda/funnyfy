@@ -36,7 +36,7 @@ Copy the generated secrets to use in Step 2.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `IP_RATE_LIMIT_PER_MINUTE` | `30` | Max requests per IP per minute |
+| `IP_RATE_LIMIT_PER_MINUTE` | `60` | Max requests per IP per minute (burst protection) |
 | `MAX_CONCURRENT_JOBS` | `10` | Max concurrent queue jobs |
 
 ### Step 3: Redeploy
