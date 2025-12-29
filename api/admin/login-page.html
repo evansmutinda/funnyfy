@@ -157,10 +157,18 @@
 
     <script>
         // Get API base URL - handle both /admin/login and direct access
-        const API_BASE = window.location.origin;
+        let API_BASE = window.location.origin;
+        
+        // Check if opened as file:// (local file)
+        if (window.location.protocol === 'file:') {
+            // Default to staging if opened locally
+            API_BASE = 'https://funnyfy-staging.vercel.app';
+            console.warn('⚠️ Page opened as local file. Using staging API:', API_BASE);
+        }
         
         // Debug: log the URL we're trying to fetch
         console.log('API Base:', API_BASE);
+        console.log('Current URL:', window.location.href);
         
         const form = document.getElementById('loginForm');
         const userIdInput = document.getElementById('userId');
@@ -264,10 +272,16 @@
                 // More specific error messages
                 let errorMsg = 'Network error: ' + err.message;
                 if (err.message.includes('Failed to fetch')) {
-                    errorMsg = 'Cannot connect to server. Please check:\n' +
-                              '1. You are connected to the internet\n' +
-                              '2. The API endpoint is accessible\n' +
-                              '3. Try refreshing the page';
+                    if (window.location.protocol === 'file:') {
+                        errorMsg = '⚠️ You opened this page as a local file.\n\n' +
+                                  'Please access it through Vercel:\n' +
+                                  'https://funnyfy-staging.vercel.app/admin/login';
+                    } else {
+                        errorMsg = 'Cannot connect to server. Please check:\n' +
+                                  '1. You are connected to the internet\n' +
+                                  '2. The API endpoint is accessible\n' +
+                                  '3. Try refreshing the page';
+                    }
                 }
                 
                 showError(errorMsg);
