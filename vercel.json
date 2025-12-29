@@ -8,11 +8,11 @@
   "rewrites": [
     {
       "source": "/admin/login",
-      "destination": "/api/admin/login-page.html"
+      "destination": "/login.html"
     },
     {
-      "source": "/admin/dashboard.html",
-      "destination": "/api/admin/dashboard.html"
+      "source": "/admin/dashboard",
+      "destination": "/dashboard.html"
     }
   ]
 }

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FunnyFy Admin - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+        .header {
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            color: #333;
+            font-size: 24px;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .user-id {
+            color: #666;
+            font-size: 14px;
+        }
+        .logout-btn {
+            padding: 8px 16px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .logout-btn:hover {
+            background: #c82333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .welcome {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .welcome h2 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .welcome p {
+            color: #666;
+            line-height: 1.6;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .stat-card h3 {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .stat-card .value {
+            color: #333;
+            font-size: 32px;
+            font-weight: 600;
+        }
+        .error {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c33;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .section h3 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .btn {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn:hover {
+            background: #5568d3;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>FunnyFy Admin Dashboard</h1>
+        <div class="user-info">
+            <span class="user-id" id="userId">Loading...</span>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="welcome">
+            <h2>Welcome to FunnyFy Admin Dashboard</h2>
+            <p>This is a simple dashboard interface. Full Next.js dashboard coming soon!</p>
+        </div>
+
+        <div id="error" class="error" style="display: none;"></div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Queue Status</h3>
+                <div class="value" id="queueStatus">Loading...</div>
+            </div>
+            <div class="stat-card">
+                <h3>Pending Jobs</h3>
+                <div class="value" id="pendingJobs">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Processing Jobs</h3>
+                <div class="value" id="processingJobs">-</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>Quick Actions</h3>
+            <p style="margin-bottom: 15px; color: #666;">API endpoints are working. Full dashboard features coming soon.</p>
+            <a href="/api/admin/queue-stats" class="btn" target="_blank">View Queue Stats (API)</a>
+            <a href="/api/admin/security-logs" class="btn" style="margin-left: 10px;" target="_blank">View Security Logs (API)</a>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        let token = localStorage.getItem('admin_token');
+
+        // Check authentication
+        if (!token) {
+            window.location.href = '/admin/login';
+            throw new Error('Not authenticated');
+        }
+
+        // Decode token to get user ID
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            document.getElementById('userId').textContent = `User: ${payload.userId.substring(0, 8)}...`;
+        } catch (e) {
+            console.error('Error decoding token:', e);
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('admin_token');
+            window.location.href = '/admin/login';
+        }
+
+        // Load queue stats
+        async function loadQueueStats() {
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/queue-stats`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.ok) {
+                        document.getElementById('queueStatus').textContent = data.isPaused ? 'Paused' : 'Active';
+                        document.getElementById('pendingJobs').textContent = data.pending || 0;
+                        document.getElementById('processingJobs').textContent = data.processing || 0;
+                    }
+                }
+            } catch (err) {
+                console.error('Error loading queue stats:', err);
+            }
+        }
+
+        // Load stats on page load
+        loadQueueStats();
+        setInterval(loadQueueStats, 30000); // Refresh every 30 seconds
+    </script>
+</body>
+</html>
+
