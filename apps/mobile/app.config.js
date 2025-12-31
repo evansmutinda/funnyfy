@@ -8,7 +8,7 @@
 export default {
   expo: {
     name: 'FunnyFy',
-    slug: 'funnyfy',
+    slug: 'funnyfyapp',
     version: '1.0.0',
     platforms: ['android', 'ios'],
     orientation: 'portrait',

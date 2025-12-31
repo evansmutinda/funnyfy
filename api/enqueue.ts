@@ -9,6 +9,7 @@ import { applyMiddleware, parseBody, validateGenerateRequest } from './utils/mid
 import { requireAuth } from './utils/auth';
 import { safeErrorResponse } from './utils/security';
 import { checkAllRateLimits } from './utils/ratelimit';
+import { getEstimatedWaitTime } from './utils/queue-stats';
 
 function getCurrentMonthDate(): string {
   const d = new Date();
@@ -204,11 +205,15 @@ export default async function handler(
     );
     const queuePosition = queuePositionResult.rows[0]?.count ?? 0;
 
+    // Calculate estimated wait time
+    const estimatedWaitTime = await getEstimatedWaitTime(queuePosition);
+
     return res.status(200).json({
       ok: true,
       jobId,
       status: 'pending',
       queuePosition,
+      estimatedWaitTime, // seconds
       priority,
       message: 'Job queued for processing'
     });

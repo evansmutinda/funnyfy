@@ -2,6 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { query } from './db';
 import { applyMiddleware } from './utils/middleware';
 import { safeErrorResponse } from './utils/security';
+import { getEstimatedWaitTime } from './utils/queue-stats';
 
 export default async function handler(
   req: VercelRequest,
@@ -77,8 +78,8 @@ export default async function handler(
         );
         queuePosition = queueResult.rows[0]?.count ?? 0;
 
-        // Estimate wait time: queue position * average processing time (~30 seconds)
-        estimatedWaitTime = queuePosition * 30;
+        // Use improved wait time estimation based on historical data
+        estimatedWaitTime = await getEstimatedWaitTime(queuePosition);
       } catch (queueErr) {
         console.error('[job] Failed to compute queue position:', queueErr);
         queuePosition = null;

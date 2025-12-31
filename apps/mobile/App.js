@@ -27,7 +27,10 @@ import { initRevenueCat, getOfferings, purchasePackage, hasRevenueCatKey } from 
 
 const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'https://funnyfyapp.vercel.app';
 // Temporary test user id used for RevenueCat appUserID and FunnyFy backend (via x-user-id)
-const TEST_USER_ID = 'test-user-123';
+// Must be UUID format for backend validation
+// This UUID should match revenuecat_user_id in database
+const TEST_USER_ID = '550e8400-e29b-41d4-a716-446655440000'; // UUID format
+const TEST_USER_ID_REVENUECAT = 'test-user-123'; // For RevenueCat SDK (can be any string)
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 // Style preview images used for pictorial style cards
@@ -891,7 +894,7 @@ export default function App() {
       console.warn('[RevenueCat] Missing SDK key, skipping init');
       return;
     }
-    initRevenueCat(TEST_USER_ID).catch((err) => {
+    initRevenueCat(TEST_USER_ID_REVENUECAT).catch((err) => {
       console.error('[RevenueCat] init error:', err);
     });
   }, []);
