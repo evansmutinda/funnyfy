@@ -90,22 +90,12 @@ I can update `build-apk.ps1` to default to preview profile for testing. Would yo
 
 If you need to test production builds, you'll need production SDK keys from RevenueCat:
 
-1. Go to RevenueCat Dashboard → Settings → API Keys
-2. Look for production SDK keys in the "SDK Keys (Public)" section
-3. Production keys are platform-specific:
-   - Android: `goog_xxxxxxxxxxxxxxxxxxxxx`
-   - iOS: `appl_xxxxxxxxxxxxxxxxxxxxx`
+1. Go to RevenueCat Dashboard
+2. Settings → API Keys
+3. Look for production SDK keys (not test keys)
+4. These will be platform-specific: `goog_...` for Android, `appl_...` for iOS
 
-**Note:** Production keys only appear after you've:
-- Set up subscription products in App Store Connect / Google Play Console
-- Linked those products in RevenueCat
-- Products have been approved/published
-
-If you don't see production keys yet, that's normal - you need to set up products in the app stores first.
-
-**For testing, stick with preview builds and test keys - that's the correct setup!**
-
-See `FIND_REVENUECAT_PRODUCTION_KEYS.md` for detailed instructions.
+**But for testing, stick with preview builds and test keys!**
 
 ---
 

@@ -5,9 +5,9 @@ import { query } from '../db';
 // Estimated cost per generation (varies by model)
 // These are approximate costs - adjust based on actual Replicate pricing
 const MODEL_COSTS: Record<string, number> = {
-  'black-forest-labs/flux-kontext-pro': 0.004, // ~$0.004 per generation
-  'google/nano-banana': 0.003, // ~$0.003 per generation
-  'default': 0.004, // Default fallback
+  'black-forest-labs/flux-kontext-pro': 0.04, // $0.04 per generation
+  'google/nano-banana': 0.03, // ~$0.03 per generation (estimate - verify actual cost)
+  'default': 0.04, // Default fallback
 };
 
 // Get estimated cost for a model
