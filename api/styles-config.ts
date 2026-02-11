@@ -71,7 +71,7 @@ export const STYLES_CONFIG: Record<string, StyleConfig> = {
     id: 'oil-paint',
     label: 'Oil Paint',
     description: 'Oil-paint cartoon caricature style',
-    prompt: 'make this a Oil-paint cartoon caricature',
+    prompt: 'make this a Oil-paint cartoon caricature facial feature and age',
     model: 'black-forest-labs/flux-kontext-pro',
     enabled: true,
     premium: false
@@ -89,7 +89,7 @@ export const STYLES_CONFIG: Record<string, StyleConfig> = {
     id: 'water-color',
     label: 'Water Color',
     description: 'Water color cartoon caricature style',
-    prompt: 'make this a water color cartoon caricature',
+    prompt: 'make this a water color cartoon caricature maitaining subjects facial feature and age',
     model: 'black-forest-labs/flux-kontext-pro',
     enabled: true,
     premium: false
