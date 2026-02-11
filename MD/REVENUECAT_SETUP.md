@@ -221,5 +221,18 @@ This MD file is the canonical reference for setting up RevenueCat for FunnyFy (s
 
 ---
 
+## Troubleshooting: "Could not validate subscriptions API permissions"
+
+If you see this error after uploading the **Google Play service account JSON** in RevenueCat:
+
+1. **Google Play Console** → Users and permissions → invite (or edit) the **service account** email from your JSON.
+2. Grant **Account permissions**: **View app information and download bulk reports**, **View financial data, orders, and cancellation survey response**, and **Manage orders and subscriptions**.
+3. Ensure your app has a **release** (APK/AAB) on a testing track and the release is approved; validation often fails until this is done.
+4. Re-upload the JSON in RevenueCat and click Validate again. Changes can take 24–36 hours to propagate.
+
+See **`MD/REVENUECAT_GOOGLE_PLAY_CREDENTIALS_FIX.md`** for the full step-by-step fix.
+
+---
+
 **Last Updated**: January 2025
 
