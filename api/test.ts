@@ -517,29 +517,63 @@ export default async function handler(
       // Fall back to returning the initial prediction if polling fails.
     }
 
-    // Update job as completed, if we created one
-    if (jobId) {
-      const outputUrl = getImageUrlFromOutput((data as any)?.output);
-      const replicateId = (data as any)?.id ?? null;
+    // Update job based on Replicate status (succeeded vs failed/canceled)
+    const replicateStatus = (data as any)?.status;
+    const outputUrl = getImageUrlFromOutput((data as any)?.output);
+    const replicateId = (data as any)?.id ?? null;
+    const replicateError = (data as any)?.error ?? (data as any)?.logs ?? null;
+    const replicateFailed = replicateStatus === 'failed' || replicateStatus === 'canceled' || !(replicateStatus === 'succeeded' && outputUrl);
 
+    if (jobId) {
       try {
-        await query(
-          `
-          UPDATE jobs
-          SET status = $1,
-              output_image_url = $2,
-              replicate_prediction_id = $3,
-              completed_at = NOW()
-          WHERE id = $4
-        `,
-          ['completed', outputUrl, replicateId, jobId]
-        );
+        if (!replicateFailed) {
+          await query(
+            `
+            UPDATE jobs
+            SET status = 'completed',
+                output_image_url = $1,
+                replicate_prediction_id = $2,
+                error_message = NULL,
+                completed_at = NOW()
+            WHERE id = $3
+          `,
+            [outputUrl, replicateId, jobId]
+          );
+        } else {
+          const errorMsg = replicateStatus === 'failed' || replicateStatus === 'canceled'
+            ? `Replicate ${replicateStatus}: ${replicateError || 'No details'}`
+            : (outputUrl ? null : 'Replicate did not return an image');
+          await query(
+            `
+            UPDATE jobs
+            SET status = 'failed',
+                output_image_url = NULL,
+                replicate_prediction_id = $1,
+                error_message = $2,
+                completed_at = NOW()
+            WHERE id = $3
+          `,
+            [replicateId, errorMsg || 'Generation failed', jobId]
+          );
+        }
       } catch (dbErr) {
-        console.error('Failed to update job as completed:', dbErr);
+        console.error('Failed to update job status:', dbErr);
       }
     }
 
-    // Increment usage: trial users vs subscribed users
+    // If Replicate failed, return error to client (do not increment usage)
+    if (replicateFailed) {
+      const userMsg = replicateStatus === 'failed' || replicateStatus === 'canceled'
+        ? 'Image generation failed. Please try again.'
+        : 'Image generation did not complete. Please try again.';
+      return res.status(400).json({
+        ok: false,
+        error: userMsg,
+        replicateStatus: replicateStatus || 'unknown'
+      });
+    }
+
+    // Increment usage: trial users vs subscribed users (only on success)
     if (isTrialUser) {
       // Increment trial_generations_used
       try {

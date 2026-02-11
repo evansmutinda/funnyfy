@@ -604,18 +604,13 @@ function SubscriptionScreen({
   );
 }
 
-function ResultScreen({ original, result, loading, error, onBack, onHome, subscriptionInfo }) {
+function ResultScreen({ original, result, loading, error, failedAttempts = 0, onRetry, onBack, onHome, subscriptionInfo }) {
   const insets = useSafeAreaInsets();
   const imageUrl = result ? getImageUrlFromOutput(result.output) : null;
   const [mix, setMix] = useState(0);
   const [canvasWidth, setCanvasWidth] = useState(0);
   const hasResult = !!result && !!imageUrl;
-
-  useEffect(() => {
-    if (error) {
-      Alert.alert('Error', error, [{ text: 'OK' }]);
-    }
-  }, [error]);
+  const maxRetriesReached = error && failedAttempts >= 3;
 
   useEffect(() => {
     // Reset mix to 0 (show result) when new result loads
@@ -816,6 +811,30 @@ function ResultScreen({ original, result, loading, error, onBack, onHome, subscr
                 <View style={styles.progressContainer}>
                   <Text style={styles.progressLabel}>Processing…</Text>
                 </View>
+              ) : maxRetriesReached ? (
+                <View style={styles.errorRetryContainer}>
+                  <Text style={styles.errorRetryTitle}>Please try again later</Text>
+                  <Text style={styles.errorRetrySubtext}>
+                    Failed generations are not billed. Your usage counter is unchanged.
+                  </Text>
+                  <TouchableOpacity onPress={onBack} style={styles.retryButton}>
+                    <Text style={styles.retryButtonText}>Choose another photo</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : error ? (
+                <View style={styles.errorRetryContainer}>
+                  <Text style={styles.errorRetryMessage}>{error}</Text>
+                  <Text style={styles.errorRetryHint}>
+                    Attempt {failedAttempts + 1} of 3
+                  </Text>
+                  <TouchableOpacity
+                    onPress={onRetry}
+                    style={styles.retryButton}
+                    disabled={loading}
+                  >
+                    <Text style={styles.retryButtonText}>Retry</Text>
+                  </TouchableOpacity>
+                </View>
               ) : null}
               
               <View style={styles.actionsRow}>
@@ -862,6 +881,8 @@ export default function App() {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [pendingImageDataUrl, setPendingImageDataUrl] = useState(null);
   const [job, setJob] = useState(null);
   const [availableStyles, setAvailableStyles] = useState([]);
   const [subscribeLoading, setSubscribeLoading] = useState(false);
@@ -1015,6 +1036,7 @@ export default function App() {
           } catch (parseErr) {
             console.error('Result call - JSON parse error:', parseErr);
             setError('Server returned invalid response. Please try again.');
+            setFailedAttempts((prev) => prev + 1);
             return;
           }
 
@@ -1030,6 +1052,7 @@ export default function App() {
 
           // Backend now returns a fully-polled prediction; use it directly
           setResult(json.data);
+          setFailedAttempts(0);
           
           // Auto-refresh subscription after successful generation
           setTimeout(async () => {
@@ -1069,6 +1092,7 @@ export default function App() {
           }
 
           setError(userMessage);
+          setFailedAttempts((prev) => prev + 1);
         } finally {
           setLoading(false);
         }
@@ -1267,8 +1291,18 @@ export default function App() {
 
   const handleUploadStart = async ({ imageUri, imageDataUrl }) => {
     setOriginal({ imageUri, prompt: style?.prompt });
+    setPendingImageDataUrl(imageDataUrl);
+    setFailedAttempts(0);
+    setError('');
     setScreen('result');
     await callApi({ imageDataUrl });
+  };
+
+  const handleRetry = async () => {
+    if (!pendingImageDataUrl || failedAttempts >= 3) return;
+    setError('');
+    setLoading(true);
+    await callApi({ imageDataUrl: pendingImageDataUrl });
   };
 
   useEffect(() => {
@@ -1367,8 +1401,10 @@ export default function App() {
           result={result}
           loading={loading}
           error={error}
+          failedAttempts={failedAttempts}
+          onRetry={handleRetry}
           subscriptionInfo={subscriptionInfo}
-          onBack={() => setScreen('upload')}
+          onBack={() => { setScreen('upload'); setError(''); setFailedAttempts(0); }}
           onHome={() => setScreen('style')}
         />
       </SafeAreaProvider>
@@ -1807,6 +1843,48 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#4b5563',
     marginBottom: 4,
+  },
+  errorRetryContainer: {
+    width: '100%',
+    marginBottom: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    backgroundColor: '#fef2f2',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#fecaca',
+    gap: 8,
+  },
+  errorRetryTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#991b1b',
+  },
+  errorRetrySubtext: {
+    fontSize: 14,
+    color: '#7f1d1d',
+  },
+  errorRetryMessage: {
+    fontSize: 14,
+    color: '#991b1b',
+    fontWeight: '500',
+  },
+  errorRetryHint: {
+    fontSize: 12,
+    color: '#b91c1c',
+  },
+  retryButton: {
+    marginTop: 4,
+    alignSelf: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    backgroundColor: '#dc2626',
+    borderRadius: 12,
+  },
+  retryButtonText: {
+    color: '#ffffff',
+    fontWeight: '600',
+    fontSize: 16,
   },
   actionsRow: {
     width: '100%',

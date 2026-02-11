@@ -146,19 +146,41 @@ export async function processJob(job: JobRow): Promise<void> {
     console.error('Error while polling Replicate status:', pollErr);
   }
 
-  // Update job as completed
+  // Check Replicate status - succeeded vs failed/canceled
+  const replicateStatus = (data as any)?.status;
   const outputUrl = getImageUrlFromOutput((data as any)?.output);
   const replicateId = (data as any)?.id ?? null;
+  const replicateError = (data as any)?.error ?? (data as any)?.logs ?? null;
 
-  await query(
-    `
-      UPDATE jobs
-      SET status = $1,
-          output_image_url = $2,
-          replicate_prediction_id = $3,
-          completed_at = NOW()
-      WHERE id = $4
-    `,
-    ['completed', outputUrl, replicateId, job.id]
-  );
+  if (replicateStatus === 'succeeded' && outputUrl) {
+    await query(
+      `
+        UPDATE jobs
+        SET status = $1,
+            output_image_url = $2,
+            replicate_prediction_id = $3,
+            error_message = NULL,
+            completed_at = NOW()
+        WHERE id = $4
+      `,
+      ['completed', outputUrl, replicateId, job.id]
+    );
+  } else {
+    const errorMsg = replicateStatus === 'failed' || replicateStatus === 'canceled'
+      ? `Replicate ${replicateStatus}: ${replicateError || 'No details'}`
+      : (outputUrl ? null : 'Replicate did not return an image');
+    await query(
+      `
+        UPDATE jobs
+        SET status = 'failed',
+            output_image_url = NULL,
+            replicate_prediction_id = $1,
+            error_message = $2,
+            completed_at = NOW()
+        WHERE id = $3
+      `,
+      [replicateId, errorMsg || 'Generation failed', job.id]
+    );
+    throw new Error(errorMsg || 'Replicate generation failed');
+  }
 }
