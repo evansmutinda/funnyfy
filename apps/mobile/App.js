@@ -15,7 +15,6 @@ import {
   TouchableOpacity,
   View,
   PanResponder,
-  Share,
   Dimensions
 } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -610,7 +609,6 @@ function ResultScreen({ original, result, loading, error, onBack, onHome, subscr
   const imageUrl = result ? getImageUrlFromOutput(result.output) : null;
   const [mix, setMix] = useState(0);
   const [canvasWidth, setCanvasWidth] = useState(0);
-  const [progressPercent, setProgressPercent] = useState(0);
   const hasResult = !!result && !!imageUrl;
 
   useEffect(() => {
@@ -626,42 +624,37 @@ function ResultScreen({ original, result, loading, error, onBack, onHome, subscr
     }
   }, [hasResult]);
 
-  useEffect(() => {
-    if (hasResult) {
-      setProgressPercent(100);
-      return;
-    }
-
-    if (!loading) {
-      setProgressPercent(0);
-      return;
-    }
-
-    let baseProgress = 5;
-
-    if (result) {
-      const status = result?.status || result?.data?.status;
-      if (status === 'starting') baseProgress = 10;
-      else if (status === 'processing') baseProgress = 40;
-      else baseProgress = 20;
-    }
-
-    const interval = setInterval(() => {
-      setProgressPercent((prev) => {
-        if (prev >= baseProgress - 5) return Math.min(prev + 1, baseProgress);
-        return prev + 0.5;
-      });
-    }, 200);
-
-    return () => clearInterval(interval);
-  }, [loading, result, hasResult]);
-
   const handleShare = async () => {
-    if (!imageUrl) return;
+    if (!imageUrl || loading) return;
     try {
-      await Share.share({
-        message: 'Check out my caricature!',
-        url: imageUrl,
+      const urlNoQuery = imageUrl.split('?')[0];
+      const fileName = urlNoQuery.split('/').pop() || 'funnyfy.jpg';
+      const localPath = FileSystem.documentDirectory + fileName;
+
+      const resultDl = await FileSystem.downloadAsync(imageUrl, localPath);
+
+      if (Platform.OS === 'android') {
+        const downloadsPath = 'file:///storage/emulated/0/Download/' + fileName;
+        try {
+          await FileSystem.copyAsync({ from: resultDl.uri, to: downloadsPath });
+        } catch {
+          try {
+            await MediaLibrary.saveToLibraryAsync(resultDl.uri);
+          } catch {
+            // Continue to share even if save fails
+          }
+        }
+      } else {
+        try {
+          await MediaLibrary.saveToLibraryAsync(resultDl.uri);
+        } catch {
+          // Continue to share even if save fails
+        }
+      }
+
+      await Sharing.shareAsync(resultDl.uri, {
+        mimeType: 'image/jpeg',
+        dialogTitle: 'Check out my caricature!',
       });
     } catch (err) {
       console.error('Share error:', err);
@@ -680,6 +673,7 @@ function ResultScreen({ original, result, loading, error, onBack, onHome, subscr
       console.log('Download complete, file URI:', resultDl.uri);
 
       let saved = false;
+      let savedPath = '';
 
       if (Platform.OS === 'android') {
         const downloadsPath = 'file:///storage/emulated/0/Download/' + fileName;
@@ -688,6 +682,7 @@ function ResultScreen({ original, result, loading, error, onBack, onHome, subscr
           await FileSystem.copyAsync({ from: resultDl.uri, to: downloadsPath });
           console.log('Image saved directly to Downloads folder!');
           saved = true;
+          savedPath = '/storage/emulated/0/Download/' + fileName;
         } catch (copyErr) {
           console.log('Direct copy failed:', copyErr.message);
           try {
@@ -695,6 +690,7 @@ function ResultScreen({ original, result, loading, error, onBack, onHome, subscr
             await MediaLibrary.saveToLibraryAsync(resultDl.uri);
             console.log('Image saved via MediaLibrary!');
             saved = true;
+            savedPath = 'Gallery';
           } catch (mlErr) {
             console.error('MediaLibrary also failed:', mlErr.message);
             await Sharing.shareAsync(resultDl.uri, {
@@ -708,6 +704,7 @@ function ResultScreen({ original, result, loading, error, onBack, onHome, subscr
           await MediaLibrary.saveToLibraryAsync(resultDl.uri);
           console.log('Image saved to gallery!');
           saved = true;
+          savedPath = 'Photos';
         } catch (mlErr) {
           await Sharing.shareAsync(resultDl.uri, {
             mimeType: 'image/jpeg',
@@ -717,7 +714,10 @@ function ResultScreen({ original, result, loading, error, onBack, onHome, subscr
       }
 
       if (saved) {
-        Alert.alert('Image Saved', 'Your image has been saved successfully!');
+        Alert.alert(
+          'Image Saved',
+          `Saved successfully!\n\nLocation: ${savedPath}`
+        );
       }
     } catch (err) {
       console.error('Download/save error:', err);
@@ -814,46 +814,29 @@ function ResultScreen({ original, result, loading, error, onBack, onHome, subscr
             <View style={styles.bottomActionsContainer}>
               {loading ? (
                 <View style={styles.progressContainer}>
-                  <Text style={styles.progressLabel}>
-                    {progressPercent < 20
-                      ? 'Starting…'
-                      : progressPercent < 70
-                      ? 'Processing…'
-                      : 'Almost done…'}
-                  </Text>
-                  <View style={styles.progressBarTrack}>
-                    <View style={[styles.progressBarFill, { width: `${progressPercent}%` }]} />
-                    <View style={styles.progressBarLabelWrapper}>
-                      <Text
-                        style={[
-                          styles.progressBarLabelText,
-                          progressPercent > 20
-                            ? styles.progressBarLabelTextLight
-                            : styles.progressBarLabelTextDark,
-                        ]}
-                      >
-                        {Math.round(progressPercent)}%
-                      </Text>
-                    </View>
-                  </View>
+                  <Text style={styles.progressLabel}>Processing…</Text>
                 </View>
               ) : null}
               
               <View style={styles.actionsRow}>
-                <TouchableOpacity
-                  style={[styles.actionButton, (!hasResult || loading) && styles.buttonDisabled]}
-                  onPress={handleDownload}
-                  disabled={!hasResult || loading}
-                >
-                  <Text style={styles.actionButtonText}>💾 Save</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.actionButton, (!hasResult || loading) && styles.buttonDisabled]}
-                  onPress={handleShare}
-                  disabled={!hasResult || loading}
-                >
-                  <Text style={styles.actionButtonText}>📤 Share</Text>
-                </TouchableOpacity>
+                <View style={styles.actionButtonWrapper}>
+                  <TouchableOpacity
+                    style={[styles.actionButton, (!hasResult || loading) && styles.buttonDisabled]}
+                    onPress={handleDownload}
+                    disabled={!hasResult || loading}
+                  >
+                    <Text style={styles.actionButtonText} numberOfLines={1}>Save</Text>
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.actionButtonWrapper}>
+                  <TouchableOpacity
+                    style={[styles.actionButton, (!hasResult || loading) && styles.buttonDisabled]}
+                    onPress={handleShare}
+                    disabled={!hasResult || loading}
+                  >
+                    <Text style={styles.actionButtonText} numberOfLines={1}>Share</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
           </View>
@@ -1440,7 +1423,7 @@ const styles = StyleSheet.create({
   },
   styleContainer: {
     padding: 24,
-    paddingTop: 24,
+    paddingTop: 8,
     gap: 16,
     flexGrow: 1,
   },
@@ -1828,15 +1811,21 @@ const styles = StyleSheet.create({
   actionsRow: {
     width: '100%',
     flexDirection: 'row',
-    justifyContent: 'space-between',
     gap: 12,
     marginTop: 0,
     paddingBottom: 0,
   },
-  actionButton: {
+  actionButtonWrapper: {
     flex: 1,
+    flexBasis: 0,
+    minWidth: 0,
+  },
+  actionButton: {
+    width: '100%',
+    minHeight: 52,
     borderRadius: 14,
-    paddingVertical: 14,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
     backgroundColor: '#ffffff',
     borderWidth: 2,
     borderColor: '#e5e7eb',
@@ -1851,8 +1840,9 @@ const styles = StyleSheet.create({
   actionButtonText: {
     color: '#111827',
     fontWeight: '700',
-    fontSize: 15,
+    fontSize: 16,
     letterSpacing: 0.3,
+    flexShrink: 0,
   },
   backButton: {
     width: 44,
