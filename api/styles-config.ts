@@ -26,7 +26,7 @@ export const STYLES_CONFIG: Record<string, StyleConfig> = {
     id: 'chibi',
     label: 'Chibi',
     description: 'Cute, big-head chibi cartoon style',
-    prompt: 'Make this a chibi cartoon, maintaining poster and facial features',
+    prompt: 'Make this a chibi cartoon, maintaining posture and facial features',
     model: 'black-forest-labs/flux-kontext-pro',
     enabled: true,
     premium: false
