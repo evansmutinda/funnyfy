@@ -304,14 +304,11 @@ export default async function handler(
     }
   } catch (userErr) {
     const err = userErr as Error;
-    const errMsg = err?.message || String(userErr);
-    console.error('[test] User lookup failed:', errMsg);
-    const isDebug = (req.headers['x-debug'] as string) === '1' || req.query?.debug === '1';
+    console.error('[test] User lookup failed:', err?.message || err);
     return res.status(500).json({
       ok: false,
       error: 'Failed to verify user account',
-      message: 'Database error during user lookup. Check Vercel logs for details. Ensure DATABASE_URL is set and migrations are run.',
-      ...(isDebug && { debug: { rawError: errMsg } }),
+      message: 'Database error during user lookup. Check Vercel logs for details.',
     });
   }
 
@@ -422,6 +419,18 @@ export default async function handler(
         }
 
         if (currentCount >= quotaLimit) {
+          // Apply pending_tier on usage depletion (tier change takes effect when quota exhausted)
+          try {
+            const pendResult = await query<{ id: string; pending_tier: string }>(
+              `SELECT id, pending_tier FROM subscriptions WHERE user_id = $1 AND status = 'active' AND pending_tier IS NOT NULL LIMIT 1`,
+              [dbUserId]
+            );
+            if (pendResult.rows.length > 0 && pendResult.rows[0].pending_tier) {
+              const pt = pendResult.rows[0].pending_tier;
+              await query(`UPDATE subscriptions SET tier = $1, pending_tier = NULL, updated_at = NOW() WHERE id = $2`, [pt, pendResult.rows[0].id]);
+              await query(`UPDATE users SET subscription_tier = $1, updated_at = NOW() WHERE id = $2`, [pt, dbUserId]);
+            }
+          } catch (_) { /* ignore */ }
           return res.status(429).json({
             ok: false,
             error: 'QUOTA_EXCEEDED',

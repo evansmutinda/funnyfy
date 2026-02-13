@@ -233,6 +233,9 @@ export default async function handler(
       case 'EXPIRATION':
         await handleExpiration(event, eventId);
         break;
+      case 'PRODUCT_CHANGE':
+        await handleProductChange(event, eventId);
+        break;
       default:
         console.log(`[revenuecat-webhook] Unhandled event type: ${eventType}`);
         await logSecurityEventFromRequest(req, 'webhook_unhandled_event', true, {
@@ -321,12 +324,18 @@ async function handleInitialPurchase(event: any, eventId: string) {
 
   // Create subscription
   const tier = mapProductIdToTier(productId);
-  const entitlement = customerInfo?.entitlements?.active?.[productId] || 
-                     customerInfo?.entitlements?.all?.[productId];
-  const periodEnd = entitlement?.expires_date 
-    ? new Date(entitlement.expires_date)
-    : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // Default: 30 days
+  const ev = event.event || event;
+  // Use expiration_at_ms from event (next renewal) - NOT purchased_at or entitlement
+  const periodEnd = ev?.expiration_at_ms
+    ? new Date(ev.expiration_at_ms)
+    : (() => {
+        const ent = customerInfo?.entitlements?.active?.[productId] || 
+                    Object.values(customerInfo?.entitlements?.active || {})[0];
+        return ent?.expires_date ? new Date(ent.expires_date) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      })();
 
+  // Use original_transaction_id (stable across renewals) for subscription matching - NOT event.id
+  const stableSubId = ev?.original_transaction_id || ev?.transaction_id || eventId;
   const subscriptionResult = await query<{ id: string }>(
     `
       INSERT INTO subscriptions (
@@ -344,7 +353,7 @@ async function handleInitialPurchase(event: any, eventId: string) {
         updated_at = NOW()
       RETURNING id
     `,
-    [userId, event.event?.id || event.id || `sub_${Date.now()}`, platform, tier, periodEnd]
+    [userId, stableSubId, platform, tier, periodEnd]
   );
 
   const subscriptionId = subscriptionResult.rows[0]?.id;
@@ -371,52 +380,81 @@ async function handleInitialPurchase(event: any, eventId: string) {
 }
 
 async function handleRenewal(event: any, eventId: string) {
-  const revenuecatSubId = event.event?.id || event.subscription_id;
-  if (!revenuecatSubId) {
-    throw new Error('Missing subscription_id');
+  const ev = event.event || event;
+  const stableSubId = ev?.original_transaction_id || ev?.transaction_id || event.subscription_id;
+  const appUserId = ev?.app_user_id || event.event?.customer_info?.original_app_user_id;
+  const productId = ev?.product_id || event.product_id;
+
+  if (!stableSubId && !appUserId) {
+    throw new Error('Missing original_transaction_id or app_user_id');
   }
 
-  const subscriptionResult = await query<{ id: string; user_id: string; tier: string }>(
-    `
-      SELECT id, user_id, tier
-      FROM subscriptions
-      WHERE revenuecat_subscription_id = $1
-    `,
-    [revenuecatSubId]
-  );
+  let subscriptionResult: { rows: Array<{ id: string; user_id: string; tier: string; pending_tier?: string | null }> } = { rows: [] };
+  if (stableSubId) {
+    try {
+      subscriptionResult = await query(
+        `SELECT id, user_id, tier, pending_tier FROM subscriptions WHERE revenuecat_subscription_id = $1 AND status = 'active'`,
+        [stableSubId]
+      );
+    } catch {
+      subscriptionResult = await query(
+        `SELECT id, user_id, tier FROM subscriptions WHERE revenuecat_subscription_id = $1 AND status = 'active'`,
+        [stableSubId]
+      );
+    }
+  }
+  if (subscriptionResult.rows.length === 0 && appUserId) {
+    try {
+      subscriptionResult = await query(
+        `SELECT s.id, s.user_id, s.tier, s.pending_tier FROM subscriptions s
+         JOIN users u ON u.id = s.user_id
+         WHERE (u.revenuecat_user_id = $1 OR u.id::text = $1) AND s.status = 'active'
+         ORDER BY s.created_at DESC LIMIT 1`,
+        [appUserId]
+      );
+    } catch {
+      subscriptionResult = await query(
+        `SELECT s.id, s.user_id, s.tier FROM subscriptions s
+         JOIN users u ON u.id = s.user_id
+         WHERE (u.revenuecat_user_id = $1 OR u.id::text = $1) AND s.status = 'active'
+         ORDER BY s.created_at DESC LIMIT 1`,
+        [appUserId]
+      );
+    }
+  }
 
   if (subscriptionResult.rows.length === 0) {
-    console.warn(`[revenuecat-webhook] Renewal: subscription not found: ${revenuecatSubId}`);
+    console.warn(`[revenuecat-webhook] Renewal: subscription not found for ${stableSubId || appUserId}`);
     return;
   }
 
   const subscription = subscriptionResult.rows[0];
-  const customerInfo = event.event?.customer_info || event.customer_info;
-  const entitlement = customerInfo?.entitlements?.active?.[Object.keys(customerInfo?.entitlements?.active || {})[0]];
-  const periodEnd = entitlement?.expires_date 
-    ? new Date(entitlement.expires_date)
-    : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+  const periodEnd = ev?.expiration_at_ms
+    ? new Date(ev.expiration_at_ms)
+    : (() => {
+        const customerInfo = event.event?.customer_info || event.customer_info;
+        const entitlement = Object.values(customerInfo?.entitlements?.active || {})[0];
+        return entitlement?.expires_date ? new Date(entitlement.expires_date) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      })();
 
-  // Update subscription
-  await query(
-    `
-      UPDATE subscriptions
-      SET current_period_end = $1,
-          updated_at = NOW()
-      WHERE id = $2
-    `,
-    [periodEnd, subscription.id]
-  );
+  const sub = subscription as { pending_tier?: string | null };
+  const newTier = sub.pending_tier || (productId ? mapProductIdToTier(productId) : subscription.tier);
 
-  // Update user billing_date
+  try {
+    await query(
+      `UPDATE subscriptions SET tier = $1, current_period_end = $2, pending_tier = NULL, updated_at = NOW() WHERE id = $3`,
+      [newTier, periodEnd, subscription.id]
+    );
+  } catch {
+    await query(
+      `UPDATE subscriptions SET tier = $1, current_period_end = $2, updated_at = NOW() WHERE id = $3`,
+      [newTier, periodEnd, subscription.id]
+    );
+  }
+
   await query(
-    `
-      UPDATE users
-      SET billing_date = $1,
-          updated_at = NOW()
-      WHERE id = $2
-    `,
-    [periodEnd.toISOString().slice(0, 10), subscription.user_id]
+    `UPDATE users SET subscription_tier = $1, billing_date = $2, updated_at = NOW() WHERE id = $3`,
+    [newTier, periodEnd.toISOString().slice(0, 10), subscription.user_id]
   );
 
   // Reset usage quota for new billing period
@@ -437,23 +475,71 @@ async function handleRenewal(event: any, eventId: string) {
     });
 }
 
-async function handleCancellation(event: any, eventId: string) {
-  const revenuecatSubId = event.event?.id || event.subscription_id;
-  if (!revenuecatSubId) {
-    throw new Error('Missing subscription_id');
+async function handleProductChange(event: any, eventId: string) {
+  const ev = event.event || event;
+  const newProductId = ev?.new_product_id || ev?.product_id;
+  const appUserId = ev?.app_user_id || event.event?.customer_info?.original_app_user_id;
+  const stableSubId = ev?.original_transaction_id || ev?.transaction_id;
+
+  if (!newProductId || !appUserId) {
+    console.warn('[revenuecat-webhook] PRODUCT_CHANGE: missing new_product_id or app_user_id');
+    return;
   }
 
-  const subscriptionResult = await query<{ id: string; user_id: string; tier: string }>(
-    `
-      SELECT id, user_id, tier
-      FROM subscriptions
-      WHERE revenuecat_subscription_id = $1
-    `,
-    [revenuecatSubId]
+  const newTier = mapProductIdToTier(newProductId);
+
+  const subResult = await query<{ id: string; user_id: string }>(
+    stableSubId
+      ? `SELECT id, user_id FROM subscriptions WHERE revenuecat_subscription_id = $1 AND status = 'active' LIMIT 1`
+      : `SELECT s.id, s.user_id FROM subscriptions s JOIN users u ON u.id = s.user_id
+         WHERE (u.revenuecat_user_id = $1 OR u.id::text = $1) AND s.status = 'active' ORDER BY s.created_at DESC LIMIT 1`,
+    [stableSubId || appUserId]
   );
 
+  if (subResult.rows.length === 0) {
+    console.warn(`[revenuecat-webhook] PRODUCT_CHANGE: subscription not found for ${appUserId}`);
+    return;
+  }
+
+  const sub = subResult.rows[0];
+  await query(
+    `UPDATE subscriptions SET pending_tier = $1, updated_at = NOW() WHERE id = $2`,
+    [newTier, sub.id]
+  );
+
+  await logSubscriptionEvent(sub.id, sub.user_id, 'product_change', null, newTier, 'active', 'active', {
+    eventId,
+    new_product_id: newProductId,
+    note: 'Tier change takes effect next cycle or on usage depletion',
+  });
+}
+
+async function handleCancellation(event: any, eventId: string) {
+  const ev = event.event || event;
+  const stableSubId = ev?.original_transaction_id || ev?.transaction_id || ev?.id || event.subscription_id;
+  const appUserId = ev?.app_user_id || event.event?.customer_info?.original_app_user_id;
+
+  if (!stableSubId && !appUserId) {
+    throw new Error('Missing subscription identifier');
+  }
+
+  let subscriptionResult: { rows: Array<{ id: string; user_id: string; tier: string }> } = { rows: [] };
+  if (stableSubId) {
+    subscriptionResult = await query<{ id: string; user_id: string; tier: string }>(
+      `SELECT id, user_id, tier FROM subscriptions WHERE revenuecat_subscription_id = $1`,
+      [stableSubId]
+    );
+  }
+  if (subscriptionResult.rows.length === 0 && appUserId) {
+    subscriptionResult = await query<{ id: string; user_id: string; tier: string }>(
+      `SELECT s.id, s.user_id, s.tier FROM subscriptions s JOIN users u ON u.id = s.user_id
+       WHERE (u.revenuecat_user_id = $1 OR u.id::text = $1) AND s.status = 'active' ORDER BY s.created_at DESC LIMIT 1`,
+      [appUserId]
+    );
+  }
+
   if (subscriptionResult.rows.length === 0) {
-    console.warn(`[revenuecat-webhook] Cancellation: subscription not found: ${revenuecatSubId}`);
+    console.warn(`[revenuecat-webhook] Cancellation: subscription not found`);
     return;
   }
 

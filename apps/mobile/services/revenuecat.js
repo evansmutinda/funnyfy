@@ -35,3 +35,7 @@ export async function purchasePackage(pkg) {
 export async function restorePurchases() {
   return Purchases.restorePurchases();
 }
+
+export async function getCustomerInfo() {
+  return Purchases.getCustomerInfo();
+}

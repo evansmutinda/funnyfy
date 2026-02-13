@@ -65,31 +65,31 @@ export default async function handler(
                        (subscriptionStatus !== 'active' && trialGenerationsUsed < TRIAL_LIMIT);
 
     // Get active subscription (if any)
-    const subscriptionResult = await query<{
-      id: string;
-      tier: string;
-      status: string;
-      current_period_end: string;
-      cancel_at_period_end: boolean;
-    }>(
-      `
-        SELECT id, tier, status, current_period_end, cancel_at_period_end
-        FROM subscriptions
-        WHERE user_id = $1 AND status = 'active'
-        ORDER BY created_at DESC
-        LIMIT 1
-      `,
-      [userId]
-    );
+    let subscriptionResult: { rows: Array<{ tier: string; status: string; current_period_start: string; current_period_end: string; cancel_at_period_end: boolean; pending_tier?: string | null }> };
+    try {
+      subscriptionResult = await query(
+        `SELECT id, tier, status, current_period_start, current_period_end, cancel_at_period_end, pending_tier
+         FROM subscriptions WHERE user_id = $1 AND status = 'active' ORDER BY created_at DESC LIMIT 1`,
+        [userId]
+      );
+    } catch {
+      subscriptionResult = await query(
+        `SELECT id, tier, status, current_period_start, current_period_end, cancel_at_period_end
+         FROM subscriptions WHERE user_id = $1 AND status = 'active' ORDER BY created_at DESC LIMIT 1`,
+        [userId]
+      );
+    }
 
     let subscription = null;
     if (subscriptionResult.rows.length > 0) {
-      const sub = subscriptionResult.rows[0];
+      const sub = subscriptionResult.rows[0] as { pending_tier?: string | null };
       subscription = {
         tier: sub.tier,
         status: sub.status,
+        periodStart: sub.current_period_start,
         periodEnd: sub.current_period_end,
-        cancelAtPeriodEnd: sub.cancel_at_period_end
+        cancelAtPeriodEnd: sub.cancel_at_period_end,
+        pendingTier: sub.pending_tier ?? undefined
       };
     }
 

@@ -11,6 +11,7 @@ PostgreSQL schema for FunnyFy (Supabase / Vercel Postgres). Run migrations in or
 3. `api/migrations-cost-tracking.sql` — Cost tracking
 4. `api/migrations-security-logs.sql` — Security logs
 5. `api/migrations-infringements.sql` — Infringements + user bans
+6. `api/migrations-pending-tier.sql` — Pending tier for deferred plan changes
 
 ---
 
@@ -123,6 +124,7 @@ Active subscriptions synced from RevenueCat webhooks.
 | `current_period_start` | TIMESTAMPTZ | NOT NULL | |
 | `current_period_end` | TIMESTAMPTZ | NOT NULL | |
 | `cancel_at_period_end` | BOOLEAN | DEFAULT FALSE | |
+| `pending_tier` | VARCHAR(20) | NULL | Tier to apply at next period end or usage depletion |
 | `canceled_at` | TIMESTAMPTZ | | |
 | `created_at` | TIMESTAMPTZ | DEFAULT NOW() | |
 | `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | |

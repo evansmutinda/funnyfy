@@ -23,7 +23,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
 import * as Sharing from 'expo-sharing';
-import { initRevenueCat, getOfferings, purchasePackage, hasRevenueCatKey } from './services/revenuecat';
+import { initRevenueCat, getOfferings, purchasePackage, getCustomerInfo, hasRevenueCatKey } from './services/revenuecat';
 
 const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'https://funnyfyapp.vercel.app';
 // Temporary test user id used for RevenueCat appUserID and FunnyFy backend (via x-user-id)
@@ -268,10 +268,7 @@ function UploadScreen({ style, onStart, onBackToStyle, canGenerateMore, subscrip
       <View style={{ height: insets.top, backgroundColor: '#ffffff' }} />
       <View style={[styles.uploadContainer, { paddingBottom: Math.max(insets.bottom, BOTTOM_INSET_MIN) }]}>
         <View style={styles.uploadHeader}>
-          <TouchableOpacity onPress={onBackToStyle} style={styles.backButton}>
-            <Text style={styles.backButtonIcon}>‹</Text>
-          </TouchableOpacity>
-          {/* Plan badge as progress bar */}
+          {/* Plan badge as progress bar - full width */}
           {subscriptionInfo && (
             <>
               {subscriptionInfo.usage && subscriptionInfo.usage.limit > 0 ? (
@@ -480,8 +477,13 @@ function SubscriptionScreen({
                 </View>
               )}
               <Text style={styles.planCardDescription}>
-                Renews on {formatDate(subscription.periodEnd)}
+                Next renewal: {formatDate(subscription.periodEnd)}
               </Text>
+              {subscription.pendingTier && (
+                <Text style={styles.pendingTierText}>
+                  Changing to {subscription.pendingTier.charAt(0).toUpperCase() + subscription.pendingTier.slice(1)} at next renewal
+                </Text>
+              )}
               <View style={styles.quotaInfoContainer}>
                 <Text style={styles.quotaInfoText}>
                   {quotaInfo.remaining} of {quotaInfo.limit} caricatures remaining this month
@@ -515,35 +517,6 @@ function SubscriptionScreen({
             </View>
           )}
         </View>
-
-        {/* Usage Statistics */}
-        {subscriptionInfo && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Usage This Month</Text>
-            <View style={styles.statsCard}>
-              <View style={styles.statRow}>
-                <Text style={styles.statLabel}>Caricatures Generated</Text>
-                <Text style={styles.statValue}>{quotaInfo.current}</Text>
-              </View>
-              <View style={styles.statRow}>
-                <Text style={styles.statLabel}>Remaining</Text>
-                <Text style={styles.statValue}>{quotaInfo.remaining}</Text>
-              </View>
-              <View style={styles.statRow}>
-                <Text style={styles.statLabel}>Monthly Limit</Text>
-                <Text style={styles.statValue}>{quotaInfo.limit}</Text>
-              </View>
-              <View style={styles.statRow}>
-                <Text style={styles.statLabel}>Reset Date</Text>
-                <Text style={styles.statValue}>
-                  {subscription?.periodEnd 
-                    ? formatDate(subscription.periodEnd)
-                    : 'End of month'}
-                </Text>
-              </View>
-            </View>
-          </View>
-        )}
 
         {/* Subscription Plans */}
         <View style={styles.section}>
@@ -989,6 +962,32 @@ export default function App() {
     const maxRetries = 2;
     
     try {
+      // Sync from RevenueCat first to fix wrong expiration (next renewal) in our DB
+      if (hasRevenueCatKey()) {
+        try {
+          const customerInfo = await getCustomerInfo();
+          const activeEntitlements = customerInfo?.entitlements?.active || {};
+          const activeEnt = Object.values(activeEntitlements)[0];
+          if (activeEnt?.productIdentifier && activeEnt?.expirationDate) {
+            await fetch(`${API_BASE}/api/sync-subscription`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'x-user-id': TEST_USER_ID },
+              body: JSON.stringify({
+                userId: TEST_USER_ID,
+                productId: activeEnt.productIdentifier,
+                tier: activeEnt.productIdentifier.includes('starter') ? 'starter' :
+                      activeEnt.productIdentifier.includes('popular') ? 'popular' :
+                      activeEnt.productIdentifier.includes('pro') ? 'pro' : 'starter',
+                expirationDate: activeEnt.expirationDate,
+                platform: Platform.OS,
+              }),
+            });
+          }
+        } catch (syncErr) {
+          console.warn('[subscription] Pre-refresh sync failed (non-fatal):', syncErr);
+        }
+      }
+
       const res = await fetch(`${API_BASE}/api/user/subscription?userId=${encodeURIComponent(TEST_USER_ID)}`, {
         method: 'GET',
         headers: {
@@ -1232,9 +1231,11 @@ export default function App() {
         if (hasActiveSubscription && productIdentifier) {
           console.log('[RevenueCat] Purchase successful, active entitlements:', Object.keys(activeEntitlements));
           
-          // Get expiration date from purchase result
-          const expirationDate = customerInfo.allExpirationDates?.[productIdentifier] || 
-                                customerInfo.latestExpirationDate;
+          // Get expiration date (period end = next renewal) from active entitlement - NOT latestExpirationDate which can be wrong
+          const activeEnt = Object.values(activeEntitlements).find(e => e.productIdentifier === productIdentifier)
+            || Object.values(activeEntitlements)[0];
+          const expirationDate = activeEnt?.expirationDate
+            || customerInfo.allExpirationDates?.[productIdentifier];
 
           // Manually sync subscription to backend (in case webhook is delayed or not configured)
           try {
@@ -2059,8 +2060,8 @@ const styles = StyleSheet.create({
   // Upload screen - badge as progress bar (option 2)
   badgeAsBarContainer: {
     flex: 1,
-    marginLeft: 12,
-    height: 36,
+    width: '100%',
+    height: 32,
     borderRadius: 999,
     overflow: 'hidden',
     position: 'relative',
@@ -2090,8 +2091,8 @@ const styles = StyleSheet.create({
   },
   uploadSubscriptionBadge: {
     flex: 1,
-    marginLeft: 12,
-    height: 36,
+    width: '100%',
+    height: 32,
     borderRadius: 999,
     backgroundColor: '#eef2ff',
     alignItems: 'center',
@@ -2106,7 +2107,7 @@ const styles = StyleSheet.create({
   resultBadgeAsBarContainer: {
     flex: 1,
     marginHorizontal: 8,
-    height: 36,
+    height: 32,
     borderRadius: 999,
     overflow: 'hidden',
     position: 'relative',
@@ -2116,7 +2117,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    height: 36,
+    height: 32,
     borderRadius: 999,
     backgroundColor: '#eef2ff',
     marginHorizontal: 8,
@@ -2293,8 +2294,11 @@ const styles = StyleSheet.create({
   },
   planCardDescription: {
     fontSize: 14,
+  },
+  pendingTierText: {
+    fontSize: 12,
     color: '#6b7280',
-    lineHeight: 20,
+    marginTop: 4,
   },
   trialBadge: {
     paddingVertical: 4,
