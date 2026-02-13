@@ -36,6 +36,12 @@ When content is rejected:
 ### 5. Adjusting Sensitivity
 Edit `NSFW_RAW_THRESHOLD` in `api/test.ts` (default: 0.3). Lower = stricter, higher = more permissive.
 
+### 6. Infringement Tracking & Bans
+- Each blocked image creates an `infringements` record.
+- When a user reaches `INFRINGEMENT_BAN_THRESHOLD` (default: 3), they are banned (`users.banned_at` set).
+- Banned users receive 403 with message: "Your account has been suspended due to repeated policy violations."
+- **Migration required**: Run `api/migrations-infringements.sql` in Supabase before using.
+
 ---
 
 ## Docs

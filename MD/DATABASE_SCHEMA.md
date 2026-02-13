@@ -10,6 +10,7 @@ PostgreSQL schema for FunnyFy (Supabase / Vercel Postgres). Run migrations in or
 2. `api/migrations-subscriptions.sql` — Subscriptions (RevenueCat)
 3. `api/migrations-cost-tracking.sql` — Cost tracking
 4. `api/migrations-security-logs.sql` — Security logs
+5. `api/migrations-infringements.sql` — Infringements + user bans
 
 ---
 
@@ -17,7 +18,8 @@ PostgreSQL schema for FunnyFy (Supabase / Vercel Postgres). Run migrations in or
 
 | Table | Purpose |
 |------|---------|
-| `users` | User accounts, subscription tier, trial usage |
+| `users` | User accounts, subscription tier, trial usage, banned_at |
+| `infringements` | Content policy violations (NSFW); multiple → ban |
 | `usage_tracking` | Monthly generation counts per user |
 | `jobs` | Image generation jobs (queue) |
 | `subscriptions` | Active subscriptions (RevenueCat sync) |
@@ -41,10 +43,27 @@ Stores user accounts, subscription info, and trial usage.
 | `billing_date` | DATE | NOT NULL | Monthly quota reset date |
 | `trial_generations_used` | INTEGER | DEFAULT 0 | Free trial generations used (max 3) |
 | `revenuecat_user_id` | VARCHAR(255) | UNIQUE | RevenueCat app user ID |
+| `banned_at` | TIMESTAMPTZ | NULL | When set, user is banned from the app |
 | `created_at` | TIMESTAMPTZ | DEFAULT NOW() | |
 | `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | |
 
 **Indexes:** `idx_users_revenuecat_user_id` on `revenuecat_user_id`
+
+---
+
+## infringements
+
+Content policy violations (e.g. NSFW detected by Sightengine). After `INFRINGEMENT_BAN_THRESHOLD` violations, user is banned.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `id` | UUID | PRIMARY KEY, DEFAULT gen_random_uuid() | |
+| `user_id` | UUID | REFERENCES users(id) ON DELETE CASCADE | |
+| `infringement_type` | VARCHAR(50) | NOT NULL, DEFAULT 'nsfw' | |
+| `details` | JSONB | | e.g. nudity scores |
+| `created_at` | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | |
+
+**Indexes:** `idx_infringements_user_id`, `idx_infringements_created_at` on `(user_id, created_at DESC)`
 
 ---
 

@@ -5,6 +5,7 @@ const allowedOrigin = process.env.ALLOWED_ORIGIN || '*';
 const sightengineUser = process.env.SIGHTENGINE_API_USER;
 const sightengineSecret = process.env.SIGHTENGINE_API_SECRET;
 const NSFW_RAW_THRESHOLD = 0.3;
+const INFRINGEMENT_BAN_THRESHOLD = 3; // Ban after this many infringements
 const targetUrl = process.env.TARGET_API_URL;
 const targetApiKey = process.env.TARGET_API_KEY;
 
@@ -215,9 +216,10 @@ export default async function handler(
       subscription_tier: string;
       subscription_status: string;
       trial_generations_used: number | null;
+      banned_at: string | null;
     }>(
       `
-        SELECT id, subscription_tier, subscription_status, trial_generations_used
+        SELECT id, subscription_tier, subscription_status, trial_generations_used, banned_at
         FROM users
         WHERE id::text = $1
            OR revenuecat_user_id = $1
@@ -236,6 +238,14 @@ export default async function handler(
     }
 
     const user = userResult.rows[0];
+
+    if (user.banned_at) {
+      return res.status(403).json({
+        ok: false,
+        error: 'ACCOUNT_BANNED',
+        message: 'Your account has been suspended due to policy violations. Please contact support if you believe this is an error.'
+      });
+    }
     dbUserId = user.id;
     subscriptionStatus = user.subscription_status;
     userTier = user.subscription_tier;
@@ -420,6 +430,33 @@ export default async function handler(
         const modData = await modRes.json().catch(() => ({}));
         const nudity = (modData as any)?.nudity;
         if (nudity && typeof nudity.raw === 'number' && nudity.raw >= NSFW_RAW_THRESHOLD) {
+          if (dbUserId) {
+            try {
+              await query(
+                `INSERT INTO infringements (user_id, infringement_type, details)
+                 VALUES ($1, 'nsfw', $2)`,
+                [dbUserId, JSON.stringify({ raw: nudity.raw, partial: nudity.partial })]
+              );
+              const countResult = await query<{ count: string }>(
+                `SELECT COUNT(*)::text as count FROM infringements WHERE user_id = $1`,
+                [dbUserId]
+              );
+              const infringementCount = parseInt(countResult.rows[0]?.count ?? '0', 10);
+              if (infringementCount >= INFRINGEMENT_BAN_THRESHOLD) {
+                await query(
+                  `UPDATE users SET banned_at = NOW() WHERE id = $1`,
+                  [dbUserId]
+                );
+                return res.status(403).json({
+                  ok: false,
+                  error: 'ACCOUNT_BANNED',
+                  message: 'Your account has been suspended due to repeated policy violations. Please contact support if you believe this is an error.'
+                });
+              }
+            } catch (infErr) {
+              console.error('[Infringements] Failed to record or check:', infErr);
+            }
+          }
           return res.status(400).json({
             ok: false,
             error: 'CONTENT_NOT_ALLOWED',
