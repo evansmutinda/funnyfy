@@ -73,7 +73,7 @@ const TIER_QUOTAS: Record<string, number> = {
 ### Example Breakdown:
 
 **Starter Tier User:**
-- Pays: **$4.99/month** subscription
+- Pays: **$5/month** subscription
 - Gets: **50 generations/month**
 - Cost per generation (to you): $0.04
 - **Your cost for their usage**: 50 × $0.04 = **$2.00/month**

@@ -2,6 +2,9 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { query } from './db';
 
 const allowedOrigin = process.env.ALLOWED_ORIGIN || '*';
+const sightengineUser = process.env.SIGHTENGINE_API_USER;
+const sightengineSecret = process.env.SIGHTENGINE_API_SECRET;
+const NSFW_RAW_THRESHOLD = 0.3;
 const targetUrl = process.env.TARGET_API_URL;
 const targetApiKey = process.env.TARGET_API_KEY;
 
@@ -395,6 +398,40 @@ export default async function handler(
         });
       }
     }
+
+  // --- Sightengine NSFW moderation (before Replicate) ---
+  if (imageUrl && sightengineUser && sightengineSecret) {
+    try {
+      const base64Match = imageUrl.match(/^data:image\/\w+;base64,(.+)$/);
+      if (base64Match) {
+        const buffer = Buffer.from(base64Match[1], 'base64');
+        const blob = new Blob([buffer], { type: 'image/jpeg' });
+        const form = new FormData();
+        form.append('media', blob, 'image.jpg');
+        form.append('models', 'nudity');
+        form.append('api_user', sightengineUser);
+        form.append('api_secret', sightengineSecret);
+
+        const modRes = await fetch('https://api.sightengine.com/1.0/check.json', {
+          method: 'POST',
+          body: form,
+        });
+
+        const modData = await modRes.json().catch(() => ({}));
+        const nudity = (modData as any)?.nudity;
+        if (nudity && typeof nudity.raw === 'number' && nudity.raw >= NSFW_RAW_THRESHOLD) {
+          return res.status(400).json({
+            ok: false,
+            error: 'CONTENT_NOT_ALLOWED',
+            message: 'This image cannot be processed. Please use an appropriate photo.',
+          });
+        }
+      }
+    } catch (modErr) {
+      console.error('[Sightengine] Moderation check failed (proceeding):', modErr);
+      // Fail open: if Sightengine fails, allow the request (availability over strict filtering)
+    }
+  }
 
   // Determine priority based on tier (Pro=10, Popular=5, Starter=1)
   const priority = userTier === 'pro' ? 10 : userTier === 'popular' ? 5 : 1;

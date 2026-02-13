@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Animated,
   AppState,
   BackHandler,
   Image,
@@ -31,6 +32,7 @@ const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'https://funnyfyapp.vercel.a
 const TEST_USER_ID = '550e8400-e29b-41d4-a716-446655440000'; // UUID format
 const TEST_USER_ID_REVENUECAT = 'test-user-123'; // For RevenueCat SDK (can be any string)
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const BOTTOM_INSET_MIN = Platform.OS === 'android' ? 48 : 34;
 
 // Style preview images used for pictorial style cards
 const STYLE_CARD_IMAGE_DEFAULT = require('./assets/toon.jpg');
@@ -128,7 +130,7 @@ function StyleScreen({
           </TouchableOpacity>
         </View>
 
-        <View style={[styles.styleGrid, { paddingBottom: Math.max(insets.bottom, 24) }]}>
+        <View style={[styles.styleGrid, { paddingBottom: Math.max(insets.bottom, BOTTOM_INSET_MIN) }]}>
           {styleList.map((s) => (
             <TouchableOpacity
               key={s.id}
@@ -152,7 +154,7 @@ function StyleScreen({
             </TouchableOpacity>
           ))}
         </View>
-        <View style={{ height: Math.max(insets.bottom, 24) }} />
+        <View style={{ height: Math.max(insets.bottom, BOTTOM_INSET_MIN) }} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -253,51 +255,49 @@ function UploadScreen({ style, onStart, onBackToStyle, canGenerateMore, subscrip
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       <View style={{ height: insets.top, backgroundColor: '#ffffff' }} />
-      <View style={[styles.uploadContainer, { paddingBottom: Math.max(insets.bottom, 24) }]}>
+      <View style={[styles.uploadContainer, { paddingBottom: Math.max(insets.bottom, BOTTOM_INSET_MIN) }]}>
         <View style={styles.uploadHeader}>
           <TouchableOpacity onPress={onBackToStyle} style={styles.backButton}>
             <Text style={styles.backButtonIcon}>‹</Text>
           </TouchableOpacity>
-          {/* Subscription badge */}
+          {/* Plan badge as progress bar */}
           {subscriptionInfo && (
-            <View style={styles.uploadSubscriptionBadge}>
-              {subscriptionInfo.isTrial || !subscriptionInfo.subscription ? (
-                <Text style={styles.uploadSubscriptionBadgeText}>
-                  Trial • {quotaInfo.current}/{quotaInfo.limit}
-                </Text>
+            <>
+              {subscriptionInfo.usage && subscriptionInfo.usage.limit > 0 ? (
+                <View style={styles.badgeAsBarContainer}>
+                  <View
+                    style={[
+                      styles.badgeAsBarFill,
+                      {
+                        width: `${Math.min(quotaInfo.percentage, 100)}%`,
+                        backgroundColor: quotaInfo.isExceeded ? '#ef4444' : quotaInfo.isLow ? '#f59e0b' : '#10b981',
+                      },
+                    ]}
+                  />
+                  <View style={styles.badgeAsBarTextWrapper}>
+                    <Text style={styles.badgeAsBarText}>
+                      {subscriptionInfo.isTrial || !subscriptionInfo.subscription
+                        ? `Trial • ${quotaInfo.current}/${quotaInfo.limit}`
+                        : `${subscriptionInfo.subscription.tier.charAt(0).toUpperCase() + subscriptionInfo.subscription.tier.slice(1)} • ${quotaInfo.current}/${quotaInfo.limit}`}
+                    </Text>
+                  </View>
+                </View>
               ) : (
-                <Text style={styles.uploadSubscriptionBadgeText}>
-                  {subscriptionInfo.subscription.tier.charAt(0).toUpperCase() + subscriptionInfo.subscription.tier.slice(1)} • {quotaInfo.current}/{quotaInfo.limit}
-                </Text>
+                <View style={styles.uploadSubscriptionBadge}>
+                  <Text style={styles.uploadSubscriptionBadgeText}>
+                    {subscriptionInfo.isTrial || !subscriptionInfo.subscription
+                      ? `Trial • ${quotaInfo.current}/${quotaInfo.limit}`
+                      : `${subscriptionInfo.subscription.tier.charAt(0).toUpperCase() + subscriptionInfo.subscription.tier.slice(1)} • ${quotaInfo.current}/${quotaInfo.limit}`}
+                  </Text>
+                </View>
               )}
-            </View>
+            </>
           )}
         </View>
-        {/* Quota progress bar */}
-        {subscriptionInfo && subscriptionInfo.usage && subscriptionInfo.usage.limit > 0 && (
-          <View style={styles.quotaProgressContainer}>
-            <View style={styles.quotaProgressBar}>
-              <View 
-                style={[
-                  styles.quotaProgressFill,
-                  { 
-                    width: `${Math.min(quotaInfo.percentage, 100)}%`,
-                    backgroundColor: quotaInfo.isExceeded ? '#ef4444' : quotaInfo.isLow ? '#f59e0b' : '#10b981'
-                  }
-                ]} 
-              />
-            </View>
-            {quotaInfo.isLow && !quotaInfo.isExceeded && (
-              <TouchableOpacity onPress={onSubscribe} style={styles.quotaWarningButton}>
-                <Text style={styles.quotaWarningText}>⚠️ Running low - Upgrade now</Text>
-              </TouchableOpacity>
-            )}
-            {quotaInfo.isExceeded && (
-              <TouchableOpacity onPress={onSubscribe} style={styles.quotaExceededButton}>
-                <Text style={styles.quotaExceededText}>❌ Quota exceeded - Upgrade to continue</Text>
-              </TouchableOpacity>
-            )}
-          </View>
+        {quotaInfo.isExceeded && (
+          <TouchableOpacity onPress={onSubscribe} style={[styles.quotaExceededButton, { marginTop: 12 }]}>
+            <Text style={styles.quotaExceededText}>❌ Quota exceeded - Upgrade to continue</Text>
+          </TouchableOpacity>
         )}
         <View style={styles.uploadImageContainer}>
           {imageUri ? (
@@ -382,22 +382,34 @@ function SubscriptionScreen({
   const isTrial = subscriptionInfo?.isTrial || !subscriptionInfo?.subscription;
   const subscription = subscriptionInfo?.subscription;
 
+  const formatDate = (date) => {
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, '0');
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const month = months[d.getMonth()];
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
   const TIER_INFO = {
-    starter: { name: 'Starter', price: '$4.99', quota: 50, features: ['50 caricatures/month', 'All styles', 'HD quality'] },
-    popular: { name: 'Popular', price: '$9.99', quota: 100, features: ['100 caricatures/month', 'All styles', 'HD quality', 'Priority processing'] },
-    pro: { name: 'Pro', price: '$24.99', quota: 250, features: ['250 caricatures/month', 'All styles', 'HD quality', 'Priority processing', 'Early access to new styles'] },
+    starter: { name: 'Starter', price: '$5', quota: 50 },
+    popular: { name: 'Popular', price: '$10', quota: 100 },
+    pro: { name: 'Pro', price: '$25', quota: 250 },
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-      <View style={{ height: insets.top, backgroundColor: '#ffffff' }} />
+    <SafeAreaView style={[styles.safe, { backgroundColor: '#f8fafc' }]}>
+      <StatusBar barStyle="dark-content" backgroundColor="#f8fafc" />
+      <View style={{ height: insets.top, backgroundColor: '#f8fafc' }} />
       <ScrollView 
         contentContainerStyle={styles.subscriptionContainer}
-        style={{ flex: 1 }}
+        style={{ flex: 1, backgroundColor: '#f8fafc' }}
       >
         <View style={styles.subscriptionHeader}>
-          <Text style={styles.subscriptionTitle}>Subscription & Usage</Text>
+          <View style={styles.subscriptionHeaderContent}>
+            <Text style={styles.subscriptionTitle}>Subscriptions</Text>
+            <Text style={styles.subscriptionTagline}>Unlock more caricatures</Text>
+          </View>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Text style={styles.closeButtonIcon}>✕</Text>
           </TouchableOpacity>
@@ -452,12 +464,12 @@ function SubscriptionScreen({
               {subscription.cancelAtPeriodEnd && (
                 <View style={styles.cancelWarning}>
                   <Text style={styles.cancelWarningText}>
-                    ⚠️ Your subscription will cancel on {new Date(subscription.periodEnd).toLocaleDateString()}
+                    ⚠️ Your subscription will cancel on {formatDate(subscription.periodEnd)}
                   </Text>
                 </View>
               )}
               <Text style={styles.planCardDescription}>
-                Renews on {new Date(subscription.periodEnd).toLocaleDateString()}
+                Renews on {formatDate(subscription.periodEnd)}
               </Text>
               <View style={styles.quotaInfoContainer}>
                 <Text style={styles.quotaInfoText}>
@@ -514,7 +526,7 @@ function SubscriptionScreen({
                 <Text style={styles.statLabel}>Reset Date</Text>
                 <Text style={styles.statValue}>
                   {subscription?.periodEnd 
-                    ? new Date(subscription.periodEnd).toLocaleDateString()
+                    ? formatDate(subscription.periodEnd)
                     : 'End of month'}
                 </Text>
               </View>
@@ -524,20 +536,27 @@ function SubscriptionScreen({
 
         {/* Subscription Plans */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Available Plans</Text>
+          <Text style={styles.sectionTitle}>Choose your plan</Text>
           {Object.entries(TIER_INFO).map(([tier, info]) => (
             <TouchableOpacity
               key={tier}
               style={[
                 styles.tierCard,
-                subscription?.tier === tier && styles.tierCardActive
+                subscription?.tier === tier && styles.tierCardActive,
+                tier === 'popular' && styles.tierCardPopular
               ]}
               onPress={() => {
                 if (subscription?.tier !== tier) {
                   onSubscribe();
                 }
               }}
+              activeOpacity={0.85}
             >
+              {tier === 'popular' && !subscription?.tier && (
+                <View style={styles.popularRibbon}>
+                  <Text style={styles.popularRibbonText}>Most popular</Text>
+                </View>
+              )}
               <View style={styles.tierCardHeader}>
                 <View>
                   <Text style={styles.tierCardTitle}>{info.name}</Text>
@@ -549,15 +568,7 @@ function SubscriptionScreen({
                   </View>
                 )}
               </View>
-              <Text style={styles.tierCardQuota}>{info.quota} caricatures/month</Text>
-              <View style={styles.tierFeatures}>
-                {info.features.map((feature, idx) => (
-                  <View key={idx} style={styles.tierFeature}>
-                    <Text style={styles.tierFeatureIcon}>✓</Text>
-                    <Text style={styles.tierFeatureText}>{feature}</Text>
-                  </View>
-                ))}
-              </View>
+              <Text style={styles.tierCardQuota}>{info.quota} caricatures per month</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -598,24 +609,45 @@ function SubscriptionScreen({
             </TouchableOpacity>
           )}
         </View>
-        <View style={{ height: Math.max(insets.bottom, 24) }} />
+        <View style={{ height: Math.max(insets.bottom, BOTTOM_INSET_MIN) }} />
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-function ResultScreen({ original, result, loading, error, failedAttempts = 0, onRetry, onBack, onHome, subscriptionInfo }) {
+function ResultScreen({ original, result, loading, error, failedAttempts = 0, onRetry, onBack, onHome, subscriptionInfo, backHandlerRef }) {
   const insets = useSafeAreaInsets();
   const imageUrl = result ? getImageUrlFromOutput(result.output) : null;
   const [mix, setMix] = useState(0);
   const [canvasWidth, setCanvasWidth] = useState(0);
+  const [hasBeenSaved, setHasBeenSaved] = useState(false);
   const hasResult = !!result && !!imageUrl;
   const maxRetriesReached = error && failedAttempts >= 3;
+  const processingOpacity = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    // Reset mix to 0 (show result) when new result loads
+    if (!loading) {
+      processingOpacity.setValue(1);
+      return;
+    }
+    const blink = Animated.loop(
+      Animated.sequence([
+        Animated.timing(processingOpacity, { toValue: 0.4, duration: 800, useNativeDriver: true }),
+        Animated.timing(processingOpacity, { toValue: 1, duration: 800, useNativeDriver: true }),
+      ])
+    );
+    blink.start();
+    return () => blink.stop();
+  }, [loading, processingOpacity]);
+
+  const resultQuotaCurrent = subscriptionInfo?.usage?.current ?? 0;
+  const resultQuotaLimit = subscriptionInfo?.usage?.limit ?? 3;
+  const resultQuotaPct = resultQuotaLimit > 0 ? Math.min(100, (resultQuotaCurrent / resultQuotaLimit) * 100) : 0;
+
+  useEffect(() => {
     if (hasResult) {
       setMix(0);
+      setHasBeenSaved(false);
     }
   }, [hasResult]);
 
@@ -656,16 +688,15 @@ function ResultScreen({ original, result, loading, error, failedAttempts = 0, on
     }
   };
 
-  const handleDownload = async () => {
-    if (!imageUrl || loading) return;
+  const handleDownload = async (opts = {}) => {
+    const { silent = false } = opts;
+    if (!imageUrl || loading) return false;
     try {
       const urlNoQuery = imageUrl.split('?')[0];
       const fileName = urlNoQuery.split('/').pop() || 'funnyfy.jpg';
       const localPath = FileSystem.documentDirectory + fileName;
 
-      console.log('Downloading image to:', localPath);
       const resultDl = await FileSystem.downloadAsync(imageUrl, localPath);
-      console.log('Download complete, file URI:', resultDl.uri);
 
       let saved = false;
       let savedPath = '';
@@ -673,21 +704,15 @@ function ResultScreen({ original, result, loading, error, failedAttempts = 0, on
       if (Platform.OS === 'android') {
         const downloadsPath = 'file:///storage/emulated/0/Download/' + fileName;
         try {
-          console.log('Attempting direct copy to Downloads:', downloadsPath);
           await FileSystem.copyAsync({ from: resultDl.uri, to: downloadsPath });
-          console.log('Image saved directly to Downloads folder!');
           saved = true;
           savedPath = '/storage/emulated/0/Download/' + fileName;
-        } catch (copyErr) {
-          console.log('Direct copy failed:', copyErr.message);
+        } catch {
           try {
-            console.log('Trying MediaLibrary.saveToLibraryAsync without permission check...');
             await MediaLibrary.saveToLibraryAsync(resultDl.uri);
-            console.log('Image saved via MediaLibrary!');
             saved = true;
             savedPath = 'Gallery';
-          } catch (mlErr) {
-            console.error('MediaLibrary also failed:', mlErr.message);
+          } catch {
             await Sharing.shareAsync(resultDl.uri, {
               mimeType: 'image/jpeg',
               dialogTitle: 'Save image',
@@ -697,7 +722,6 @@ function ResultScreen({ original, result, loading, error, failedAttempts = 0, on
       } else {
         try {
           await MediaLibrary.saveToLibraryAsync(resultDl.uri);
-          console.log('Image saved to gallery!');
           saved = true;
           savedPath = 'Photos';
         } catch (mlErr) {
@@ -709,16 +733,46 @@ function ResultScreen({ original, result, loading, error, failedAttempts = 0, on
       }
 
       if (saved) {
-        Alert.alert(
-          'Image Saved',
-          `Saved successfully!\n\nLocation: ${savedPath}`
-        );
+        setHasBeenSaved(true);
+        if (!silent) {
+          Alert.alert('Image Saved', `Saved successfully!\n\nLocation: ${savedPath}`);
+        }
+        return true;
       }
+      return false;
     } catch (err) {
       console.error('Download/save error:', err);
-      console.error('Error message:', err.message);
+      return false;
     }
   };
+
+  const confirmNavigate = useCallback((navigate) => {
+    if (hasResult && !hasBeenSaved) {
+      Alert.alert(
+        'Save before leaving?',
+        'Do you want to save this caricature before going back?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Discard', style: 'destructive', onPress: navigate },
+          {
+            text: 'Save',
+            onPress: async () => {
+              const didSave = await handleDownload({ silent: true });
+              if (didSave) navigate();
+            },
+          },
+        ]
+      );
+    } else {
+      navigate();
+    }
+  }, [hasResult, hasBeenSaved]);
+
+  useEffect(() => {
+    if (!backHandlerRef) return;
+    backHandlerRef.current = () => confirmNavigate(onBack);
+    return () => { backHandlerRef.current = null; };
+  }, [backHandlerRef, confirmNavigate, onBack]);
 
   const panResponder = useMemo(
     () =>
@@ -741,26 +795,43 @@ function ResultScreen({ original, result, loading, error, failedAttempts = 0, on
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       <View style={{ height: insets.top, backgroundColor: '#ffffff' }} />
-      <View style={[styles.resultContainer, { paddingBottom: Math.max(insets.bottom, 20) }]}>
+      <View style={[styles.resultContainer, { paddingBottom: Math.max(insets.bottom, BOTTOM_INSET_MIN) }]}>
         <View style={styles.resultHeader}>
-          <TouchableOpacity onPress={onBack} style={styles.backButton}>
+          <TouchableOpacity onPress={() => confirmNavigate(onBack)} style={styles.backButton}>
             <Text style={styles.backButtonIcon}>‹</Text>
           </TouchableOpacity>
-          {/* Subscription badge */}
+          {/* Plan badge as progress bar */}
           {subscriptionInfo && (
-            <View style={styles.resultSubscriptionBadge}>
-              {subscriptionInfo.isTrial || !subscriptionInfo.subscription ? (
+            subscriptionInfo.usage && subscriptionInfo.usage.limit > 0 ? (
+              <View style={styles.resultBadgeAsBarContainer}>
+                <View
+                  style={[
+                    styles.badgeAsBarFill,
+                    {
+                      width: `${resultQuotaPct}%`,
+                      backgroundColor: resultQuotaPct >= 100 ? '#ef4444' : resultQuotaPct >= 80 ? '#f59e0b' : '#10b981',
+                    },
+                  ]}
+                />
+                <View style={styles.badgeAsBarTextWrapper}>
+                  <Text style={styles.badgeAsBarText}>
+                    {subscriptionInfo.isTrial || !subscriptionInfo.subscription
+                      ? `Trial • ${resultQuotaCurrent}/${resultQuotaLimit}`
+                      : `${subscriptionInfo.subscription.tier.charAt(0).toUpperCase() + subscriptionInfo.subscription.tier.slice(1)} • ${resultQuotaCurrent}/${resultQuotaLimit}`}
+                  </Text>
+                </View>
+              </View>
+            ) : (
+              <View style={styles.resultSubscriptionBadge}>
                 <Text style={styles.resultSubscriptionBadgeText}>
-                  Trial • {subscriptionInfo.usage?.current || 0}/{subscriptionInfo.usage?.limit || 3}
+                  {subscriptionInfo.isTrial || !subscriptionInfo.subscription
+                    ? `Trial • ${resultQuotaCurrent}/${resultQuotaLimit}`
+                    : `${subscriptionInfo.subscription.tier.charAt(0).toUpperCase() + subscriptionInfo.subscription.tier.slice(1)} • ${resultQuotaCurrent}/${resultQuotaLimit}`}
                 </Text>
-              ) : (
-                <Text style={styles.resultSubscriptionBadgeText}>
-                  {subscriptionInfo.subscription.tier.charAt(0).toUpperCase() + subscriptionInfo.subscription.tier.slice(1)} • {subscriptionInfo.usage?.current || 0}/{subscriptionInfo.usage?.limit || 0}
-                </Text>
-              )}
-            </View>
+              </View>
+            )
           )}
-          <TouchableOpacity onPress={onHome} style={styles.homeButton}>
+          <TouchableOpacity onPress={() => confirmNavigate(onHome)} style={styles.homeButton}>
             <Text style={styles.homeButtonIcon}>🏠</Text>
           </TouchableOpacity>
         </View>
@@ -809,7 +880,7 @@ function ResultScreen({ original, result, loading, error, failedAttempts = 0, on
             <View style={styles.bottomActionsContainer}>
               {loading ? (
                 <View style={styles.progressContainer}>
-                  <Text style={styles.progressLabel}>Processing…</Text>
+                  <Animated.Text style={[styles.progressLabel, { opacity: processingOpacity }]}>Processing…</Animated.Text>
                 </View>
               ) : maxRetriesReached ? (
                 <View style={styles.errorRetryContainer}>
@@ -889,6 +960,7 @@ export default function App() {
   const [hasRcKey, setHasRcKey] = useState(false);
   const [subscriptionInfo, setSubscriptionInfo] = useState(null);
   const [subscriptionLoading, setSubscriptionLoading] = useState(false);
+  const resultBackHandlerRef = useRef(null);
 
   useEffect(() => {
     // Initialize RevenueCat with a placeholder user id (replace with real auth later)
@@ -1308,7 +1380,7 @@ export default function App() {
   useEffect(() => {
     const onBackPress = () => {
       if (screen === 'result') {
-        setScreen('upload');
+        resultBackHandlerRef.current?.();
         return true;
       }
       if (screen === 'upload') {
@@ -1404,6 +1476,7 @@ export default function App() {
           failedAttempts={failedAttempts}
           onRetry={handleRetry}
           subscriptionInfo={subscriptionInfo}
+          backHandlerRef={resultBackHandlerRef}
           onBack={() => { setScreen('upload'); setError(''); setFailedAttempts(0); }}
           onHome={() => setScreen('style')}
         />
@@ -1470,6 +1543,8 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   uploadHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingTop: 16,
     paddingBottom: 8,
     marginBottom: 4,
@@ -1972,27 +2047,67 @@ const styles = StyleSheet.create({
     backgroundColor: '#e5e7eb',
     marginVertical: 12,
   },
-  // Upload screen subscription badge
-  uploadSubscriptionBadge: {
+  // Upload screen - badge as progress bar (option 2)
+  badgeAsBarContainer: {
+    flex: 1,
+    marginLeft: 12,
+    height: 36,
+    borderRadius: 999,
+    overflow: 'hidden',
+    position: 'relative',
+    backgroundColor: '#e5e7eb',
+  },
+  badgeAsBarFill: {
     position: 'absolute',
-    right: 0,
+    left: 0,
     top: 0,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
+    bottom: 0,
+    borderRadius: 999,
+    borderTopRightRadius: 0,
+    borderBottomRightRadius: 0,
+  },
+  badgeAsBarTextWrapper: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badgeAsBarText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#1f2937',
+    textShadowColor: 'rgba(255,255,255,0.9)',
+    textShadowOffset: { width: 0, height: 0.5 },
+    textShadowRadius: 2,
+  },
+  uploadSubscriptionBadge: {
+    flex: 1,
+    marginLeft: 12,
+    height: 36,
     borderRadius: 999,
     backgroundColor: '#eef2ff',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   uploadSubscriptionBadgeText: {
     fontSize: 11,
     fontWeight: '600',
     color: '#4f46e5',
   },
-  // Result screen subscription badge
+  // Result screen - badge as progress bar
+  resultBadgeAsBarContainer: {
+    flex: 1,
+    marginHorizontal: 8,
+    height: 36,
+    borderRadius: 999,
+    overflow: 'hidden',
+    position: 'relative',
+    backgroundColor: '#e5e7eb',
+  },
   resultSubscriptionBadge: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 6,
-    paddingHorizontal: 10,
+    justifyContent: 'center',
+    height: 36,
     borderRadius: 999,
     backgroundColor: '#eef2ff',
     marginHorizontal: 8,
@@ -2086,14 +2201,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
-    marginTop: 8,
+    marginBottom: 16,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e2e8f0',
+  },
+  subscriptionHeaderContent: {
+    gap: 2,
   },
   subscriptionTitle: {
     fontSize: 28,
     fontWeight: '900',
-    color: '#111827',
+    color: '#0f172a',
     letterSpacing: -0.5,
+  },
+  subscriptionTagline: {
+    fontSize: 15,
+    color: '#64748b',
+    fontWeight: '500',
   },
   closeButton: {
     width: 44,
@@ -2139,8 +2264,13 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 20,
     borderWidth: 2,
-    borderColor: '#e5e7eb',
+    borderColor: '#e2e8f0',
     gap: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
   },
   planCardHeader: {
     flexDirection: 'row',
@@ -2225,26 +2355,31 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderRadius: 16,
     padding: 20,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    gap: 16,
+    borderWidth: 2,
+    borderColor: '#e2e8f0',
+    gap: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
   },
   statRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
+    borderBottomColor: '#e5e7eb',
   },
   statLabel: {
     fontSize: 14,
     color: '#6b7280',
-    fontWeight: '500',
+    lineHeight: 20,
   },
   statValue: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#111827',
   },
   tierCard: {
@@ -2252,13 +2387,39 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 20,
     borderWidth: 2,
-    borderColor: '#e5e7eb',
+    borderColor: '#e2e8f0',
     marginBottom: 12,
     gap: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  tierCardPopular: {
+    borderColor: '#f97316',
+    backgroundColor: '#ffffff',
+    shadowColor: '#f97316',
+    shadowOpacity: 0.12,
   },
   tierCardActive: {
     borderColor: '#f97316',
     backgroundColor: '#fff7ed',
+  },
+  popularRibbon: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    backgroundColor: '#f97316',
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+    borderTopRightRadius: 14,
+    borderBottomLeftRadius: 10,
+  },
+  popularRibbonText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#ffffff',
   },
   tierCardHeader: {
     flexDirection: 'row',
@@ -2271,16 +2432,15 @@ const styles = StyleSheet.create({
     color: '#111827',
   },
   tierCardPrice: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#f97316',
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#ea580c',
     marginTop: 4,
   },
   tierCardQuota: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#374151',
-    marginTop: 4,
+    color: '#64748b',
   },
   currentBadge: {
     paddingVertical: 4,
@@ -2293,36 +2453,17 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#065f46',
   },
-  tierFeatures: {
-    gap: 8,
-    marginTop: 8,
-  },
-  tierFeature: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  tierFeatureIcon: {
-    fontSize: 14,
-    color: '#10b981',
-    fontWeight: '700',
-  },
-  tierFeatureText: {
-    fontSize: 13,
-    color: '#6b7280',
-    flex: 1,
-  },
   actionButton: {
     backgroundColor: '#f97316',
-    paddingVertical: 16,
-    borderRadius: 12,
+    paddingVertical: 18,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
-    shadowColor: '#f97316',
+    shadowColor: '#ea580c',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
     elevation: 4,
   },
   actionButtonText: {

@@ -1,14 +1,14 @@
 # FunnyFy App - Current Status
 
-**Last Updated**: January 2025  
-**Version**: MVP Complete  
-**Status**: Pre-Launch (Subscription Integration Phase)
+**Last Updated**: February 2025  
+**Version**: 1.0.1 (Android versionCode: 2)  
+**Status**: Post-MVP – Subscription & UI Polish Complete
 
 ---
 
 ## 🎯 Overview
 
-FunnyFy is a React Native mobile application that transforms user photos into AI-generated caricatures using the Replicate API. The app is feature-complete for MVP and ready for subscription integration before launch.
+FunnyFy is a React Native mobile application that transforms user photos into AI-generated caricatures using the Replicate API. The app has subscription integration via RevenueCat, usage tracking, quota enforcement, and a polished UI.
 
 ---
 
@@ -24,92 +24,127 @@ FunnyFy is a React Native mobile application that transforms user photos into AI
 - ✅ Save to device functionality
 - ✅ Share functionality
 - ✅ Error handling and user feedback
-- ✅ Modern, polished UI/UX
+- ✅ **Retry logic**: Up to 3 attempts on failure; after 3rd, shows "Please try again later" with billing confirmation (failed runs not charged)
+- ✅ **Save before navigate**: Prompts to save when leaving result screen with unsaved image (Back, Home, hardware back)
+- ✅ **Processing indicator**: Pulsing "Processing…" text during generation
+- ✅ **Plan badge as progress bar**: Combined badge + quota progress in one pill (Upload & Result screens)
+- ✅ **RevenueCat integration**: Subscriptions, trial, tier management
+- ✅ **Safe area handling**: Bottom insets prevent overlap with navigation bar (48px Android, 34px iOS min)
+
+### Paywall / Subscription UI
+- ✅ Subscription screen with Current Plan, Usage This Month, Available Plans
+- ✅ Pricing: $5 / $10 / $25 (no .99)
+- ✅ Plan benefits removed; quota-only display
+- ✅ Date format: dd/mmm/yyyy (e.g. 10/Feb/2025)
+- ✅ "Most popular" ribbon on Popular tier
+- ✅ Polished paywall: light background, header tagline, card shadows, consistent styling
 
 ### Backend (Vercel Serverless)
 - ✅ Serverless API endpoints
 - ✅ Style catalog API (`/api/styles`)
-- ✅ Generation API (`/api/test`)
-- ✅ 21 styles configured with protected prompts
-- ✅ API key security (server-side only)
-- ✅ CORS configuration
-- ✅ Error handling
+- ✅ Generation API (`/api/test`) – polls Replicate, returns completed result
+- ✅ User subscription API (`/api/user/subscription`)
+- ✅ Sync subscription, RevenueCat webhook handling
+- ✅ 21 styles with protected prompts
+- ✅ Usage tracking, quota enforcement
+- ✅ Replicate status handling: succeeded/failed/canceled; usage incremented only on success
+
+### Database (Supabase)
+- ✅ `users` – user accounts, trial/subscription state
+- ✅ `subscriptions` – active subscriptions, tier, period end
+- ✅ `usage_tracking` – monthly generation count per user
+- ✅ `jobs` – generation job tracking
+- ✅ `rate_limits` – IP rate limiting
 
 ### Styles (21 Total)
-1. 90s Cartoon
-2. Chibi
-3. Neon
-4. Anime
-5. Custom 1
-6. 3D Clay
-7. Oil Paint
-8. Low-Poly Cartoon
-9. Water Color
-10. Pixar-like
-11. Funko Pop
-12. Custom 2
-13. Neanderthal
-14. Neanderthal 3D
-15. Hand-Drawn
-16. Superhero
-17. Super Villain
-18. Cyborg
+1. 90s Cartoon  
+2. Chibi  
+3. Neon  
+4. Anime  
+5. Custom 1  
+6. 3D Clay  
+7. Oil Paint  
+8. Low-Poly Cartoon  
+9. Water Color  
+10. Pixar-like  
+11. Funko Pop  
+12. Custom 2  
+13. Neanderthal  
+14. Neanderthal 3D  
+15. Hand-Drawn  
+16. Superhero  
+17. Super Villain  
+18. Cyborg  
 
 **Models Used**: `black-forest-labs/flux-kontext-pro` and `google/nano-banana`
 
 ---
 
-## 🚧 In Progress
+## 📱 Recent UI/UX Changes (Feb 2025)
 
-### Pre-Launch Requirements
-- [ ] Database setup (Vercel Postgres or Supabase)
-- [ ] User authentication system
-- [ ] Subscription management (RevenueCat or Stripe)
-- [ ] Usage tracking and quota enforcement
-- [ ] Queue and throttle system
-- [ ] Cost protection mechanisms
+| Change | Description |
+|--------|-------------|
+| **Retry flow** | 3 retries on failure; after 3rd, user-friendly message + billing confirmation |
+| **Save before leave** | Alert (Save / Discard / Cancel) when navigating away with unsaved result |
+| **Processing pulse** | "Processing…" text fades in/out (800ms cycle) during generation |
+| **Badge as progress bar** | Plan badge (e.g. Popular • 89/100) doubles as a filled progress bar |
+| **Running low** | Removed intrusive "Running low - Upgrade now" banner; kept progress bar + badge |
+| **Bottom insets** | Fixed overlap with navigation bar (Android 48px, iOS 34px minimum) |
+| **Paywall** | Polished UI, prices $5/$10/$25, benefits removed, date format dd/mmm/yyyy |
+| **Subscription cards** | Usage card matches plan card styling (border, shadows, typography) |
+
+---
+
+## 🚧 In Progress / Planned
+
+### Deferred / Future
+- [ ] E003 high-demand error: friendly "generators busy" message (vs generic error)
+- [ ] Save notification: system notification with full path, tap to open photo
+- [x] NSFW content blocking (Sightengine – server-side before Replicate)
+
+### Pre-Production
+- [ ] Error tracking (e.g. Sentry)
+- [ ] Analytics
+- [ ] Security audit
 
 ---
 
 ## 📋 Launch Checklist
 
 ### Technical
-- [ ] Database integration
-- [ ] User accounts and authentication
-- [ ] Subscription tiers implementation
-- [ ] Usage quota system (50/100/250 per month)
-- [ ] Rate limiting per tier
-- [ ] Queue management
+- [x] Database integration (Supabase)
+- [x] Subscription tiers (RevenueCat)
+- [x] Usage quota system (50/100/250 per month)
+- [x] Rate limiting
 - [ ] Error tracking (Sentry)
-- [ ] Analytics integration
+- [ ] Analytics
 - [ ] Performance optimization
 - [ ] Security audit
 
 ### Business
-- [ ] Finalize pricing (✅ Done: $5/$10/$25)
+- [x] Finalize pricing ($5/$10/$25)
 - [ ] Privacy policy
 - [ ] Terms of service
-- [ ] App store assets (screenshots, descriptions)
+- [ ] App store assets
 - [ ] Marketing materials
-- [ ] Beta testing program
 
 ### App Store
-- [ ] Google Play Store listing
+- [ ] Google Play Store listing (APK/AAB built)
 - [ ] Apple App Store listing
 - [ ] App store optimization (ASO)
-- [ ] Submission and review process
+- [ ] Submission and review
 
 ---
 
 ## 💰 Pricing (Finalized)
 
-| Tier | Price | Images/Month | Cost | Profit | Margin |
-|------|-------|--------------|------|--------|--------|
-| **Starter** | $5 | 50 | $2.00 | $3.00 | 60% |
-| **Popular** | $10 | 100 | $4.00 | $6.00 | 60% |
-| **Pro** | $25 | 250 | $10.00 | $15.00 | 60% |
+| Tier   | Price | Images/Month | Cost   | Profit | Margin |
+|--------|-------|--------------|--------|--------|--------|
+| Starter | $5   | 50           | $2.00  | $3.00  | 60%    |
+| Popular | $10  | 100          | $4.00  | $6.00  | 60%    |
+| Pro     | $25  | 250          | $10.00 | $15.00 | 60%    |
 
-**Note**: No yearly plans initially - monitoring API usage first.
+**Note**: No yearly plans initially.
 
 ---
 
@@ -117,73 +152,39 @@ FunnyFy is a React Native mobile application that transforms user photos into AI
 
 ### Current Stack
 - **Mobile**: React Native (Expo)
-- **Backend**: Vercel serverless functions (Node.js/TypeScript)
-- **API**: Replicate API for image generation
-- **Storage**: TBD (for user data and job tracking)
-- **Database**: TBD (Vercel Postgres or Supabase recommended)
+- **Backend**: Vercel serverless (Node.js/TypeScript)
+- **API**: Replicate for image generation
+- **Database**: Supabase (Postgres)
+- **Subscriptions**: RevenueCat
+- **Hosting**: Vercel (API + Admin dashboard)
 
-### Infrastructure
-- **Hosting**: Vercel (auto-scaling serverless)
-- **CDN**: Vercel Edge Network (included)
-- **API Keys**: Protected in Vercel environment variables
-- **Cost**: Pay-per-use model, scales automatically
-
----
-
-## 📊 Key Metrics to Track (Post-Launch)
-
-### Technical
-- API response time
-- Job completion rate
-- App crash rate
-- Image upload success rate
-- Queue depth and wait times
-
-### Business
-- Daily active users (DAU)
-- Monthly active users (MAU)
-- Subscription conversion rate
-- Monthly recurring revenue (MRR)
-- Customer lifetime value (LTV)
-- Churn rate
-
-### Usage
-- Generations per user
-- Most popular styles
-- Average generations per subscription tier
-- Peak usage times
+### Key Endpoints
+- `GET /api/styles` – style catalog
+- `POST /api/test` – generation (sync poll)
+- `GET /api/user/subscription` – subscription + usage
+- `POST /api/sync-subscription` – RevenueCat sync
 
 ---
 
-## 🎯 Next Steps
+## 📊 Key Metrics (Post-Launch)
 
-1. **Immediate** (This Week):
-   - Set up database (Vercel Postgres)
-   - Implement basic user authentication
-   - Start subscription integration
-
-2. **Short Term** (This Month):
-   - Complete subscription system
-   - Implement quota tracking
-   - Add queue management
-   - Beta testing with small group
-
-3. **Launch** (Next Month):
-   - Final testing and bug fixes
-   - App store submissions
-   - Marketing launch
-   - Monitor and iterate
+- API response time, job completion rate
+- App crash rate, upload success rate
+- DAU/MAU, subscription conversion, MRR
+- Generations per user, popular styles
 
 ---
 
 ## 📝 Notes
 
-- **App Name**: FunnyFy (capital F)
-- **Total Styles**: 21 (ready to launch with this number)
-- **Backend**: All queue/throttle logic will be on Vercel (server-side)
-- **Scalability**: Vercel can handle 100K+ users/day with proper optimization
-- **Cost per Generation**: ~$0.04 (conservative estimate including overhead)
+- **App name**: FunnyFy  
+- **Package**: `com.evansks.funnyfyapp`  
+- **Staging**: `https://funnyfy-staging.vercel.app`  
+- **Production**: `https://funnyfyapp.vercel.app`  
+- **Admin**: `/admin/login`  
+- **Cost per generation**: ~$0.04  
+- **Failed Replicate runs**: Not billed (see `MD/REPLICATE_BILLING_FAILED_RUNS.md`)
 
 ---
 
-**Status**: Ready for subscription integration and launch preparation.
+**Status**: Subscription and core UX complete; ready for production testing and app store submission.

@@ -21,7 +21,7 @@ FunnyFy is a React Native mobile app (Android & iOS) that transforms user photos
 
 ## Current Status
 
-**✅ MVP Complete - Ready for Launch**
+**✅ MVP + Subscription Complete – Ready for Production Testing**
 
 ### Implemented Features
 - ✅ React Native mobile app (Android & iOS via Expo)
@@ -31,38 +31,46 @@ FunnyFy is a React Native mobile app (Android & iOS) that transforms user photos
 - ✅ Real-time generation with progress tracking
 - ✅ Before/after comparison slider
 - ✅ Save and share functionality
+- ✅ RevenueCat subscriptions (Starter $5, Popular $10, Pro $25)
+- ✅ Usage tracking and quota enforcement (Supabase)
+- ✅ Retry up to 3 times on generation failure; billing confirmation on max retries
+- ✅ Save-before-navigate prompt when leaving result screen
+- ✅ Plan badge as progress bar (Upload & Result screens)
+- ✅ Pulsing "Processing…" indicator during generation
 - ✅ Vercel serverless backend
 - ✅ Protected API keys (server-side only)
 - ✅ Style configuration (server-side, no app updates needed)
 
 ### Backend Infrastructure
 - **Hosting**: Vercel (serverless functions)
+- **Database**: Supabase (users, subscriptions, usage_tracking, jobs)
 - **API**: Node.js/TypeScript serverless functions
-- **Styles**: 21 styles configured (mix of flux-kontext-pro and nano-banana models)
-- **Security**: API keys protected on server, prompts server-side only
+- **Styles**: 21 styles (flux-kontext-pro and nano-banana models)
+- **Security**: API keys server-side, prompts protected
 
 ### Pricing Tiers (Finalized)
 - **Starter**: $5/month = 50 images/month
 - **Popular**: $10/month = 100 images/month  
 - **Pro**: $25/month = 250 images/month
-- No yearly plans (monitoring API usage first)
+- No yearly plans initially
 
 ### Next Steps for Launch
-1. ✅ Implement subscription management (RevenueCat/Stripe)
-2. ✅ Add database for usage tracking and queue management
-3. ✅ Implement quota/throttle system on Vercel
-4. ✅ Add user authentication
-5. ✅ Deploy to app stores (Google Play & App Store)
+1. ✅ Subscription management (RevenueCat)
+2. ✅ Database and usage tracking (Supabase)
+3. ✅ Quota enforcement
+4. [ ] Privacy policy & terms of service
+5. [ ] App store submission (Google Play & App Store)
 
 ## Resources
 
-- **Replicate API**: For caricature generation
-- **Backend**: Vercel serverless functions (Node.js/TypeScript)
-- **Mobile**: React Native (Expo) - Android & iOS
-- **Database**: TBD (Vercel Postgres or Supabase recommended)
+- **Replicate API**: Caricature generation
+- **Backend**: Vercel serverless (Node.js/TypeScript)
+- **Mobile**: React Native (Expo) – Android & iOS
+- **Database**: Supabase (Postgres)
+- **Subscriptions**: RevenueCat
 
 ---
 
-**Last Updated**: January 2025  
-**Status**: MVP Complete, Pre-Launch
+**Last Updated**: February 2025  
+**Status**: MVP + Subscription Complete, Pre-Launch Testing
 
