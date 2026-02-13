@@ -101,7 +101,18 @@ export default async function handler(
       );
     }
   } catch (userErr) {
-    console.error('Failed to look up user:', userErr);
+    const err = userErr as Error;
+    console.error('Failed to look up user:', err?.message ?? err);
+    if (err?.message) {
+      // Log common causes for debugging (not sent to client)
+      if (err.message.includes('relation "users" does not exist')) {
+        console.error('[enqueue] Users table missing - run base migrations');
+      } else if (err.message.includes('column') && err.message.includes('does not exist')) {
+        console.error('[enqueue] Schema mismatch - run migrations');
+      } else if (err.message.includes('connect') || err.message.includes('ECONNREFUSED')) {
+        console.error('[enqueue] Database connection failed - check DATABASE_URL');
+      }
+    }
     return safeErrorResponse(res, 500, 'USER_LOOKUP_FAILED', 'Failed to verify user account');
   }
 

@@ -34,6 +34,17 @@ const TEST_USER_ID_REVENUECAT = 'test-user-123'; // For RevenueCat SDK (can be a
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const BOTTOM_INSET_MIN = Platform.OS === 'android' ? 48 : 34;
 
+function getSavedImageFileName() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const h = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+  const s = String(d.getSeconds()).padStart(2, '0');
+  return `Funnyfy-${y}-${m}-${day}_${h}${min}${s}.jpg`;
+}
+
 // Style preview images used for pictorial style cards
 const STYLE_CARD_IMAGE_DEFAULT = require('./assets/toon.jpg');
 const STYLE_CARD_IMAGE_CHIBI = require('./assets/chibi.jpg');
@@ -654,8 +665,7 @@ function ResultScreen({ original, result, loading, error, failedAttempts = 0, on
   const handleShare = async () => {
     if (!imageUrl || loading) return;
     try {
-      const urlNoQuery = imageUrl.split('?')[0];
-      const fileName = urlNoQuery.split('/').pop() || 'funnyfy.jpg';
+      const fileName = getSavedImageFileName();
       const localPath = FileSystem.documentDirectory + fileName;
 
       const resultDl = await FileSystem.downloadAsync(imageUrl, localPath);
@@ -692,8 +702,7 @@ function ResultScreen({ original, result, loading, error, failedAttempts = 0, on
     const { silent = false } = opts;
     if (!imageUrl || loading) return false;
     try {
-      const urlNoQuery = imageUrl.split('?')[0];
-      const fileName = urlNoQuery.split('/').pop() || 'funnyfy.jpg';
+      const fileName = getSavedImageFileName();
       const localPath = FileSystem.documentDirectory + fileName;
 
       const resultDl = await FileSystem.downloadAsync(imageUrl, localPath);

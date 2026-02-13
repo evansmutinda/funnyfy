@@ -211,23 +211,52 @@ export default async function handler(
   const TRIAL_LIMIT = 3;
 
   try {
-    const userResult = await query<{
+    type UserRow = {
       id: string;
       subscription_tier: string;
       subscription_status: string;
       trial_generations_used: number | null;
-      banned_at: string | null;
-    }>(
-      `
-        SELECT id, subscription_tier, subscription_status, trial_generations_used, banned_at
-        FROM users
-        WHERE id::text = $1
-           OR revenuecat_user_id = $1
-        ORDER BY created_at DESC
-        LIMIT 1
-      `,
-      [userId]
-    );
+      banned_at?: string | null;
+    };
+
+    let userResult: { rows: UserRow[] };
+
+    // Try full query first, then fallback without banned_at, then minimal (if schema mismatch)
+    const queries: Array<{ sql: string; hasTier: boolean }> = [
+      { sql: `SELECT id, subscription_tier, subscription_status, trial_generations_used, banned_at
+              FROM users WHERE id::text = $1 OR revenuecat_user_id = $1 ORDER BY created_at DESC LIMIT 1`, hasTier: true },
+      { sql: `SELECT id, subscription_tier, subscription_status, trial_generations_used
+              FROM users WHERE id::text = $1 OR revenuecat_user_id = $1 ORDER BY created_at DESC LIMIT 1`, hasTier: true },
+      { sql: `SELECT id FROM users WHERE id::text = $1 OR revenuecat_user_id = $1 ORDER BY created_at DESC LIMIT 1`, hasTier: false },
+    ];
+
+    let lastErr: any;
+    let usedMinimal = false;
+    for (const { sql, hasTier } of queries) {
+      try {
+        userResult = await query<UserRow>(sql, [userId]);
+        usedMinimal = !hasTier;
+        lastErr = null;
+        break;
+      } catch (err: any) {
+        lastErr = err;
+        const msg = String(err?.message || err);
+        if (msg.includes('does not exist') || msg.includes('banned_at') || msg.includes('relation')) continue;
+        throw err;
+      }
+    }
+
+    if (lastErr || !userResult!) {
+      throw lastErr || new Error('User lookup failed');
+    }
+
+    if (usedMinimal && userResult.rows.length > 0) {
+      return res.status(500).json({
+        ok: false,
+        error: 'SCHEMA_UPDATE_REQUIRED',
+        message: 'Database schema is outdated. Run migrations (migrations-infringements.sql and base schema) in Supabase SQL Editor.',
+      });
+    }
 
     if (userResult.rows.length === 0) {
       return res.status(404).json({
@@ -274,10 +303,15 @@ export default async function handler(
       });
     }
   } catch (userErr) {
-    console.error('Failed to look up user:', userErr);
+    const err = userErr as Error;
+    const errMsg = err?.message || String(userErr);
+    console.error('[test] User lookup failed:', errMsg);
+    const isDebug = (req.headers['x-debug'] as string) === '1' || req.query?.debug === '1';
     return res.status(500).json({
       ok: false,
-      error: 'Failed to verify user account'
+      error: 'Failed to verify user account',
+      message: 'Database error during user lookup. Check Vercel logs for details. Ensure DATABASE_URL is set and migrations are run.',
+      ...(isDebug && { debug: { rawError: errMsg } }),
     });
   }
 
