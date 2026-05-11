@@ -23,14 +23,10 @@ import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
 import * as Sharing from 'expo-sharing';
-import { initRevenueCat, getOfferings, purchasePackage, getCustomerInfo, hasRevenueCatKey } from './services/revenuecat';
+import { initRevenueCat, getOfferings, purchasePackage, restorePurchases, getCustomerInfo, getAppUserId, hasRevenueCatKey } from './services/revenuecat';
+import { initAuth, resetAuthIfLocal } from './services/auth';
 
 const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'https://funnyfyapp.vercel.app';
-// Temporary test user id used for RevenueCat appUserID and FunnyFy backend (via x-user-id)
-// Must be UUID format for backend validation
-// This UUID should match revenuecat_user_id in database
-const TEST_USER_ID = '550e8400-e29b-41d4-a716-446655440000'; // UUID format
-const TEST_USER_ID_REVENUECAT = 'test-user-123'; // For RevenueCat SDK (can be any string)
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const BOTTOM_INSET_MIN = Platform.OS === 'android' ? 48 : 34;
 
@@ -372,9 +368,11 @@ function SubscriptionScreen({
   onSubscribe,
   subscribeLoading,
   onCancelSubscription,
+  onRestorePurchases,
   onClose,
 }) {
   const insets = useSafeAreaInsets();
+  const [selectedTier, setSelectedTier] = useState(null);
 
   const getQuotaInfo = () => {
     if (!subscriptionInfo || !subscriptionInfo.usage) {
@@ -527,11 +525,12 @@ function SubscriptionScreen({
               style={[
                 styles.tierCard,
                 subscription?.tier === tier && styles.tierCardActive,
-                tier === 'popular' && styles.tierCardPopular
+                tier === 'popular' && styles.tierCardPopular,
+                selectedTier === tier && styles.tierCardSelected,
               ]}
               onPress={() => {
                 if (subscription?.tier !== tier) {
-                  onSubscribe();
+                  setSelectedTier(tier);
                 }
               }}
               activeOpacity={0.85}
@@ -560,16 +559,18 @@ function SubscriptionScreen({
         {/* Actions */}
         <View style={styles.section}>
           <TouchableOpacity
-            style={[styles.actionButton, subscribeLoading && styles.buttonDisabled]}
-            onPress={onSubscribe}
-            disabled={subscribeLoading}
+            style={[styles.actionButton, (subscribeLoading || !selectedTier && !subscription) && styles.buttonDisabled]}
+            onPress={() => onSubscribe(selectedTier)}
+            disabled={subscribeLoading || (!selectedTier && !subscription)}
           >
             <Text style={styles.actionButtonText}>
               {subscribeLoading 
                 ? 'Processing...' 
-                : subscription 
-                  ? 'Change Subscription' 
-                  : 'Subscribe Now'}
+                : selectedTier
+                  ? `Subscribe to ${TIER_INFO[selectedTier]?.name} – ${TIER_INFO[selectedTier]?.price}/mo`
+                  : subscription 
+                    ? 'Change Subscription' 
+                    : 'Select a plan above'}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -580,6 +581,13 @@ function SubscriptionScreen({
             <Text style={styles.secondaryActionButtonText}>
               {subscriptionLoading ? 'Refreshing...' : 'Refresh Status'}
             </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.actionButton, styles.secondaryActionButton, subscribeLoading && styles.buttonDisabled]}
+            onPress={onRestorePurchases}
+            disabled={subscribeLoading}
+          >
+            <Text style={styles.secondaryActionButtonText}>Restore Purchases</Text>
           </TouchableOpacity>
           {subscription && !subscription.cancelAtPeriodEnd && (
             <TouchableOpacity
@@ -942,27 +950,74 @@ export default function App() {
   const [hasRcKey, setHasRcKey] = useState(false);
   const [subscriptionInfo, setSubscriptionInfo] = useState(null);
   const [subscriptionLoading, setSubscriptionLoading] = useState(false);
+  const [userId, setUserId] = useState(null);
+  const [authToken, setAuthToken] = useState(null);
+  const [authReady, setAuthReady] = useState(false);
+  const userIdRef = useRef(null);
+  const authTokenRef = useRef(null);
   const resultBackHandlerRef = useRef(null);
 
+  // Keep refs in sync so async functions always use the latest values
   useEffect(() => {
-    // Initialize RevenueCat with a placeholder user id (replace with real auth later)
-    const hasKey = hasRevenueCatKey();
-    setHasRcKey(hasKey);
-    if (!hasKey) {
-      console.warn('[RevenueCat] Missing SDK key, skipping init');
-      return;
-    }
-    initRevenueCat(TEST_USER_ID_REVENUECAT).catch((err) => {
-      console.error('[RevenueCat] init error:', err);
-    });
+    userIdRef.current = userId;
+    authTokenRef.current = authToken;
+  }, [userId, authToken]);
+
+  // Build API headers — always call this inside fetch calls
+  const getApiHeaders = () => ({
+    'Content-Type': 'application/json',
+    'x-user-id': userIdRef.current || '',
+    ...(authTokenRef.current ? { Authorization: `Bearer ${authTokenRef.current}` } : {}),
+  });
+
+  useEffect(() => {
+    const initialize = async () => {
+      // Initialize RevenueCat
+      const hasKey = hasRevenueCatKey();
+      setHasRcKey(hasKey);
+
+      let rcUserId = null;
+      if (hasKey) {
+        try {
+          await initRevenueCat(null); // RC generates its own anonymous ID
+          rcUserId = await getAppUserId();
+          console.log('[RevenueCat] Initialized, appUserId:', rcUserId);
+        } catch (err) {
+          console.error('[RevenueCat] init error:', err);
+        }
+      } else {
+        console.warn('[RevenueCat] Missing SDK key, skipping init');
+      }
+
+      // Initialize auth — gets or creates a real user in the database
+      // First clear any local fallback ID from previous failed attempts
+      await resetAuthIfLocal();
+      try {
+        const auth = await initAuth(API_BASE, rcUserId);
+        setUserId(auth.userId);
+        setAuthToken(auth.token);
+        userIdRef.current = auth.userId;
+        authTokenRef.current = auth.token;
+        if (auth.isLocal) {
+          console.warn('[Auth] Running with local ID — backend unavailable. Check DATABASE_URL in Vercel.');
+        }
+      } catch (err) {
+        console.error('[Auth] init error:', err);
+      }
+
+      setAuthReady(true);
+    };
+
+    initialize();
   }, []);
 
   const refreshSubscription = async (retryCount = 0) => {
+    const currentUserId = userIdRef.current;
+    if (!currentUserId) return; // Not authenticated yet
     setSubscriptionLoading(true);
     const maxRetries = 2;
     
     try {
-      // Sync from RevenueCat first to fix wrong expiration (next renewal) in our DB
       if (hasRevenueCatKey()) {
         try {
           const customerInfo = await getCustomerInfo();
@@ -971,9 +1026,9 @@ export default function App() {
           if (activeEnt?.productIdentifier && activeEnt?.expirationDate) {
             await fetch(`${API_BASE}/api/sync-subscription`, {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'x-user-id': TEST_USER_ID },
+              headers: getApiHeaders(),
               body: JSON.stringify({
-                userId: TEST_USER_ID,
+                userId: currentUserId,
                 productId: activeEnt.productIdentifier,
                 tier: activeEnt.productIdentifier.includes('starter') ? 'starter' :
                       activeEnt.productIdentifier.includes('popular') ? 'popular' :
@@ -988,12 +1043,9 @@ export default function App() {
         }
       }
 
-      const res = await fetch(`${API_BASE}/api/user/subscription?userId=${encodeURIComponent(TEST_USER_ID)}`, {
+      const res = await fetch(`${API_BASE}/api/user/subscription?userId=${encodeURIComponent(currentUserId)}`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-user-id': TEST_USER_ID,
-        },
+        headers: getApiHeaders(),
       });
       const text = await res.text();
       console.log('[subscription] response:', text);
@@ -1059,23 +1111,24 @@ export default function App() {
     };
 
     fetchStyles();
-    // Also try to load subscription info on startup
-    refreshSubscription();
   }, []);
 
-  // Refresh subscription when app comes to foreground
+  // Refresh subscription once auth is ready
+  useEffect(() => {
+    if (authReady) {
+      refreshSubscription();
+    }
+  }, [authReady]);
+
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextAppState) => {
-      if (nextAppState === 'active') {
+      if (nextAppState === 'active' && authReady) {
         console.log('[App] App came to foreground, refreshing subscription...');
         refreshSubscription();
       }
     });
-
-    return () => {
-      subscription.remove();
-    };
-  }, []);
+    return () => { subscription.remove(); };
+  }, [authReady]);
 
   useEffect(() => {
     // Polling has been moved server-side; frontend just waits for final result
@@ -1090,7 +1143,7 @@ export default function App() {
         setResult(null);
 
         const payload = {
-          userId: TEST_USER_ID,
+          userId: userIdRef.current,
           payload: {
             styleId: style.id,
             imageUrl: imageDataUrl || null,
@@ -1100,10 +1153,7 @@ export default function App() {
         try {
           const res = await fetch(`${API_BASE}/api/test`, {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'x-user-id': TEST_USER_ID,
-            },
+            headers: getApiHeaders(),
             body: JSON.stringify(payload),
           });
 
@@ -1180,7 +1230,7 @@ export default function App() {
     [style]
   );
 
-  const handleSubscribe = async () => {
+  const handleSubscribe = async (selectedTier = null) => {
     setSubscribeLoading(true);
     setError('');
     try {
@@ -1205,8 +1255,13 @@ export default function App() {
         price: p.product?.priceString
       })));
 
-      // Show package selection (for now, use first package; can add UI later)
-      const selected = pkgs[0];
+      // Match the package to the tier the user tapped
+      const selected = selectedTier
+        ? (pkgs.find(p =>
+            p.product?.identifier?.toLowerCase().includes(selectedTier.toLowerCase()) ||
+            p.identifier?.toLowerCase().includes(selectedTier.toLowerCase())
+          ) || pkgs[0])
+        : pkgs[0];
       const packageInfo = selected.product;
       const priceString = packageInfo?.priceString || 'N/A';
       const packageId = packageInfo?.identifier || selected.identifier;
@@ -1242,12 +1297,9 @@ export default function App() {
             console.log('[RevenueCat] Syncing subscription to backend...');
             const syncResponse = await fetch(`${API_BASE}/api/sync-subscription`, {
               method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'x-user-id': TEST_USER_ID,
-              },
+              headers: getApiHeaders(),
               body: JSON.stringify({
-                userId: TEST_USER_ID,
+                userId: userIdRef.current,
                 productId: productIdentifier,
                 tier: productIdentifier.includes('starter') ? 'starter' : 
                       productIdentifier.includes('popular') ? 'popular' : 
@@ -1321,6 +1373,29 @@ export default function App() {
     }
   };
 
+  const handleRestorePurchases = async () => {
+    if (!hasRcKey) {
+      Alert.alert('Restore Purchases', 'RevenueCat is not configured.');
+      return;
+    }
+    setSubscribeLoading(true);
+    try {
+      const customerInfo = await restorePurchases();
+      const activeEntitlements = customerInfo?.entitlements?.active || {};
+      if (Object.keys(activeEntitlements).length > 0) {
+        Alert.alert('Restored!', 'Your previous purchase has been restored.', [{ text: 'OK' }]);
+        setTimeout(() => refreshSubscription(), 1000);
+      } else {
+        Alert.alert('No Purchases Found', 'No previous purchases were found for this account.');
+      }
+    } catch (err) {
+      console.error('[RevenueCat] Restore error:', err);
+      Alert.alert('Restore Failed', 'Could not restore purchases. Please try again.');
+    } finally {
+      setSubscribeLoading(false);
+    }
+  };
+
   const handleCancelSubscription = async () => {
     Alert.alert(
       'Cancel Subscription',
@@ -1334,15 +1409,10 @@ export default function App() {
             setSubscribeLoading(true);
             try {
               // Call backend to mark subscription for cancellation
-              const res = await fetch(`${API_BASE}/api/test-cancel-subscription`, {
+              const res = await fetch(`${API_BASE}/api/cancel-subscription`, {
                 method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'x-user-id': TEST_USER_ID,
-                },
-                body: JSON.stringify({
-                  userId: TEST_USER_ID,
-                }),
+                headers: getApiHeaders(),
+                body: JSON.stringify({ userId: userIdRef.current }),
               });
 
               const json = await res.json();
@@ -1444,6 +1514,7 @@ export default function App() {
           onSubscribe={handleSubscribe}
           subscribeLoading={subscribeLoading}
           onCancelSubscription={handleCancelSubscription}
+          onRestorePurchases={handleRestorePurchases}
           onClose={() => setScreen('style')}
         />
       </SafeAreaProvider>
@@ -2408,6 +2479,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 3,
+  },
+  tierCardSelected: {
+    borderColor: '#f97316',
+    borderWidth: 2.5,
+    backgroundColor: '#fff7ed',
   },
   tierCardPopular: {
     borderColor: '#f97316',

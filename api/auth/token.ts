@@ -83,8 +83,10 @@ export default async function handler(
         // Create new user with revenuecat_user_id
         const insertResult = await query<{ id: string }>(
           `
-            INSERT INTO users (revenuecat_user_id, subscription_status, subscription_tier, trial_generations_used, created_at)
-            VALUES ($1, 'trial', NULL, 0, NOW())
+            INSERT INTO users
+              (revenuecat_user_id, subscription_status, subscription_tier,
+               trial_generations_used, billing_date, created_at, updated_at)
+            VALUES ($1, 'trial', 'trial', 0, CURRENT_DATE, NOW(), NOW())
             RETURNING id
           `,
           [revenuecatUserId]
@@ -93,13 +95,14 @@ export default async function handler(
         finalUserId = insertResult.rows[0]?.id || null;
       }
     }
-    // No userId provided - create anonymous user (for testing/development)
+    // No userId provided - create anonymous user
     else {
-      // Create new anonymous user
       const insertResult = await query<{ id: string }>(
         `
-          INSERT INTO users (subscription_status, subscription_tier, trial_generations_used, created_at)
-          VALUES ('trial', NULL, 0, NOW())
+          INSERT INTO users
+            (subscription_status, subscription_tier,
+             trial_generations_used, billing_date, created_at, updated_at)
+          VALUES ('trial', 'trial', 0, CURRENT_DATE, NOW(), NOW())
           RETURNING id
         `,
         []
@@ -148,4 +151,3 @@ export default async function handler(
     );
   }
 }
-

@@ -39,3 +39,12 @@ export async function restorePurchases() {
 export async function getCustomerInfo() {
   return Purchases.getCustomerInfo();
 }
+
+export async function getAppUserId() {
+  try {
+    const info = await Purchases.getCustomerInfo();
+    return info?.originalAppUserId || null;
+  } catch {
+    return null;
+  }
+}
