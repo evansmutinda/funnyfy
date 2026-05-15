@@ -1,10 +1,4 @@
 {
-  "crons": [
-    {
-      "path": "/api/cron/process-queue",
-      "schedule": "0 0 * * *"
-    }
-  ],
   "rewrites": [
     {
       "source": "/admin/login",
