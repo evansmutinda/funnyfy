@@ -143,11 +143,11 @@ export default async function handler(
     });
   } catch (err: any) {
     console.error('[auth/token] Failed to generate token:', err);
-    return res.status(500).json({
-      ok: false,
-      error: 'TOKEN_GEN_FAIL_V2',
-      detail: String(err?.message || err),
-      stack: String(err?.stack || '').split('\n').slice(0, 3).join(' | ')
-    });
+    return safeErrorResponse(
+      res,
+      500,
+      'TOKEN_GENERATION_FAILED',
+      'Failed to generate authentication token'
+    );
   }
 }
