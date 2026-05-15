@@ -145,8 +145,9 @@ export default async function handler(
     console.error('[auth/token] Failed to generate token:', err);
     return res.status(500).json({
       ok: false,
-      error: 'TOKEN_GENERATION_FAILED',
-      detail: String(err?.message || err)
+      error: 'TOKEN_GEN_FAIL_V2',
+      detail: String(err?.message || err),
+      stack: String(err?.stack || '').split('\n').slice(0, 3).join(' | ')
     });
   }
 }
