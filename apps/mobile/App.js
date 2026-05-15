@@ -6,6 +6,7 @@ import {
   AppState,
   BackHandler,
   Image,
+  Modal,
   Platform,
   SafeAreaView,
   ScrollView,
@@ -27,6 +28,50 @@ import { initRevenueCat, getOfferings, purchasePackage, restorePurchases, getCus
 import { initAuth, resetAuthIfLocal } from './services/auth';
 
 const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'https://funnyfyapp.vercel.app';
+
+// Placeholder content for info screens — replace with your actual legal text
+const PRIVACY_POLICY_TEXT = `Last updated: ${new Date().toLocaleDateString()}
+
+This is a placeholder Privacy Policy for FunnyFy. Replace this text with your actual privacy policy before publishing to the Play Store.
+
+What we collect
+When you use FunnyFy, we collect the photos you upload for caricature generation, your subscription status, and anonymous usage information.
+
+How we use it
+Uploaded photos are processed by our AI partner to generate your caricature. We do not sell your data to third parties.
+
+Your rights
+You can request deletion of your data at any time by contacting support.
+
+Contact
+For any privacy concerns, please contact us at support@funnyfy.app.`;
+
+const TERMS_TEXT = `Last updated: ${new Date().toLocaleDateString()}
+
+This is a placeholder Terms & Conditions document for FunnyFy. Replace this with your actual terms before publishing to the Play Store.
+
+Acceptance
+By using FunnyFy, you agree to these terms.
+
+Usage
+FunnyFy is provided as-is for personal, non-commercial use. You retain ownership of photos you upload and the caricatures generated from them.
+
+Subscriptions
+Subscriptions auto-renew monthly unless canceled. You can cancel anytime through your Google Play account.
+
+Limitations
+We are not liable for any indirect or consequential damages arising from your use of the app.
+
+Contact
+For any questions about these terms, please contact us at support@funnyfy.app.`;
+
+const ABOUT_TEXT = `FunnyFy
+
+Transform your photos into amazing caricatures with the power of AI. Pick a style, upload a photo, and watch the magic happen.
+
+Version 1.0.1
+
+Made with care.`;
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const BOTTOM_INSET_MIN = Platform.OS === 'android' ? 48 : 34;
 
@@ -102,10 +147,84 @@ function SplashScreen({ onComplete }) {
 
   return (
     <SafeAreaView style={[styles.safe, styles.splashSafe]}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       <View style={styles.splashContainer}>
-        <Text style={styles.splashLogo}>🎨 FunnyFy</Text>
-        <Text style={styles.splashTagline}>Transform photos into amazing caricatures</Text>
+        <Image
+          source={require('./assets/icon.jpg')}
+          style={styles.splashImage}
+          resizeMode="contain"
+        />
+      </View>
+    </SafeAreaView>
+  );
+}
+
+// Bottom-sheet menu shown when burger is tapped
+function MenuModal({ visible, onClose, onSelect }) {
+  const insets = useSafeAreaInsets();
+  const items = [
+    { id: 'subscription', label: 'Subscriptions' },
+    { id: 'privacy', label: 'Privacy Policy' },
+    { id: 'terms', label: 'Terms & Conditions' },
+    { id: 'about', label: 'About' },
+  ];
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <TouchableOpacity
+        style={styles.menuBackdrop}
+        activeOpacity={1}
+        onPress={onClose}
+      >
+        <View
+          style={[styles.menuSheet, { paddingBottom: Math.max(insets.bottom, 16) + 8 }]}
+          onStartShouldSetResponder={() => true}
+        >
+          <View style={styles.menuHandle} />
+          {items.map((item) => (
+            <TouchableOpacity
+              key={item.id}
+              style={styles.menuItem}
+              onPress={() => onSelect(item.id)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.menuItemText}>{item.label}</Text>
+              <Text style={styles.menuItemArrow}>›</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </TouchableOpacity>
+    </Modal>
+  );
+}
+
+// Reusable screen for Privacy, Terms, About
+function InfoScreen({ title, content, onBack }) {
+  const insets = useSafeAreaInsets();
+  return (
+    <SafeAreaView style={styles.safe}>
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      <View style={{ height: insets.top, backgroundColor: '#ffffff' }} />
+      <View style={styles.infoContainer}>
+        <View style={styles.headerBar}>
+          <TouchableOpacity onPress={onBack} style={styles.iconButton}>
+            <Text style={styles.iconButtonIcon}>‹</Text>
+          </TouchableOpacity>
+          <Text style={styles.wordmark}>{title}</Text>
+          <View style={{ width: 36 }} />
+        </View>
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={[styles.infoContent, { paddingBottom: Math.max(insets.bottom, BOTTOM_INSET_MIN) }]}
+          showsVerticalScrollIndicator={false}
+        >
+          <Text style={styles.infoText}>{content}</Text>
+        </ScrollView>
       </View>
     </SafeAreaView>
   );
@@ -115,7 +234,7 @@ function StyleScreen({
   selectedStyle,
   availableStyles,
   onNext,
-  onOpenSubscription,
+  onOpenMenu,
 }) {
   const insets = useSafeAreaInsets();
   const styleList = Array.isArray(availableStyles) && availableStyles.length > 0
@@ -130,10 +249,10 @@ function StyleScreen({
         contentContainerStyle={styles.styleContainer}
         style={{ flex: 1 }}
       >
-        <View style={styles.styleHeader}>
-          <View style={{ flex: 1 }} />
-          <TouchableOpacity onPress={onOpenSubscription} style={styles.menuButton}>
-            <Text style={styles.menuButtonIcon}>☰</Text>
+        <View style={styles.headerBar}>
+          <Text style={styles.wordmark}>FunnyFy</Text>
+          <TouchableOpacity onPress={onOpenMenu} style={styles.iconButton}>
+            <Text style={styles.iconButtonIcon}>☰</Text>
           </TouchableOpacity>
         </View>
 
@@ -151,12 +270,9 @@ function StyleScreen({
             >
               <View style={styles.styleImageWrapper}>
                 <Image source={getStyleImage(s)} style={styles.styleImage} />
-                <View
-                  style={[
-                    styles.styleImageOverlay,
-                    selectedStyle?.id === s.id && styles.styleImageOverlaySelected
-                  ]}
-                />
+              </View>
+              <View style={styles.styleCardLabel}>
+                <Text style={styles.styleCardName} numberOfLines={1}>{s.label}</Text>
               </View>
             </TouchableOpacity>
           ))}
@@ -195,7 +311,7 @@ function UploadScreen({ style, onStart, onBackToStyle, canGenerateMore, subscrip
 
   const quotaInfo = getQuotaInfo();
 
-  const pickImage = async (useCamera = false) => {
+  const pickImage = async (useCamera = false, withCrop = false) => {
     if (picking) return;
 
     setPicking(true);
@@ -211,10 +327,9 @@ function UploadScreen({ style, onStart, onBackToStyle, canGenerateMore, subscrip
           setError('Camera permission is required to take photos.');
           return;
         }
-        // Use full frame from camera (no forced crop)
         result = await ImagePicker.launchCameraAsync({
           mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          allowsEditing: false,
+          allowsEditing: withCrop,
           quality: 0.9,
         });
       } else {
@@ -223,10 +338,9 @@ function UploadScreen({ style, onStart, onBackToStyle, canGenerateMore, subscrip
           setError('Photo library permission is required to select images.');
           return;
         }
-        // Use original image from gallery (no crop dialog)
         result = await ImagePicker.launchImageLibraryAsync({
           mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          allowsEditing: false,
+          allowsEditing: withCrop,
           quality: 0.9,
         });
       }
@@ -263,78 +377,84 @@ function UploadScreen({ style, onStart, onBackToStyle, canGenerateMore, subscrip
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       <View style={{ height: insets.top, backgroundColor: '#ffffff' }} />
       <View style={[styles.uploadContainer, { paddingBottom: Math.max(insets.bottom, BOTTOM_INSET_MIN) }]}>
-        <View style={styles.uploadHeader}>
-          {/* Plan badge as progress bar - full width */}
-          {subscriptionInfo && (
-            <>
-              {subscriptionInfo.usage && subscriptionInfo.usage.limit > 0 ? (
-                <View style={styles.badgeAsBarContainer}>
-                  <View
-                    style={[
-                      styles.badgeAsBarFill,
-                      {
-                        width: `${Math.min(quotaInfo.percentage, 100)}%`,
-                        backgroundColor: quotaInfo.isExceeded ? '#ef4444' : quotaInfo.isLow ? '#f59e0b' : '#10b981',
-                      },
-                    ]}
-                  />
-                  <View style={styles.badgeAsBarTextWrapper}>
-                    <Text style={styles.badgeAsBarText}>
-                      {subscriptionInfo.isTrial || !subscriptionInfo.subscription
-                        ? `Trial • ${quotaInfo.current}/${quotaInfo.limit}`
-                        : `${subscriptionInfo.subscription.tier.charAt(0).toUpperCase() + subscriptionInfo.subscription.tier.slice(1)} • ${quotaInfo.current}/${quotaInfo.limit}`}
-                    </Text>
-                  </View>
-                </View>
-              ) : (
-                <View style={styles.uploadSubscriptionBadge}>
-                  <Text style={styles.uploadSubscriptionBadgeText}>
-                    {subscriptionInfo.isTrial || !subscriptionInfo.subscription
-                      ? `Trial • ${quotaInfo.current}/${quotaInfo.limit}`
-                      : `${subscriptionInfo.subscription.tier.charAt(0).toUpperCase() + subscriptionInfo.subscription.tier.slice(1)} • ${quotaInfo.current}/${quotaInfo.limit}`}
-                  </Text>
-                </View>
-              )}
-            </>
-          )}
-        </View>
-        {quotaInfo.isExceeded && (
-          <TouchableOpacity onPress={onSubscribe} style={[styles.quotaExceededButton, { marginTop: 12 }]}>
-            <Text style={styles.quotaExceededText}>❌ Quota exceeded - Upgrade to continue</Text>
+        <View style={styles.headerBar}>
+          <TouchableOpacity onPress={onBackToStyle} style={styles.iconButton}>
+            <Text style={styles.iconButtonIcon}>‹</Text>
           </TouchableOpacity>
-        )}
-        <View style={styles.uploadImageContainer}>
-          {imageUri ? (
-            <Image source={{ uri: imageUri }} style={styles.photoPreview} />
-          ) : (
-            <View style={styles.photoPlaceholder}>
-              <Text style={styles.photoPlaceholderText}>Select or take a photo</Text>
+          {subscriptionInfo && (
+            <View style={styles.headerPill}>
+              <View style={styles.headerPillProgress}>
+                <View style={[styles.headerPillProgressFill, { width: `${Math.min(quotaInfo.percentage, 100)}%` }]} />
+              </View>
+              <Text style={styles.headerPillText}>
+                {subscriptionInfo.isTrial || !subscriptionInfo.subscription
+                  ? `Trial · ${quotaInfo.current}/${quotaInfo.limit}`
+                  : `${subscriptionInfo.subscription.tier.charAt(0).toUpperCase() + subscriptionInfo.subscription.tier.slice(1)} · ${quotaInfo.current}/${quotaInfo.limit}`}
+              </Text>
             </View>
           )}
+          <View style={{ width: 36 }} />
         </View>
+
+        {quotaInfo.isExceeded && (
+          <TouchableOpacity onPress={onSubscribe} style={styles.quotaExceededBanner}>
+            <Text style={styles.quotaExceededBannerText}>Quota reached — tap to upgrade</Text>
+          </TouchableOpacity>
+        )}
+
+        <TouchableOpacity
+          style={styles.uploadImageContainer}
+          onPress={() => !imageUri && !picking && pickImage(false)}
+          activeOpacity={imageUri ? 1 : 0.8}
+          disabled={picking}
+        >
+          {imageUri ? (
+            <>
+              <Image source={{ uri: imageUri }} style={styles.photoPreview} />
+              <TouchableOpacity
+                style={styles.cropChip}
+                onPress={() => pickImage(false, true)}
+                disabled={picking}
+              >
+                <Text style={styles.cropChipText}>Crop</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <View style={styles.photoPlaceholder}>
+              <View style={styles.photoPlaceholderIcon}>
+                <Text style={styles.photoPlaceholderIconText}>+</Text>
+              </View>
+              <Text style={styles.photoPlaceholderTitle}>Add a photo</Text>
+              <Text style={styles.photoPlaceholderHint}>Tap to choose</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+
         <View style={styles.uploadButtonsContainer}>
-          <TouchableOpacity
-            style={[styles.button, styles.secondaryButton, picking && styles.buttonDisabled]}
-            onPress={() => pickImage(true)}
-            disabled={picking}
-          >
-            <Text style={styles.secondaryButtonText}>
-              {picking && pickingSource === 'camera' ? 'Opening camera…' : 'Take a photo'}
-            </Text>
-          </TouchableOpacity>
+          <View style={styles.uploadSourceRow}>
+            <TouchableOpacity
+              style={[styles.slimButton, picking && styles.buttonDisabled]}
+              onPress={() => pickImage(true)}
+              disabled={picking}
+            >
+              <Text style={styles.slimButtonText}>
+                {picking && pickingSource === 'camera' ? 'Opening…' : 'Camera'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.slimButton, picking && styles.buttonDisabled]}
+              onPress={() => pickImage(false)}
+              disabled={picking}
+            >
+              <Text style={styles.slimButtonText}>
+                {picking && pickingSource === 'gallery' ? 'Opening…' : 'Gallery'}
+              </Text>
+            </TouchableOpacity>
+          </View>
 
           <TouchableOpacity
-            style={[styles.button, styles.secondaryButton, picking && styles.buttonDisabled]}
-            onPress={() => pickImage(false)}
-            disabled={picking}
-          >
-            <Text style={styles.secondaryButtonText}>
-              {picking && pickingSource === 'gallery' ? 'Opening gallery…' : 'Choose from gallery'}
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.button, (!canGenerate || picking) && styles.buttonDisabled]}
+            style={[styles.primaryButton, (!canGenerate || picking) && styles.buttonDisabled]}
             onPress={() => {
               if (!quotaOk && onSubscribe) {
                 Alert.alert(
@@ -351,8 +471,8 @@ function UploadScreen({ style, onStart, onBackToStyle, canGenerateMore, subscrip
             }}
             disabled={!canGenerate || picking}
           >
-            <Text style={styles.buttonText}>
-              {quotaOk ? '✨ Generate Caricature' : 'Quota reached – upgrade to continue'}
+            <Text style={styles.primaryButtonText}>
+              {quotaOk ? 'Generate caricature' : 'Upgrade to continue'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -398,211 +518,180 @@ function SubscriptionScreen({
   };
 
   const TIER_INFO = {
-    starter: { name: 'Starter', price: '$5', quota: 50 },
-    popular: { name: 'Popular', price: '$10', quota: 100 },
-    pro: { name: 'Pro', price: '$25', quota: 250 },
+    starter: { name: 'Starter', price: '$5', quota: 50, perks: 'Standard speed' },
+    popular: { name: 'Popular', price: '$10', quota: 100, perks: 'Priority speed' },
+    pro: { name: 'Pro', price: '$25', quota: 250, perks: 'Fastest · HD downloads' },
   };
 
+  const subscribeLabel = subscribeLoading
+    ? 'Processing…'
+    : selectedTier
+      ? `Subscribe to ${TIER_INFO[selectedTier]?.name} · ${TIER_INFO[selectedTier]?.price}/mo`
+      : subscription
+        ? 'Select a plan to change'
+        : 'Select a plan above';
+
+  const canSubscribe = !!selectedTier && !subscribeLoading;
+
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: '#f8fafc' }]}>
-      <StatusBar barStyle="dark-content" backgroundColor="#f8fafc" />
-      <View style={{ height: insets.top, backgroundColor: '#f8fafc' }} />
-      <ScrollView 
-        contentContainerStyle={styles.subscriptionContainer}
-        style={{ flex: 1, backgroundColor: '#f8fafc' }}
-      >
-        <View style={styles.subscriptionHeader}>
-          <View style={styles.subscriptionHeaderContent}>
-            <Text style={styles.subscriptionTitle}>Subscriptions</Text>
-            <Text style={styles.subscriptionTagline}>Unlock more caricatures</Text>
-          </View>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Text style={styles.closeButtonIcon}>✕</Text>
+    <SafeAreaView style={styles.safe}>
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      <View style={{ height: insets.top, backgroundColor: '#ffffff' }} />
+      <View style={[styles.paywallContainer, { paddingBottom: Math.max(insets.bottom, BOTTOM_INSET_MIN) }]}>
+        <View style={styles.headerBar}>
+          <TouchableOpacity onPress={onClose} style={styles.iconButton}>
+            <Text style={styles.iconButtonIcon}>‹</Text>
           </TouchableOpacity>
+          <Text style={styles.wordmark}>Subscription</Text>
+          <View style={{ width: 36 }} />
         </View>
 
-        {/* Current Plan Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Current Plan</Text>
+        <ScrollView
+          contentContainerStyle={{ paddingBottom: 16 }}
+          showsVerticalScrollIndicator={false}
+          style={{ flex: 1 }}
+        >
+          {/* Current plan card — compact */}
           {subscriptionLoading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="small" color="#f97316" />
-              <Text style={styles.loadingText}>Loading subscription...</Text>
-            </View>
-          ) : isTrial ? (
-            <View style={styles.planCard}>
-              <View style={styles.planCardHeader}>
-                <Text style={styles.planCardTitle}>Free Trial</Text>
-                <View style={styles.trialBadge}>
-                  <Text style={styles.trialBadgeText}>Trial</Text>
-                </View>
-              </View>
-              <Text style={styles.planCardDescription}>
-                You're currently on the free trial. Subscribe to unlock more caricatures!
-              </Text>
-              <View style={styles.quotaInfoContainer}>
-                <Text style={styles.quotaInfoText}>
-                  {quotaInfo.current} of {quotaInfo.limit} caricatures used
-                </Text>
-                <View style={styles.quotaProgressBarFull}>
-                  <View 
-                    style={[
-                      styles.quotaProgressFillFull,
-                      { 
-                        width: `${Math.min(quotaInfo.percentage, 100)}%`,
-                        backgroundColor: quotaInfo.percentage >= 100 ? '#ef4444' : '#10b981'
-                      }
-                    ]} 
-                  />
-                </View>
-              </View>
-            </View>
-          ) : subscription ? (
-            <View style={styles.planCard}>
-              <View style={styles.planCardHeader}>
-                <Text style={styles.planCardTitle}>
-                  {TIER_INFO[subscription.tier]?.name || subscription.tier.charAt(0).toUpperCase() + subscription.tier.slice(1)} Plan
-                </Text>
-                <View style={styles.activeBadge}>
-                  <Text style={styles.activeBadgeText}>Active</Text>
-                </View>
-              </View>
-              {subscription.cancelAtPeriodEnd && (
-                <View style={styles.cancelWarning}>
-                  <Text style={styles.cancelWarningText}>
-                    ⚠️ Your subscription will cancel on {formatDate(subscription.periodEnd)}
-                  </Text>
-                </View>
-              )}
-              <Text style={styles.planCardDescription}>
-                Next renewal: {formatDate(subscription.periodEnd)}
-              </Text>
-              {subscription.pendingTier && (
-                <Text style={styles.pendingTierText}>
-                  Changing to {subscription.pendingTier.charAt(0).toUpperCase() + subscription.pendingTier.slice(1)} at next renewal
-                </Text>
-              )}
-              <View style={styles.quotaInfoContainer}>
-                <Text style={styles.quotaInfoText}>
-                  {quotaInfo.remaining} of {quotaInfo.limit} caricatures remaining this month
-                </Text>
-                <View style={styles.quotaProgressBarFull}>
-                  <View 
-                    style={[
-                      styles.quotaProgressFillFull,
-                      { 
-                        width: `${Math.min(quotaInfo.percentage, 100)}%`,
-                        backgroundColor: quotaInfo.percentage >= 100 ? '#ef4444' : quotaInfo.percentage >= 80 ? '#f59e0b' : '#10b981'
-                      }
-                    ]} 
-                  />
-                </View>
-                {quotaInfo.percentage >= 80 && quotaInfo.percentage < 100 && (
-                  <Text style={styles.quotaWarningText}>
-                    ⚠️ Running low on caricatures
-                  </Text>
-                )}
-                {quotaInfo.percentage >= 100 && (
-                  <Text style={styles.quotaExceededTextFull}>
-                    ❌ Quota exceeded - upgrade to continue
-                  </Text>
-                )}
-              </View>
+            <View style={styles.paywallPlanCard}>
+              <ActivityIndicator size="small" color="#4F46E5" />
+              <Text style={styles.paywallPlanQuotaText}>Loading subscription…</Text>
             </View>
           ) : (
-            <View style={styles.planCard}>
-              <Text style={styles.planCardDescription}>No active subscription</Text>
-            </View>
-          )}
-        </View>
-
-        {/* Subscription Plans */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Choose your plan</Text>
-          {Object.entries(TIER_INFO).map(([tier, info]) => (
-            <TouchableOpacity
-              key={tier}
-              style={[
-                styles.tierCard,
-                subscription?.tier === tier && styles.tierCardActive,
-                tier === 'popular' && styles.tierCardPopular,
-                selectedTier === tier && styles.tierCardSelected,
-              ]}
-              onPress={() => {
-                if (subscription?.tier !== tier) {
-                  setSelectedTier(tier);
-                }
-              }}
-              activeOpacity={0.85}
-            >
-              {tier === 'popular' && !subscription?.tier && (
-                <View style={styles.popularRibbon}>
-                  <Text style={styles.popularRibbonText}>Most popular</Text>
+            <View style={styles.paywallPlanCard}>
+              <View style={styles.paywallPlanHeaderRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.paywallPlanTitle}>
+                    {isTrial ? 'Free Trial' : `${TIER_INFO[subscription?.tier]?.name || 'Plan'}`}
+                  </Text>
+                  <Text style={styles.paywallPlanQuotaText}>
+                    {isTrial
+                      ? `${quotaInfo.current} of ${quotaInfo.limit} caricatures used`
+                      : `${quotaInfo.remaining} of ${quotaInfo.limit} left this month`}
+                  </Text>
                 </View>
-              )}
-              <View style={styles.tierCardHeader}>
-                <View>
-                  <Text style={styles.tierCardTitle}>{info.name}</Text>
-                  <Text style={styles.tierCardPrice}>{info.price}/month</Text>
-                </View>
-                {subscription?.tier === tier && (
-                  <View style={styles.currentBadge}>
-                    <Text style={styles.currentBadgeText}>Current</Text>
+                {subscription?.cancelAtPeriodEnd ? (
+                  <View style={styles.paywallCancelPill}>
+                    <Text style={styles.paywallCancelPillText}>
+                      Canceling {formatDate(subscription.periodEnd)}
+                    </Text>
+                  </View>
+                ) : isTrial ? (
+                  <View style={styles.paywallUpgradePill}>
+                    <Text style={styles.paywallUpgradePillText}>UPGRADE</Text>
+                  </View>
+                ) : (
+                  <View style={styles.paywallActivePill}>
+                    <Text style={styles.paywallActivePillText}>ACTIVE</Text>
                   </View>
                 )}
               </View>
-              <Text style={styles.tierCardQuota}>{info.quota} caricatures per month</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+              <View style={styles.paywallProgress}>
+                <View style={[styles.paywallProgressFill, { width: `${Math.min(quotaInfo.percentage, 100)}%` }]} />
+              </View>
+              {!isTrial && subscription && (
+                <Text style={styles.paywallPlanRenewalText}>
+                  {subscription.cancelAtPeriodEnd
+                    ? `Access until ${formatDate(subscription.periodEnd)}`
+                    : `Renews ${formatDate(subscription.periodEnd)}`}
+                </Text>
+              )}
+              {subscription?.pendingTier && (
+                <Text style={styles.paywallPendingText}>
+                  Changing to {subscription.pendingTier.charAt(0).toUpperCase() + subscription.pendingTier.slice(1)} at next renewal
+                </Text>
+              )}
+            </View>
+          )}
 
-        {/* Actions */}
-        <View style={styles.section}>
+          {/* Tier selection */}
+          <Text style={styles.paywallSectionTitle}>Choose your plan</Text>
+          {Object.entries(TIER_INFO).map(([tier, info]) => {
+            const isCurrent = subscription?.tier === tier;
+            const isSelected = selectedTier === tier;
+            const isPopular = tier === 'popular';
+            const isPro = tier === 'pro';
+
+            return (
+              <TouchableOpacity
+                key={tier}
+                style={[
+                  styles.paywallTierCard,
+                  isCurrent && styles.paywallTierCardCurrent,
+                  isSelected && !isCurrent && styles.paywallTierCardSelected,
+                ]}
+                onPress={() => {
+                  if (!isCurrent) setSelectedTier(tier);
+                }}
+                activeOpacity={0.85}
+              >
+                <View style={styles.paywallTierRow}>
+                  <View style={styles.paywallTierLeft}>
+                    <Text style={styles.paywallTierName}>{info.name}</Text>
+                    {isCurrent ? (
+                      <View style={styles.paywallTierBadgeCurrent}>
+                        <Text style={styles.paywallTierBadgeCurrentText}>CURRENT</Text>
+                      </View>
+                    ) : isPopular ? (
+                      <View style={styles.paywallTierBadgePopular}>
+                        <Text style={styles.paywallTierBadgePopularText}>MOST POPULAR</Text>
+                      </View>
+                    ) : isPro ? (
+                      <View style={styles.paywallTierBadgeNeutral}>
+                        <Text style={styles.paywallTierBadgeNeutralText}>BEST VALUE</Text>
+                      </View>
+                    ) : null}
+                  </View>
+                  <Text style={styles.paywallTierPrice}>
+                    {info.price}<Text style={styles.paywallTierPriceUnit}>/mo</Text>
+                  </Text>
+                </View>
+                <Text style={styles.paywallTierDesc}>
+                  {info.quota} caricatures · {info.perks}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+
+        {/* Bottom actions */}
+        <View style={styles.paywallActions}>
           <TouchableOpacity
-            style={[styles.actionButton, (subscribeLoading || !selectedTier && !subscription) && styles.buttonDisabled]}
+            style={[styles.primaryButton, !canSubscribe && styles.buttonDisabled]}
             onPress={() => onSubscribe(selectedTier)}
-            disabled={subscribeLoading || (!selectedTier && !subscription)}
+            disabled={!canSubscribe}
           >
-            <Text style={styles.actionButtonText}>
-              {subscribeLoading 
-                ? 'Processing...' 
-                : selectedTier
-                  ? `Subscribe to ${TIER_INFO[selectedTier]?.name} – ${TIER_INFO[selectedTier]?.price}/mo`
-                  : subscription 
-                    ? 'Change Subscription' 
-                    : 'Select a plan above'}
-            </Text>
+            <Text style={styles.primaryButtonText}>{subscribeLabel}</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.actionButton, styles.secondaryActionButton, subscriptionLoading && styles.buttonDisabled]}
-            onPress={onRefreshSubscription}
-            disabled={subscriptionLoading}
-          >
-            <Text style={styles.secondaryActionButtonText}>
-              {subscriptionLoading ? 'Refreshing...' : 'Refresh Status'}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.actionButton, styles.secondaryActionButton, subscribeLoading && styles.buttonDisabled]}
-            onPress={onRestorePurchases}
-            disabled={subscribeLoading}
-          >
-            <Text style={styles.secondaryActionButtonText}>Restore Purchases</Text>
-          </TouchableOpacity>
-          {subscription && !subscription.cancelAtPeriodEnd && (
+          <View style={styles.uploadSourceRow}>
             <TouchableOpacity
-              style={[styles.actionButton, styles.cancelButton, subscribeLoading && styles.buttonDisabled]}
-              onPress={onCancelSubscription}
+              style={[styles.slimButton, subscriptionLoading && styles.buttonDisabled]}
+              onPress={onRefreshSubscription}
+              disabled={subscriptionLoading}
+            >
+              <Text style={styles.slimButtonText}>
+                {subscriptionLoading ? 'Refreshing…' : 'Refresh'}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.slimButton, subscribeLoading && styles.buttonDisabled]}
+              onPress={onRestorePurchases}
               disabled={subscribeLoading}
             >
-              <Text style={styles.cancelButtonText}>
-                Cancel Subscription
-              </Text>
+              <Text style={styles.slimButtonText}>Restore</Text>
+            </TouchableOpacity>
+          </View>
+          {subscription && !subscription.cancelAtPeriodEnd && (
+            <TouchableOpacity
+              onPress={onCancelSubscription}
+              disabled={subscribeLoading}
+              style={[{ alignSelf: 'center', marginTop: 4 }, subscribeLoading && styles.buttonDisabled]}
+            >
+              <Text style={styles.paywallCancelLink}>Cancel subscription</Text>
             </TouchableOpacity>
           )}
         </View>
-        <View style={{ height: Math.max(insets.bottom, BOTTOM_INSET_MIN) }} />
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -786,43 +875,24 @@ function ResultScreen({ original, result, loading, error, failedAttempts = 0, on
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       <View style={{ height: insets.top, backgroundColor: '#ffffff' }} />
       <View style={[styles.resultContainer, { paddingBottom: Math.max(insets.bottom, BOTTOM_INSET_MIN) }]}>
-        <View style={styles.resultHeader}>
-          <TouchableOpacity onPress={() => confirmNavigate(onBack)} style={styles.backButton}>
-            <Text style={styles.backButtonIcon}>‹</Text>
+        <View style={styles.headerBar}>
+          <TouchableOpacity onPress={() => confirmNavigate(onBack)} style={styles.iconButton}>
+            <Text style={styles.iconButtonIcon}>‹</Text>
           </TouchableOpacity>
-          {/* Plan badge as progress bar */}
           {subscriptionInfo && (
-            subscriptionInfo.usage && subscriptionInfo.usage.limit > 0 ? (
-              <View style={styles.resultBadgeAsBarContainer}>
-                <View
-                  style={[
-                    styles.badgeAsBarFill,
-                    {
-                      width: `${resultQuotaPct}%`,
-                      backgroundColor: resultQuotaPct >= 100 ? '#ef4444' : resultQuotaPct >= 80 ? '#f59e0b' : '#10b981',
-                    },
-                  ]}
-                />
-                <View style={styles.badgeAsBarTextWrapper}>
-                  <Text style={styles.badgeAsBarText}>
-                    {subscriptionInfo.isTrial || !subscriptionInfo.subscription
-                      ? `Trial • ${resultQuotaCurrent}/${resultQuotaLimit}`
-                      : `${subscriptionInfo.subscription.tier.charAt(0).toUpperCase() + subscriptionInfo.subscription.tier.slice(1)} • ${resultQuotaCurrent}/${resultQuotaLimit}`}
-                  </Text>
-                </View>
+            <View style={styles.headerPill}>
+              <View style={styles.headerPillProgress}>
+                <View style={[styles.headerPillProgressFill, { width: `${resultQuotaPct}%` }]} />
               </View>
-            ) : (
-              <View style={styles.resultSubscriptionBadge}>
-                <Text style={styles.resultSubscriptionBadgeText}>
-                  {subscriptionInfo.isTrial || !subscriptionInfo.subscription
-                    ? `Trial • ${resultQuotaCurrent}/${resultQuotaLimit}`
-                    : `${subscriptionInfo.subscription.tier.charAt(0).toUpperCase() + subscriptionInfo.subscription.tier.slice(1)} • ${resultQuotaCurrent}/${resultQuotaLimit}`}
-                </Text>
-              </View>
-            )
+              <Text style={styles.headerPillText}>
+                {subscriptionInfo.isTrial || !subscriptionInfo.subscription
+                  ? `Trial · ${resultQuotaCurrent}/${resultQuotaLimit}`
+                  : `${subscriptionInfo.subscription.tier.charAt(0).toUpperCase() + subscriptionInfo.subscription.tier.slice(1)} · ${resultQuotaCurrent}/${resultQuotaLimit}`}
+              </Text>
+            </View>
           )}
-          <TouchableOpacity onPress={() => confirmNavigate(onHome)} style={styles.homeButton}>
-            <Text style={styles.homeButtonIcon}>🏠</Text>
+          <TouchableOpacity onPress={() => confirmNavigate(onHome)} style={styles.iconButton}>
+            <Text style={styles.iconButtonIcon}>⌂</Text>
           </TouchableOpacity>
         </View>
 
@@ -899,24 +969,20 @@ function ResultScreen({ original, result, loading, error, failedAttempts = 0, on
               ) : null}
               
               <View style={styles.actionsRow}>
-                <View style={styles.actionButtonWrapper}>
-                  <TouchableOpacity
-                    style={[styles.actionButton, (!hasResult || loading) && styles.buttonDisabled]}
-                    onPress={handleDownload}
-                    disabled={!hasResult || loading}
-                  >
-                    <Text style={styles.actionButtonText} numberOfLines={1}>Save</Text>
-                  </TouchableOpacity>
-                </View>
-                <View style={styles.actionButtonWrapper}>
-                  <TouchableOpacity
-                    style={[styles.actionButton, (!hasResult || loading) && styles.buttonDisabled]}
-                    onPress={handleShare}
-                    disabled={!hasResult || loading}
-                  >
-                    <Text style={styles.actionButtonText} numberOfLines={1}>Share</Text>
-                  </TouchableOpacity>
-                </View>
+                <TouchableOpacity
+                  style={[styles.slimButton, { flex: 1 }, (!hasResult || loading) && styles.buttonDisabled]}
+                  onPress={handleDownload}
+                  disabled={!hasResult || loading}
+                >
+                  <Text style={styles.slimButtonText} numberOfLines={1}>Save</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.primaryButton, { flex: 1 }, (!hasResult || loading) && styles.buttonDisabled]}
+                  onPress={handleShare}
+                  disabled={!hasResult || loading}
+                >
+                  <Text style={styles.primaryButtonText} numberOfLines={1}>Share</Text>
+                </TouchableOpacity>
               </View>
             </View>
           </View>
@@ -950,6 +1016,7 @@ export default function App() {
   const [hasRcKey, setHasRcKey] = useState(false);
   const [subscriptionInfo, setSubscriptionInfo] = useState(null);
   const [subscriptionLoading, setSubscriptionLoading] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [userId, setUserId] = useState(null);
   const [authToken, setAuthToken] = useState(null);
   const [authReady, setAuthReady] = useState(false);
@@ -1467,7 +1534,7 @@ export default function App() {
         setScreen('style');
         return true;
       }
-      if (screen === 'subscription') {
+      if (screen === 'subscription' || screen === 'privacy' || screen === 'terms' || screen === 'about') {
         setScreen('style');
         return true;
       }
@@ -1494,11 +1561,55 @@ export default function App() {
         <StyleScreen
           selectedStyle={style}
           availableStyles={availableStyles}
-          onOpenSubscription={() => setScreen('subscription')}
+          onOpenMenu={() => setMenuOpen(true)}
           onNext={(s) => {
             setStyle(s);
             setScreen('upload');
           }}
+        />
+        <MenuModal
+          visible={menuOpen}
+          onClose={() => setMenuOpen(false)}
+          onSelect={(id) => {
+            setMenuOpen(false);
+            setScreen(id);
+          }}
+        />
+      </SafeAreaProvider>
+    );
+  }
+
+  if (screen === 'privacy') {
+    return (
+      <SafeAreaProvider>
+        <InfoScreen
+          title="Privacy Policy"
+          content={PRIVACY_POLICY_TEXT}
+          onBack={() => setScreen('style')}
+        />
+      </SafeAreaProvider>
+    );
+  }
+
+  if (screen === 'terms') {
+    return (
+      <SafeAreaProvider>
+        <InfoScreen
+          title="Terms & Conditions"
+          content={TERMS_TEXT}
+          onBack={() => setScreen('style')}
+        />
+      </SafeAreaProvider>
+    );
+  }
+
+  if (screen === 'about') {
+    return (
+      <SafeAreaProvider>
+        <InfoScreen
+          title="About"
+          content={ABOUT_TEXT}
+          onBack={() => setScreen('style')}
         />
       </SafeAreaProvider>
     );
@@ -1574,28 +1685,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
   },
   splashSafe: {
-    backgroundColor: '#0f172a',
+    backgroundColor: '#ffffff',
   },
   splashContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  splashLogo: {
-    fontSize: 48,
-    fontWeight: '900',
-    color: '#f97316',
-    letterSpacing: 3,
-    textShadowColor: 'rgba(249, 115, 22, 0.3)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 8,
-  },
-  splashTagline: {
-    marginTop: 12,
-    fontSize: 16,
-    color: '#e5e7eb',
-    fontWeight: '500',
-    letterSpacing: 0.5,
+  splashImage: {
+    width: 220,
+    height: 220,
+    borderRadius: 28,
   },
   container: {
     padding: 20,
@@ -1754,9 +1854,9 @@ const styles = StyleSheet.create({
   styleImageWrapper: {
     width: '100%',
     aspectRatio: 3 / 4,
-    borderRadius: 18,
+    borderRadius: 14,
     overflow: 'hidden',
-    backgroundColor: '#111827',
+    backgroundColor: '#F7F7F8',
   },
   styleImage: {
     width: '100%',
@@ -1881,13 +1981,10 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     minHeight: 200,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderStyle: 'dashed',
-    borderColor: '#d1d5db',
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#fafafa',
+    backgroundColor: '#F7F7F8',
   },
   photoPlaceholderText: {
     fontSize: 14,
@@ -2245,6 +2342,397 @@ const styles = StyleSheet.create({
     color: '#991b1b',
   },
   // Style screen header
+  // Refined header bar (used on Style + Upload + Result screens)
+  headerBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+    gap: 10,
+  },
+  wordmark: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#0F172A',
+    letterSpacing: -0.3,
+  },
+  headerPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F7F7F8',
+    borderRadius: 999,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    gap: 8,
+    flexShrink: 1,
+  },
+  headerPillProgress: {
+    width: 36,
+    height: 4,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  headerPillProgressFill: {
+    height: '100%',
+    backgroundColor: '#4F46E5',
+    borderRadius: 2,
+  },
+  headerPillText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#0F172A',
+  },
+  iconButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F7F7F8',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconButtonIcon: {
+    fontSize: 16,
+    color: '#0F172A',
+    fontWeight: '600',
+  },
+  styleCardLabel: {
+    marginTop: 8,
+    paddingHorizontal: 4,
+  },
+  styleCardName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#0F172A',
+  },
+  styleCardDesc: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 2,
+  },
+  // Upload screen — refined
+  photoPlaceholderIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#EEF2FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  photoPlaceholderIconText: {
+    fontSize: 28,
+    color: '#4F46E5',
+    fontWeight: '300',
+    lineHeight: 32,
+  },
+  photoPlaceholderTitle: {
+    fontSize: 15,
+    color: '#0F172A',
+    fontWeight: '600',
+  },
+  photoPlaceholderHint: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 2,
+  },
+  cropChip: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    backgroundColor: 'rgba(15, 23, 42, 0.75)',
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 99,
+  },
+  cropChipText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  uploadSourceRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  slimButton: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 10,
+    paddingVertical: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  slimButtonText: {
+    color: '#0F172A',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  primaryButton: {
+    backgroundColor: '#4F46E5',
+    borderRadius: 10,
+    paddingVertical: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  primaryButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  quotaExceededBanner: {
+    backgroundColor: '#FEF2F2',
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    alignItems: 'center',
+  },
+  quotaExceededBannerText: {
+    color: '#A32D2D',
+    fontWeight: '600',
+    fontSize: 13,
+  },
+  // Menu modal
+  menuBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'flex-end',
+  },
+  menuSheet: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 8,
+    paddingHorizontal: 8,
+  },
+  menuHandle: {
+    alignSelf: 'center',
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#E5E7EB',
+    marginBottom: 8,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+  },
+  menuItemText: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#0F172A',
+  },
+  menuItemArrow: {
+    fontSize: 20,
+    color: '#94A3B8',
+  },
+  // Info screen (Privacy, Terms, About)
+  infoContainer: {
+    flex: 1,
+    padding: 24,
+    paddingTop: 8,
+  },
+  infoContent: {
+    paddingTop: 16,
+    paddingBottom: 24,
+  },
+  infoText: {
+    fontSize: 14,
+    lineHeight: 22,
+    color: '#334155',
+  },
+  // Paywall — refined
+  paywallContainer: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 8,
+  },
+  paywallPlanCard: {
+    backgroundColor: '#F7F7F8',
+    borderRadius: 14,
+    padding: 14,
+    marginTop: 4,
+    marginBottom: 16,
+  },
+  paywallPlanHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  paywallPlanTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#0F172A',
+  },
+  paywallPlanQuotaText: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 2,
+  },
+  paywallPlanRenewalText: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 8,
+  },
+  paywallPendingText: {
+    fontSize: 12,
+    color: '#4F46E5',
+    fontWeight: '500',
+    marginTop: 4,
+  },
+  paywallActivePill: {
+    backgroundColor: '#EAF3DE',
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: 99,
+  },
+  paywallActivePillText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#3B6D11',
+    letterSpacing: 0.4,
+  },
+  paywallUpgradePill: {
+    backgroundColor: '#EEF2FF',
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: 99,
+  },
+  paywallUpgradePillText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#4F46E5',
+    letterSpacing: 0.4,
+  },
+  paywallCancelPill: {
+    backgroundColor: '#FAEEDA',
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: 99,
+  },
+  paywallCancelPillText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#854F0B',
+  },
+  paywallProgress: {
+    height: 4,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  paywallProgressFill: {
+    height: '100%',
+    backgroundColor: '#4F46E5',
+    borderRadius: 2,
+  },
+  paywallSectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#0F172A',
+    marginBottom: 10,
+    marginTop: 4,
+  },
+  paywallTierCard: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 10,
+  },
+  paywallTierCardSelected: {
+    borderWidth: 1.5,
+    borderColor: '#4F46E5',
+  },
+  paywallTierCardCurrent: {
+    backgroundColor: '#EEF2FF',
+    borderColor: '#4F46E5',
+  },
+  paywallTierRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  paywallTierLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+    flexWrap: 'wrap',
+  },
+  paywallTierName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#0F172A',
+  },
+  paywallTierPrice: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  paywallTierPriceUnit: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#64748B',
+  },
+  paywallTierDesc: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 4,
+  },
+  paywallTierBadgeCurrent: {
+    backgroundColor: '#4F46E5',
+    paddingVertical: 2,
+    paddingHorizontal: 7,
+    borderRadius: 99,
+  },
+  paywallTierBadgeCurrentText: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+  },
+  paywallTierBadgePopular: {
+    backgroundColor: '#4F46E5',
+    paddingVertical: 2,
+    paddingHorizontal: 7,
+    borderRadius: 99,
+  },
+  paywallTierBadgePopularText: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+  },
+  paywallTierBadgeNeutral: {
+    backgroundColor: '#F1EFE8',
+    paddingVertical: 2,
+    paddingHorizontal: 7,
+    borderRadius: 99,
+  },
+  paywallTierBadgeNeutralText: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#5F5E5A',
+    letterSpacing: 0.5,
+  },
+  paywallActions: {
+    paddingTop: 12,
+    gap: 8,
+  },
+  paywallCancelLink: {
+    fontSize: 13,
+    color: '#A32D2D',
+    fontWeight: '500',
+    paddingVertical: 8,
+  },
   styleHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',

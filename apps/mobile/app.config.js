@@ -13,6 +13,11 @@ export default {
     platforms: ['android', 'ios'],
     orientation: 'portrait',
     icon: './assets/icon.jpg',
+    splash: {
+      image: './assets/icon.jpg',
+      resizeMode: 'contain',
+      backgroundColor: '#ffffff',
+    },
     updates: { fallbackToCacheTimeout: 0 },
     assetBundlePatterns: ['**/*'],
     ios: { 
