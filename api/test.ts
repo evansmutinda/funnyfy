@@ -597,12 +597,17 @@ export default async function handler(
       if (prediction?.urls?.get && prediction?.id) {
         const statusUrl: string = prediction.urls.get;
 
-        for (let attempt = 0; attempt < 15; attempt++) {
+        // Poll up to ~50s (25 attempts × 2s) — stays under Vercel's 60s function timeout
+        // Most generations complete in 10-30s; heavy load/complex styles may take 40-50s
+        const MAX_POLL_ATTEMPTS = 25;
+        const POLL_INTERVAL_MS = 2000;
+
+        for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt++) {
           if (terminalStatuses.has(prediction.status)) {
             break;
           }
 
-          await sleep(2000);
+          await sleep(POLL_INTERVAL_MS);
 
           const statusRes = await fetch(statusUrl, {
             headers: {
@@ -680,13 +685,19 @@ export default async function handler(
 
     // If Replicate failed, return error to client (do not increment usage)
     if (replicateFailed) {
+      // For "processing" status: prediction is still running on Replicate's side
+      // The user paid for compute, so let them know to check back via gallery
       const userMsg = replicateStatus === 'failed' || replicateStatus === 'canceled'
         ? 'Image generation failed. Please try again.'
-        : 'Image generation did not complete. Please try again.';
+        : replicateStatus === 'processing' || replicateStatus === 'starting'
+          ? 'Generation is taking longer than expected. Your image will appear in My Caricatures when ready.'
+          : 'Image generation did not complete. Please try again.';
       return res.status(400).json({
         ok: false,
         error: userMsg,
-        replicateStatus: replicateStatus || 'unknown'
+        replicateStatus: replicateStatus || 'unknown',
+        // Include the prediction ID so the client could poll later if we add that feature
+        replicateId: replicateId,
       });
     }
 

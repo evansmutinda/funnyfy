@@ -20,8 +20,11 @@ import {
   Dimensions
 } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import ImageView from 'react-native-image-viewing';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
+import * as ImageManipulator from 'expo-image-manipulator';
 import * as MediaLibrary from 'expo-media-library';
 import * as Sharing from 'expo-sharing';
 import { initRevenueCat, getOfferings, purchasePackage, restorePurchases, getCustomerInfo, getAppUserId, hasRevenueCatKey } from './services/revenuecat';
@@ -74,6 +77,65 @@ Version 1.0.1
 Made with care.`;
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const BOTTOM_INSET_MIN = Platform.OS === 'android' ? 48 : 34;
+
+// Industry-standard folder for app-generated photos (e.g. Pictures/FunnyFy/)
+const FUNNYFY_FOLDER_NAME = 'FunnyFy';
+const FUNNYFY_ANDROID_FOLDER_PATH = `file:///storage/emulated/0/Pictures/${FUNNYFY_FOLDER_NAME}/`;
+
+// Ensure the FunnyFy folder exists on Android (creates it the first time)
+async function ensureFunnyfyFolder() {
+  if (Platform.OS !== 'android') return;
+  try {
+    const info = await FileSystem.getInfoAsync(FUNNYFY_ANDROID_FOLDER_PATH);
+    if (!info.exists) {
+      await FileSystem.makeDirectoryAsync(FUNNYFY_ANDROID_FOLDER_PATH, { intermediates: true });
+      console.log('[Save] Created FunnyFy folder');
+    }
+  } catch (err) {
+    console.warn('[Save] ensureFunnyfyFolder error (non-fatal):', err);
+  }
+}
+
+// Save an image to the FunnyFy album in MediaLibrary (creates album if needed)
+// Returns true if saved successfully
+async function saveToFunnyfyAlbum(localFileUri) {
+  if (Platform.OS !== 'android') {
+    // iOS: just save to library (iOS uses its own albums system)
+    await MediaLibrary.saveToLibraryAsync(localFileUri);
+    return true;
+  }
+  try {
+    // Request permissions first
+    const { status } = await MediaLibrary.requestPermissionsAsync();
+    if (status !== 'granted') {
+      console.warn('[Save] MediaLibrary permission denied');
+      return false;
+    }
+
+    // Create the asset (it'll initially land in DCIM)
+    const asset = await MediaLibrary.createAssetAsync(localFileUri);
+
+    // Try to find or create the FunnyFy album, then move the asset there
+    let album = await MediaLibrary.getAlbumAsync(FUNNYFY_FOLDER_NAME);
+    if (album == null) {
+      // false = don't copy, move the asset
+      album = await MediaLibrary.createAlbumAsync(FUNNYFY_FOLDER_NAME, asset, false);
+      console.log('[Save] Created FunnyFy album');
+    } else {
+      await MediaLibrary.addAssetsToAlbumAsync([asset], album, false);
+    }
+    return true;
+  } catch (err) {
+    console.error('[Save] saveToFunnyfyAlbum error:', err);
+    // Fallback: at least save to library so we don't lose the photo
+    try {
+      await MediaLibrary.saveToLibraryAsync(localFileUri);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+}
 
 function getSavedImageFileName() {
   const d = new Date();
@@ -163,6 +225,7 @@ function SplashScreen({ onComplete }) {
 function MenuModal({ visible, onClose, onSelect }) {
   const insets = useSafeAreaInsets();
   const items = [
+    { id: 'gallery', label: 'My Caricatures' },
     { id: 'subscription', label: 'Subscriptions' },
     { id: 'privacy', label: 'Privacy Policy' },
     { id: 'terms', label: 'Terms & Conditions' },
@@ -200,6 +263,345 @@ function MenuModal({ visible, onClose, onSelect }) {
         </View>
       </TouchableOpacity>
     </Modal>
+  );
+}
+
+// Gallery storage helpers
+const GALLERY_STORAGE_KEY = '@funnyfy_gallery';
+const GALLERY_MAX_ITEMS = 50;
+const GALLERY_FOLDER = FileSystem.documentDirectory + 'gallery/';
+
+// Ensure the gallery folder exists (persistent across app launches)
+async function ensureGalleryFolder() {
+  try {
+    const info = await FileSystem.getInfoAsync(GALLERY_FOLDER);
+    if (!info.exists) {
+      await FileSystem.makeDirectoryAsync(GALLERY_FOLDER, { intermediates: true });
+      console.log('[Gallery] Created gallery folder');
+    }
+  } catch (err) {
+    console.warn('[Gallery] ensureGalleryFolder error:', err);
+  }
+}
+
+async function saveToGallery(item) {
+  try {
+    await ensureGalleryFolder();
+
+    // Download the image to local persistent storage so it survives the URL expiry
+    const localFileName = `gallery_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.jpg`;
+    const localPath = GALLERY_FOLDER + localFileName;
+
+    let savedLocalUri = null;
+    try {
+      const dl = await FileSystem.downloadAsync(item.imageUrl, localPath);
+      if (dl.status === 200) {
+        savedLocalUri = dl.uri;
+        console.log('[Gallery] Downloaded image to:', savedLocalUri);
+      }
+    } catch (dlErr) {
+      console.warn('[Gallery] Could not download to local (will use remote URL):', dlErr);
+    }
+
+    const existing = await AsyncStorage.getItem(GALLERY_STORAGE_KEY);
+    const items = existing ? JSON.parse(existing) : [];
+    const newItem = {
+      id: `gen_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      // Use local URI if available; otherwise fallback to remote URL (which may expire)
+      imageUrl: savedLocalUri || item.imageUrl,
+      remoteUrl: item.imageUrl, // keep original for reference
+      isLocal: !!savedLocalUri,
+      styleLabel: item.styleLabel,
+      styleId: item.styleId,
+      createdAt: Date.now(),
+    };
+
+    // If we're about to drop old items past the cap, also delete their local files
+    const updated = [newItem, ...items].slice(0, GALLERY_MAX_ITEMS);
+    const dropped = items.slice(GALLERY_MAX_ITEMS - 1); // items that fell off the end
+    for (const dropped_item of dropped) {
+      if (dropped_item.isLocal && dropped_item.imageUrl?.startsWith('file://')) {
+        try {
+          await FileSystem.deleteAsync(dropped_item.imageUrl, { idempotent: true });
+        } catch {}
+      }
+    }
+
+    await AsyncStorage.setItem(GALLERY_STORAGE_KEY, JSON.stringify(updated));
+    return newItem;
+  } catch (err) {
+    console.error('[Gallery] save error:', err);
+    return null;
+  }
+}
+
+async function loadGallery() {
+  try {
+    const data = await AsyncStorage.getItem(GALLERY_STORAGE_KEY);
+    const items = data ? JSON.parse(data) : [];
+
+    // Filter out items whose local file no longer exists (e.g. user cleared app data)
+    const verified = [];
+    for (const item of items) {
+      if (item.isLocal && item.imageUrl?.startsWith('file://')) {
+        try {
+          const info = await FileSystem.getInfoAsync(item.imageUrl);
+          if (info.exists) {
+            verified.push(item);
+          }
+        } catch {
+          // File missing, skip it
+        }
+      } else {
+        // Old items without local copy — keep them (URL may still work briefly)
+        verified.push(item);
+      }
+    }
+
+    // If items were dropped, persist the cleaned list
+    if (verified.length !== items.length) {
+      await AsyncStorage.setItem(GALLERY_STORAGE_KEY, JSON.stringify(verified));
+    }
+
+    return verified;
+  } catch (err) {
+    console.error('[Gallery] load error:', err);
+    return [];
+  }
+}
+
+async function deleteFromGallery(id) {
+  try {
+    const existing = await AsyncStorage.getItem(GALLERY_STORAGE_KEY);
+    const items = existing ? JSON.parse(existing) : [];
+    const target = items.find((item) => item.id === id);
+    const updated = items.filter((item) => item.id !== id);
+
+    // Also delete the local file if applicable
+    if (target?.isLocal && target?.imageUrl?.startsWith('file://')) {
+      try {
+        await FileSystem.deleteAsync(target.imageUrl, { idempotent: true });
+      } catch {}
+    }
+
+    await AsyncStorage.setItem(GALLERY_STORAGE_KEY, JSON.stringify(updated));
+    return true;
+  } catch (err) {
+    console.error('[Gallery] delete error:', err);
+    return false;
+  }
+}
+
+async function clearGallery() {
+  try {
+    // Delete all local files
+    const existing = await AsyncStorage.getItem(GALLERY_STORAGE_KEY);
+    const items = existing ? JSON.parse(existing) : [];
+    for (const item of items) {
+      if (item.isLocal && item.imageUrl?.startsWith('file://')) {
+        try {
+          await FileSystem.deleteAsync(item.imageUrl, { idempotent: true });
+        } catch {}
+      }
+    }
+    await AsyncStorage.removeItem(GALLERY_STORAGE_KEY);
+    return true;
+  } catch (err) {
+    console.error('[Gallery] clear error:', err);
+    return false;
+  }
+}
+
+// Gallery Screen — shows past caricatures stored locally
+function GalleryScreen({ onBack }) {
+  const insets = useSafeAreaInsets();
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [viewerVisible, setViewerVisible] = useState(false);
+  const [viewerIndex, setViewerIndex] = useState(0);
+
+  const refresh = async () => {
+    setLoading(true);
+    const data = await loadGallery();
+    setItems(data);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    refresh();
+  }, []);
+
+  const handleDelete = (item) => {
+    Alert.alert(
+      'Delete caricature?',
+      'This will only remove it from your gallery. Photos already saved to your phone are not affected.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            await deleteFromGallery(item.id);
+            refresh();
+          },
+        },
+      ]
+    );
+  };
+
+  const handleClearAll = () => {
+    Alert.alert(
+      'Clear all caricatures?',
+      'This will remove all items from your gallery. Photos saved to your phone are not affected.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Clear All',
+          style: 'destructive',
+          onPress: async () => {
+            await clearGallery();
+            refresh();
+          },
+        },
+      ]
+    );
+  };
+
+  // Save the currently-viewed image to the FunnyFy album
+  const handleViewerSave = async () => {
+    const item = items[viewerIndex];
+    if (!item) return;
+    try {
+      const fileName = getSavedImageFileName();
+      const localPath = FileSystem.cacheDirectory + fileName;
+      const dl = await FileSystem.downloadAsync(item.imageUrl, localPath);
+      const ok = await saveToFunnyfyAlbum(dl.uri);
+      if (ok) {
+        Alert.alert('Saved', `Saved to Gallery › ${FUNNYFY_FOLDER_NAME} album`);
+      } else {
+        Alert.alert('Save failed', 'Could not save the image.');
+      }
+    } catch (err) {
+      console.error('[Gallery] save error:', err);
+      Alert.alert('Save failed', 'Could not save the image.');
+    }
+  };
+
+  // Share the currently-viewed image
+  const handleViewerShare = async () => {
+    const item = items[viewerIndex];
+    if (!item) return;
+    try {
+      const fileName = getSavedImageFileName();
+      const localPath = FileSystem.cacheDirectory + fileName;
+      const dl = await FileSystem.downloadAsync(item.imageUrl, localPath);
+      await Sharing.shareAsync(dl.uri, {
+        mimeType: 'image/jpeg',
+        dialogTitle: 'Check out my caricature!',
+      });
+    } catch (err) {
+      console.error('[Gallery] share error:', err);
+    }
+  };
+
+  // Footer rendered inside the image viewer
+  const renderViewerFooter = () => {
+    const item = items[viewerIndex];
+    if (!item) return null;
+    return (
+      <View style={[styles.viewerFooter, { paddingBottom: Math.max(insets.bottom, 16) + 8 }]}>
+        <Text style={styles.viewerFooterLabel} numberOfLines={1}>
+          {item.styleLabel || 'Caricature'}
+        </Text>
+        <View style={styles.viewerActionsRow}>
+          <TouchableOpacity style={styles.viewerActionButton} onPress={handleViewerSave}>
+            <Text style={styles.viewerActionButtonText}>Save</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.viewerActionButton} onPress={handleViewerShare}>
+            <Text style={styles.viewerActionButtonText}>Share</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
+
+  return (
+    <SafeAreaView style={styles.safe}>
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      <View style={{ height: insets.top, backgroundColor: '#ffffff' }} />
+      <View style={styles.galleryContainer}>
+        <View style={styles.headerBar}>
+          <TouchableOpacity onPress={onBack} style={styles.iconButton}>
+            <Text style={styles.iconButtonIcon}>‹</Text>
+          </TouchableOpacity>
+          <Text style={styles.wordmark}>My Caricatures</Text>
+          {items.length > 0 ? (
+            <TouchableOpacity onPress={handleClearAll} style={styles.iconButton}>
+              <Text style={styles.galleryClearIcon}>✕</Text>
+            </TouchableOpacity>
+          ) : (
+            <View style={{ width: 36 }} />
+          )}
+        </View>
+
+        {loading ? (
+          <View style={styles.galleryLoadingContainer}>
+            <ActivityIndicator size="large" color="#0F172A" />
+          </View>
+        ) : items.length === 0 ? (
+          <View style={styles.galleryEmptyContainer}>
+            <View style={styles.galleryEmptyIcon}>
+              <Text style={styles.galleryEmptyIconText}>✦</Text>
+            </View>
+            <Text style={styles.galleryEmptyTitle}>No caricatures yet</Text>
+            <Text style={styles.galleryEmptyText}>
+              Your generated caricatures will show up here.
+            </Text>
+          </View>
+        ) : (
+          <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, BOTTOM_INSET_MIN) + 16 }}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.galleryGrid}>
+              {items.map((item, index) => (
+                <TouchableOpacity
+                  key={item.id}
+                  style={styles.galleryItem}
+                  onPress={() => {
+                    setViewerIndex(index);
+                    setViewerVisible(true);
+                  }}
+                  onLongPress={() => handleDelete(item)}
+                  activeOpacity={0.85}
+                >
+                  <Image source={{ uri: item.imageUrl }} style={styles.galleryItemImage} />
+                  <View style={styles.galleryItemLabel}>
+                    <Text style={styles.galleryItemStyle} numberOfLines={1}>
+                      {item.styleLabel || 'Caricature'}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <Text style={styles.galleryHint}>Long-press an item to delete</Text>
+          </ScrollView>
+        )}
+      </View>
+
+      {/* Fullscreen image viewer with pinch-zoom and swipe gestures */}
+      <ImageView
+        images={items.map((item) => ({ uri: item.imageUrl }))}
+        imageIndex={viewerIndex}
+        visible={viewerVisible}
+        onRequestClose={() => setViewerVisible(false)}
+        onImageIndexChange={(idx) => setViewerIndex(idx)}
+        swipeToCloseEnabled
+        doubleTapToZoomEnabled
+        FooterComponent={renderViewerFooter}
+      />
+    </SafeAreaView>
   );
 }
 
@@ -245,17 +647,23 @@ function StyleScreen({
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       <View style={{ height: insets.top, backgroundColor: '#ffffff' }} />
-      <ScrollView 
-        contentContainerStyle={styles.styleContainer}
-        style={{ flex: 1 }}
-      >
+      
+      {/* Fixed header */}
+      <View style={styles.fixedHeader}>
         <View style={styles.headerBar}>
           <Text style={styles.wordmark}>FunnyFy</Text>
           <TouchableOpacity onPress={onOpenMenu} style={styles.iconButton}>
             <Text style={styles.iconButtonIcon}>☰</Text>
           </TouchableOpacity>
         </View>
+      </View>
 
+      {/* Scrollable content under fixed header */}
+      <ScrollView 
+        contentContainerStyle={styles.styleContainer}
+        style={{ flex: 1 }}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={[styles.styleGrid, { paddingBottom: Math.max(insets.bottom, BOTTOM_INSET_MIN) }]}>
           {styleList.map((s) => (
             <TouchableOpacity
@@ -279,6 +687,103 @@ function StyleScreen({
         </View>
         <View style={{ height: Math.max(insets.bottom, BOTTOM_INSET_MIN) }} />
       </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+// Photo Chooser Screen — browse recent photos before uploading
+function PhotoChooserScreen({ onSelectPhoto, onClose }) {
+  const insets = useSafeAreaInsets();
+  const [photos, setPhotos] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadPhotos = async () => {
+      try {
+        const { status } = await MediaLibrary.requestPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert('Permission needed', 'Gallery access is required to browse photos.');
+          return;
+        }
+
+        const allAssets = await MediaLibrary.getAssetsAsync({
+          mediaType: 'photo',
+          first: 100,
+          sortBy: [[MediaLibrary.SortBy.creationTime, false]],
+        });
+
+        setPhotos(allAssets.assets || []);
+      } catch (err) {
+        console.error('Failed to load photos:', err);
+        Alert.alert('Error', 'Failed to load photos from gallery.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPhotos();
+  }, []);
+
+  const handleSelectPhoto = async (asset) => {
+    try {
+      const base64 = await FileSystem.readAsStringAsync(asset.uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      const dataUrl = `data:image/jpeg;base64,${base64}`;
+
+      onSelectPhoto({
+        uri: asset.uri,
+        dataUrl: dataUrl,
+      });
+    } catch (err) {
+      console.error('Failed to read photo:', err);
+      Alert.alert('Error', 'Failed to load photo.');
+    }
+  };
+
+  return (
+    <SafeAreaView style={styles.safe}>
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      <View style={{ height: insets.top, backgroundColor: '#ffffff' }} />
+      <View style={[styles.photoChooserContainer, { paddingBottom: Math.max(insets.bottom, BOTTOM_INSET_MIN) }]}>
+        {/* Header */}
+        <View style={styles.photoChooserHeader}>
+          <TouchableOpacity onPress={onClose} style={styles.iconButton}>
+            <Text style={styles.iconButtonIcon}>‹</Text>
+          </TouchableOpacity>
+          <Text style={styles.wordmark}>Choose Photo</Text>
+          <View style={{ width: 36 }} />
+        </View>
+
+        {/* Photo Grid */}
+        {loading ? (
+          <View style={styles.photoChooserLoadingContainer}>
+            <ActivityIndicator size="large" color="#0F172A" />
+          </View>
+        ) : photos.length === 0 ? (
+          <View style={styles.photoChooserEmptyContainer}>
+            <Text style={styles.photoChooserEmptyText}>No photos found</Text>
+          </View>
+        ) : (
+          <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+            <View style={styles.photoGrid}>
+              {photos.map((asset, index) => (
+                <TouchableOpacity
+                  key={asset.id}
+                  style={styles.photoGridItem}
+                  onPress={() => handleSelectPhoto(asset)}
+                  activeOpacity={0.8}
+                >
+                  <Image
+                    source={{ uri: asset.uri }}
+                    style={styles.photoGridImage}
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
+          </ScrollView>
+        )}
+      </View>
     </SafeAreaView>
   );
 }
@@ -311,7 +816,7 @@ function UploadScreen({ style, onStart, onBackToStyle, canGenerateMore, subscrip
 
   const quotaInfo = getQuotaInfo();
 
-  const pickImage = async (useCamera = false, withCrop = false) => {
+  const pickImage = async (useCamera = false) => {
     if (picking) return;
 
     setPicking(true);
@@ -329,7 +834,7 @@ function UploadScreen({ style, onStart, onBackToStyle, canGenerateMore, subscrip
         }
         result = await ImagePicker.launchCameraAsync({
           mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          allowsEditing: withCrop,
+          allowsEditing: true,
           quality: 0.9,
         });
       } else {
@@ -340,7 +845,7 @@ function UploadScreen({ style, onStart, onBackToStyle, canGenerateMore, subscrip
         }
         result = await ImagePicker.launchImageLibraryAsync({
           mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          allowsEditing: withCrop,
+          allowsEditing: true,
           quality: 0.9,
         });
       }
@@ -371,6 +876,40 @@ function UploadScreen({ style, onStart, onBackToStyle, canGenerateMore, subscrip
 
   const quotaOk = canGenerateMore !== false;
   const canGenerate = !!imageUri && !picking && quotaOk;
+
+  // Crop the current image by re-opening it in the gallery picker with editing enabled
+  const handleCrop = async () => {
+    if (!imageUri || picking) return;
+    setPicking(true);
+    setError('');
+    try {
+      // Save current image to a temp file the picker can read, then launch editor
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 0.9,
+      });
+
+      if (!result.canceled && result.assets && result.assets[0]) {
+        const uri = result.assets[0].uri;
+        setImageUri(uri);
+        try {
+          const base64 = await FileSystem.readAsStringAsync(uri, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+          setImageDataUrl(`data:image/jpeg;base64,${base64}`);
+        } catch (fsErr) {
+          console.error('Failed to read cropped image:', fsErr);
+          setError('Failed to read cropped image.');
+        }
+      }
+    } catch (err) {
+      console.error('Crop error:', err);
+      setError('Failed to crop image.');
+    } finally {
+      setPicking(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -409,16 +948,7 @@ function UploadScreen({ style, onStart, onBackToStyle, canGenerateMore, subscrip
           disabled={picking}
         >
           {imageUri ? (
-            <>
-              <Image source={{ uri: imageUri }} style={styles.photoPreview} />
-              <TouchableOpacity
-                style={styles.cropChip}
-                onPress={() => pickImage(false, true)}
-                disabled={picking}
-              >
-                <Text style={styles.cropChipText}>Crop</Text>
-              </TouchableOpacity>
-            </>
+            <Image source={{ uri: imageUri }} style={styles.photoPreview} />
           ) : (
             <View style={styles.photoPlaceholder}>
               <View style={styles.photoPlaceholderIcon}>
@@ -518,9 +1048,9 @@ function SubscriptionScreen({
   };
 
   const TIER_INFO = {
-    starter: { name: 'Starter', price: '$5', quota: 50, perks: 'Standard speed' },
-    popular: { name: 'Popular', price: '$10', quota: 100, perks: 'Priority speed' },
-    pro: { name: 'Pro', price: '$25', quota: 250, perks: 'Fastest · HD downloads' },
+    starter: { name: 'Starter', price: '$5', quota: 50 },
+    popular: { name: 'Popular', price: '$10', quota: 100 },
+    pro: { name: 'Pro', price: '$25', quota: 250 },
   };
 
   const subscribeLabel = subscribeLoading
@@ -551,10 +1081,17 @@ function SubscriptionScreen({
           showsVerticalScrollIndicator={false}
           style={{ flex: 1 }}
         >
+          {/* Hero icon — sprinkle of color */}
+          <View style={styles.paywallHeroIconWrapper}>
+            <View style={styles.paywallHeroIcon}>
+              <Text style={styles.paywallHeroIconText}>✦</Text>
+            </View>
+          </View>
+
           {/* Current plan card — compact */}
           {subscriptionLoading ? (
             <View style={styles.paywallPlanCard}>
-              <ActivityIndicator size="small" color="#4F46E5" />
+              <ActivityIndicator size="small" color="#0F172A" />
               <Text style={styles.paywallPlanQuotaText}>Loading subscription…</Text>
             </View>
           ) : (
@@ -632,14 +1169,6 @@ function SubscriptionScreen({
                       <View style={styles.paywallTierBadgeCurrent}>
                         <Text style={styles.paywallTierBadgeCurrentText}>CURRENT</Text>
                       </View>
-                    ) : isPopular ? (
-                      <View style={styles.paywallTierBadgePopular}>
-                        <Text style={styles.paywallTierBadgePopularText}>MOST POPULAR</Text>
-                      </View>
-                    ) : isPro ? (
-                      <View style={styles.paywallTierBadgeNeutral}>
-                        <Text style={styles.paywallTierBadgeNeutralText}>BEST VALUE</Text>
-                      </View>
                     ) : null}
                   </View>
                   <Text style={styles.paywallTierPrice}>
@@ -647,7 +1176,7 @@ function SubscriptionScreen({
                   </Text>
                 </View>
                 <Text style={styles.paywallTierDesc}>
-                  {info.quota} caricatures · {info.perks}
+                  {info.quota} caricatures
                 </Text>
               </TouchableOpacity>
             );
@@ -665,20 +1194,20 @@ function SubscriptionScreen({
           </TouchableOpacity>
           <View style={styles.uploadSourceRow}>
             <TouchableOpacity
-              style={[styles.slimButton, subscriptionLoading && styles.buttonDisabled]}
+              style={[styles.primaryButton, { flex: 1 }, subscriptionLoading && styles.buttonDisabled]}
               onPress={onRefreshSubscription}
               disabled={subscriptionLoading}
             >
-              <Text style={styles.slimButtonText}>
+              <Text style={styles.primaryButtonText}>
                 {subscriptionLoading ? 'Refreshing…' : 'Refresh'}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.slimButton, subscribeLoading && styles.buttonDisabled]}
+              style={[styles.primaryButton, { flex: 1 }, subscribeLoading && styles.buttonDisabled]}
               onPress={onRestorePurchases}
               disabled={subscribeLoading}
             >
-              <Text style={styles.slimButtonText}>Restore</Text>
+              <Text style={styles.primaryButtonText}>Restore</Text>
             </TouchableOpacity>
           </View>
           {subscription && !subscription.cancelAtPeriodEnd && (
@@ -740,23 +1269,11 @@ function ResultScreen({ original, result, loading, error, failedAttempts = 0, on
 
       const resultDl = await FileSystem.downloadAsync(imageUrl, localPath);
 
-      if (Platform.OS === 'android') {
-        const downloadsPath = 'file:///storage/emulated/0/Download/' + fileName;
-        try {
-          await FileSystem.copyAsync({ from: resultDl.uri, to: downloadsPath });
-        } catch {
-          try {
-            await MediaLibrary.saveToLibraryAsync(resultDl.uri);
-          } catch {
-            // Continue to share even if save fails
-          }
-        }
-      } else {
-        try {
-          await MediaLibrary.saveToLibraryAsync(resultDl.uri);
-        } catch {
-          // Continue to share even if save fails
-        }
+      // Save to FunnyFy album (industry standard)
+      try {
+        await saveToFunnyfyAlbum(resultDl.uri);
+      } catch (saveErr) {
+        console.warn('[Share] Save to album failed (non-fatal):', saveErr);
       }
 
       await Sharing.shareAsync(resultDl.uri, {
@@ -780,35 +1297,25 @@ function ResultScreen({ original, result, loading, error, failedAttempts = 0, on
       let saved = false;
       let savedPath = '';
 
-      if (Platform.OS === 'android') {
-        const downloadsPath = 'file:///storage/emulated/0/Download/' + fileName;
-        try {
-          await FileSystem.copyAsync({ from: resultDl.uri, to: downloadsPath });
+      // Save to FunnyFy album (industry standard - shows as FunnyFy album in Gallery)
+      try {
+        const ok = await saveToFunnyfyAlbum(resultDl.uri);
+        if (ok) {
           saved = true;
-          savedPath = '/storage/emulated/0/Download/' + fileName;
-        } catch {
-          try {
-            await MediaLibrary.saveToLibraryAsync(resultDl.uri);
-            saved = true;
-            savedPath = 'Gallery';
-          } catch {
-            await Sharing.shareAsync(resultDl.uri, {
-              mimeType: 'image/jpeg',
-              dialogTitle: 'Save image',
-            });
-          }
+          savedPath = Platform.OS === 'android'
+            ? `Gallery › ${FUNNYFY_FOLDER_NAME} album`
+            : 'Photos';
         }
-      } else {
-        try {
-          await MediaLibrary.saveToLibraryAsync(resultDl.uri);
-          saved = true;
-          savedPath = 'Photos';
-        } catch (mlErr) {
-          await Sharing.shareAsync(resultDl.uri, {
-            mimeType: 'image/jpeg',
-            dialogTitle: 'Save image',
-          });
-        }
+      } catch (saveErr) {
+        console.warn('[Save] saveToFunnyfyAlbum failed, trying fallback:', saveErr);
+      }
+
+      // Fallback: open share sheet if all save attempts failed
+      if (!saved) {
+        await Sharing.shareAsync(resultDl.uri, {
+          mimeType: 'image/jpeg',
+          dialogTitle: 'Save image',
+        });
       }
 
       if (saved) {
@@ -925,7 +1432,7 @@ function ResultScreen({ original, result, loading, error, failedAttempts = 0, on
                       { left: canvasWidth * mix - 16 }, // knob centered on line
                     ]}
                   >
-                    <Text style={styles.sliderKnobText}>{'↔'}</Text>
+                    <Text style={styles.sliderKnobText}>‹›</Text>
                   </View>
                 </View>
               )}
@@ -970,11 +1477,11 @@ function ResultScreen({ original, result, loading, error, failedAttempts = 0, on
               
               <View style={styles.actionsRow}>
                 <TouchableOpacity
-                  style={[styles.slimButton, { flex: 1 }, (!hasResult || loading) && styles.buttonDisabled]}
+                  style={[styles.primaryButton, { flex: 1 }, (!hasResult || loading) && styles.buttonDisabled]}
                   onPress={handleDownload}
                   disabled={!hasResult || loading}
                 >
-                  <Text style={styles.slimButtonText} numberOfLines={1}>Save</Text>
+                  <Text style={styles.primaryButtonText} numberOfLines={1}>Save</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.primaryButton, { flex: 1 }, (!hasResult || loading) && styles.buttonDisabled]}
@@ -1250,6 +1757,20 @@ export default function App() {
           // Backend now returns a fully-polled prediction; use it directly
           setResult(json.data);
           setFailedAttempts(0);
+
+          // Save successful generation to local gallery
+          try {
+            const imageUrl = getImageUrlFromOutput(json.data?.output);
+            if (imageUrl) {
+              await saveToGallery({
+                imageUrl,
+                styleLabel: style?.label || 'Caricature',
+                styleId: style?.id,
+              });
+            }
+          } catch (galleryErr) {
+            console.warn('[Gallery] failed to save (non-fatal):', galleryErr);
+          }
           
           // Auto-refresh subscription after successful generation
           setTimeout(async () => {
@@ -1298,6 +1819,11 @@ export default function App() {
   );
 
   const handleSubscribe = async (selectedTier = null) => {
+    // Defensive: if called from a TouchableOpacity onPress directly,
+    // the arg may be a synthetic event object instead of a tier string.
+    if (selectedTier && typeof selectedTier !== 'string') {
+      selectedTier = null;
+    }
     setSubscribeLoading(true);
     setError('');
     try {
@@ -1534,7 +2060,7 @@ export default function App() {
         setScreen('style');
         return true;
       }
-      if (screen === 'subscription' || screen === 'privacy' || screen === 'terms' || screen === 'about') {
+      if (screen === 'subscription' || screen === 'privacy' || screen === 'terms' || screen === 'about' || screen === 'gallery') {
         setScreen('style');
         return true;
       }
@@ -1611,6 +2137,14 @@ export default function App() {
           content={ABOUT_TEXT}
           onBack={() => setScreen('style')}
         />
+      </SafeAreaProvider>
+    );
+  }
+
+  if (screen === 'gallery') {
+    return (
+      <SafeAreaProvider>
+        <GalleryScreen onBack={() => setScreen('style')} />
       </SafeAreaProvider>
     );
   }
@@ -1712,10 +2246,17 @@ const styles = StyleSheet.create({
     gap: 0,
   },
   styleContainer: {
-    padding: 24,
+    paddingHorizontal: 16,
     paddingTop: 8,
-    gap: 16,
+    paddingBottom: 0,
     flexGrow: 1,
+  },
+  fixedHeader: {
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 8,
+    zIndex: 10,
   },
   uploadContainer: {
     flex: 1,
@@ -1824,9 +2365,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    marginTop: 16,
-    rowGap: 16,
-    columnGap: 12,
+    marginTop: 12,
   },
   card: {
     backgroundColor: 'transparent',
@@ -1836,13 +2375,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0,
     elevation: 0,
     width: '48%',
+    marginBottom: 16,
   },
   styleCard: {
-    marginTop: 4,
-    marginBottom: 4,
+    marginTop: 0,
+    marginBottom: 16,
   },
   styleCardSelected: {
-    transform: [{ scale: 0.98 }],
+    transform: [{ scale: 0.97 }],
   },
   cardRow: {
     flexDirection: 'row',
@@ -1853,10 +2393,15 @@ const styles = StyleSheet.create({
   },
   styleImageWrapper: {
     width: '100%',
-    aspectRatio: 3 / 4,
-    borderRadius: 14,
+    aspectRatio: 3 / 4.4,
+    borderRadius: 16,
     overflow: 'hidden',
     backgroundColor: '#F7F7F8',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    elevation: 4,
   },
   styleImage: {
     width: '100%',
@@ -2262,14 +2807,14 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 32,
     borderRadius: 999,
-    backgroundColor: '#eef2ff',
+    backgroundColor: '#F1F5F9',
     alignItems: 'center',
     justifyContent: 'center',
   },
   uploadSubscriptionBadgeText: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#4f46e5',
+    color: '#0F172A',
   },
   // Result screen - badge as progress bar
   resultBadgeAsBarContainer: {
@@ -2287,13 +2832,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     height: 32,
     borderRadius: 999,
-    backgroundColor: '#eef2ff',
+    backgroundColor: '#F1F5F9',
     marginHorizontal: 8,
   },
   resultSubscriptionBadgeText: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#4f46e5',
+    color: '#0F172A',
   },
   // Quota progress bar
   quotaProgressContainer: {
@@ -2375,7 +2920,7 @@ const styles = StyleSheet.create({
   },
   headerPillProgressFill: {
     height: '100%',
-    backgroundColor: '#4F46E5',
+    backgroundColor: '#0F172A',
     borderRadius: 2,
   },
   headerPillText: {
@@ -2397,13 +2942,14 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   styleCardLabel: {
-    marginTop: 8,
-    paddingHorizontal: 4,
+    marginTop: 10,
+    paddingHorizontal: 0,
   },
   styleCardName: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '700',
     color: '#0F172A',
+    lineHeight: 18,
   },
   styleCardDesc: {
     fontSize: 12,
@@ -2415,14 +2961,14 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#EEF2FF',
+    backgroundColor: '#F1F5F9',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
   },
   photoPlaceholderIconText: {
     fontSize: 28,
-    color: '#4F46E5',
+    color: '#0F172A',
     fontWeight: '300',
     lineHeight: 32,
   },
@@ -2470,7 +3016,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   primaryButton: {
-    backgroundColor: '#4F46E5',
+    backgroundColor: '#0F172A',
     borderRadius: 10,
     paddingVertical: 13,
     alignItems: 'center',
@@ -2492,6 +3038,53 @@ const styles = StyleSheet.create({
     color: '#A32D2D',
     fontWeight: '600',
     fontSize: 13,
+  },
+  // Photo Chooser Screen
+  photoChooserContainer: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 12,
+    paddingTop: 8,
+  },
+  photoChooserHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  photoChooserLoadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  photoChooserEmptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  photoChooserEmptyText: {
+    fontSize: 16,
+    color: '#64748B',
+    fontWeight: '500',
+  },
+  photoGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+    gap: 8,
+  },
+  photoGridItem: {
+    width: '48.5%',
+    aspectRatio: 1,
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: '#F7F7F8',
+  },
+  photoGridImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
   },
   // Menu modal
   menuBackdrop: {
@@ -2530,6 +3123,118 @@ const styles = StyleSheet.create({
   menuItemArrow: {
     fontSize: 20,
     color: '#94A3B8',
+  },
+  // Gallery screen
+  galleryContainer: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+  },
+  galleryClearIcon: {
+    fontSize: 16,
+    color: '#0F172A',
+    fontWeight: '600',
+  },
+  galleryLoadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  galleryEmptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+    gap: 12,
+  },
+  galleryEmptyIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  galleryEmptyIconText: {
+    fontSize: 26,
+    color: '#0F172A',
+    fontWeight: '600',
+    lineHeight: 30,
+  },
+  galleryEmptyTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#0F172A',
+  },
+  galleryEmptyText: {
+    fontSize: 13,
+    color: '#64748B',
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  galleryGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    paddingTop: 12,
+    rowGap: 12,
+  },
+  galleryItem: {
+    width: '48%',
+    marginBottom: 4,
+  },
+  galleryItemImage: {
+    width: '100%',
+    aspectRatio: 1,
+    borderRadius: 12,
+    backgroundColor: '#F7F7F8',
+  },
+  galleryItemLabel: {
+    marginTop: 6,
+  },
+  galleryItemStyle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#0F172A',
+  },
+  galleryHint: {
+    fontSize: 11,
+    color: '#94A3B8',
+    textAlign: 'center',
+    marginTop: 16,
+    fontStyle: 'italic',
+  },
+  // Image viewer footer (Save / Share buttons over fullscreen viewer)
+  viewerFooter: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    gap: 10,
+  },
+  viewerFooterLabel: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  viewerActionsRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  viewerActionButton: {
+    flex: 1,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.25)',
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  viewerActionButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
   },
   // Info screen (Privacy, Terms, About)
   infoContainer: {
@@ -2582,7 +3287,7 @@ const styles = StyleSheet.create({
   },
   paywallPendingText: {
     fontSize: 12,
-    color: '#4F46E5',
+    color: '#0F172A',
     fontWeight: '500',
     marginTop: 4,
   },
@@ -2599,7 +3304,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
   },
   paywallUpgradePill: {
-    backgroundColor: '#EEF2FF',
+    backgroundColor: '#F1F5F9',
     paddingVertical: 3,
     paddingHorizontal: 8,
     borderRadius: 99,
@@ -2607,7 +3312,7 @@ const styles = StyleSheet.create({
   paywallUpgradePillText: {
     fontSize: 10,
     fontWeight: '600',
-    color: '#4F46E5',
+    color: '#0F172A',
     letterSpacing: 0.4,
   },
   paywallCancelPill: {
@@ -2629,7 +3334,7 @@ const styles = StyleSheet.create({
   },
   paywallProgressFill: {
     height: '100%',
-    backgroundColor: '#4F46E5',
+    backgroundColor: '#0F172A',
     borderRadius: 2,
   },
   paywallSectionTitle: {
@@ -2649,11 +3354,11 @@ const styles = StyleSheet.create({
   },
   paywallTierCardSelected: {
     borderWidth: 1.5,
-    borderColor: '#4F46E5',
+    borderColor: '#0F172A',
   },
   paywallTierCardCurrent: {
-    backgroundColor: '#EEF2FF',
-    borderColor: '#4F46E5',
+    backgroundColor: '#F1F5F9',
+    borderColor: '#0F172A',
   },
   paywallTierRow: {
     flexDirection: 'row',
@@ -2688,7 +3393,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   paywallTierBadgeCurrent: {
-    backgroundColor: '#4F46E5',
+    backgroundColor: '#0F172A',
     paddingVertical: 2,
     paddingHorizontal: 7,
     borderRadius: 99,
@@ -2700,7 +3405,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   paywallTierBadgePopular: {
-    backgroundColor: '#4F46E5',
+    backgroundColor: '#0F172A',
     paddingVertical: 2,
     paddingHorizontal: 7,
     borderRadius: 99,
@@ -2727,12 +3432,116 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     gap: 8,
   },
+  paywallHeroIconWrapper: {
+    alignItems: 'center',
+    paddingTop: 8,
+    paddingBottom: 16,
+  },
+  paywallHeroIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  paywallHeroIconText: {
+    fontSize: 26,
+    color: '#0F172A',
+    fontWeight: '600',
+    lineHeight: 30,
+  },
   paywallCancelLink: {
     fontSize: 13,
     color: '#A32D2D',
     fontWeight: '500',
     paddingVertical: 8,
   },
+  cropScreenSafe: {
+    flex: 1,
+    backgroundColor: '#1a1a1a',
+  },
+  cropScreenContainer: {
+    flex: 1,
+    backgroundColor: '#1a1a1a',
+  },
+  cropScreenTopBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    backgroundColor: '#1a1a1a',
+    borderBottomWidth: 1,
+    borderBottomColor: '#333333',
+  },
+  cropScreenBackButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  cropScreenBackIcon: {
+    fontSize: 24,
+    color: '#ffffff',
+    fontWeight: '600',
+  },
+  cropScreenDoneButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    backgroundColor: '#0F172A',
+    borderRadius: 8,
+  },
+  cropScreenDoneText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  cropScreenCanvasWrapper: {
+    flex: 1,
+    backgroundColor: '#000000',
+    overflow: 'hidden',
+  },
+  cropScreenCanvas: {
+    flex: 1,
+    width: '100%',
+    position: 'relative',
+    backgroundColor: '#000000',
+  },
+  cropImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'contain',
+  },
+  cropOverlay: {
+    position: 'absolute',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+  },
+  cropBoxBorder: {
+    position: 'absolute',
+    borderWidth: 2,
+    borderColor: '#0F172A',
+  },
+  cropHandle: {
+    position: 'absolute',
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: '#0F172A',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cropHandleInner: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#0F172A',
+  },
+
   styleHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
