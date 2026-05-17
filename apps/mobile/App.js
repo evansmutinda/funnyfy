@@ -355,6 +355,206 @@ function SplashScreen({ onComplete }) {
   );
 }
 
+// Beautiful custom toast notification (replaces ugly system Alert for simple messages)
+// Slides down from top, auto-dismisses after a few seconds
+function Toast({ visible, title, message, type = 'info', onHide }) {
+  const slideAnim = useRef(new Animated.Value(-100)).current;
+  const insets = useSafeAreaInsets();
+
+  useEffect(() => {
+    if (visible) {
+      // Slide in
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        useNativeDriver: true,
+        tension: 65,
+        friction: 10,
+      }).start();
+
+      // Auto-hide after 2.8s
+      const timer = setTimeout(() => {
+        Animated.timing(slideAnim, {
+          toValue: -100,
+          duration: 220,
+          useNativeDriver: true,
+        }).start(() => onHide && onHide());
+      }, 2800);
+
+      return () => clearTimeout(timer);
+    } else {
+      slideAnim.setValue(-100);
+    }
+  }, [visible]);
+
+  if (!visible) return null;
+
+  // Type-based accent (subtle, on-brand)
+  const accent = type === 'success' ? '#10B981'
+    : type === 'error' ? '#DC2626'
+    : type === 'warning' ? '#F59E0B'
+    : '#0F172A';
+
+  const icon = type === 'success' ? '✓'
+    : type === 'error' ? '!'
+    : type === 'warning' ? '!'
+    : 'ℹ';
+
+  return (
+    <Animated.View
+      pointerEvents="none"
+      style={[
+        styles.toastContainer,
+        { paddingTop: insets.top + 8, transform: [{ translateY: slideAnim }] },
+      ]}
+    >
+      <View style={styles.toastInner}>
+        <View style={[styles.toastIconCircle, { backgroundColor: accent }]}>
+          <Text style={styles.toastIconText}>{icon}</Text>
+        </View>
+        <View style={styles.toastTextWrap}>
+          {title ? <Text style={styles.toastTitle}>{title}</Text> : null}
+          {message ? <Text style={styles.toastMessage}>{message}</Text> : null}
+        </View>
+      </View>
+    </Animated.View>
+  );
+}
+
+// Custom modal-based confirmation dialog (replaces system Alert.alert for confirmations)
+// Supports an optional third "neutral" action (e.g. "Discard") between cancel and confirm
+function ConfirmDialog({
+  visible,
+  title,
+  message,
+  confirmLabel = 'Confirm',
+  cancelLabel = 'Cancel',
+  neutralLabel = null,
+  destructive = false,
+  neutralDestructive = false,
+  onConfirm,
+  onCancel,
+  onNeutral,
+}) {
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onCancel}
+    >
+      <TouchableOpacity
+        style={styles.dialogBackdrop}
+        activeOpacity={1}
+        onPress={onCancel}
+      >
+        <View style={styles.dialogCard} onStartShouldSetResponder={() => true}>
+          {title ? <Text style={styles.dialogTitle}>{title}</Text> : null}
+          {message ? <Text style={styles.dialogMessage}>{message}</Text> : null}
+          <View style={styles.dialogActionsRow}>
+            <TouchableOpacity style={styles.dialogCancelButton} onPress={onCancel}>
+              <Text style={styles.dialogCancelText}>{cancelLabel}</Text>
+            </TouchableOpacity>
+            {neutralLabel ? (
+              <TouchableOpacity
+                style={[styles.dialogNeutralButton, neutralDestructive && styles.dialogNeutralDestructive]}
+                onPress={onNeutral}
+              >
+                <Text style={[styles.dialogNeutralText, neutralDestructive && styles.dialogNeutralTextDestructive]}>
+                  {neutralLabel}
+                </Text>
+              </TouchableOpacity>
+            ) : null}
+            <TouchableOpacity
+              style={[styles.dialogConfirmButton, destructive && styles.dialogConfirmDestructive]}
+              onPress={onConfirm}
+            >
+              <Text style={[styles.dialogConfirmText, destructive && styles.dialogConfirmTextDestructive]}>
+                {confirmLabel}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </TouchableOpacity>
+    </Modal>
+  );
+}
+
+// Notification context — provides showToast() and showDialog() to all screens
+// Avoids duplicating Toast/ConfirmDialog state in every screen
+const NotificationContext = React.createContext({
+  showToast: () => {},
+  showDialog: () => {},
+});
+
+function useNotifications() {
+  return React.useContext(NotificationContext);
+}
+
+function NotificationProvider({ children }) {
+  const [toast, setToast] = useState({ visible: false, title: '', message: '', type: 'info' });
+  const [dialog, setDialog] = useState({ visible: false });
+
+  const showToast = useCallback((title, message, type = 'info') => {
+    setToast({ visible: true, title: title || '', message: message || '', type });
+  }, []);
+
+  const hideToast = useCallback(() => {
+    setToast((t) => ({ ...t, visible: false }));
+  }, []);
+
+  // Show a confirmation dialog. opts = {
+  //   title, message,
+  //   confirmLabel, cancelLabel, neutralLabel,
+  //   destructive, neutralDestructive,
+  //   onConfirm, onCancel, onNeutral
+  // }
+  const showDialog = useCallback((opts) => {
+    setDialog({ visible: true, ...opts });
+  }, []);
+
+  const closeDialog = useCallback(() => {
+    setDialog((d) => ({ ...d, visible: false }));
+  }, []);
+
+  const value = useMemo(
+    () => ({ showToast, showDialog, closeDialog }),
+    [showToast, showDialog, closeDialog]
+  );
+
+  return (
+    <NotificationContext.Provider value={value}>
+      {children}
+      <Toast
+        visible={toast.visible}
+        title={toast.title}
+        message={toast.message}
+        type={toast.type}
+        onHide={hideToast}
+      />
+      <ConfirmDialog
+        visible={dialog.visible}
+        title={dialog.title}
+        message={dialog.message}
+        cancelLabel={dialog.cancelLabel}
+        neutralLabel={dialog.neutralLabel}
+        neutralDestructive={dialog.neutralDestructive}
+        confirmLabel={dialog.confirmLabel}
+        destructive={dialog.destructive}
+        onCancel={() => {
+          if (dialog.onCancel) dialog.onCancel();
+          closeDialog();
+        }}
+        onNeutral={() => {
+          if (dialog.onNeutral) dialog.onNeutral();
+        }}
+        onConfirm={() => {
+          if (dialog.onConfirm) dialog.onConfirm();
+        }}
+      />
+    </NotificationContext.Provider>
+  );
+}
+
 // Bottom-sheet menu shown when burger is tapped
 function MenuModal({ visible, onClose, onSelect }) {
   const insets = useSafeAreaInsets();
@@ -549,6 +749,7 @@ async function clearGallery() {
 // Gallery Screen — shows past caricatures stored locally
 function GalleryScreen({ onBack }) {
   const insets = useSafeAreaInsets();
+  const { showToast, showDialog, closeDialog } = useNotifications();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [viewerVisible, setViewerVisible] = useState(false);
@@ -566,39 +767,33 @@ function GalleryScreen({ onBack }) {
   }, []);
 
   const handleDelete = (item) => {
-    Alert.alert(
-      'Delete caricature?',
-      'This will only remove it from your gallery. Photos already saved to your phone are not affected.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            await deleteFromGallery(item.id);
-            refresh();
-          },
-        },
-      ]
-    );
+    showDialog({
+      title: 'Delete caricature?',
+      message: 'This only removes it from your in-app gallery. Photos already saved to your phone are not affected.',
+      confirmLabel: 'Delete',
+      destructive: true,
+      onConfirm: async () => {
+        closeDialog();
+        await deleteFromGallery(item.id);
+        refresh();
+        showToast('Removed', 'Caricature removed from gallery', 'success');
+      },
+    });
   };
 
   const handleClearAll = () => {
-    Alert.alert(
-      'Clear all caricatures?',
-      'This will remove all items from your gallery. Photos saved to your phone are not affected.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Clear All',
-          style: 'destructive',
-          onPress: async () => {
-            await clearGallery();
-            refresh();
-          },
-        },
-      ]
-    );
+    showDialog({
+      title: 'Clear all caricatures?',
+      message: 'This removes all items from your in-app gallery. Photos saved to your phone are not affected.',
+      confirmLabel: 'Clear All',
+      destructive: true,
+      onConfirm: async () => {
+        closeDialog();
+        await clearGallery();
+        refresh();
+        showToast('Gallery cleared', 'All caricatures removed', 'success');
+      },
+    });
   };
 
   // Save the currently-viewed image to the FunnyFy album
@@ -611,13 +806,13 @@ function GalleryScreen({ onBack }) {
       const dl = await FileSystem.downloadAsync(item.imageUrl, localPath);
       const ok = await saveToFunnyfyAlbum(dl.uri);
       if (ok) {
-        Alert.alert('Saved', `Saved to Gallery › ${FUNNYFY_FOLDER_NAME} album`);
+        showToast('Saved', `Gallery › ${FUNNYFY_FOLDER_NAME} album`, 'success');
       } else {
-        Alert.alert('Save failed', 'Could not save the image.');
+        showToast('Save failed', 'Could not save the image', 'error');
       }
     } catch (err) {
       console.error('[Gallery] save error:', err);
-      Alert.alert('Save failed', 'Could not save the image.');
+      showToast('Save failed', 'Could not save the image', 'error');
     }
   };
 
@@ -831,6 +1026,7 @@ function StyleScreen({
 // Photo Chooser Screen — browse recent photos before uploading
 function PhotoChooserScreen({ onSelectPhoto, onClose }) {
   const insets = useSafeAreaInsets();
+  const { showToast } = useNotifications();
   const [photos, setPhotos] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -839,7 +1035,7 @@ function PhotoChooserScreen({ onSelectPhoto, onClose }) {
       try {
         const { status } = await MediaLibrary.requestPermissionsAsync();
         if (status !== 'granted') {
-          Alert.alert('Permission needed', 'Gallery access is required to browse photos.');
+          showToast('Permission needed', 'Gallery access is required to browse photos', 'warning');
           return;
         }
 
@@ -852,7 +1048,7 @@ function PhotoChooserScreen({ onSelectPhoto, onClose }) {
         setPhotos(allAssets.assets || []);
       } catch (err) {
         console.error('Failed to load photos:', err);
-        Alert.alert('Error', 'Failed to load photos from gallery.');
+        showToast('Error', 'Failed to load photos from gallery', 'error');
       } finally {
         setLoading(false);
       }
@@ -874,7 +1070,7 @@ function PhotoChooserScreen({ onSelectPhoto, onClose }) {
       });
     } catch (err) {
       console.error('Failed to read photo:', err);
-      Alert.alert('Error', 'Failed to load photo.');
+      showToast('Error', 'Failed to load photo', 'error');
     }
   };
 
@@ -927,6 +1123,7 @@ function PhotoChooserScreen({ onSelectPhoto, onClose }) {
 
 function UploadScreen({ style, onStart, onBackToStyle, canGenerateMore, subscriptionInfo, onSubscribe }) {
   const insets = useSafeAreaInsets();
+  const { showToast, showDialog, closeDialog } = useNotifications();
   const [imageUri, setImageUri] = useState(null);
   const [imageDataUrl, setImageDataUrl] = useState(null);
   const [picking, setPicking] = useState(false);
@@ -935,7 +1132,8 @@ function UploadScreen({ style, onStart, onBackToStyle, canGenerateMore, subscrip
 
   useEffect(() => {
     if (error) {
-      Alert.alert('Error', error, [{ text: 'OK', onPress: () => setError('') }]);
+      showToast('Error', error, 'error');
+      setError('');
     }
   }, [error]);
 
@@ -1124,14 +1322,17 @@ function UploadScreen({ style, onStart, onBackToStyle, canGenerateMore, subscrip
             style={[styles.primaryButton, (!canGenerate || picking) && styles.buttonDisabled]}
             onPress={() => {
               if (!quotaOk && onSubscribe) {
-                Alert.alert(
-                  'Quota Exceeded',
-                  `You've used all ${quotaInfo.limit} caricatures this month. Upgrade your plan to continue generating amazing caricatures!`,
-                  [
-                    { text: 'Cancel', style: 'cancel' },
-                    { text: 'Upgrade', onPress: onSubscribe }
-                  ]
-                );
+                showDialog({
+                  title: 'Quota Exceeded',
+                  message: `You've used all ${quotaInfo.limit} caricatures this month. Upgrade your plan to continue generating amazing caricatures!`,
+                  cancelLabel: 'Cancel',
+                  confirmLabel: 'Upgrade',
+                  onCancel: closeDialog,
+                  onConfirm: () => {
+                    closeDialog();
+                    onSubscribe();
+                  },
+                });
               } else {
                 onStart({ imageUri, imageDataUrl });
               }
@@ -1364,6 +1565,7 @@ function SubscriptionScreen({
 
 function ResultScreen({ original, result, loading, error, failedAttempts = 0, onRetry, onBack, onHome, subscriptionInfo, backHandlerRef }) {
   const insets = useSafeAreaInsets();
+  const { showToast, showDialog, closeDialog } = useNotifications();
   const imageUrl = result ? getImageUrlFromOutput(result.output) : null;
   const [mix, setMix] = useState(0);
   const [canvasWidth, setCanvasWidth] = useState(0);
@@ -1458,7 +1660,7 @@ function ResultScreen({ original, result, loading, error, failedAttempts = 0, on
       if (saved) {
         setHasBeenSaved(true);
         if (!silent) {
-          Alert.alert('Image Saved', `Saved successfully!\n\nLocation: ${savedPath}`);
+          showToast('Saved', savedPath, 'success');
         }
         return true;
       }
@@ -1471,21 +1673,31 @@ function ResultScreen({ original, result, loading, error, failedAttempts = 0, on
 
   const confirmNavigate = useCallback((navigate) => {
     if (hasResult && !hasBeenSaved) {
-      Alert.alert(
-        'Save before leaving?',
-        'Do you want to save this caricature before going back?',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Discard', style: 'destructive', onPress: navigate },
-          {
-            text: 'Save',
-            onPress: async () => {
-              const didSave = await handleDownload({ silent: true });
-              if (didSave) navigate();
-            },
-          },
-        ]
-      );
+      showDialog({
+        title: 'Save before leaving?',
+        message: 'Your caricature hasn\'t been saved yet. What would you like to do?',
+        cancelLabel: 'Cancel',
+        neutralLabel: 'Discard',
+        neutralDestructive: true,
+        confirmLabel: 'Save',
+        destructive: false,
+        onCancel: closeDialog,
+        onNeutral: () => {
+          closeDialog();
+          navigate();
+        },
+        onConfirm: async () => {
+          closeDialog();
+          const didSave = await handleDownload({ silent: true });
+          if (didSave) {
+            showToast('Saved', `Gallery › ${FUNNYFY_FOLDER_NAME} album`, 'success');
+            // Give the toast a beat to be seen before navigating
+            setTimeout(() => navigate(), 400);
+          } else {
+            showToast('Save failed', 'Could not save the image', 'error');
+          }
+        },
+      });
     } else {
       navigate();
     }
@@ -1646,6 +1858,17 @@ function getImageUrlFromOutput(output) {
 }
 
 export default function App() {
+  return (
+    <SafeAreaProvider>
+      <NotificationProvider>
+        <AppContent />
+      </NotificationProvider>
+    </SafeAreaProvider>
+  );
+}
+
+function AppContent() {
+  const { showToast, showDialog, closeDialog } = useNotifications();
   const [screen, setScreen] = useState('splash');
   const [style, setStyle] = useState(null);
   const [original, setOriginal] = useState(null);
@@ -1965,7 +2188,7 @@ export default function App() {
     setError('');
     try {
       if (!hasRcKey) {
-        Alert.alert('Subscriptions', 'RevenueCat SDK key is missing. Please set EXPO_PUBLIC_REVENUECAT_* env vars.');
+        showToast('Subscriptions', 'RevenueCat SDK key is missing. Please set EXPO_PUBLIC_REVENUECAT_* env vars.', 'error');
         setSubscribeLoading(false);
         return;
       }
@@ -1974,7 +2197,7 @@ export default function App() {
       const pkgs = await getOfferings();
       
       if (!pkgs || pkgs.length === 0) {
-        Alert.alert('Subscriptions', 'No subscription packages available yet. Please check your RevenueCat configuration.');
+        showToast('Subscriptions', 'No subscription packages available yet', 'error');
         setSubscribeLoading(false);
         return;
       }
@@ -2050,11 +2273,7 @@ export default function App() {
             // Don't block the user - webhook might still work
           }
 
-          Alert.alert(
-            'Purchase Successful! 🎉',
-            `Your subscription is now active. Your plan will update in a moment.`,
-            [{ text: 'OK' }]
-          );
+          showToast('Purchase successful', 'Your subscription is now active', 'success');
 
           // Refresh subscription immediately (sync should have updated it)
           setTimeout(async () => {
@@ -2063,11 +2282,7 @@ export default function App() {
           }, 1000);
         } else {
           console.warn('[RevenueCat] Purchase completed but no active entitlements found');
-          Alert.alert(
-            'Purchase Completed',
-            'Your purchase was processed, but no active subscription was found. Please wait a moment and refresh, or contact support if this persists.',
-            [{ text: 'OK' }]
-          );
+          showToast('Purchase completed', 'Subscription will appear shortly. Refresh if it doesn\'t update.', 'warning');
           // Still try to refresh
           setTimeout(async () => {
             await refreshSubscription();
@@ -2075,11 +2290,7 @@ export default function App() {
         }
       } else {
         console.warn('[RevenueCat] Purchase result missing customerInfo');
-        Alert.alert(
-          'Purchase Processing',
-          'Your purchase is being processed. Please wait a moment and refresh your subscription status.',
-          [{ text: 'OK' }]
-        );
+        showToast('Purchase processing', 'Subscription will appear shortly', 'info');
         setTimeout(async () => {
           await refreshSubscription();
         }, 3000);
@@ -2097,7 +2308,7 @@ export default function App() {
         errorMessage = `Purchase error: ${err.code}`;
       }
 
-      Alert.alert('Purchase Failed', errorMessage);
+      showToast('Purchase failed', errorMessage, 'error');
     } finally {
       setSubscribeLoading(false);
     }
@@ -2105,7 +2316,7 @@ export default function App() {
 
   const handleRestorePurchases = async () => {
     if (!hasRcKey) {
-      Alert.alert('Restore Purchases', 'RevenueCat is not configured.');
+      showToast('Restore', 'RevenueCat is not configured', 'error');
       return;
     }
     setSubscribeLoading(true);
@@ -2113,62 +2324,58 @@ export default function App() {
       const customerInfo = await restorePurchases();
       const activeEntitlements = customerInfo?.entitlements?.active || {};
       if (Object.keys(activeEntitlements).length > 0) {
-        Alert.alert('Restored!', 'Your previous purchase has been restored.', [{ text: 'OK' }]);
+        showToast('Restored', 'Your previous purchase has been restored', 'success');
         setTimeout(() => refreshSubscription(), 1000);
       } else {
-        Alert.alert('No Purchases Found', 'No previous purchases were found for this account.');
+        showToast('No purchases found', 'No previous purchases on this account', 'info');
       }
     } catch (err) {
       console.error('[RevenueCat] Restore error:', err);
-      Alert.alert('Restore Failed', 'Could not restore purchases. Please try again.');
+      showToast('Restore failed', 'Could not restore purchases. Please try again.', 'error');
     } finally {
       setSubscribeLoading(false);
     }
   };
 
   const handleCancelSubscription = async () => {
-    Alert.alert(
-      'Cancel Subscription',
-      'Are you sure you want to cancel your subscription? Your subscription will remain active until the end of the current billing period.',
-      [
-        { text: 'Keep Subscription', style: 'cancel' },
-        {
-          text: 'Cancel Subscription',
-          style: 'destructive',
-          onPress: async () => {
-            setSubscribeLoading(true);
-            try {
-              // Call backend to mark subscription for cancellation
-              const res = await fetch(`${API_BASE}/api/cancel-subscription`, {
-                method: 'POST',
-                headers: getApiHeaders(),
-                body: JSON.stringify({ userId: userIdRef.current }),
-              });
+    showDialog({
+      title: 'Cancel Subscription?',
+      message: 'Your subscription will remain active until the end of the current billing period.',
+      cancelLabel: 'Keep Subscription',
+      confirmLabel: 'Cancel Subscription',
+      destructive: true,
+      onCancel: closeDialog,
+      onConfirm: async () => {
+        closeDialog();
+        setSubscribeLoading(true);
+        try {
+          const res = await fetch(`${API_BASE}/api/cancel-subscription`, {
+            method: 'POST',
+            headers: getApiHeaders(),
+            body: JSON.stringify({ userId: userIdRef.current }),
+          });
 
-              const json = await res.json();
-              if (json.ok) {
-                Alert.alert(
-                  'Subscription Cancelled',
-                  'Your subscription will remain active until the end of the current billing period. You can resubscribe anytime before then.',
-                  [{ text: 'OK' }]
-                );
-                // Refresh subscription status
-                setTimeout(async () => {
-                  await refreshSubscription();
-                }, 1000);
-              } else {
-                Alert.alert('Error', json.error || 'Failed to cancel subscription. Please try again.');
-              }
-            } catch (err) {
-              console.error('[Cancel Subscription] error:', err);
-              Alert.alert('Error', 'Failed to cancel subscription. Please try again later.');
-            } finally {
-              setSubscribeLoading(false);
-            }
-          },
-        },
-      ]
-    );
+          const json = await res.json();
+          if (json.ok) {
+            showToast(
+              'Subscription cancelled',
+              'Active until end of current period. Resubscribe anytime.',
+              'success'
+            );
+            setTimeout(async () => {
+              await refreshSubscription();
+            }, 1000);
+          } else {
+            showToast('Error', json.error || 'Failed to cancel subscription', 'error');
+          }
+        } catch (err) {
+          console.error('[Cancel Subscription] error:', err);
+          showToast('Error', 'Failed to cancel subscription. Try again later.', 'error');
+        } finally {
+          setSubscribeLoading(false);
+        }
+      },
+    });
   };
 
   const handleUploadStart = async ({ imageUri, imageDataUrl }) => {
@@ -2211,16 +2418,12 @@ export default function App() {
   }, [screen]);
 
   if (screen === 'splash') {
-    return (
-      <SafeAreaProvider>
-        <SplashScreen onComplete={() => setScreen('style')} />
-      </SafeAreaProvider>
-    );
+    return <SplashScreen onComplete={() => setScreen('style')} />;
   }
 
   if (screen === 'style') {
     return (
-      <SafeAreaProvider>
+      <>
         <StyleScreen
           selectedStyle={style}
           availableStyles={availableStyles}
@@ -2238,112 +2441,96 @@ export default function App() {
             setScreen(id);
           }}
         />
-      </SafeAreaProvider>
+      </>
     );
   }
 
   if (screen === 'privacy') {
     return (
-      <SafeAreaProvider>
-        <InfoScreen
-          title="Privacy Policy"
-          content={PRIVACY_POLICY_TEXT}
-          onBack={() => setScreen('style')}
-        />
-      </SafeAreaProvider>
+      <InfoScreen
+        title="Privacy Policy"
+        content={PRIVACY_POLICY_TEXT}
+        onBack={() => setScreen('style')}
+      />
     );
   }
 
   if (screen === 'terms') {
     return (
-      <SafeAreaProvider>
-        <InfoScreen
-          title="Terms & Conditions"
-          content={TERMS_TEXT}
-          onBack={() => setScreen('style')}
-        />
-      </SafeAreaProvider>
+      <InfoScreen
+        title="Terms & Conditions"
+        content={TERMS_TEXT}
+        onBack={() => setScreen('style')}
+      />
     );
   }
 
   if (screen === 'about') {
     return (
-      <SafeAreaProvider>
-        <InfoScreen
-          title="About"
-          content={ABOUT_TEXT}
-          onBack={() => setScreen('style')}
-        />
-      </SafeAreaProvider>
+      <InfoScreen
+        title="About"
+        content={ABOUT_TEXT}
+        onBack={() => setScreen('style')}
+      />
     );
   }
 
   if (screen === 'gallery') {
-    return (
-      <SafeAreaProvider>
-        <GalleryScreen onBack={() => setScreen('style')} />
-      </SafeAreaProvider>
-    );
+    return <GalleryScreen onBack={() => setScreen('style')} />;
   }
 
   if (screen === 'subscription') {
     return (
-      <SafeAreaProvider>
-        <SubscriptionScreen
-          subscriptionInfo={subscriptionInfo}
-          subscriptionLoading={subscriptionLoading}
-          onRefreshSubscription={refreshSubscription}
-          onSubscribe={handleSubscribe}
-          subscribeLoading={subscribeLoading}
-          onCancelSubscription={handleCancelSubscription}
-          onRestorePurchases={handleRestorePurchases}
-          onClose={() => setScreen('style')}
-        />
-      </SafeAreaProvider>
+      <SubscriptionScreen
+        subscriptionInfo={subscriptionInfo}
+        subscriptionLoading={subscriptionLoading}
+        onRefreshSubscription={refreshSubscription}
+        onSubscribe={handleSubscribe}
+        subscribeLoading={subscribeLoading}
+        onCancelSubscription={handleCancelSubscription}
+        onRestorePurchases={handleRestorePurchases}
+        onClose={() => setScreen('style')}
+      />
     );
   }
 
   if (screen === 'upload') {
     return (
-      <SafeAreaProvider>
-        <UploadScreen
-          style={style}
-          onStart={handleUploadStart}
-          canGenerateMore={
-            subscriptionInfo
-              ? // If not trial and we have usage + limit, enforce quota
-                !(
-                  !subscriptionInfo.isTrial &&
-                  subscriptionInfo.usage &&
-                  subscriptionInfo.usage.limit > 0 &&
-                  subscriptionInfo.usage.current >= subscriptionInfo.usage.limit
-                )
-              : true
-          }
-          subscriptionInfo={subscriptionInfo}
-          onSubscribe={handleSubscribe}
-          onBackToStyle={() => setScreen('style')}
-        />
-      </SafeAreaProvider>
+      <UploadScreen
+        style={style}
+        onStart={handleUploadStart}
+        canGenerateMore={
+          subscriptionInfo
+            ? // If not trial and we have usage + limit, enforce quota
+              !(
+                !subscriptionInfo.isTrial &&
+                subscriptionInfo.usage &&
+                subscriptionInfo.usage.limit > 0 &&
+                subscriptionInfo.usage.current >= subscriptionInfo.usage.limit
+              )
+            : true
+        }
+        subscriptionInfo={subscriptionInfo}
+        onSubscribe={handleSubscribe}
+        onBackToStyle={() => setScreen('style')}
+      />
     );
   }
 
   if (screen === 'result') {
     return (
-      <SafeAreaProvider>
-        <ResultScreen
-          original={original}
-          result={result}
-          loading={loading}
-          error={error}
-          failedAttempts={failedAttempts}
-          onRetry={handleRetry}
-          subscriptionInfo={subscriptionInfo}
-          backHandlerRef={resultBackHandlerRef}
-          onBack={() => { setScreen('upload'); setError(''); setFailedAttempts(0); }}
-          onHome={() => setScreen('style')}
-        />
-      </SafeAreaProvider>
+      <ResultScreen
+        original={original}
+        result={result}
+        loading={loading}
+        error={error}
+        failedAttempts={failedAttempts}
+        onRetry={handleRetry}
+        subscriptionInfo={subscriptionInfo}
+        backHandlerRef={resultBackHandlerRef}
+        onBack={() => { setScreen('upload'); setError(''); setFailedAttempts(0); }}
+        onHome={() => setScreen('style')}
+      />
     );
   }
 
@@ -3272,6 +3459,11 @@ const styles = StyleSheet.create({
     color: '#0F172A',
     fontWeight: '600',
   },
+  galleryHeaderActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   galleryLoadingContainer: {
     flex: 1,
     alignItems: 'center',
@@ -4017,5 +4209,153 @@ const styles = StyleSheet.create({
     color: '#ef4444',
     fontWeight: '700',
     fontSize: 15,
+  },
+
+  // ---- Toast notification ----
+  toastContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 16,
+    zIndex: 9999,
+    elevation: 9999,
+  },
+  toastInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0F172A',
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    gap: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 10,
+  },
+  toastIconCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  toastIconText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '800',
+    lineHeight: 16,
+  },
+  toastTextWrap: {
+    flex: 1,
+    gap: 1,
+  },
+  toastTitle: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+    letterSpacing: -0.1,
+  },
+  toastMessage: {
+    color: 'rgba(255,255,255,0.78)',
+    fontSize: 13,
+    fontWeight: '500',
+    lineHeight: 17,
+  },
+
+  // ---- Confirmation dialog ----
+  dialogBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.55)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 28,
+  },
+  dialogCard: {
+    width: '100%',
+    maxWidth: 360,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    paddingVertical: 22,
+    paddingHorizontal: 22,
+    gap: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.2,
+    shadowRadius: 24,
+    elevation: 12,
+  },
+  dialogTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#0F172A',
+    letterSpacing: -0.2,
+    marginBottom: 2,
+  },
+  dialogMessage: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#475569',
+    lineHeight: 20,
+    marginBottom: 14,
+  },
+  dialogActionsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 4,
+  },
+  dialogCancelButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 10,
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+  },
+  dialogCancelText: {
+    color: '#0F172A',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  dialogConfirmButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 10,
+    backgroundColor: '#0F172A',
+    alignItems: 'center',
+  },
+  dialogConfirmDestructive: {
+    backgroundColor: '#DC2626',
+  },
+  dialogConfirmText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  dialogConfirmTextDestructive: {
+    color: '#FFFFFF',
+  },
+  dialogNeutralButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 10,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    alignItems: 'center',
+  },
+  dialogNeutralDestructive: {
+    borderColor: '#DC2626',
+    backgroundColor: '#FEF2F2',
+  },
+  dialogNeutralText: {
+    color: '#0F172A',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  dialogNeutralTextDestructive: {
+    color: '#DC2626',
   },
 });
