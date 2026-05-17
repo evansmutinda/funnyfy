@@ -32,49 +32,183 @@ import { initAuth, resetAuthIfLocal } from './services/auth';
 
 const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'https://funnyfyapp.vercel.app';
 
-// Placeholder content for info screens — replace with your actual legal text
+// Enforce HTTPS for security — prevent accidental HTTP misconfiguration
+if (API_BASE.startsWith('http://') && !API_BASE.includes('localhost') && !API_BASE.includes('127.0.0.1')) {
+  console.error('[Security] API_BASE must use HTTPS in production. Refusing to start with insecure URL.');
+  throw new Error('Insecure API URL: HTTPS required for production');
+}
+
+// Placeholder content for info screens — replace SUPPORT_EMAIL with your actual email and host these on a public URL before Play Store submission
+const SUPPORT_EMAIL = 'support@funnyfy.app';
+const APP_NAME = 'FunnyFy';
+const COMPANY_NAME = 'FunnyFy';
+
 const PRIVACY_POLICY_TEXT = `Last updated: ${new Date().toLocaleDateString()}
 
-This is a placeholder Privacy Policy for FunnyFy. Replace this text with your actual privacy policy before publishing to the Play Store.
+${COMPANY_NAME} ("we", "us", "our") operates the ${APP_NAME} mobile application ("the App"). This page informs you of our policies regarding the collection, use, and disclosure of personal information when you use the App.
 
-What we collect
-When you use FunnyFy, we collect the photos you upload for caricature generation, your subscription status, and anonymous usage information.
+1. INFORMATION WE COLLECT
 
-How we use it
-Uploaded photos are processed by our AI partner to generate your caricature. We do not sell your data to third parties.
+Photos You Upload
+When you generate a caricature, the photo you upload is temporarily processed by our AI partner (Replicate) to create your caricature. Photos are not stored on our servers after processing.
 
-Your rights
-You can request deletion of your data at any time by contacting support.
+Anonymous Account Identifier
+We generate a random anonymous identifier for your device when you first open the App. This lets us track your trial usage and subscription status without collecting personal data.
 
-Contact
-For any privacy concerns, please contact us at support@funnyfy.app.`;
+Subscription Information
+If you subscribe, our payment processor (RevenueCat with Google Play) handles your payment. We receive only your subscription tier and renewal status — never your credit card or payment details.
+
+Usage Data
+We track how many caricatures you generate to enforce your monthly quota. We may collect basic technical data (device model, OS version, app version) for crash reporting and analytics.
+
+2. HOW WE USE YOUR INFORMATION
+
+We use the information we collect to:
+• Provide the caricature generation service
+• Process your subscription and enforce usage limits
+• Improve the App's performance and fix bugs
+• Comply with legal obligations
+
+We do NOT:
+• Sell your data to third parties
+• Use your photos to train AI models
+• Share your data with advertisers
+
+3. DATA SHARING
+
+We share data only with these third-party services that help us operate the App:
+• Replicate (AI image generation)
+• RevenueCat (subscription management)
+• Google Play (in-app purchases)
+• Vercel (server hosting)
+• Supabase (database hosting)
+
+These providers are bound by their own privacy policies and process data only as needed to provide their services.
+
+4. DATA RETENTION
+
+• Uploaded photos: Deleted from our servers after processing (within hours)
+• Generated caricatures: Hosted on Replicate's CDN for ~24 hours, then automatically deleted
+• Account data: Retained as long as you use the App. Deleted on request.
+• Subscription records: Retained for legal/tax compliance (typically 7 years)
+
+5. YOUR RIGHTS
+
+You can:
+• Request a copy of your data
+• Request deletion of your account and all associated data
+• Opt out of analytics (contact us)
+
+To exercise these rights, email ${SUPPORT_EMAIL}.
+
+6. CHILDREN'S PRIVACY
+
+The App is not intended for children under 13. We do not knowingly collect data from children under 13. If you believe a child has provided us with personal information, contact us immediately.
+
+7. SECURITY
+
+We use industry-standard security measures: HTTPS for all data transmission, encrypted databases, and authenticated APIs. However, no method of transmission over the internet is 100% secure.
+
+8. CHANGES TO THIS POLICY
+
+We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new policy in the App and updating the "Last updated" date.
+
+9. CONTACT US
+
+If you have questions about this Privacy Policy, contact us at: ${SUPPORT_EMAIL}
+`;
 
 const TERMS_TEXT = `Last updated: ${new Date().toLocaleDateString()}
 
-This is a placeholder Terms & Conditions document for FunnyFy. Replace this with your actual terms before publishing to the Play Store.
+These Terms and Conditions ("Terms") govern your use of the ${APP_NAME} mobile application ("the App"). By using the App, you agree to these Terms.
 
-Acceptance
-By using FunnyFy, you agree to these terms.
+1. ACCEPTANCE
 
-Usage
-FunnyFy is provided as-is for personal, non-commercial use. You retain ownership of photos you upload and the caricatures generated from them.
+By downloading, installing, or using the App, you agree to be bound by these Terms. If you do not agree, do not use the App.
 
-Subscriptions
-Subscriptions auto-renew monthly unless canceled. You can cancel anytime through your Google Play account.
+2. ELIGIBILITY
 
-Limitations
-We are not liable for any indirect or consequential damages arising from your use of the app.
+You must be at least 13 years old to use the App. By using the App, you represent that you meet this age requirement.
 
-Contact
-For any questions about these terms, please contact us at support@funnyfy.app.`;
+3. USE OF THE APP
 
-const ABOUT_TEXT = `FunnyFy
+The App is provided for personal, non-commercial use. You may:
+• Upload photos to generate caricatures
+• Save and share generated caricatures for personal use
 
-Transform your photos into amazing caricatures with the power of AI. Pick a style, upload a photo, and watch the magic happen.
+You may NOT:
+• Upload photos of others without their consent
+• Upload illegal, inappropriate, or copyrighted images without permission
+• Use the App for commercial resale of caricatures without a license
+• Attempt to reverse engineer, hack, or abuse the App
+• Use automated tools, bots, or scripts to interact with the App
+• Upload images of minors in any sexual, suggestive, or exploitative context
+
+Violation of these terms may result in account suspension or termination.
+
+4. CONTENT OWNERSHIP
+
+You retain ownership of photos you upload. By uploading, you grant us a limited license to process the photo solely for caricature generation.
+
+You own the caricatures generated from your photos. We retain no ownership claim on your generated content.
+
+5. SUBSCRIPTIONS
+
+The App offers monthly subscription plans (Starter, Popular, Pro) with different generation quotas. Subscriptions:
+• Auto-renew monthly unless canceled
+• Can be canceled anytime through your Google Play account
+• Provide quota that resets each billing cycle
+• Unused quota does not roll over
+
+Subscription pricing is shown in the App and may change with notice.
+
+6. FREE TRIAL
+
+New users receive 3 free caricature generations. After the trial, a subscription is required to continue using the App.
+
+7. INTELLECTUAL PROPERTY
+
+The App, including its design, code, and content (other than user-uploaded photos), is owned by ${COMPANY_NAME} and protected by copyright laws.
+
+8. DISCLAIMERS
+
+THE APP IS PROVIDED "AS IS" WITHOUT WARRANTIES OF ANY KIND. We do not guarantee:
+• Continuous availability of the service
+• The quality or accuracy of generated caricatures
+• That the App will meet your specific needs
+
+9. LIMITATION OF LIABILITY
+
+To the maximum extent permitted by law, ${COMPANY_NAME} shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the App. Our total liability is limited to the amount you paid us in the 12 months prior to the claim.
+
+10. TERMINATION
+
+We may suspend or terminate your access to the App at any time for violation of these Terms or for any other reason at our discretion. You can stop using the App at any time.
+
+11. CHANGES TO TERMS
+
+We may modify these Terms at any time. Continued use of the App after changes constitutes acceptance of the new Terms.
+
+12. GOVERNING LAW
+
+These Terms are governed by the laws of the jurisdiction in which ${COMPANY_NAME} operates, without regard to conflict of law principles.
+
+13. CONTACT
+
+For questions about these Terms, contact us at: ${SUPPORT_EMAIL}
+`;
+
+const ABOUT_TEXT = `${APP_NAME}
+
+Transform your photos into amazing caricatures with the power of AI.
+
+Pick a style, upload a photo, and watch the magic happen.
 
 Version 1.0.1
 
-Made with care.`;
+Made with care.
+
+Contact: ${SUPPORT_EMAIL}`;
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const BOTTOM_INSET_MIN = Platform.OS === 'android' ? 48 : 34;
 

@@ -147,6 +147,87 @@ export default async function handler(
     ? (payload as any).imageUrl
     : null;
 
+  // --- Image upload validation ---
+  // Validates uploaded images (base64 data URLs) to prevent abuse:
+  // 1. MIME type must be image/jpeg, image/png, or image/webp
+  // 2. Size must be under 10 MB (after base64 decode)
+  // 3. Reject empty or malformed data
+  if (imageUrl && imageUrl.startsWith('data:')) {
+    const dataUrlMatch = imageUrl.match(/^data:([a-zA-Z0-9/+.-]+);base64,(.+)$/);
+    if (!dataUrlMatch) {
+      return res.status(400).json({
+        ok: false,
+        error: 'INVALID_IMAGE_FORMAT',
+        message: 'Image must be a valid base64 data URL.',
+      });
+    }
+
+    const mimeType = dataUrlMatch[1].toLowerCase();
+    const base64Data = dataUrlMatch[2];
+
+    // Allow-list of acceptable MIME types
+    const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!ALLOWED_MIME_TYPES.includes(mimeType)) {
+      return res.status(400).json({
+        ok: false,
+        error: 'UNSUPPORTED_IMAGE_TYPE',
+        message: 'Only JPEG, PNG, and WebP images are supported.',
+      });
+    }
+
+    // Check size (10 MB max after base64 decode)
+    // base64 inflates size by ~33%, so 10MB binary ≈ 13.3MB base64 string
+    const MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
+    const approxBinarySize = (base64Data.length * 3) / 4;
+    if (approxBinarySize > MAX_IMAGE_SIZE_BYTES) {
+      return res.status(413).json({
+        ok: false,
+        error: 'IMAGE_TOO_LARGE',
+        message: 'Image must be smaller than 10 MB. Please use a smaller photo.',
+      });
+    }
+
+    // Reject empty data
+    if (base64Data.length < 100) {
+      return res.status(400).json({
+        ok: false,
+        error: 'INVALID_IMAGE_DATA',
+        message: 'Image data is empty or too small to be valid.',
+      });
+    }
+
+    // Verify magic bytes match the declared MIME type (prevents spoofing)
+    try {
+      const headerBytes = Buffer.from(base64Data.slice(0, 32), 'base64');
+      const isValidImage =
+        // JPEG: FF D8 FF
+        (headerBytes[0] === 0xff && headerBytes[1] === 0xd8 && headerBytes[2] === 0xff) ||
+        // PNG: 89 50 4E 47 0D 0A 1A 0A
+        (headerBytes[0] === 0x89 && headerBytes[1] === 0x50 && headerBytes[2] === 0x4e && headerBytes[3] === 0x47) ||
+        // WebP: RIFF ... WEBP (52 49 46 46 ... 57 45 42 50)
+        (headerBytes[0] === 0x52 && headerBytes[1] === 0x49 && headerBytes[2] === 0x46 && headerBytes[3] === 0x46 &&
+         headerBytes[8] === 0x57 && headerBytes[9] === 0x45 && headerBytes[10] === 0x42 && headerBytes[11] === 0x50);
+
+      if (!isValidImage) {
+        return res.status(400).json({
+          ok: false,
+          error: 'INVALID_IMAGE_SIGNATURE',
+          message: 'Image data does not match a supported image format.',
+        });
+      }
+    } catch (sigErr) {
+      console.warn('[test] Image signature check failed (non-fatal):', sigErr);
+      // Continue — the MIME type check above already filtered most bad inputs
+    }
+  } else if (imageUrl && !imageUrl.startsWith('http')) {
+    // Reject non-HTTP, non-data-URL inputs (e.g. file://, javascript:, etc.)
+    return res.status(400).json({
+      ok: false,
+      error: 'INVALID_IMAGE_URL',
+      message: 'Image URL must be HTTPS or a base64 data URL.',
+    });
+  }
+
   // Get model from style config
   const modelVersion = styleConfig.model;
 
