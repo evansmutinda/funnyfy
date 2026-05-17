@@ -669,13 +669,16 @@ function GalleryScreen({ onBack }) {
             <Text style={styles.iconButtonIcon}>‹</Text>
           </TouchableOpacity>
           <Text style={styles.wordmark}>My Caricatures</Text>
-          {items.length > 0 ? (
-            <TouchableOpacity onPress={handleClearAll} style={styles.iconButton}>
-              <Text style={styles.galleryClearIcon}>✕</Text>
+          <View style={styles.galleryHeaderActions}>
+            {items.length > 0 && (
+              <TouchableOpacity onPress={handleClearAll} style={styles.iconButton}>
+                <Text style={styles.galleryClearIcon}>🗑</Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity onPress={onBack} style={styles.iconButton}>
+              <Text style={styles.iconButtonIcon}>✕</Text>
             </TouchableOpacity>
-          ) : (
-            <View style={{ width: 36 }} />
-          )}
+          </View>
         </View>
 
         {loading ? (
