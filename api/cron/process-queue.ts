@@ -56,7 +56,7 @@ export default async function handler(
     }
 
     // Get next pending job (priority-based, oldest first)
-    // Also get style_id to estimate cost
+    // FOR UPDATE SKIP LOCKED requires a transaction
     const jobResult = await query<JobRow & { style_id: string }>(
       `
         SELECT id, user_id, style_id, input_image_url
@@ -64,7 +64,6 @@ export default async function handler(
         WHERE status = 'pending'
         ORDER BY priority DESC, created_at ASC
         LIMIT 1
-        FOR UPDATE SKIP LOCKED
       `
     );
 
@@ -196,7 +195,8 @@ export default async function handler(
     console.error('[process-queue] Error:', err);
     return res.status(500).json({
       ok: false,
-      error: String(err?.message || err)
+      error: String(err?.message || err),
+      detail: err?.stack?.split('\n')[0] || null,
     });
   }
 }
