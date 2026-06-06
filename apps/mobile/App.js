@@ -15,6 +15,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  Pressable,
   View,
   PanResponder,
   Dimensions
@@ -248,7 +249,15 @@ async function saveToFunnyfyAlbum(localFileUri) {
       console.warn('[Save] MediaLibrary permission denied');
       return false;
     }
-    await MediaLibrary.saveToLibraryAsync(localFileUri);
+    // Create the asset first (lands in DCIM temporarily)
+    const asset = await MediaLibrary.createAssetAsync(localFileUri);
+    // Then move it into Pictures/Funnyfy — createAlbumAsync moves on Android
+    const existingAlbum = await MediaLibrary.getAlbumAsync(FUNNYFY_FOLDER_NAME);
+    if (existingAlbum) {
+      await MediaLibrary.addAssetsToAlbumAsync([asset], existingAlbum, true);
+    } else {
+      await MediaLibrary.createAlbumAsync(FUNNYFY_FOLDER_NAME, asset, true);
+    }
     return true;
   } catch (err) {
     console.error('[Save] saveToFunnyfyAlbum error:', err);
@@ -971,7 +980,7 @@ function GalleryScreen({ onBack }) {
           >
             <View style={styles.galleryGrid}>
               {items.map((item, index) => (
-                <TouchableOpacity
+                <Pressable
                   key={item.id}
                   style={styles.galleryItem}
                   onPress={() => {
@@ -979,7 +988,7 @@ function GalleryScreen({ onBack }) {
                     setViewerVisible(true);
                   }}
                   onLongPress={() => handleDelete(item)}
-                  activeOpacity={1}
+                  android_ripple={null}
                 >
                   <Image source={{ uri: item.imageUrl }} style={styles.galleryItemImage} />
                   <View style={styles.galleryItemLabel}>
@@ -987,7 +996,7 @@ function GalleryScreen({ onBack }) {
                       {item.styleLabel || 'Caricature'}
                     </Text>
                   </View>
-                </TouchableOpacity>
+                </Pressable>
               ))}
             </View>
             <Text style={styles.galleryHint}>Long-press an item to delete</Text>
@@ -2234,16 +2243,8 @@ function AppContent() {
                 });
                 setFailedAttempts(0);
 
-                // Save to local gallery
-                try {
-                  await saveToGallery({
-                    imageUrl: jobInfo.outputImageUrl,
-                    styleLabel: style?.label || 'Caricature',
-                    styleId: style?.id,
-                  });
-                } catch (galleryErr) {
-                  console.warn('[Gallery] failed to save (non-fatal):', galleryErr);
-                }
+                // NOTE: Gallery save is intentionally NOT done here.
+                // The user must tap Save on the result screen to add to My Caricatures.
 
                 // Auto-refresh subscription after successful generation
                 setTimeout(async () => {
@@ -2548,9 +2549,7 @@ function AppContent() {
             if (jobInfo.status === 'completed' && jobInfo.outputImageUrl) {
               setResult({ status: 'succeeded', output: jobInfo.outputImageUrl });
               setFailedAttempts(0);
-              try {
-                await saveToGallery({ imageUrl: jobInfo.outputImageUrl, styleLabel: style?.label || 'Caricature', styleId: style?.id });
-              } catch {}
+              // NOTE: Gallery save is manual only — not triggered on retry completion.
               setTimeout(() => refreshSubscription(), 500);
               return;
             } else {
@@ -3731,7 +3730,8 @@ const styles = StyleSheet.create({
     width: '100%',
     aspectRatio: 1,
     borderRadius: 12,
-    backgroundColor: '#F7F7F8',
+    backgroundColor: '#E2E8F0',
+    resizeMode: 'cover',
   },
   galleryItemLabel: {
     marginTop: 6,
