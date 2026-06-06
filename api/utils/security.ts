@@ -55,17 +55,22 @@ export function sanitizeString(input: string): string {
     .slice(0, 10000); // Max length
 }
 
-// Sanitize URL
+// Sanitize URL — accepts https:// URLs and base64 data URLs (for image uploads)
 export function sanitizeUrl(url: string): string | null {
   if (typeof url !== 'string') return null;
-  
+
+  // Allow base64 data URLs for image uploads
+  if (url.startsWith('data:image/')) {
+    return url;
+  }
+
   try {
     const parsed = new URL(url);
     // Only allow http/https
     if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
       return null;
     }
-    // Limit length
+    // Limit length for regular URLs
     if (url.length > 2048) return null;
     return url;
   } catch {
