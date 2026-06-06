@@ -9,7 +9,7 @@ export default {
   expo: {
     name: 'FunnyFy',
     slug: 'funnyfyapp',
-    version: '1.0.1',
+    version: '1.0.2',
     platforms: ['android', 'ios'],
     orientation: 'portrait',
     icon: './assets/icon.jpg',
@@ -22,11 +22,11 @@ export default {
     assetBundlePatterns: ['**/*'],
     ios: { 
       supportsTablet: true,
-      buildNumber: '1'
+      buildNumber: '2'
     },
     android: {
       package: 'com.evansks.funnyfyapp',
-      versionCode: 4,
+      versionCode: 5,
       permissions: [
         'CAMERA',
         'READ_EXTERNAL_STORAGE',

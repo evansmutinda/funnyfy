@@ -9,9 +9,13 @@
 
 import { Pool, QueryResult } from 'pg';
 
-// Create a new pool per invocation. This is slightly less efficient than
-// a global pool but much safer in serverless and easier to debug.
-function createPool(): Pool {
+let cachedPool: Pool | null = null;
+
+function getPool(): Pool {
+  if (cachedPool) {
+    return cachedPool;
+  }
+
   const connectionString = process.env.DATABASE_URL;
 
   if (!connectionString) {
@@ -20,23 +24,23 @@ function createPool(): Pool {
     );
   }
 
-  return new Pool({
+  cachedPool = new Pool({
     connectionString,
     ssl: { rejectUnauthorized: false },
+    max: 10, // Max connections in pool
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 2000,
   });
+
+  return cachedPool;
 }
 
 export async function query<T = any>(
   text: string,
   params?: any[]
 ): Promise<QueryResult<T>> {
-  const pool = createPool();
-  try {
-    return await pool.query<T>(text, params);
-  } finally {
-    // Ensure connections are cleaned up quickly in serverless
-    await pool.end().catch(() => {});
-  }
+  const pool = getPool();
+  return pool.query<T>(text, params);
 }
 
 // Tagged template helper:

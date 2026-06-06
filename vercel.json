@@ -1,4 +1,33 @@
 {
+  "functions": {
+    "api/enqueue.ts": {
+      "maxDuration": 10
+    },
+    "api/job.ts": {
+      "maxDuration": 10
+    },
+    "api/usage.ts": {
+      "maxDuration": 10
+    },
+    "api/sync-subscription.ts": {
+      "maxDuration": 10
+    },
+    "api/admin/*.ts": {
+      "maxDuration": 15
+    },
+    "api/auth/*.ts": {
+      "maxDuration": 10
+    },
+    "api/webhooks/*.ts": {
+      "maxDuration": 30
+    },
+    "api/cron/*.ts": {
+      "maxDuration": 60
+    },
+    "api/test.ts": {
+      "maxDuration": 5
+    }
+  },
   "rewrites": [
     {
       "source": "/admin/login",

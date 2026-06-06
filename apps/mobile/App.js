@@ -29,6 +29,15 @@ import * as MediaLibrary from 'expo-media-library';
 import * as Sharing from 'expo-sharing';
 import { initRevenueCat, getOfferings, purchasePackage, restorePurchases, getCustomerInfo, getAppUserId, hasRevenueCatKey } from './services/revenuecat';
 import { initAuth, resetAuthIfLocal } from './services/auth';
+import { Feather } from '@expo/vector-icons';
+import Reanimated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 
 const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'https://funnyfyapp.vercel.app';
 
@@ -212,8 +221,8 @@ Contact: ${SUPPORT_EMAIL}`;
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const BOTTOM_INSET_MIN = Platform.OS === 'android' ? 48 : 34;
 
-// Industry-standard folder for app-generated photos (e.g. Pictures/FunnyFy/)
-const FUNNYFY_FOLDER_NAME = 'FunnyFy';
+// Industry-standard folder for app-generated photos (e.g. Pictures/Funnyfy/)
+const FUNNYFY_FOLDER_NAME = 'Funnyfy';
 const FUNNYFY_ANDROID_FOLDER_PATH = `file:///storage/emulated/0/Pictures/${FUNNYFY_FOLDER_NAME}/`;
 
 // Ensure the FunnyFy folder exists on Android (creates it the first time)
@@ -230,44 +239,20 @@ async function ensureFunnyfyFolder() {
   }
 }
 
-// Save an image to the FunnyFy album in MediaLibrary (creates album if needed)
-// Returns true if saved successfully
+// Save an image to the device library (no system prompt on Android)
+// Uses saveToLibraryAsync which is silent — no "allow modify" dialog
 async function saveToFunnyfyAlbum(localFileUri) {
-  if (Platform.OS !== 'android') {
-    // iOS: just save to library (iOS uses its own albums system)
-    await MediaLibrary.saveToLibraryAsync(localFileUri);
-    return true;
-  }
   try {
-    // Request permissions first
     const { status } = await MediaLibrary.requestPermissionsAsync();
     if (status !== 'granted') {
       console.warn('[Save] MediaLibrary permission denied');
       return false;
     }
-
-    // Create the asset (it'll initially land in DCIM)
-    const asset = await MediaLibrary.createAssetAsync(localFileUri);
-
-    // Try to find or create the FunnyFy album, then move the asset there
-    let album = await MediaLibrary.getAlbumAsync(FUNNYFY_FOLDER_NAME);
-    if (album == null) {
-      // false = don't copy, move the asset
-      album = await MediaLibrary.createAlbumAsync(FUNNYFY_FOLDER_NAME, asset, false);
-      console.log('[Save] Created FunnyFy album');
-    } else {
-      await MediaLibrary.addAssetsToAlbumAsync([asset], album, false);
-    }
+    await MediaLibrary.saveToLibraryAsync(localFileUri);
     return true;
   } catch (err) {
     console.error('[Save] saveToFunnyfyAlbum error:', err);
-    // Fallback: at least save to library so we don't lose the photo
-    try {
-      await MediaLibrary.saveToLibraryAsync(localFileUri);
-      return true;
-    } catch {
-      return false;
-    }
+    return false;
   }
 }
 
@@ -390,14 +375,14 @@ function Toast({ visible, title, message, type = 'info', onHide }) {
 
   // Type-based accent (subtle, on-brand)
   const accent = type === 'success' ? '#10B981'
-    : type === 'error' ? '#DC2626'
+    : type === 'error' ? '#F59E0B'
     : type === 'warning' ? '#F59E0B'
     : '#0F172A';
 
   const icon = type === 'success' ? '✓'
     : type === 'error' ? '!'
     : type === 'warning' ? '!'
-    : 'ℹ';
+    : 'i';
 
   return (
     <Animated.View
@@ -555,15 +540,49 @@ function NotificationProvider({ children }) {
   );
 }
 
+// Pulsing squares loader shown while a caricature is generating
+function SkeletonLoader() {
+  const delays = [0, 150, 300, 450];
+  return (
+    <View style={styles.skeletonContainer}>
+      {delays.map((delay, i) => (
+        <PulsingSquare key={i} delay={delay} />
+      ))}
+    </View>
+  );
+}
+
+function PulsingSquare({ delay }) {
+  const opacity = useSharedValue(0.2);
+
+  useEffect(() => {
+    opacity.value = withDelay(
+      delay,
+      withRepeat(
+        withSequence(
+          withTiming(1, { duration: 400 }),
+          withTiming(0.2, { duration: 400 }),
+        ),
+        -1,
+        false,
+      ),
+    );
+  }, []);
+
+  const animStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
+
+  return <Reanimated.View style={[styles.skeletonSquare, animStyle]} />;
+}
+
 // Bottom-sheet menu shown when burger is tapped
 function MenuModal({ visible, onClose, onSelect }) {
   const insets = useSafeAreaInsets();
   const items = [
-    { id: 'gallery', label: 'My Caricatures' },
-    { id: 'subscription', label: 'Subscriptions' },
-    { id: 'privacy', label: 'Privacy Policy' },
-    { id: 'terms', label: 'Terms & Conditions' },
-    { id: 'about', label: 'About' },
+    { id: 'gallery',      label: 'My Caricatures',    icon: 'image' },
+    { id: 'subscription', label: 'Subscriptions',      icon: 'star' },
+    { id: 'privacy',      label: 'Privacy Policy',     icon: 'shield' },
+    { id: 'terms',        label: 'Terms & Conditions', icon: 'file-text' },
+    { id: 'about',        label: 'About',              icon: 'info' },
   ];
 
   return (
@@ -590,8 +609,9 @@ function MenuModal({ visible, onClose, onSelect }) {
               onPress={() => onSelect(item.id)}
               activeOpacity={0.7}
             >
+              <Feather name={item.icon} size={20} color="#0F172A" style={styles.menuItemIcon} />
               <Text style={styles.menuItemText}>{item.label}</Text>
-              <Text style={styles.menuItemArrow}>›</Text>
+              <Feather name="chevron-right" size={18} color="#94A3B8" />
             </TouchableOpacity>
           ))}
         </View>
@@ -669,10 +689,83 @@ async function saveToGallery(item) {
   }
 }
 
+// Rebuild the gallery index from the FunnyFy MediaLibrary album.
+// Called after reinstall (when AsyncStorage is empty but photos still exist on the phone).
+async function rebuildGalleryFromMediaLibrary() {
+  try {
+    console.log('[Gallery] Starting rebuild from MediaLibrary...');
+
+    // Request permission — pass `true` for granular READ_MEDIA_IMAGES on Android 13+
+    let permResult = await MediaLibrary.getPermissionsAsync();
+    if (permResult.status !== 'granted') {
+      permResult = await MediaLibrary.requestPermissionsAsync(true);
+    }
+    if (permResult.status !== 'granted') {
+      console.warn('[Gallery] No MediaLibrary permission — cannot rebuild');
+      return [];
+    }
+
+    let assets = [];
+
+    try {
+      let after = undefined;
+      let hasMore = true;
+      const PAGE = 100;
+
+      while (hasMore && assets.length < GALLERY_MAX_ITEMS) {
+        const result = await MediaLibrary.getAssetsAsync({
+          mediaType: MediaLibrary.MediaType.photo,
+          first: PAGE,
+          after,
+          sortBy: MediaLibrary.SortBy.creationTime,
+        });
+
+        const matching = result.assets.filter((a) =>
+          a.filename?.toLowerCase().startsWith('funnyfy')
+        );
+        assets.push(...matching);
+
+        hasMore = result.hasNextPage;
+        after = result.endCursor;
+        if (result.assets.length < PAGE) hasMore = false;
+      }
+
+      console.log('[Gallery] Rebuilt', assets.length, 'items from media library');
+    } catch (e) {
+      console.warn('[Gallery] MediaLibrary scan failed:', e.message);
+    }
+
+    const rebuilt = assets.map((asset) => ({
+      id: `media_${asset.id}`,
+      imageUrl: asset.uri,
+      remoteUrl: null,
+      isLocal: true,
+      styleLabel: 'FunnyFy',
+      styleId: null,
+      createdAt: asset.creationTime,
+    }));
+
+    if (rebuilt.length > 0) {
+      await AsyncStorage.setItem(GALLERY_STORAGE_KEY, JSON.stringify(rebuilt));
+      console.log('[Gallery] Rebuilt and saved', rebuilt.length, 'items');
+    }
+
+    return rebuilt;
+  } catch (err) {
+    console.warn('[Gallery] rebuildGalleryFromMediaLibrary error:', err.message || err);
+    return [];
+  }
+}
+
 async function loadGallery() {
   try {
     const data = await AsyncStorage.getItem(GALLERY_STORAGE_KEY);
     const items = data ? JSON.parse(data) : [];
+
+    // If nothing in storage (e.g. after reinstall), try to rebuild from the FunnyFy album
+    if (items.length === 0) {
+      return await rebuildGalleryFromMediaLibrary();
+    }
 
     // Filter out items whose local file no longer exists (e.g. user cleared app data)
     const verified = [];
@@ -686,8 +779,11 @@ async function loadGallery() {
         } catch {
           // File missing, skip it
         }
+      } else if (item.isLocal && item.imageUrl) {
+        // MediaLibrary URI (content:// or ph://) — always include; OS manages these
+        verified.push(item);
       } else {
-        // Old items without local copy — keep them (URL may still work briefly)
+        // Remote URL — keep (may still work briefly)
         verified.push(item);
       }
     }
@@ -1572,22 +1668,6 @@ function ResultScreen({ original, result, loading, error, failedAttempts = 0, on
   const [hasBeenSaved, setHasBeenSaved] = useState(false);
   const hasResult = !!result && !!imageUrl;
   const maxRetriesReached = error && failedAttempts >= 3;
-  const processingOpacity = useRef(new Animated.Value(1)).current;
-
-  useEffect(() => {
-    if (!loading) {
-      processingOpacity.setValue(1);
-      return;
-    }
-    const blink = Animated.loop(
-      Animated.sequence([
-        Animated.timing(processingOpacity, { toValue: 0.4, duration: 800, useNativeDriver: true }),
-        Animated.timing(processingOpacity, { toValue: 1, duration: 800, useNativeDriver: true }),
-      ])
-    );
-    blink.start();
-    return () => blink.stop();
-  }, [loading, processingOpacity]);
 
   const resultQuotaCurrent = subscriptionInfo?.usage?.current ?? 0;
   const resultQuotaLimit = subscriptionInfo?.usage?.limit ?? 3;
@@ -1796,7 +1876,7 @@ function ResultScreen({ original, result, loading, error, failedAttempts = 0, on
             <View style={styles.bottomActionsContainer}>
               {loading ? (
                 <View style={styles.progressContainer}>
-                  <Animated.Text style={[styles.progressLabel, { opacity: processingOpacity }]}>Processing…</Animated.Text>
+                  <SkeletonLoader />
                 </View>
               ) : maxRetriesReached ? (
                 <View style={styles.errorRetryContainer}>
@@ -1810,16 +1890,16 @@ function ResultScreen({ original, result, loading, error, failedAttempts = 0, on
                 </View>
               ) : error ? (
                 <View style={styles.errorRetryContainer}>
-                  <Text style={styles.errorRetryMessage}>{error}</Text>
-                  <Text style={styles.errorRetryHint}>
-                    Attempt {failedAttempts + 1} of 3
-                  </Text>
+                  <View style={styles.errorRetryHeader}>
+                    <Feather name="alert-circle" size={18} color="#B45309" />
+                    <Text style={styles.errorRetryMessage}>{error}</Text>
+                  </View>
                   <TouchableOpacity
                     onPress={onRetry}
                     style={styles.retryButton}
                     disabled={loading}
                   >
-                    <Text style={styles.retryButtonText}>Retry</Text>
+                    <Text style={styles.retryButtonText}>Try again</Text>
                   </TouchableOpacity>
                 </View>
               ) : null}
@@ -2041,6 +2121,25 @@ function AppContent() {
       } catch (err) {
         console.error('Failed to fetch styles from server, using default:', err);
         setAvailableStyles([STYLE_90S_CARTOON]);
+        
+        // Show a network error dialog if the app launched with no connectivity
+        const isNetworkError = err.message?.includes('Failed to fetch') || 
+                                err.message?.includes('Network request failed') ||
+                                err.message?.includes('NetworkError');
+        if (isNetworkError) {
+          setTimeout(() => {
+            showDialog({
+              title: 'No internet connection',
+              message: 'FunnyFy requires an internet connection. Please check your network and try again.',
+              confirmLabel: 'Retry',
+              onConfirm: () => {
+                closeDialog();
+                // Retry fetching styles
+                fetchStyles();
+              },
+            });
+          }, 500);
+        }
       }
     };
 
@@ -2075,6 +2174,13 @@ function AppContent() {
         setError('');
         setJob(null);
         setResult(null);
+
+        // Failsafe: stop loading after 90 seconds no matter what
+        const failsafeTimer = setTimeout(() => {
+          console.warn('[callApi] Failsafe timeout reached - forcing loading off');
+          setLoading(false);
+          setError('Request timed out. Please try again.');
+        }, 90000);
 
         const payload = {
           userId: userIdRef.current,
@@ -2169,9 +2275,27 @@ function AppContent() {
             userMessage = errorMessage;
           }
 
+          // For NSFW/inappropriate image errors, show a dialog instead of the error card
+          if (userMessage.toLowerCase().includes('cannot be processed') || 
+              userMessage.toLowerCase().includes('appropriate')) {
+            showDialog({
+              title: 'Image not supported',
+              message: 'This image cannot be processed. Please use an appropriate photo.',
+              confirmLabel: 'Try again',
+              onConfirm: () => {
+                closeDialog();
+                setScreen('upload');
+                setError('');
+                setFailedAttempts(0);
+              },
+            });
+            return;
+          }
+
           setError(userMessage);
           setFailedAttempts((prev) => prev + 1);
         } finally {
+          clearTimeout(failsafeTimer);
           setLoading(false);
         }
       },
@@ -2388,7 +2512,7 @@ function AppContent() {
   };
 
   const handleRetry = async () => {
-    if (!pendingImageDataUrl || failedAttempts >= 3) return;
+    if (!pendingImageDataUrl) return;
     setError('');
     setLoading(true);
     await callApi({ imageDataUrl: pendingImageDataUrl });
@@ -2930,6 +3054,20 @@ const styles = StyleSheet.create({
     marginBottom: 0,
     gap: 8,
   },
+  skeletonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 12,
+  },
+  skeletonSquare: {
+    width: 18,
+    height: 18,
+    borderRadius: 4,
+    backgroundColor: '#0F172A',
+  },
+  skeletonBar: {},
   progressBarTrack: {
     width: '100%',
     height: 28,
@@ -2971,42 +3109,50 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     paddingVertical: 16,
     paddingHorizontal: 20,
-    backgroundColor: '#fef2f2',
-    borderRadius: 12,
+    backgroundColor: '#FFFBEB',
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#fecaca',
-    gap: 8,
+    borderColor: '#FDE68A',
+    gap: 12,
+  },
+  errorRetryHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
   },
   errorRetryTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#991b1b',
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#92400E',
   },
   errorRetrySubtext: {
-    fontSize: 14,
-    color: '#7f1d1d',
+    fontSize: 13,
+    color: '#78350F',
+    lineHeight: 18,
   },
   errorRetryMessage: {
+    flex: 1,
     fontSize: 14,
-    color: '#991b1b',
+    color: '#92400E',
     fontWeight: '500',
+    lineHeight: 20,
   },
   errorRetryHint: {
     fontSize: 12,
-    color: '#b91c1c',
+    color: '#B45309',
   },
   retryButton: {
-    marginTop: 4,
     alignSelf: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    backgroundColor: '#dc2626',
+    paddingVertical: 11,
+    paddingHorizontal: 32,
+    backgroundColor: '#0F172A',
     borderRadius: 12,
   },
   retryButtonText: {
     color: '#ffffff',
     fontWeight: '600',
-    fontSize: 16,
+    fontSize: 15,
+    letterSpacing: 0.2,
   },
   actionsRow: {
     width: '100%',
@@ -3266,19 +3412,23 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   styleCardLabel: {
-    marginTop: 10,
-    paddingHorizontal: 0,
+    marginTop: 8,
+    paddingHorizontal: 2,
+    alignItems: 'center',
   },
   styleCardName: {
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 14,
+    fontWeight: '600',
     color: '#0F172A',
-    lineHeight: 18,
+    lineHeight: 19,
+    textAlign: 'center',
+    letterSpacing: 0.2,
   },
   styleCardDesc: {
     fontSize: 12,
     color: '#64748B',
     marginTop: 2,
+    textAlign: 'center',
   },
   // Upload screen — refined
   photoPlaceholderIcon: {
@@ -3431,23 +3581,35 @@ const styles = StyleSheet.create({
     backgroundColor: '#E5E7EB',
     marginBottom: 8,
   },
+  menuHeader: {},
+  menuHeaderIcon: {},
+  menuHeaderIconText: {},
+  menuHeaderTitle: {},
+  menuHeaderSub: {},
+  menuDivider: {},
+  menuItemsContainer: {},
+  menuItemDivider: {},
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingVertical: 16,
     paddingHorizontal: 16,
     borderRadius: 12,
   },
+  menuItemIcon: {
+    marginRight: 14,
+  },
+  menuItemIconWrap: {},
+  menuItemContent: {},
   menuItemText: {
-    fontSize: 15,
-    fontWeight: '500',
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '400',
     color: '#0F172A',
+    letterSpacing: 0.3,
   },
-  menuItemArrow: {
-    fontSize: 20,
-    color: '#94A3B8',
-  },
+  menuItemDesc: {},
+  menuItemArrow: {},
   // Gallery screen
   galleryContainer: {
     flex: 1,
@@ -4269,93 +4431,91 @@ const styles = StyleSheet.create({
   // ---- Confirmation dialog ----
   dialogBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.55)',
+    backgroundColor: 'rgba(15, 23, 42, 0.5)',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 28,
+    paddingHorizontal: 24,
   },
   dialogCard: {
     width: '100%',
     maxWidth: 360,
     backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    paddingVertical: 22,
-    paddingHorizontal: 22,
-    gap: 8,
+    borderRadius: 22,
+    paddingVertical: 28,
+    paddingHorizontal: 24,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.2,
-    shadowRadius: 24,
-    elevation: 12,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.18,
+    shadowRadius: 28,
+    elevation: 16,
   },
   dialogTitle: {
-    fontSize: 17,
+    fontSize: 20,
     fontWeight: '700',
     color: '#0F172A',
-    letterSpacing: -0.2,
-    marginBottom: 2,
+    letterSpacing: -0.3,
+    marginBottom: 10,
   },
   dialogMessage: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#475569',
-    lineHeight: 20,
-    marginBottom: 14,
+    fontSize: 15,
+    fontWeight: '400',
+    color: '#64748B',
+    lineHeight: 22,
+    marginBottom: 24,
   },
   dialogActionsRow: {
     flexDirection: 'row',
     gap: 10,
-    marginTop: 4,
   },
   dialogCancelButton: {
     flex: 1,
-    paddingVertical: 12,
-    borderRadius: 10,
+    paddingVertical: 14,
+    borderRadius: 14,
     backgroundColor: '#F1F5F9',
     alignItems: 'center',
   },
   dialogCancelText: {
     color: '#0F172A',
     fontWeight: '600',
-    fontSize: 14,
+    fontSize: 15,
   },
   dialogConfirmButton: {
     flex: 1,
-    paddingVertical: 12,
-    borderRadius: 10,
+    paddingVertical: 14,
+    borderRadius: 14,
     backgroundColor: '#0F172A',
     alignItems: 'center',
   },
   dialogConfirmDestructive: {
-    backgroundColor: '#DC2626',
+    backgroundColor: '#0F172A',
   },
   dialogConfirmText: {
     color: '#FFFFFF',
     fontWeight: '600',
-    fontSize: 14,
+    fontSize: 15,
   },
   dialogConfirmTextDestructive: {
     color: '#FFFFFF',
   },
   dialogNeutralButton: {
     flex: 1,
-    paddingVertical: 12,
-    borderRadius: 10,
+    paddingVertical: 14,
+    borderRadius: 14,
     backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
     alignItems: 'center',
   },
   dialogNeutralDestructive: {
-    borderColor: '#DC2626',
-    backgroundColor: '#FEF2F2',
+    borderColor: '#EF4444',
+    backgroundColor: '#FFFFFF',
   },
   dialogNeutralText: {
     color: '#0F172A',
     fontWeight: '600',
-    fontSize: 14,
+    fontSize: 15,
   },
   dialogNeutralTextDestructive: {
-    color: '#DC2626',
+    color: '#EF4444',
   },
 });

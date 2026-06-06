@@ -1,5 +1,11 @@
+// ============================================================
+// DEPRECATED: This endpoint is no longer used by the mobile app.
+// The mobile app now uses /api/enqueue (async) + /api/job (poll).
+// This file is kept for reference only and is permanently disabled.
+// ============================================================
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { query } from './db';
+import { extractUserId } from './utils/security';
 
 const allowedOrigin = process.env.ALLOWED_ORIGIN || '*';
 const sightengineUser = process.env.SIGHTENGINE_API_USER;
@@ -71,18 +77,19 @@ function getCurrentMinuteWindow(): string {
   return d.toISOString();
 }
 
-// Helper to extract userId from JWT/auth token (placeholder - implement based on your auth system)
-function extractUserIdFromAuth(authHeader: string): string | null {
-  // TODO: Implement JWT verification and extract userId
-  // For now, return null (requires proper implementation)
-  return null;
-}
-
 
 export default async function handler(
   req: VercelRequest,
   res: VercelResponse
 ) {
+  // This endpoint is permanently disabled. Use /api/enqueue + /api/job instead.
+  return res.status(410).json({
+    ok: false,
+    error: 'ENDPOINT_DEPRECATED',
+    message: 'This endpoint has been retired. Please update your client to use /api/enqueue and /api/job.',
+  });
+
+  // ---- All code below is retained for reference only ----
   setCors(res);
 
   if (req.method === 'OPTIONS') {
@@ -269,12 +276,8 @@ export default async function handler(
   };
 
   // User authentication required - no anonymous access
-  // In production, this should come from authenticated session/JWT
-  const userId: string | null = 
-    (req.headers['x-user-id'] as string) || 
-    (req.headers['authorization'] && extractUserIdFromAuth(req.headers['authorization'] as string)) ||
-    (body?.userId as string) || 
-    null;
+  // Uses secure extraction helper (JWT in production, fallback in dev)
+  const userId = extractUserId(req);
 
   if (!userId) {
     return res.status(401).json({

@@ -98,13 +98,9 @@ export function verifyJWT(token: string): { userId: string; email?: string } | n
 
 // Extract userId from request (supports multiple methods)
 export function extractUserId(req: VercelRequest): string | null {
-  // Method 1: X-User-Id header (for development/testing)
-  const headerUserId = req.headers['x-user-id'] as string;
-  if (headerUserId) {
-    return sanitizeString(headerUserId);
-  }
+  const isProduction = process.env.NODE_ENV === 'production';
 
-  // Method 2: JWT token in Authorization header
+  // Method 1: JWT token in Authorization header (Secure - Allowed everywhere)
   const authHeader = req.headers['authorization'];
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.replace('Bearer ', '');
@@ -114,14 +110,23 @@ export function extractUserId(req: VercelRequest): string | null {
     }
   }
 
-  // Method 3: userId in body (for POST requests)
-  if (req.body && typeof req.body === 'object' && req.body.userId) {
-    return sanitizeString(String(req.body.userId));
-  }
+  // Fallback methods (Insecure - Only allowed in development/testing environments)
+  if (!isProduction) {
+    // Method 2: X-User-Id header
+    const headerUserId = req.headers['x-user-id'] as string;
+    if (headerUserId) {
+      return sanitizeString(headerUserId);
+    }
 
-  // Method 4: userId in query (for GET requests)
-  if (req.query && req.query.userId) {
-    return sanitizeString(String(req.query.userId));
+    // Method 3: userId in body (for POST requests)
+    if (req.body && typeof req.body === 'object' && req.body.userId) {
+      return sanitizeString(String(req.body.userId));
+    }
+
+    // Method 4: userId in query (for GET requests)
+    if (req.query && req.query.userId) {
+      return sanitizeString(String(req.query.userId));
+    }
   }
 
   return null;

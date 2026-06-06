@@ -1,286 +1,104 @@
-# JWT Authentication Guide
+# JWT Authentication – FunnyFy
+
+This document explains how FunnyFy's authentication system works, end-to-end.
+
+---
 
 ## Overview
 
-FunnyFy now supports JWT (JSON Web Token) authentication for secure API access. This replaces the simple `x-user-id` header method with a more secure token-based system.
+FunnyFy uses a lightweight JWT (JSON Web Token) authentication system. On first launch, the app calls the backend to create a real user record in Supabase and get a token. That token is stored on the device and used for all subsequent API calls.
+
+If the backend is unavailable, the app generates a local ID and keeps working (graceful fallback).
 
 ---
 
-## Endpoints
+## How It Works (Plain English)
 
-### 1. Generate Token
-**POST** `/api/auth/token`
-
-Generates a new JWT token for authentication.
-
-#### Request Body
-```json
-{
-  "userId": "uuid-optional",           // Optional: existing user UUID
-  "revenuecatUserId": "string-optional" // Optional: RevenueCat appUserID
-}
-```
-
-**Note**: If neither `userId` nor `revenuecatUserId` is provided, a new anonymous user will be created.
-
-#### Response
-```json
-{
-  "ok": true,
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "userId": "uuid",
-  "expiresIn": "30d",
-  "message": "Token generated successfully"
-}
-```
-
-#### Example (cURL)
-```bash
-curl -X POST https://funnyfyapp.vercel.app/api/auth/token \
-  -H "Content-Type: application/json" \
-  -d '{"revenuecatUserId": "test-user-123"}'
-```
+Think of JWT authentication like a hotel key card:
+- The **backend** is the front desk — it checks your identity and gives you a key card (JWT token)
+- The **app** stores the key card and shows it to every door (API endpoint)
+- Each door checks the key card is valid before letting you in
 
 ---
 
-### 2. Refresh Token
-**POST** `/api/auth/refresh`
+## Components
 
-Refreshes an existing JWT token (extends expiration).
+### Backend: `/api/auth/token`
+- **File**: `api/auth/token.ts`
+- **Method**: `POST`
+- **Request body**: `{ revenuecatUserId?: string }`
+- **What it does**:
+  1. Checks if a user with this RevenueCat ID already exists in Supabase
+  2. If not, creates a new user row (`subscription_tier: 'trial'`, `trial_generations_used: 0`)
+  3. Signs a JWT with `JWT_SECRET` containing the user's UUID
+  4. Returns `{ ok: true, userId, token }`
 
-#### Headers
+### Mobile: `services/auth.js`
+- **Function**: `initAuth(apiBase, revenuecatUserId)`
+- **Called on**: App startup, after RevenueCat initialises
+- **What it does**:
+  1. Checks device for stored auth (`.funnyfyauth.json`)
+  2. If found, returns stored `{ userId, token, isLocal }`
+  3. If not found, calls `/api/auth/token` to get real credentials
+  4. If backend fails, generates a local UUID (fallback)
+  5. Stores result on device filesystem
+
+### API Calls
+All API calls from the app include:
 ```
-Authorization: Bearer <your-jwt-token>
+x-user-id: <userId>
+Authorization: Bearer <token>
 ```
 
-#### Response
-```json
-{
-  "ok": true,
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "userId": "uuid",
-  "expiresIn": "30d",
-  "message": "Token refreshed successfully"
-}
-```
-
-#### Example (cURL)
-```bash
-curl -X POST https://funnyfyapp.vercel.app/api/auth/refresh \
-  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-```
+Backend endpoints use `requireAuth(req, res)` from `api/utils/auth.ts` to verify these.
 
 ---
 
-## Mobile App Integration
+## Local Fallback
 
-### Step 1: Generate Token on App Start
+If the backend or database is down:
+- `isLocal: true` is set on the auth object
+- A UUID is generated locally and stored
+- The app continues to work (generation, quota display, etc.)
+- When the backend recovers, call `resetAuthIfLocal()` to get a real auth on next launch
 
-```javascript
-// In your mobile app (React Native)
-const generateToken = async (revenuecatUserId) => {
-  try {
-    const response = await fetch(`${API_BASE}/api/auth/token`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        revenuecatUserId: revenuecatUserId, // From RevenueCat
-      }),
-    });
-
-    const data = await response.json();
-    
-    if (data.ok) {
-      // Store token securely (e.g., SecureStore in Expo)
-      await SecureStore.setItemAsync('auth_token', data.token);
-      return data.token;
-    }
-  } catch (error) {
-    console.error('Failed to generate token:', error);
+```js
+// In auth.js
+export async function resetAuthIfLocal() {
+  const stored = await readStored();
+  if (stored?.isLocal) {
+    await FileSystem.deleteAsync(AUTH_FILE, { idempotent: true });
   }
-};
-```
-
-### Step 2: Use Token in API Requests
-
-```javascript
-// Replace x-user-id header with Authorization header
-const makeAuthenticatedRequest = async (url, options = {}) => {
-  const token = await SecureStore.getItemAsync('auth_token');
-  
-  return fetch(url, {
-    ...options,
-    headers: {
-      ...options.headers,
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-  });
-};
-
-// Example: Generate caricature
-const generateCaricature = async (styleId, imageUrl) => {
-  return makeAuthenticatedRequest(`${API_BASE}/api/enqueue`, {
-    method: 'POST',
-    body: JSON.stringify({
-      payload: {
-        styleId,
-        imageUrl,
-      },
-    }),
-  });
-};
-```
-
-### Step 3: Handle Token Expiration
-
-```javascript
-// Refresh token if expired
-const refreshTokenIfNeeded = async () => {
-  const token = await SecureStore.getItemAsync('auth_token');
-  
-  try {
-    const response = await fetch(`${API_BASE}/api/auth/refresh`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-
-    const data = await response.json();
-    
-    if (data.ok) {
-      await SecureStore.setItemAsync('auth_token', data.token);
-      return data.token;
-    }
-  } catch (error) {
-    // Token expired or invalid - generate new one
-    console.log('Token expired, generating new token...');
-    return await generateToken(revenuecatUserId);
-  }
-};
-```
-
----
-
-## Backend Configuration
-
-### Environment Variables
-
-Add to your Vercel environment variables:
-
-```bash
-JWT_SECRET=your-secret-key-here-min-32-chars
-# OR
-AUTH_SECRET=your-secret-key-here-min-32-chars
-```
-
-**Important**: 
-- Use a strong, random secret (at least 32 characters)
-- Never commit this to git
-- Use different secrets for dev/staging/production
-
-### Generate a Secure Secret
-
-```bash
-# Using Node.js
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-
-# Using OpenSSL
-openssl rand -hex 32
-```
-
----
-
-## Migration from x-user-id
-
-### Current Method (Deprecated)
-```javascript
-headers: {
-  'x-user-id': 'test-user-123'
 }
 ```
 
-### New Method (Recommended)
-```javascript
-headers: {
-  'Authorization': 'Bearer <jwt-token>'
-}
-```
-
-### Backward Compatibility
-
-The backend still supports `x-user-id` header for backward compatibility, but JWT tokens are recommended for:
-- ✅ Better security
-- ✅ Token expiration
-- ✅ Standard authentication method
-- ✅ Future-proofing
-
 ---
 
-## Token Details
+## Environment Variables Required
 
-- **Expiration**: 30 days
-- **Algorithm**: HS256 (HMAC SHA-256)
-- **Claims**:
-  - `userId`: User UUID
-  - `sub`: Standard JWT subject claim (same as userId)
-  - `iat`: Issued at timestamp
-
----
-
-## Security Best Practices
-
-1. **Store tokens securely**: Use `SecureStore` (Expo) or `Keychain` (iOS/Android)
-2. **Refresh before expiration**: Refresh tokens a few days before they expire
-3. **Handle token errors**: If token is invalid, generate a new one
-4. **Never log tokens**: Don't log or expose tokens in error messages
-5. **Use HTTPS**: Always use HTTPS in production
-
----
-
-## Troubleshooting
-
-### Error: "AUTH_CONFIG_ERROR"
-- **Cause**: `JWT_SECRET` not set in environment variables
-- **Fix**: Add `JWT_SECRET` to Vercel environment variables
-
-### Error: "INVALID_TOKEN"
-- **Cause**: Token expired or invalid
-- **Fix**: Generate a new token using `/api/auth/token`
-
-### Error: "USER_NOT_FOUND"
-- **Cause**: Provided `userId` doesn't exist
-- **Fix**: Use `revenuecatUserId` instead, or omit both to create new user
-
----
-
-## Testing
-
-### Test Token Generation
 ```bash
-# Generate token with RevenueCat user ID
-curl -X POST http://localhost:3000/api/auth/token \
-  -H "Content-Type: application/json" \
-  -d '{"revenuecatUserId": "test-user-123"}'
-```
-
-### Test Token Usage
-```bash
-# Use token in API request
-curl -X GET http://localhost:3000/api/usage \
-  -H "Authorization: Bearer <your-token>"
-```
-
-### Test Token Refresh
-```bash
-curl -X POST http://localhost:3000/api/auth/refresh \
-  -H "Authorization: Bearer <your-token>"
+JWT_SECRET=your-long-random-secret-key
+DATABASE_URL=your-supabase-connection-string
 ```
 
 ---
 
-**Next Steps**: Update mobile app to use JWT tokens instead of `x-user-id` header.
+## Limitations (Known)
 
+- The current system uses **anonymous user IDs** — there is no email/password login
+- Users cannot sign in across devices (a reinstall gets a new user ID)
+- Full user accounts (email/password, cross-device sync) are planned for a future version using Supabase Auth or Clerk
+
+---
+
+## Security Notes
+
+- JWT tokens are signed with `JWT_SECRET` using HS256
+- Tokens do not expire currently (add expiry in future)
+- Tokens are stored on device filesystem, not AsyncStorage (slightly more secure)
+- All API endpoints validate the token using `requireAuth()`
+
+---
+
+**Last Updated**: May 2026
+**See also**: `SECURITY.md`, `api/auth/token.ts`, `apps/mobile/services/auth.js`

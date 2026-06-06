@@ -1,49 +1,95 @@
 # NSFW Content Moderation – Sightengine
 
-**Status**: Implemented  
-**Provider**: [Sightengine](https://sightengine.com/)  
-**Decision**: Feb 2025
+**Status**: Implemented & Active
+**Provider**: [Sightengine](https://sightengine.com/)
+**Decision**: February 2026
 
 ---
 
 ## Overview
 
-Sightengine blocks NSFW content before images are sent to Replicate. Moderation runs server-side in `api/test.ts`, before the generation request.
+Sightengine screens uploaded images for explicit content **before** they are sent to Replicate for caricature generation. This runs server-side in `api/test.ts`.
 
 ---
 
-## Implementation
+## Full Flow
 
-### 1. Vercel Environment Variables
-- `SIGHTENGINE_API_USER` – API User from Sightengine dashboard
-- `SIGHTENGINE_API_SECRET` – API Secret from Sightengine dashboard
+1. User uploads image in the app
+2. App sends image (base64) to `/api/test`
+3. `api/test.ts` validates image (MIME type, size, magic bytes) — see SECURITY.md
+4. `api/test.ts` calls Sightengine nudity detection API
+5. If `nudity.raw >= 0.3` → return 400, show user-friendly message, log infringement
+6. If clean → proceed to Replicate
+7. If Sightengine is unavailable → fail open (proceed, log warning)
 
-### 2. API Flow (api/test.ts)
-1. Receive image (data URL / base64)
-2. Call Sightengine Image Moderation API (nudity model)
-3. If `nudity.raw >= 0.3` → return 400, user-friendly message
-4. If pass → proceed to Replicate
-5. If Sightengine fails (network, etc.) → fail open (proceed, log error)
+---
 
-### 3. Response Handling
-- **Block**: `nudity.raw >= 0.3` (explicit content)
-- **Allow**: `nudity.raw < 0.3` or Sightengine error (availability)
+## Implementation Details
 
-### 4. User Message
-When content is rejected:
+### Environment Variables (Vercel)
+```
+SIGHTENGINE_API_USER=your-api-user
+SIGHTENGINE_API_SECRET=your-api-secret
+```
+
+### Threshold
+```ts
+const NSFW_RAW_THRESHOLD = 0.3; // in api/test.ts
+// Lower = stricter, Higher = more permissive
+```
+
+### User-Facing Message (when blocked)
 > "This image cannot be processed. Please use an appropriate photo."
 
-### 5. Adjusting Sensitivity
-Edit `NSFW_RAW_THRESHOLD` in `api/test.ts` (default: 0.3). Lower = stricter, higher = more permissive.
+Displayed as a Toast notification in the app (not a system Alert).
 
-### 6. Infringement Tracking & Bans
-- Each blocked image creates an `infringements` record.
-- When a user reaches `INFRINGEMENT_BAN_THRESHOLD` (default: 3), they are banned (`users.banned_at` set).
-- Banned users receive 403 with message: "Your account has been suspended due to repeated policy violations."
-- **Migration required**: Run `api/migrations-infringements.sql` in Supabase before using.
+---
+
+## Infringement Tracking & Bans
+
+Each blocked image creates a record in the `infringements` Supabase table.
+
+```sql
+-- infringements table columns:
+id, user_id, infringement_type ('nsfw'), details (JSONB nudity scores), created_at
+```
+
+When a user reaches **3 violations** (`INFRINGEMENT_BAN_THRESHOLD`):
+- `users.banned_at` is set to current timestamp
+- All subsequent requests return **403**:
+  > "Your account has been suspended due to repeated policy violations."
+
+**Migration required**: Run `api/migrations-infringements.sql` in Supabase SQL editor before using this feature.
+
+---
+
+## Adjusting Sensitivity
+
+Edit `NSFW_RAW_THRESHOLD` in `api/test.ts`:
+
+| Value | Effect |
+|-------|--------|
+| 0.1 | Very strict — blocks borderline content |
+| 0.3 | Default — blocks explicit nudity |
+| 0.5 | Permissive — only blocks very explicit content |
+
+---
+
+## Changing Ban Threshold
+
+Edit `INFRINGEMENT_BAN_THRESHOLD` in `api/test.ts`:
+
+```ts
+const INFRINGEMENT_BAN_THRESHOLD = 3; // ban after 3 violations
+```
 
 ---
 
 ## Docs
 - [Sightengine API docs](https://sightengine.com/docs/)
 - [Nudity Detection Model](https://sightengine.com/docs/nsfw-detection-model)
+
+---
+
+**Last Updated**: May 2026
+**See also**: `SECURITY.md`, `DATABASE_SCHEMA.md` (infringements table)

@@ -2,43 +2,56 @@
 
 This document outlines the security features implemented and how to use them.
 
+---
+
 ## ✅ Implemented Security Features
 
-### 1. Input Validation (`api/utils/validation.ts`)
+### 1. JWT Authentication (`api/auth/token.ts` + `apps/mobile/services/auth.js`)
+
+The app now has a real authentication system:
+
+- **Backend** (`/api/auth/token`): Creates or looks up a user in Supabase, issues a JWT signed with `JWT_SECRET`
+- **Mobile** (`services/auth.js`): On first launch, calls the backend to get a real user ID and token; stores them on device
+- **Fallback**: If the backend/DB is unavailable, the app generates a local UUID and keeps working
+- **RevenueCat link**: The RevenueCat anonymous user ID is passed to the backend on auth, linking the subscription to the database user
+
+**Auth service API:**
+```js
+import { initAuth, resetAuthIfLocal } from './services/auth';
+
+// On app startup:
+const auth = await initAuth(API_BASE, revenuecatUserId);
+// Returns: { userId, token, isLocal }
+
+// Force re-auth (clears local fallback):
+await resetAuthIfLocal();
+```
+
+### 2. Input Validation (`api/utils/validation.ts`)
 - **Zod schemas** for all input types
 - **UUID validation** for user IDs
 - **URL validation** with protocol checks
 - **Style ID validation** (alphanumeric, lowercase, hyphens only)
 - **Request body validation** helpers
 
-**Usage:**
-```typescript
-import { validateBody, generateRequestSchema } from './utils/validation';
+### 3. Image Upload Validation (`api/test.ts`)
+Before processing any image:
+- **MIME type check**: Only `image/jpeg`, `image/png`, `image/webp`, `image/gif` accepted
+- **File size limit**: 10MB maximum
+- **Magic byte verification**: File header bytes checked to confirm actual image type (prevents fake MIME types)
 
-const validation = validateBody(generateRequestSchema, req.body);
-if (!validation.success) {
-  return res.status(400).json({ ok: false, error: validation.error });
-}
-const { styleId, imageUrl } = validation.data;
-```
+### 4. NSFW Content Moderation (`api/test.ts` + Sightengine)
+- Images screened by Sightengine **before** sending to Replicate
+- Threshold: `nudity.raw >= 0.3` → blocked (adjustable via `NSFW_RAW_THRESHOLD`)
+- Blocked images create an `infringements` record in Supabase
+- After 3 violations (`INFRINGEMENT_BAN_THRESHOLD`), user is banned (`users.banned_at` set)
+- Banned users receive 403: "Your account has been suspended due to repeated policy violations."
 
-### 2. Authentication (`api/utils/auth.ts`)
-- **JWT token verification** (if `JWT_SECRET` is set)
-- **Multiple auth methods**:
-  - `X-User-Id` header (for development)
-  - `Authorization: Bearer <token>` header (JWT)
-  - `userId` in request body/query
-- **UUID format validation** for user IDs
+### 5. HTTPS Enforcement (`apps/mobile/App.js`)
+- App checks `API_BASE` on startup; throws an error if HTTP is used in non-localhost environments
+- Prevents accidental misconfiguration sending data over unencrypted connections
 
-**Usage:**
-```typescript
-import { requireAuth } from './utils/auth';
-
-const userId = requireAuth(req, res);
-if (!userId) return; // Response already sent
-```
-
-### 3. Security Headers (`api/utils/security.ts`)
+### 6. Security Headers (`api/utils/security.ts`)
 - **HSTS** (HTTP Strict Transport Security)
 - **Content Security Policy** (CSP)
 - **X-Content-Type-Options** (prevent MIME sniffing)
@@ -46,147 +59,73 @@ if (!userId) return; // Response already sent
 - **Referrer-Policy**
 - **Permissions-Policy**
 
-**Usage:**
-```typescript
-import { setSecurityHeaders, setCorsHeaders } from './utils/security';
-
-setSecurityHeaders(res);
-setCorsHeaders(res, allowedOrigin);
-```
-
-### 4. Input Sanitization (`api/utils/security.ts`)
+### 7. Input Sanitization (`api/utils/security.ts`)
 - **String sanitization** (removes XSS vectors)
 - **URL sanitization** (validates protocol, length)
 - **Max length limits**
 
-**Usage:**
-```typescript
-import { sanitizeString, sanitizeUrl } from './utils/security';
+### 8. Safe Error Handling (`api/utils/security.ts`)
+- Production hides internal error details
+- Development mode shows full details for debugging
 
-const safeString = sanitizeString(userInput);
-const safeUrl = sanitizeUrl(userInput);
-```
+### 9. Rate Limiting
+- Per-IP and per-user rate limiting
+- Burst protection by tier
+- Daily safety limits
 
-### 5. Error Handling (`api/utils/security.ts`)
-- **Safe error responses** (no internal details leaked)
-- **Development mode** shows details, production hides them
+### 10. Middleware Helpers (`api/utils/middleware.ts`)
+- Combined CORS, security headers, and OPTIONS handling
+- Request body parsing with error handling
+- Request validation helpers
 
-**Usage:**
-```typescript
-import { safeErrorResponse } from './utils/security';
-
-return safeErrorResponse(res, 500, 'Internal error', err.message);
-```
-
-### 6. Middleware Helpers (`api/utils/middleware.ts`)
-- **Combined middleware** for CORS, security headers, OPTIONS
-- **Request body parsing** with error handling
-- **Request validation** helpers
-
-**Usage:**
-```typescript
-import { applyMiddleware, parseBody, validateGenerateRequest } from './utils/middleware';
-
-if (!applyMiddleware(req, res, ['POST', 'OPTIONS'])) return;
-
-const bodyResult = parseBody(req);
-if (!bodyResult.success) {
-  return res.status(bodyResult.status).json({ ok: false, error: bodyResult.error });
-}
-
-const validation = validateGenerateRequest(bodyResult.data);
-if (!validation.success) {
-  return res.status(400).json({ ok: false, error: validation.error });
-}
-```
+---
 
 ## 🔧 Environment Variables
 
-Add these to your Vercel project:
-
 ```bash
-# JWT Secret (for token-based auth)
+# JWT
 JWT_SECRET=your-secret-key-here
-# OR use AUTH_SECRET (alternative name)
 
 # CORS
 ALLOWED_ORIGIN=https://funnyfyapp.vercel.app
-# Use '*' for development, specific origin for production
+
+# NSFW Moderation
+SIGHTENGINE_API_USER=your-api-user
+SIGHTENGINE_API_SECRET=your-api-secret
+
+# RevenueCat Webhook
+REVENUECAT_WEBHOOK_SECRET=your-webhook-secret
+
+# Database
+DATABASE_URL=your-supabase-url
+
+# Cost Protection
+DAILY_SPENDING_CAP=100
 ```
 
-## 📝 Next Steps
-
-### To Apply Security to Existing Endpoints
-
-1. **Update `api/test.ts`**:
-   ```typescript
-   import { applyMiddleware, parseBody, validateGenerateRequest } from './utils/middleware';
-   import { requireAuth } from './utils/auth';
-   import { safeErrorResponse } from './utils/security';
-
-   export default async function handler(req, res) {
-     if (!applyMiddleware(req, res, ['POST', 'OPTIONS'])) return;
-     
-     const userId = requireAuth(req, res);
-     if (!userId) return;
-     
-     const bodyResult = parseBody(req);
-     if (!bodyResult.success) {
-       return safeErrorResponse(res, bodyResult.status, bodyResult.error);
-     }
-     
-     const validation = validateGenerateRequest(bodyResult.data);
-     if (!validation.success) {
-       return safeErrorResponse(res, 400, validation.error);
-     }
-     
-     // ... rest of handler
-   }
-   ```
-
-2. **Update `api/enqueue.ts`** (similar pattern)
-
-3. **Update `api/usage.ts`**:
-   ```typescript
-   import { applyMiddleware } from './utils/middleware';
-   import { requireAuth } from './utils/auth';
-
-   export default async function handler(req, res) {
-     if (!applyMiddleware(req, res, ['GET', 'OPTIONS'])) return;
-     
-     const userId = requireAuth(req, res);
-     if (!userId) return;
-     
-     // ... rest of handler
-   }
-   ```
-
-4. **Update `api/user/subscription.ts`** (similar pattern)
-
-## 🔒 Security Best Practices
-
-1. **Always validate input** using Zod schemas
-2. **Always sanitize user input** before using in queries
-3. **Never expose internal errors** in production
-4. **Use parameterized queries** (already done via `query()` helper)
-5. **Set security headers** on all responses
-6. **Rate limit** all endpoints (already implemented)
-7. **Require authentication** for all user-facing endpoints
+---
 
 ## 🚨 Security Checklist
 
 - [x] Input validation (Zod)
-- [x] Authentication middleware
+- [x] Authentication middleware (JWT)
+- [x] Auth service with local fallback (mobile)
 - [x] Security headers
 - [x] Input sanitization
 - [x] Safe error handling
-- [ ] Apply to all endpoints (in progress)
-- [ ] JWT token generation endpoint
-- [ ] Rate limiting improvements (Redis-based)
-- [ ] Security logging
-- [ ] Admin authentication
+- [x] Image MIME/size/magic byte validation
+- [x] NSFW moderation (Sightengine)
+- [x] Infringement tracking and user bans
+- [x] HTTPS enforcement (mobile)
+- [x] Rate limiting
+- [x] Security logging (Supabase security_logs table)
+- [ ] JWT token generation for admin (in progress)
+- [ ] Redis-based rate limiting (planned)
+- [ ] Formal security audit (pre-launch)
 
-## 📚 Dependencies Added
+---
+
+## 📚 Dependencies
 
 ```json
 {
@@ -196,4 +135,6 @@ ALLOWED_ORIGIN=https://funnyfyapp.vercel.app
 }
 ```
 
-Run `npm install` to install these dependencies.
+---
+
+**Last Updated**: May 2026

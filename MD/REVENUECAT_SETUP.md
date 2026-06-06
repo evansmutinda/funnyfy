@@ -234,5 +234,24 @@ See **`MD/REVENUECAT_GOOGLE_PLAY_CREDENTIALS_FIX.md`** for the full step-by-step
 
 ---
 
-**Last Updated**: January 2025
+## 6. Key Changes Since Initial Setup
+
+### Tier Selection Fix
+The `handleSubscribe` function in `App.js` was fixed to correctly match the selected plan tier to the right RevenueCat package. Previously it always purchased the first available package regardless of which plan the user tapped.
+
+### Restore Purchases Button
+A **Restore Purchases** button (black, matching design system) was added to the Subscription screen. This is required by both Google Play and App Store policies. It calls `restorePurchases()` from `services/revenuecat.js`.
+
+### Refresh Button
+A **Refresh** button (black) was also added to let users manually sync their subscription status from RevenueCat.
+
+### RevenueCat + Auth Integration
+The RevenueCat anonymous user ID is now passed to `/api/auth/token` on app startup. This links the RevenueCat subscription to the Supabase user record from the beginning.
+
+### Cancel Subscription (Production)
+The `/api/cancel-subscription` endpoint was previously blocked in production (returned 403). It is now fully production-ready and works for real users.
+
+---
+
+**Last Updated**: May 2026
 

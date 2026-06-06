@@ -108,6 +108,29 @@ Before providing any code or technical solution:
 
 ---
 
-**Last Updated**: Current Date
+## Project-Specific Technical Constraints
+
+### Expo SDK Version
+- **Currently on SDK 52** — do NOT suggest upgrading to 53 or 54
+- SDK 53 introduces React 19 and breaking changes in `expo-file-system` and `expo-image-picker`
+- RevenueCat and some other libraries have not fully caught up
+- Rule: **ship on SDK 52, upgrade post-launch when stable**
+
+### Authentication
+- JWT-based anonymous auth system is in place (`services/auth.js`)
+- No email/password login exists yet
+- Do NOT suggest integrating Supabase Auth or Clerk unless the user specifically asks
+
+### Alert System
+- All `Alert.alert` calls have been replaced with the custom Toast/ConfirmDialog system
+- Never suggest using `Alert.alert` in new code — always use `showToast` or `showConfirm` from `NotificationContext`
+
+### File Writing
+- The `Filesystem:write_file` tool completely overwrites files — always read the current content first if unsure
+- Use `Filesystem:edit_file` for targeted changes to avoid losing existing content
+
+---
+
+**Last Updated**: May 2026
 **Purpose**: Reference guide for providing development assistance to non-programmer user
 

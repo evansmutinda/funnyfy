@@ -1,35 +1,48 @@
 # FunnyFy App - Current Status
 
-**Last Updated**: February 2025  
-**Version**: 1.0.1 (Android versionCode: 2)  
-**Status**: Post-MVP – Subscription & UI Polish Complete
+**Last Updated**: May 2026
+**Version**: 1.0.2 (Android versionCode: 5, iOS buildNumber: 2)
+**Status**: Feature-Complete – Ready for App Store Submission
 
 ---
 
 ## 🎯 Overview
 
-FunnyFy is a React Native mobile application that transforms user photos into AI-generated caricatures using the Replicate API. The app has subscription integration via RevenueCat, usage tracking, quota enforcement, and a polished UI.
+FunnyFy is a React Native mobile application that transforms user photos into AI-generated caricatures using the Replicate API. The app has subscription integration via RevenueCat, usage tracking, quota enforcement, NSFW moderation, JWT authentication, and a fully polished UI.
 
 ---
 
 ## ✅ Completed Features
 
-### Mobile App (React Native/Expo)
+### Mobile App (React Native/Expo SDK 52)
 - ✅ Cross-platform app (Android & iOS)
 - ✅ Splash screen with branding
 - ✅ Style selection screen with 21 styles and preview images
 - ✅ Image upload (camera & gallery)
-- ✅ Real-time generation with progress tracking
-- ✅ Before/after comparison slider
-- ✅ Save to device functionality
+- ✅ **Pulsing squares loading animation** (4 squares fading black→grey in sequence)
+- ✅ Before/after comparison slider (drag to compare)
+- ✅ Save to device functionality (no system prompt)
 - ✅ Share functionality
 - ✅ Error handling and user feedback
-- ✅ **Retry logic**: Up to 3 attempts on failure; after 3rd, shows "Please try again later" with billing confirmation (failed runs not charged)
-- ✅ **Save before navigate**: Prompts to save when leaving result screen with unsaved image (Back, Home, hardware back)
-- ✅ **Processing indicator**: Pulsing "Processing…" text during generation
-- ✅ **Plan badge as progress bar**: Combined badge + quota progress in one pill (Upload & Result screens)
-- ✅ **RevenueCat integration**: Subscriptions, trial, tier management
-- ✅ **Safe area handling**: Bottom insets prevent overlap with navigation bar (48px Android, 34px iOS min)
+- ✅ **Modal dialog for NSFW errors** (white card style, "Try again" returns to upload)
+- ✅ **Network error dialog** on app launch with no connectivity
+- ✅ Safe area handling: Bottom insets prevent overlap with navigation bar
+- ✅ **Gallery screen**: Grid of saved caricatures, full-screen viewer, ✕ to close, 🗑 to clear all
+- ✅ **Toast notification system**: Beautiful in-app toasts replace all system Alert.alert calls
+- ✅ **ConfirmDialog component**: Custom modal with optional neutral 3rd button (e.g., Save / Discard / Cancel)
+- ✅ **NotificationContext**: App-wide toast/notification state, shared across all screens via React Context
+- ✅ **Full Privacy Policy**: 13-section comprehensive policy, hosted in-app
+- ✅ **Full Terms of Service**: 13-section comprehensive terms, hosted in-app
+- ✅ **Menu with Feather icons**: Thin-stroke outline icons, clean styling
+- ✅ **Centered style labels**: Style picker text centered under cards with improved typography
+
+### Auth System
+- ✅ `services/auth.js` — JWT auth service, persisted on device
+- ✅ Backend creates real user in Supabase DB on first launch (`/api/auth/token`)
+- ✅ JWT token stored in device filesystem (not AsyncStorage)
+- ✅ Local UUID fallback: if backend/DB is down, app still works with a locally generated ID
+- ✅ `resetAuthIfLocal()` helper to force re-auth when DB recovers
+- ✅ RevenueCat anonymous user ID passed to backend on auth (links subscription to user)
 
 ### Paywall / Subscription UI
 - ✅ Subscription screen with Current Plan, Usage This Month, Available Plans
@@ -38,6 +51,10 @@ FunnyFy is a React Native mobile application that transforms user photos into AI
 - ✅ Date format: dd/mmm/yyyy (e.g. 10/Feb/2025)
 - ✅ "Most popular" ribbon on Popular tier
 - ✅ Polished paywall: light background, header tagline, card shadows, consistent styling
+- ✅ **Restore Purchases button**: Black button, required for Play Store policy
+- ✅ **Refresh button**: Black button, refreshes subscription status from RevenueCat
+- ✅ **Tier selection fix**: handleSubscribe correctly matches selected plan to RevenueCat package
+- ✅ **Subscription cancellation**: Production-ready `/api/cancel-subscription` endpoint
 
 ### Backend (Vercel Serverless)
 - ✅ Serverless API endpoints
@@ -48,64 +65,72 @@ FunnyFy is a React Native mobile application that transforms user photos into AI
 - ✅ 21 styles with protected prompts
 - ✅ Usage tracking, quota enforcement
 - ✅ Replicate status handling: succeeded/failed/canceled; usage incremented only on success
+- ✅ **JWT auth endpoint** (`/api/auth/token`): Creates/returns user in Supabase, issues JWT
+- ✅ **NSFW moderation** (Sightengine): Blocks explicit images before Replicate, shows clean modal dialog, **no retry limit**
+- ✅ **Image upload validation** (in `api/test.ts`): MIME type check, 10MB size limit, magic byte verification (JPEG/PNG/WEBP/GIF)
+- ✅ **Cancel subscription endpoint** (`/api/cancel-subscription`): Production-ready
+- ✅ **Admin dashboard** (`/admin/login`): Login, queue stats, security logs
 
 ### Database (Supabase)
-- ✅ `users` – user accounts, trial/subscription state
-- ✅ `subscriptions` – active subscriptions, tier, period end
+- ✅ `users` – user accounts, trial/subscription state, `banned_at` for bans
+- ✅ `subscriptions` – active subscriptions, tier, period end, `pending_tier`
 - ✅ `usage_tracking` – monthly generation count per user
-- ✅ `jobs` – generation job tracking
+- ✅ `jobs` – generation job tracking with priority queue
 - ✅ `rate_limits` – IP rate limiting
+- ✅ `infringements` – NSFW violation records; 3 violations = ban
+- ✅ `subscription_history` – audit trail for subscription changes
+- ✅ `cost_tracking` – Replicate API cost per job
+- ✅ `security_logs` – auth, rate limit, webhook security events
 
 ### Styles (21 Total)
-1. 90s Cartoon  
-2. Chibi  
-3. Neon  
-4. Anime  
-5. Custom 1  
-6. 3D Clay  
-7. Oil Paint  
-8. Low-Poly Cartoon  
-9. Water Color  
-10. Pixar-like  
-11. Funko Pop  
-12. Custom 2  
-13. Neanderthal  
-14. Neanderthal 3D  
-15. Hand-Drawn  
-16. Superhero  
-17. Super Villain  
-18. Cyborg  
+1. 90s Cartoon
+2. Chibi
+3. Neon
+4. Anime
+5. Custom 1
+6. 3D Clay
+7. Oil Paint
+8. Low-Poly Cartoon
+9. Water Color
+10. Pixar-like
+11. Funko Pop
+12. Custom 2
+13. Neanderthal
+14. Neanderthal 3D
+15. Hand-Drawn
+16. Superhero
+17. Super Villain
+18. Cyborg
 
 **Models Used**: `black-forest-labs/flux-kontext-pro` and `google/nano-banana`
 
 ---
 
-## 📱 Recent UI/UX Changes (Feb 2025)
+## 📱 Recent UI/UX Changes (v1.0.2)
 
 | Change | Description |
 |--------|-------------|
-| **Retry flow** | 3 retries on failure; after 3rd, user-friendly message + billing confirmation |
-| **Save before leave** | Alert (Save / Discard / Cancel) when navigating away with unsaved result |
-| **Processing pulse** | "Processing…" text fades in/out (800ms cycle) during generation |
-| **Badge as progress bar** | Plan badge (e.g. Popular • 89/100) doubles as a filled progress bar |
-| **Running low** | Removed intrusive "Running low - Upgrade now" banner; kept progress bar + badge |
-| **Bottom insets** | Fixed overlap with navigation bar (Android 48px, iOS 34px minimum) |
-| **Paywall** | Polished UI, prices $5/$10/$25, benefits removed, date format dd/mmm/yyyy |
-| **Subscription cards** | Usage card matches plan card styling (border, shadows, typography) |
+| **NSFW modal dialog** | Inappropriate images now show a clean white modal ("Image not supported" / "Try again" returns to upload) instead of amber error card + toast |
+| **No save prompt** | Photos save silently to camera roll — Android "Allow Expo Go to modify?" prompt removed |
+| **Pulsing squares loader** | 4 black squares pulse black→grey in sequence during generation (replaced pulsing text) |
+| **Network error dialog** | White modal appears on launch if no internet: "No internet connection" with "OK" button |
+| **Menu icons** | Feather thin-stroke outline icons (image, star, shield, file-text, info) with proper spacing |
+| **Dialog styling** | All modals match reference style: larger bold title (20px), lighter grey message (15px), bigger buttons |
+| **Style picker text** | Centered labels under cards, semibold weight (600), letter spacing 0.2 |
+| **Toast error color** | Error toasts use warm amber (#F59E0B) instead of harsh red |
+| **Retry limit removed** | Users can retry NSFW errors unlimited times (no 3-attempt block) |
 
 ---
 
-## 🚧 In Progress / Planned
+## 🚧 Deferred / Future
 
-### Deferred / Future
-- [ ] E003 high-demand error: friendly "generators busy" message (vs generic error)
+- [ ] E003 high-demand error: friendly "generators busy" message
 - [ ] Save notification: system notification with full path, tap to open photo
-- [x] NSFW content blocking (Sightengine – server-side before Replicate)
-
-### Pre-Production
-- [ ] Error tracking (e.g. Sentry)
+- [ ] Error tracking (Sentry)
 - [ ] Analytics
-- [ ] Security audit
+- [ ] Security audit (formal)
+- [ ] Full real authentication (Supabase Auth / Clerk) — currently using JWT with local fallback
+- [ ] Subscription trial (time-based 3-day trial via Play Store)
 
 ---
 
@@ -116,16 +141,22 @@ FunnyFy is a React Native mobile application that transforms user photos into AI
 - [x] Subscription tiers (RevenueCat)
 - [x] Usage quota system (50/100/250 per month)
 - [x] Rate limiting
+- [x] NSFW moderation (Sightengine)
+- [x] JWT authentication
+- [x] Image upload validation
+- [x] Toast/dialog UX system
+- [x] Network error handling
+- [x] Silent photo saves (no system prompts)
 - [ ] Error tracking (Sentry)
 - [ ] Analytics
-- [ ] Performance optimization
 - [ ] Security audit
 
 ### Business
 - [x] Finalize pricing ($5/$10/$25)
-- [ ] Privacy policy
-- [ ] Terms of service
-- [ ] App store assets
+- [x] Privacy policy (in-app, full 13-section)
+- [x] Terms of service (in-app, full 13-section)
+- [ ] Host Privacy Policy on public URL (required for Play Store listing)
+- [ ] App store assets (screenshots, icon, description)
 - [ ] Marketing materials
 
 ### App Store
@@ -138,11 +169,11 @@ FunnyFy is a React Native mobile application that transforms user photos into AI
 
 ## 💰 Pricing (Finalized)
 
-| Tier   | Price | Images/Month | Cost   | Profit | Margin |
-|--------|-------|--------------|--------|--------|--------|
-| Starter | $5   | 50           | $2.00  | $3.00  | 60%    |
-| Popular | $10  | 100          | $4.00  | $6.00  | 60%    |
-| Pro     | $25  | 250          | $10.00 | $15.00 | 60%    |
+| Tier    | Price | Images/Month | Cost   | Profit | Margin |
+|---------|-------|--------------|--------|--------|--------|
+| Starter | $5    | 50           | $2.00  | $3.00  | 60%    |
+| Popular | $10   | 100          | $4.00  | $6.00  | 60%    |
+| Pro     | $25   | 250          | $10.00 | $15.00 | 60%    |
 
 **Note**: No yearly plans initially.
 
@@ -151,40 +182,41 @@ FunnyFy is a React Native mobile application that transforms user photos into AI
 ## 🏗️ Architecture
 
 ### Current Stack
-- **Mobile**: React Native (Expo)
+- **Mobile**: React Native (Expo SDK 52)
 - **Backend**: Vercel serverless (Node.js/TypeScript)
 - **API**: Replicate for image generation
 - **Database**: Supabase (Postgres)
 - **Subscriptions**: RevenueCat
+- **Auth**: Custom JWT (backend `/api/auth/token`)
+- **NSFW**: Sightengine
 - **Hosting**: Vercel (API + Admin dashboard)
+- **Animations**: react-native-reanimated (skeleton/pulsing loaders)
 
 ### Key Endpoints
 - `GET /api/styles` – style catalog
 - `POST /api/test` – generation (sync poll)
 - `GET /api/user/subscription` – subscription + usage
 - `POST /api/sync-subscription` – RevenueCat sync
-
----
-
-## 📊 Key Metrics (Post-Launch)
-
-- API response time, job completion rate
-- App crash rate, upload success rate
-- DAU/MAU, subscription conversion, MRR
-- Generations per user, popular styles
+- `POST /api/auth/token` – JWT auth (creates user in DB)
+- `POST /api/cancel-subscription` – cancel active subscription
+- `POST /api/webhooks/revenuecat` – RevenueCat event webhook
+- `GET /admin/login` – admin dashboard
 
 ---
 
 ## 📝 Notes
 
-- **App name**: FunnyFy  
-- **Package**: `com.evansks.funnyfyapp`  
-- **Staging**: `https://funnyfy-staging.vercel.app`  
-- **Production**: `https://funnyfyapp.vercel.app`  
-- **Admin**: `/admin/login`  
-- **Cost per generation**: ~$0.04  
+- **App name**: FunnyFy
+- **Package**: `com.evansks.funnyfyapp`
+- **Version**: 1.0.2 (versionCode: 5, buildNumber: 2)
+- **Staging**: `https://funnyfy-staging.vercel.app`
+- **Production**: `https://funnyfyapp.vercel.app`
+- **Admin**: `/admin/login`
+- **Cost per generation**: ~$0.04
 - **Failed Replicate runs**: Not billed (see `MD/REPLICATE_BILLING_FAILED_RUNS.md`)
+- **Expo SDK**: 52 (intentionally not upgraded — SDK 53/54 have breaking changes)
+- **User is non-programmer**: All AI assistance should use plain language and step-by-step explanations
 
 ---
 
-**Status**: Subscription and core UX complete; ready for production testing and app store submission.
+**Status**: Feature-complete. Ready for app store submission and production launch.
