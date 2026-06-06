@@ -12,13 +12,13 @@ export const styleIdSchema = z
   .max(50, 'Style ID too long')
   .regex(/^[a-z0-9-]+$/, 'Style ID must be lowercase alphanumeric with hyphens only');
 
-// URL validation
+// Image URL validation — accepts both https:// URLs and base64 data URLs
 export const urlSchema = z
   .string()
-  .url('Invalid URL format')
-  .max(2048, 'URL too long')
+  .max(10 * 1024 * 1024, 'URL too long') // 10MB max for base64 images
   .refine(
     (url) => {
+      if (url.startsWith('data:image/')) return true; // base64 data URL
       try {
         const parsed = new URL(url);
         return parsed.protocol === 'http:' || parsed.protocol === 'https:';
@@ -26,7 +26,7 @@ export const urlSchema = z
         return false;
       }
     },
-    { message: 'URL must use http or https protocol' }
+    { message: 'Invalid image URL. Must be a https:// URL or base64 data URL.' }
   );
 
 // Image generation request schema
