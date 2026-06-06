@@ -152,13 +152,13 @@ export async function getSpendingStats(days: number = 7): Promise<{
       [since.toISOString().slice(0, 10)]
     );
 
-    const daily = result.rows.map((row) => ({
+    const daily = result.rows.map((row: { date: string; total_cost: number; job_count: number }) => ({
       date: row.date,
       cost: Number(row.total_cost),
       jobs: Number(row.job_count),
     }));
 
-    const total = daily.reduce((sum, day) => sum + day.cost, 0);
+    const total = daily.reduce((sum: number, day: { cost: number }) => sum + day.cost, 0);
     const average = daily.length > 0 ? total / daily.length : 0;
 
     return { daily, total, average };

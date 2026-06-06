@@ -79,7 +79,7 @@ export default async function handler(
         queuePosition = queueResult.rows[0]?.count ?? 0;
 
         // Use improved wait time estimation based on historical data
-        estimatedWaitTime = await getEstimatedWaitTime(queuePosition);
+        estimatedWaitTime = await getEstimatedWaitTime(queuePosition ?? 0);
       } catch (queueErr) {
         console.error('[job] Failed to compute queue position:', queueErr);
         queuePosition = null;

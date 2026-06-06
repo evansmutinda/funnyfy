@@ -82,7 +82,14 @@ export default async function handler(
 
     let subscription = null;
     if (subscriptionResult.rows.length > 0) {
-      const sub = subscriptionResult.rows[0] as { pending_tier?: string | null };
+      const sub = subscriptionResult.rows[0] as {
+        tier: string;
+        status: string;
+        current_period_start: string;
+        current_period_end: string;
+        cancel_at_period_end: boolean;
+        pending_tier?: string | null;
+      };
       subscription = {
         tier: sub.tier,
         status: sub.status,

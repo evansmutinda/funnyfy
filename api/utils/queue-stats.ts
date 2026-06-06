@@ -32,7 +32,7 @@ export async function getQueueStats(): Promise<QueueStats> {
     );
 
     const counts: Record<string, number> = {};
-    statusResult.rows.forEach((row) => {
+    statusResult.rows.forEach((row: { status: string; count: number }) => {
       counts[row.status] = row.count;
     });
 
@@ -52,7 +52,7 @@ export async function getQueueStats(): Promise<QueueStats> {
       low: 0, // priority < 5
     };
 
-    priorityResult.rows.forEach((row) => {
+    priorityResult.rows.forEach((row: { priority: number; count: number }) => {
       if (row.priority >= 10) {
         byPriority.high += row.count;
       } else if (row.priority >= 5) {

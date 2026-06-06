@@ -330,7 +330,7 @@ async function handleInitialPurchase(event: any, eventId: string) {
     ? new Date(ev.expiration_at_ms)
     : (() => {
         const ent = customerInfo?.entitlements?.active?.[productId] || 
-                    Object.values(customerInfo?.entitlements?.active || {})[0];
+                    Object.values(customerInfo?.entitlements?.active || {})[0] as any;
         return ent?.expires_date ? new Date(ent.expires_date) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
       })();
 
@@ -433,7 +433,7 @@ async function handleRenewal(event: any, eventId: string) {
     ? new Date(ev.expiration_at_ms)
     : (() => {
         const customerInfo = event.event?.customer_info || event.customer_info;
-        const entitlement = Object.values(customerInfo?.entitlements?.active || {})[0];
+        const entitlement = Object.values(customerInfo?.entitlements?.active || {})[0] as any;
         return entitlement?.expires_date ? new Date(entitlement.expires_date) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
       })();
 
