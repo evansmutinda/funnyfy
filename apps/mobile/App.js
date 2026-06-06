@@ -979,7 +979,7 @@ function GalleryScreen({ onBack }) {
                     setViewerVisible(true);
                   }}
                   onLongPress={() => handleDelete(item)}
-                  activeOpacity={0.85}
+                  activeOpacity={1}
                 >
                   <Image source={{ uri: item.imageUrl }} style={styles.galleryItemImage} />
                   <View style={styles.galleryItemLabel}>
