@@ -1,4 +1,10 @@
 {
+  "crons": [
+    {
+      "path": "/api/cron/process-queue",
+      "schedule": "* * * * *"
+    }
+  ],
   "functions": {
     "api/enqueue.ts": {
       "maxDuration": 10
