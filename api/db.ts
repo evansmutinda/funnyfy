@@ -7,7 +7,7 @@
 // In Supabase:
 //   Project Settings → Database → Connection string → URI
 
-import { Pool, QueryResult } from 'pg';
+import { Pool, QueryResult, QueryResultRow } from 'pg';
 
 let cachedPool: Pool | null = null;
 
@@ -35,7 +35,7 @@ function getPool(): Pool {
   return cachedPool;
 }
 
-export async function query<T = any>(
+export async function query<T extends QueryResultRow = any>(
   text: string,
   params?: any[]
 ): Promise<QueryResult<T>> {
@@ -45,7 +45,7 @@ export async function query<T = any>(
 
 // Tagged template helper:
 //   const rows = await sql`SELECT * FROM jobs WHERE status = ${'pending'}`;
-export async function sql<T = any>(
+export async function sql<T extends QueryResultRow = any>(
   strings: TemplateStringsArray,
   ...values: any[]
 ): Promise<QueryResult<T>> {
