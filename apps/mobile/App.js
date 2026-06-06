@@ -1926,7 +1926,7 @@ function AppContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [failedAttempts, setFailedAttempts] = useState(0);
-  const [pendingImageDataUrl, setPendingImageDataUrl] = useState(null);
+  const [pendingJobId, setPendingJobId] = useState(null);
   const [job, setJob] = useState(null);
   const [availableStyles, setAvailableStyles] = useState([]);
   const [subscribeLoading, setSubscribeLoading] = useState(false);
@@ -2191,6 +2191,7 @@ function AppContent() {
           if (!jobId) {
             throw new Error('No job ID returned from server');
           }
+          setPendingJobId(jobId); // store so retry can resume polling
 
           // Step 2: Poll for job completion
           const terminalStatuses = new Set(['completed', 'failed']);
@@ -2510,7 +2511,7 @@ function AppContent() {
 
   const handleUploadStart = async ({ imageUri, imageDataUrl }) => {
     setOriginal({ imageUri, prompt: style?.prompt });
-    setPendingImageDataUrl(imageDataUrl);
+    setPendingJobId(null); // will be set after enqueue
     setFailedAttempts(0);
     setError('');
     setScreen('result');
@@ -2518,10 +2519,44 @@ function AppContent() {
   };
 
   const handleRetry = async () => {
-    if (!pendingImageDataUrl) return;
-    setError('');
-    setLoading(true);
-    await callApi({ imageDataUrl: pendingImageDataUrl });
+    // If there's a pending job still in the queue, poll it instead of creating a new one
+    if (pendingJobId) {
+      setError('');
+      setLoading(true);
+      const terminalStatuses = new Set(['completed', 'failed']);
+      const maxAttempts = 40;
+      try {
+        for (let attempt = 0; attempt < maxAttempts; attempt++) {
+          const jobRes = await fetch(`${API_BASE}/api/job?id=${encodeURIComponent(pendingJobId)}`, {
+            method: 'GET',
+            headers: getApiHeaders(),
+          });
+          const jobData = await jobRes.json();
+          const jobInfo = jobData.job;
+          if (terminalStatuses.has(jobInfo.status)) {
+            if (jobInfo.status === 'completed' && jobInfo.outputImageUrl) {
+              setResult({ status: 'succeeded', output: jobInfo.outputImageUrl });
+              setFailedAttempts(0);
+              try {
+                await saveToGallery({ imageUrl: jobInfo.outputImageUrl, styleLabel: style?.label || 'Caricature', styleId: style?.id });
+              } catch {}
+              setTimeout(() => refreshSubscription(), 500);
+              return;
+            } else {
+              throw new Error(jobInfo.errorMessage || 'Image generation failed');
+            }
+          }
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+        }
+        throw new Error('Image generation timed out. Please check My Caricatures later.');
+      } catch (err) {
+        setError(err.message || 'Generation failed');
+        setFailedAttempts((prev) => prev + 1);
+      } finally {
+        setLoading(false);
+      }
+    }
+    // No pending job — user must go back and start fresh
   };
 
   useEffect(() => {
