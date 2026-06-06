@@ -222,9 +222,10 @@ Contact: ${SUPPORT_EMAIL}`;
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const BOTTOM_INSET_MIN = Platform.OS === 'android' ? 48 : 34;
 
-// Industry-standard folder for app-generated photos (e.g. Pictures/Funnyfy/)
+// Save app-generated photos to DCIM/Funnyfy/ — same top-level bucket as the
+// default createAssetAsync destination, so moves work under Android scoped storage.
 const FUNNYFY_FOLDER_NAME = 'Funnyfy';
-const FUNNYFY_ANDROID_FOLDER_PATH = `file:///storage/emulated/0/Pictures/${FUNNYFY_FOLDER_NAME}/`;
+const FUNNYFY_ANDROID_FOLDER_PATH = `file:///storage/emulated/0/DCIM/${FUNNYFY_FOLDER_NAME}/`;
 
 // Ensure the FunnyFy folder exists on Android (creates it the first time)
 async function ensureFunnyfyFolder() {
@@ -254,9 +255,9 @@ async function saveToFunnyfyAlbum(localFileUri) {
     // Then move it into Pictures/Funnyfy — createAlbumAsync moves on Android
     const existingAlbum = await MediaLibrary.getAlbumAsync(FUNNYFY_FOLDER_NAME);
     if (existingAlbum) {
-      await MediaLibrary.addAssetsToAlbumAsync([asset], existingAlbum, true);
+      await MediaLibrary.addAssetsToAlbumAsync([asset], existingAlbum, false);
     } else {
-      await MediaLibrary.createAlbumAsync(FUNNYFY_FOLDER_NAME, asset, true);
+      await MediaLibrary.createAlbumAsync(FUNNYFY_FOLDER_NAME, asset, false);
     }
     return true;
   } catch (err) {
