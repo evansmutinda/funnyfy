@@ -718,26 +718,39 @@ async function rebuildGalleryFromMediaLibrary() {
     let assets = [];
 
     try {
-      let after = undefined;
-      let hasMore = true;
-      const PAGE = 100;
-
-      while (hasMore && assets.length < GALLERY_MAX_ITEMS) {
+      // Preferred path: query the Funnyfy album directly. Picks up every asset
+      // in DCIM/Funnyfy (or wherever the album resolves) regardless of filename.
+      const album = await MediaLibrary.getAlbumAsync(FUNNYFY_FOLDER_NAME);
+      if (album) {
         const result = await MediaLibrary.getAssetsAsync({
+          album: album.id,
           mediaType: MediaLibrary.MediaType.photo,
-          first: PAGE,
-          after,
+          first: GALLERY_MAX_ITEMS,
           sortBy: MediaLibrary.SortBy.creationTime,
         });
-
-        const matching = result.assets.filter((a) =>
-          a.filename?.toLowerCase().startsWith('funnyfy')
-        );
-        assets.push(...matching);
-
-        hasMore = result.hasNextPage;
-        after = result.endCursor;
-        if (result.assets.length < PAGE) hasMore = false;
+        assets = result.assets;
+        console.log('[Gallery] Album scan found', assets.length, 'items in', FUNNYFY_FOLDER_NAME);
+      } else {
+        console.log('[Gallery] No', FUNNYFY_FOLDER_NAME, 'album found — falling back to filename scan');
+        // Fallback: scan all photos and filter by filename prefix (legacy behavior).
+        let after = undefined;
+        let hasMore = true;
+        const PAGE = 100;
+        while (hasMore && assets.length < GALLERY_MAX_ITEMS) {
+          const result = await MediaLibrary.getAssetsAsync({
+            mediaType: MediaLibrary.MediaType.photo,
+            first: PAGE,
+            after,
+            sortBy: MediaLibrary.SortBy.creationTime,
+          });
+          const matching = result.assets.filter((a) =>
+            a.filename?.toLowerCase().startsWith('funnyfy')
+          );
+          assets.push(...matching);
+          hasMore = result.hasNextPage;
+          after = result.endCursor;
+          if (result.assets.length < PAGE) hasMore = false;
+        }
       }
 
       console.log('[Gallery] Rebuilt', assets.length, 'items from media library');
@@ -978,6 +991,7 @@ function GalleryScreen({ onBack }) {
             style={{ flex: 1 }}
             contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, BOTTOM_INSET_MIN) + 16 }}
             showsVerticalScrollIndicator={false}
+            overScrollMode="never"
           >
             <View style={styles.galleryGrid}>
               {items.map((item, index) => (
@@ -991,7 +1005,11 @@ function GalleryScreen({ onBack }) {
                   onLongPress={() => handleDelete(item)}
                   android_ripple={null}
                 >
-                  <Image source={{ uri: item.imageUrl }} style={styles.galleryItemImage} />
+                  <Image
+                    source={{ uri: item.imageUrl }}
+                    style={styles.galleryItemImage}
+                    fadeDuration={0}
+                  />
                   <View style={styles.galleryItemLabel}>
                     <Text style={styles.galleryItemStyle} numberOfLines={1}>
                       {item.styleLabel || 'Caricature'}
@@ -1646,7 +1664,7 @@ function SubscriptionScreen({
   );
 }
 
-function ResultScreen({ original, result, loading, error, failedAttempts = 0, onRetry, onBack, onHome, subscriptionInfo, backHandlerRef }) {
+function ResultScreen({ original, result, loading, error, failedAttempts = 0, onRetry, onBack, onHome, subscriptionInfo, backHandlerRef, style }) {
   const insets = useSafeAreaInsets();
   const { showToast, showDialog, closeDialog } = useNotifications();
   const imageUrl = result ? getImageUrlFromOutput(result.output) : null;
@@ -1718,6 +1736,17 @@ function ResultScreen({ original, result, loading, error, failedAttempts = 0, on
       }
 
       if (saved) {
+        // Also add to the in-app "My Caricatures" gallery so it shows up there.
+        try {
+          await saveToGallery({
+            imageUrl,
+            styleLabel: style?.label || 'Caricature',
+            styleId: style?.id,
+          });
+        } catch (galleryErr) {
+          console.warn('[Gallery] in-app save failed (non-fatal):', galleryErr);
+        }
+
         setHasBeenSaved(true);
         if (!silent) {
           showToast('Saved', savedPath, 'success');
@@ -2704,6 +2733,7 @@ function AppContent() {
         onRetry={handleRetry}
         subscriptionInfo={subscriptionInfo}
         backHandlerRef={resultBackHandlerRef}
+        style={style}
         onBack={() => { setScreen('upload'); setError(''); setFailedAttempts(0); }}
         onHome={() => setScreen('style')}
       />
