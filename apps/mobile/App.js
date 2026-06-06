@@ -2152,67 +2152,103 @@ function AppContent() {
           setError('Request timed out. Please try again.');
         }, 90000);
 
-        const payload = {
-          userId: userIdRef.current,
-          payload: {
-            styleId: style.id,
-            imageUrl: imageDataUrl || null,
-          },
-        };
-
         try {
-          const res = await fetch(`${API_BASE}/api/test`, {
+          // Step 1: Enqueue the job
+          const enqueueRes = await fetch(`${API_BASE}/api/enqueue`, {
             method: 'POST',
             headers: getApiHeaders(),
-            body: JSON.stringify(payload),
+            body: JSON.stringify({
+              userId: userIdRef.current,
+              payload: {
+                styleId: style.id,
+                imageUrl: imageDataUrl || null,
+              },
+            }),
           });
 
-          const text = await res.text();
-          console.log('Result call - response text:', text);
-
-          let json = null;
+          const enqueueText = await enqueueRes.text();
+          let enqueueJson = null;
           try {
-            json = JSON.parse(text);
+            enqueueJson = JSON.parse(enqueueText);
           } catch (parseErr) {
-            console.error('Result call - JSON parse error:', parseErr);
+            console.error('Enqueue - JSON parse error:', parseErr);
             setError('Server returned invalid response. Please try again.');
             setFailedAttempts((prev) => prev + 1);
             return;
           }
 
-          if (!res.ok || !json.ok) {
+          if (!enqueueRes.ok || !enqueueJson.ok) {
             const msg =
-              json?.message ||
-              json?.error?.error ||
-              json?.error ||
-              json?.detail ||
-              `Request failed with status ${res.status}`;
+              enqueueJson?.message ||
+              enqueueJson?.error?.error ||
+              enqueueJson?.error ||
+              enqueueJson?.detail ||
+              `Request failed with status ${enqueueRes.status}`;
             throw new Error(String(msg));
           }
 
-          // Backend now returns a fully-polled prediction; use it directly
-          setResult(json.data);
-          setFailedAttempts(0);
-
-          // Save successful generation to local gallery
-          try {
-            const imageUrl = getImageUrlFromOutput(json.data?.output);
-            if (imageUrl) {
-              await saveToGallery({
-                imageUrl,
-                styleLabel: style?.label || 'Caricature',
-                styleId: style?.id,
-              });
-            }
-          } catch (galleryErr) {
-            console.warn('[Gallery] failed to save (non-fatal):', galleryErr);
+          const jobId = enqueueJson.jobId;
+          if (!jobId) {
+            throw new Error('No job ID returned from server');
           }
-          
-          // Auto-refresh subscription after successful generation
-          setTimeout(async () => {
-            console.log('[App] Auto-refreshing subscription after generation...');
-            await refreshSubscription();
-          }, 500);
+
+          // Step 2: Poll for job completion
+          const terminalStatuses = new Set(['completed', 'failed']);
+          const maxAttempts = 40; // 40 * 2s = 80s
+
+          for (let attempt = 0; attempt < maxAttempts; attempt++) {
+            const jobRes = await fetch(`${API_BASE}/api/job?id=${encodeURIComponent(jobId)}`, {
+              method: 'GET',
+              headers: getApiHeaders(),
+            });
+
+            if (!jobRes.ok) {
+              throw new Error(`Failed to check job status: HTTP ${jobRes.status}`);
+            }
+
+            const jobData = await jobRes.json();
+            if (!jobData.ok) {
+              throw new Error(jobData.error || 'Failed to check job status');
+            }
+
+            const jobInfo = jobData.job;
+
+            if (terminalStatuses.has(jobInfo.status)) {
+              if (jobInfo.status === 'completed' && jobInfo.outputImageUrl) {
+                // Success — format as Replicate-style output for result screen
+                setResult({
+                  status: 'succeeded',
+                  output: jobInfo.outputImageUrl,
+                });
+                setFailedAttempts(0);
+
+                // Save to local gallery
+                try {
+                  await saveToGallery({
+                    imageUrl: jobInfo.outputImageUrl,
+                    styleLabel: style?.label || 'Caricature',
+                    styleId: style?.id,
+                  });
+                } catch (galleryErr) {
+                  console.warn('[Gallery] failed to save (non-fatal):', galleryErr);
+                }
+
+                // Auto-refresh subscription after successful generation
+                setTimeout(async () => {
+                  console.log('[App] Auto-refreshing subscription after generation...');
+                  await refreshSubscription();
+                }, 500);
+
+                return; // Done
+              } else {
+                throw new Error(jobInfo.errorMessage || 'Image generation failed');
+              }
+            }
+
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+          }
+
+          throw new Error('Image generation timed out. Please check My Caricatures later.');
         } catch (err) {
           console.error('API error:', err);
           const errorMessage = err.message || String(err);
@@ -2245,7 +2281,7 @@ function AppContent() {
             userMessage = errorMessage;
           }
 
-          // For NSFW/inappropriate image errors, show a dialog instead of the error card
+          // For NSFW/inappropriate image errors, show a dialog
           if (userMessage.toLowerCase().includes('cannot be processed') || 
               userMessage.toLowerCase().includes('appropriate')) {
             showDialog({
