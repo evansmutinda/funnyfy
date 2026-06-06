@@ -699,66 +699,51 @@ async function saveToGallery(item) {
   }
 }
 
-// Rebuild the gallery index from the FunnyFy MediaLibrary album.
-// Called after reinstall (when AsyncStorage is empty but photos still exist on the phone).
-async function rebuildGalleryFromMediaLibrary() {
+// Scan the Funnyfy MediaLibrary album and return its assets as gallery items.
+// Does NOT write to AsyncStorage — caller decides what to do with the results.
+async function scanFunnyfyAlbumAssets() {
   try {
-    console.log('[Gallery] Starting rebuild from MediaLibrary...');
-
-    // Request permission — pass `true` for granular READ_MEDIA_IMAGES on Android 13+
     let permResult = await MediaLibrary.getPermissionsAsync();
     if (permResult.status !== 'granted') {
       permResult = await MediaLibrary.requestPermissionsAsync(true);
     }
     if (permResult.status !== 'granted') {
-      console.warn('[Gallery] No MediaLibrary permission — cannot rebuild');
       return [];
     }
 
     let assets = [];
-
-    try {
-      // Preferred path: query the Funnyfy album directly. Picks up every asset
-      // in DCIM/Funnyfy (or wherever the album resolves) regardless of filename.
-      const album = await MediaLibrary.getAlbumAsync(FUNNYFY_FOLDER_NAME);
-      if (album) {
+    const album = await MediaLibrary.getAlbumAsync(FUNNYFY_FOLDER_NAME);
+    if (album) {
+      const result = await MediaLibrary.getAssetsAsync({
+        album: album.id,
+        mediaType: MediaLibrary.MediaType.photo,
+        first: GALLERY_MAX_ITEMS,
+        sortBy: MediaLibrary.SortBy.creationTime,
+      });
+      assets = result.assets;
+    } else {
+      // Fallback: filename-prefix scan in case the album hasn't been registered yet.
+      let after = undefined;
+      let hasMore = true;
+      const PAGE = 100;
+      while (hasMore && assets.length < GALLERY_MAX_ITEMS) {
         const result = await MediaLibrary.getAssetsAsync({
-          album: album.id,
           mediaType: MediaLibrary.MediaType.photo,
-          first: GALLERY_MAX_ITEMS,
+          first: PAGE,
+          after,
           sortBy: MediaLibrary.SortBy.creationTime,
         });
-        assets = result.assets;
-        console.log('[Gallery] Album scan found', assets.length, 'items in', FUNNYFY_FOLDER_NAME);
-      } else {
-        console.log('[Gallery] No', FUNNYFY_FOLDER_NAME, 'album found — falling back to filename scan');
-        // Fallback: scan all photos and filter by filename prefix (legacy behavior).
-        let after = undefined;
-        let hasMore = true;
-        const PAGE = 100;
-        while (hasMore && assets.length < GALLERY_MAX_ITEMS) {
-          const result = await MediaLibrary.getAssetsAsync({
-            mediaType: MediaLibrary.MediaType.photo,
-            first: PAGE,
-            after,
-            sortBy: MediaLibrary.SortBy.creationTime,
-          });
-          const matching = result.assets.filter((a) =>
-            a.filename?.toLowerCase().startsWith('funnyfy')
-          );
-          assets.push(...matching);
-          hasMore = result.hasNextPage;
-          after = result.endCursor;
-          if (result.assets.length < PAGE) hasMore = false;
-        }
+        const matching = result.assets.filter((a) =>
+          a.filename?.toLowerCase().startsWith('funnyfy')
+        );
+        assets.push(...matching);
+        hasMore = result.hasNextPage;
+        after = result.endCursor;
+        if (result.assets.length < PAGE) hasMore = false;
       }
-
-      console.log('[Gallery] Rebuilt', assets.length, 'items from media library');
-    } catch (e) {
-      console.warn('[Gallery] MediaLibrary scan failed:', e.message);
     }
 
-    const rebuilt = assets.map((asset) => ({
+    return assets.map((asset) => ({
       id: `media_${asset.id}`,
       imageUrl: asset.uri,
       remoteUrl: null,
@@ -767,32 +752,51 @@ async function rebuildGalleryFromMediaLibrary() {
       styleId: null,
       createdAt: asset.creationTime,
     }));
-
-    if (rebuilt.length > 0) {
-      await AsyncStorage.setItem(GALLERY_STORAGE_KEY, JSON.stringify(rebuilt));
-      console.log('[Gallery] Rebuilt and saved', rebuilt.length, 'items');
-    }
-
-    return rebuilt;
   } catch (err) {
-    console.warn('[Gallery] rebuildGalleryFromMediaLibrary error:', err.message || err);
+    console.warn('[Gallery] scanFunnyfyAlbumAssets error:', err.message || err);
     return [];
   }
+}
+
+// Rebuild the gallery index from the FunnyFy MediaLibrary album.
+// Called after reinstall (when AsyncStorage is empty but photos still exist on the phone).
+async function rebuildGalleryFromMediaLibrary() {
+  console.log('[Gallery] Starting rebuild from MediaLibrary...');
+  const rebuilt = await scanFunnyfyAlbumAssets();
+  if (rebuilt.length > 0) {
+    await AsyncStorage.setItem(GALLERY_STORAGE_KEY, JSON.stringify(rebuilt));
+    console.log('[Gallery] Rebuilt and saved', rebuilt.length, 'items');
+  }
+  return rebuilt;
 }
 
 async function loadGallery() {
   try {
     const data = await AsyncStorage.getItem(GALLERY_STORAGE_KEY);
-    const items = data ? JSON.parse(data) : [];
+    const storedItems = data ? JSON.parse(data) : [];
 
-    // If nothing in storage (e.g. after reinstall), try to rebuild from the FunnyFy album
-    if (items.length === 0) {
-      return await rebuildGalleryFromMediaLibrary();
+    // Always also scan the Funnyfy album so existing pics on the device get picked
+    // up even when AsyncStorage already has entries (e.g. after reinstall + at least
+    // one new save). Merge by deduplicating on imageUrl/remoteUrl.
+    const albumItems = await scanFunnyfyAlbumAssets();
+
+    // Build a set of identifiers already in stored items so we don't duplicate.
+    const seen = new Set();
+    for (const it of storedItems) {
+      if (it.imageUrl) seen.add(it.imageUrl);
+      if (it.remoteUrl) seen.add(it.remoteUrl);
     }
+    const newFromAlbum = albumItems.filter((a) => !seen.has(a.imageUrl));
+
+    // Merge: stored items first (preserves user's styleLabel/styleId metadata),
+    // then any album-only items, then sort newest-first and cap to max.
+    const merged = [...storedItems, ...newFromAlbum]
+      .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+      .slice(0, GALLERY_MAX_ITEMS);
 
     // Filter out items whose local file no longer exists (e.g. user cleared app data)
     const verified = [];
-    for (const item of items) {
+    for (const item of merged) {
       if (item.isLocal && item.imageUrl?.startsWith('file://')) {
         try {
           const info = await FileSystem.getInfoAsync(item.imageUrl);
@@ -811,8 +815,8 @@ async function loadGallery() {
       }
     }
 
-    // If items were dropped, persist the cleaned list
-    if (verified.length !== items.length) {
+    // Persist the merged + verified list so subsequent loads are fast.
+    if (verified.length !== storedItems.length) {
       await AsyncStorage.setItem(GALLERY_STORAGE_KEY, JSON.stringify(verified));
     }
 
