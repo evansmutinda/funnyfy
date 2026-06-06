@@ -6,6 +6,7 @@ import { query } from '../db';
 import { processJob, type JobRow } from '../utils/process-job';
 import { checkDailySpendingCap, shouldPauseQueue, recordJobCost, getEstimatedCost } from '../utils/cost-protection';
 import { getStyleById } from '../styles-config';
+import { verifyJWT } from '../utils/security';
 
 const MAX_CONCURRENT_JOBS = Number(process.env.MAX_CONCURRENT_JOBS || 10);
 
@@ -13,10 +14,20 @@ export default async function handler(
   req: VercelRequest,
   res: VercelResponse
 ) {
-  // Optional: Verify this is called by Vercel Cron (set CRON_SECRET env var to enable)
+  // Authorize the caller. Two accepted credentials:
+  //   1. The cron secret (used by cron-job.org / Vercel cron): Authorization: Bearer <CRON_SECRET>
+  //   2. A valid user JWT (used by the mobile app to kick the queue right after enqueue,
+  //      so generation doesn't wait for the next scheduled cron tick).
+  // The user-JWT path means we never have to embed CRON_SECRET in the mobile app.
   if (process.env.CRON_SECRET) {
     const authHeader = req.headers['authorization'];
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    const isCron = authHeader === `Bearer ${process.env.CRON_SECRET}`;
+    let isUser = false;
+    if (!isCron && authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.replace('Bearer ', '');
+      isUser = !!verifyJWT(token);
+    }
+    if (!isCron && !isUser) {
       return res.status(401).json({ ok: false, error: 'Unauthorized' });
     }
   }

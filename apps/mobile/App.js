@@ -2193,6 +2193,17 @@ function AppContent() {
           }
           setPendingJobId(jobId); // store so retry can resume polling
 
+          // Kick the queue worker immediately so the job starts processing now,
+          // instead of waiting for the next scheduled cron tick (up to ~60s).
+          // Uses the user's JWT (already in headers) — no secret embedded in the app.
+          // Fire-and-forget: we don't await it, polling below picks up the result.
+          fetch(`${API_BASE}/api/cron/process-queue`, {
+            method: 'GET',
+            headers: getApiHeaders(),
+          }).catch((kickErr) => {
+            console.warn('[callApi] queue kick failed (non-fatal, cron will pick up):', kickErr?.message || kickErr);
+          });
+
           // Step 2: Poll for job completion
           const terminalStatuses = new Set(['completed', 'failed']);
           const maxAttempts = 40; // 40 * 2s = 80s
