@@ -892,28 +892,8 @@ function GalleryScreen({ onBack }) {
     });
   };
 
-  // Save the currently-viewed image to the FunnyFy album
-  const handleViewerSave = async () => {
-    const item = items[viewerIndex];
-    if (!item) return;
-    try {
-      const fileName = getSavedImageFileName();
-      const localPath = FileSystem.cacheDirectory + fileName;
-      const dl = await FileSystem.downloadAsync(item.imageUrl, localPath);
-      const ok = await saveToFunnyfyAlbum(dl.uri);
-      if (ok) {
-        showToast('Saved', `Gallery › ${FUNNYFY_FOLDER_NAME} album`, 'success');
-      } else {
-        showToast('Save failed', 'Could not save the image', 'error');
-      }
-    } catch (err) {
-      console.error('[Gallery] save error:', err);
-      showToast('Save failed', 'Could not save the image', 'error');
-    }
-  };
-
   // Share the currently-viewed image
-  const handleViewerShare = async () => {
+  const handleViewerShare = useCallback(async () => {
     const item = items[viewerIndex];
     if (!item) return;
     try {
@@ -927,10 +907,10 @@ function GalleryScreen({ onBack }) {
     } catch (err) {
       console.error('[Gallery] share error:', err);
     }
-  };
+  }, [items, viewerIndex]);
 
   // Footer rendered inside the image viewer
-  const renderViewerFooter = () => {
+  const renderViewerFooter = useCallback(() => {
     const item = items[viewerIndex];
     if (!item) return null;
     return (
@@ -939,16 +919,13 @@ function GalleryScreen({ onBack }) {
           {item.styleLabel || 'Caricature'}
         </Text>
         <View style={styles.viewerActionsRow}>
-          <TouchableOpacity style={styles.viewerActionButton} onPress={handleViewerSave}>
-            <Text style={styles.viewerActionButtonText}>Save</Text>
-          </TouchableOpacity>
           <TouchableOpacity style={styles.viewerActionButton} onPress={handleViewerShare}>
             <Text style={styles.viewerActionButtonText}>Share</Text>
           </TouchableOpacity>
         </View>
       </View>
     );
-  };
+  }, [items, viewerIndex, handleViewerShare, insets.bottom]);
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -1685,16 +1662,7 @@ function ResultScreen({ original, result, loading, error, failedAttempts = 0, on
     try {
       const fileName = getSavedImageFileName();
       const localPath = FileSystem.documentDirectory + fileName;
-
       const resultDl = await FileSystem.downloadAsync(imageUrl, localPath);
-
-      // Save to FunnyFy album (industry standard)
-      try {
-        await saveToFunnyfyAlbum(resultDl.uri);
-      } catch (saveErr) {
-        console.warn('[Share] Save to album failed (non-fatal):', saveErr);
-      }
-
       await Sharing.shareAsync(resultDl.uri, {
         mimeType: 'image/jpeg',
         dialogTitle: 'Check out my caricature!',
@@ -1704,6 +1672,8 @@ function ResultScreen({ original, result, loading, error, failedAttempts = 0, on
     }
   };
 
+  // Save to gallery on the result screen (called by tapping Save button in callApi)
+  // Auto-save to gallery index only (no DCIM/Pictures) — user explicitly saves via Save button
   const handleDownload = async (opts = {}) => {
     const { silent = false } = opts;
     if (!imageUrl || loading) return false;
