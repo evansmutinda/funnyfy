@@ -302,7 +302,7 @@ function setRefreshed() {
 // ── Overview ──────────────────────────────────────────────────────────────
 async function loadOverview() {
   try {
-    const d = await apiFetch('/api/admin/stats');
+    const d = await apiFetch('/api/admin?resource=stats');
     if (!d.ok) return;
     document.getElementById('ov-users').textContent = d.users.total.toLocaleString();
     const active = (d.users.byTier || []).filter(r => r.subscription_status === 'active').reduce((s,r) => s + r.count, 0);
@@ -343,7 +343,7 @@ async function loadUsers() {
 
   document.getElementById('users-table').innerHTML = '<tr><td colspan="7" class="empty"><span class="spinner"></span></td></tr>';
   try {
-    const d = await apiFetch('/api/admin/users?' + qs);
+    const d = await apiFetch('/api/admin?resource=users&' + qs);
     const tbody = document.getElementById('users-table');
     if (!d.ok || !d.users.length) { tbody.innerHTML = '<tr><td colspan="7" class="empty">No users found</td></tr>'; return; }
     tbody.innerHTML = d.users.map(u => `
@@ -366,7 +366,7 @@ async function openUserPanel(userId) {
   document.getElementById('user-panel').classList.add('open');
   document.getElementById('user-panel-body').innerHTML = '<span class="spinner"></span>';
   try {
-    const d = await apiFetch('/api/admin/users?id=' + userId);
+    const d = await apiFetch('/api/admin?resource=users&id=' + userId);
     if (!d.ok) { document.getElementById('user-panel-body').innerHTML = '<div class="error-msg">Failed to load user</div>'; return; }
     const u = d.user;
     const isBanned = !!u.banned_at;
@@ -413,7 +413,7 @@ function closePanel() { document.getElementById('user-panel').classList.remove('
 async function adminAction(action, userId) {
   if (!confirm(`${cap(action)} this user?`)) return;
   try {
-    const d = await apiFetch(`/api/admin/users?action=${action}`, { method: 'POST', body: JSON.stringify({ userId }) });
+    const d = await apiFetch(`/api/admin?resource=users&action=${action}`, { method: 'POST', body: JSON.stringify({ userId }) });
     if (d.ok) { openUserPanel(userId); loadUsers(); }
     else alert(d.error || 'Action failed');
   } catch(e) { alert('Request failed'); }
@@ -424,14 +424,14 @@ async function adminAdjustQuota(userId) {
   if (val === null) return;
   const n = parseInt(val);
   if (isNaN(n)) return alert('Enter a number');
-  const d = await apiFetch('/api/admin/users?action=quota', { method: 'POST', body: JSON.stringify({ userId, adjustment: n }) });
+  const d = await apiFetch('/api/admin?resource=users&action=quota', { method: 'POST', body: JSON.stringify({ userId, adjustment: n }) });
   if (d.ok) { openUserPanel(userId); } else alert(d.error || 'Failed');
 }
 
 async function adminChangeTier(userId) {
   const tier = prompt('New tier (trial/starter/popular/pro):');
   if (!tier) return;
-  const d = await apiFetch('/api/admin/users?action=tier', { method: 'POST', body: JSON.stringify({ userId, tier }) });
+  const d = await apiFetch('/api/admin?resource=users&action=tier', { method: 'POST', body: JSON.stringify({ userId, tier }) });
   if (d.ok) { openUserPanel(userId); loadUsers(); } else alert(d.error || 'Failed');
 }
 
@@ -442,7 +442,7 @@ async function loadJobs() {
   if (status) qs.set('status', status);
   document.getElementById('jobs-table').innerHTML = '<tr><td colspan="7" class="empty"><span class="spinner"></span></td></tr>';
   try {
-    const d = await apiFetch('/api/admin/jobs?' + qs);
+    const d = await apiFetch('/api/admin?resource=jobs&' + qs);
     const tbody = document.getElementById('jobs-table');
     if (!d.ok || !d.jobs.length) { tbody.innerHTML = '<tr><td colspan="7" class="empty">No jobs found</td></tr>'; return; }
     tbody.innerHTML = d.jobs.map(j => `
@@ -466,7 +466,7 @@ async function loadJobs() {
 
 async function jobAction(action, jobId) {
   try {
-    const d = await apiFetch(`/api/admin/jobs?action=${action}&jobId=${jobId}`, { method: 'POST' });
+    const d = await apiFetch(`/api/admin?resource=jobs&action=${action}&jobId=${jobId}`, { method: 'POST' });
     if (d.ok) loadJobs(); else alert(d.error || 'Action failed');
   } catch(e) { alert('Request failed'); }
 }
@@ -474,7 +474,7 @@ async function jobAction(action, jobId) {
 // ── Queue ─────────────────────────────────────────────────────────────────
 async function loadQueue() {
   try {
-    const d = await apiFetch('/api/admin/queue-stats');
+    const d = await apiFetch('/api/admin?resource=queue-stats');
     if (!d.ok) return;
     document.getElementById('q-pending').textContent = d.queue.pending;
     document.getElementById('q-processing').textContent = d.queue.processing;
@@ -502,7 +502,7 @@ async function loadSecurity() {
   if (success !== '') qs.set('success', success);
   document.getElementById('security-table').innerHTML = '<tr><td colspan="5" class="empty"><span class="spinner"></span></td></tr>';
   try {
-    const d = await apiFetch('/api/admin/security-logs?' + qs);
+    const d = await apiFetch('/api/admin?resource=security-logs&' + qs);
     const tbody = document.getElementById('security-table');
     if (!d.ok || !d.events.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty">No events found</td></tr>'; return; }
     tbody.innerHTML = d.events.map(e => `

@@ -221,7 +221,7 @@
 
             try {
                 // Try relative URL first, fallback to absolute
-                const loginUrl = '/api/admin/login';
+                const loginUrl = '/api/admin?resource=login';
                 const fullUrl = `${API_BASE}${loginUrl}`;
                 console.log('Fetching:', fullUrl);
                 console.log('Body:', JSON.stringify({ userId }));
