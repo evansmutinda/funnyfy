@@ -588,7 +588,7 @@ function PulsingSquare({ delay }) {
 function MenuModal({ visible, onClose, onSelect }) {
   const insets = useSafeAreaInsets();
   const items = [
-    { id: 'gallery',      label: 'My Caricatures',    icon: 'image' },
+    { id: 'gallery',      label: 'My Gallery',    icon: 'image' },
     { id: 'subscription', label: 'Subscriptions',      icon: 'star' },
     { id: 'privacy',      label: 'Privacy Policy',     icon: 'shield' },
     { id: 'terms',        label: 'Terms & Conditions', icon: 'file-text' },
@@ -711,39 +711,22 @@ async function scanFunnyfyAlbumAssets() {
       return [];
     }
 
-    let assets = [];
     const album = await MediaLibrary.getAlbumAsync(FUNNYFY_FOLDER_NAME);
-    if (album) {
-      const result = await MediaLibrary.getAssetsAsync({
-        album: album.id,
-        mediaType: MediaLibrary.MediaType.photo,
-        first: GALLERY_MAX_ITEMS,
-        sortBy: MediaLibrary.SortBy.creationTime,
-      });
-      assets = result.assets;
-    } else {
-      // Fallback: filename-prefix scan in case the album hasn't been registered yet.
-      let after = undefined;
-      let hasMore = true;
-      const PAGE = 100;
-      while (hasMore && assets.length < GALLERY_MAX_ITEMS) {
-        const result = await MediaLibrary.getAssetsAsync({
-          mediaType: MediaLibrary.MediaType.photo,
-          first: PAGE,
-          after,
-          sortBy: MediaLibrary.SortBy.creationTime,
-        });
-        const matching = result.assets.filter((a) =>
-          a.filename?.toLowerCase().startsWith('funnyfy')
-        );
-        assets.push(...matching);
-        hasMore = result.hasNextPage;
-        after = result.endCursor;
-        if (result.assets.length < PAGE) hasMore = false;
-      }
+    if (!album) {
+      console.log('[Gallery] No', FUNNYFY_FOLDER_NAME, 'album found');
+      return [];
     }
 
-    return assets.map((asset) => ({
+    const result = await MediaLibrary.getAssetsAsync({
+      album: album.id,
+      mediaType: MediaLibrary.MediaType.photo,
+      first: GALLERY_MAX_ITEMS,
+      sortBy: MediaLibrary.SortBy.creationTime,
+    });
+
+    console.log('[Gallery] album scan found', result.assets.length, 'asset(s) in', FUNNYFY_FOLDER_NAME);
+
+    return result.assets.map((asset) => ({
       id: `media_${asset.id}`,
       imageUrl: asset.uri,
       remoteUrl: null,
@@ -936,6 +919,22 @@ function GalleryScreen({ onBack }) {
     }
   }, [items, viewerIndex]);
 
+  // Header rendered inside the image viewer — hosts a close button since
+  // swipe-to-close is disabled (its dimming animation was leaking through during navigation).
+  const renderViewerHeader = useCallback(() => {
+    return (
+      <View style={[styles.viewerHeader, { paddingTop: Math.max(insets.top, 12) }]}>
+        <TouchableOpacity
+          style={styles.viewerCloseButton}
+          onPress={() => setViewerVisible(false)}
+          hitSlop={{ top: 12, right: 12, bottom: 12, left: 12 }}
+        >
+          <Text style={styles.viewerCloseIcon}>✕</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }, [insets.top]);
+
   // Footer rendered inside the image viewer
   const renderViewerFooter = useCallback(() => {
     const item = items[viewerIndex];
@@ -963,7 +962,7 @@ function GalleryScreen({ onBack }) {
           <TouchableOpacity onPress={onBack} style={styles.iconButton}>
             <Text style={styles.iconButtonIcon}>‹</Text>
           </TouchableOpacity>
-          <Text style={styles.wordmark}>My Caricatures</Text>
+          <Text style={styles.wordmark}>My Gallery</Text>
           <View style={styles.galleryHeaderActions}>
             {items.length > 0 && (
               <TouchableOpacity onPress={handleClearAll} style={styles.iconButton}>
@@ -1034,8 +1033,9 @@ function GalleryScreen({ onBack }) {
         visible={viewerVisible}
         onRequestClose={() => setViewerVisible(false)}
         onImageIndexChange={(idx) => setViewerIndex(idx)}
-        swipeToCloseEnabled
+        swipeToCloseEnabled={false}
         doubleTapToZoomEnabled
+        HeaderComponent={renderViewerHeader}
         FooterComponent={renderViewerFooter}
       />
     </SafeAreaView>
@@ -2295,7 +2295,7 @@ function AppContent() {
             await new Promise((resolve) => setTimeout(resolve, 2000));
           }
 
-          throw new Error('Image generation timed out. Please check My Caricatures later.');
+          throw new Error('Image generation timed out. Please check My Gallery later.');
         } catch (err) {
           console.error('API error:', err);
           const errorMessage = err.message || String(err);
@@ -2592,7 +2592,7 @@ function AppContent() {
           }
           await new Promise((resolve) => setTimeout(resolve, 2000));
         }
-        throw new Error('Image generation timed out. Please check My Caricatures later.');
+        throw new Error('Image generation timed out. Please check My Gallery later.');
       } catch (err) {
         setError(err.message || 'Generation failed');
         setFailedAttempts((prev) => prev + 1);
@@ -3782,6 +3782,28 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 16,
     fontStyle: 'italic',
+  },
+  // Image viewer header (Close button at top)
+  viewerHeader: {
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.35)',
+  },
+  viewerCloseButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  viewerCloseIcon: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '600',
+    lineHeight: 20,
   },
   // Image viewer footer (Save / Share buttons over fullscreen viewer)
   viewerFooter: {
