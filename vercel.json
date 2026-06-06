@@ -29,9 +29,6 @@
     },
     "api/cron/*.ts": {
       "maxDuration": 60
-    },
-    "api/test.ts": {
-      "maxDuration": 5
     }
   },
   "rewrites": [
