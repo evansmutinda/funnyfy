@@ -3,7 +3,7 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { query } from '../db';
-import { processJob, type JobRow } from '../process-job';
+import { processJob, type JobRow } from '../utils/process-job';
 import { checkDailySpendingCap, shouldPauseQueue, recordJobCost, getEstimatedCost } from '../utils/cost-protection';
 import { getStyleById } from '../styles-config';
 
