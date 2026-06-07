@@ -22,7 +22,7 @@ import {
 } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import ImageView from 'react-native-image-viewing';
+// react-native-image-viewing replaced with custom Modal viewer (fixes opacity bleed)
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 import * as ImageManipulator from 'expo-image-manipulator';
@@ -758,28 +758,18 @@ async function loadGallery() {
     const data = await AsyncStorage.getItem(GALLERY_STORAGE_KEY);
     const storedItems = data ? JSON.parse(data) : [];
 
-    // Always also scan the Funnyfy album so existing pics on the device get picked
-    // up even when AsyncStorage already has entries (e.g. after reinstall + at least
-    // one new save). Merge by deduplicating on imageUrl/remoteUrl.
-    const albumItems = await scanFunnyfyAlbumAssets();
-
-    // Build a set of identifiers already in stored items so we don't duplicate.
-    const seen = new Set();
-    for (const it of storedItems) {
-      if (it.imageUrl) seen.add(it.imageUrl);
-      if (it.remoteUrl) seen.add(it.remoteUrl);
+    // On first load after a fresh install (empty AsyncStorage), rebuild from
+    // the MediaLibrary album so previously saved caricatures reappear.
+    // We do NOT merge on every load — that caused images to appear in the
+    // gallery without the user tapping Save (the auto-save bug).
+    if (storedItems.length === 0) {
+      const rebuilt = await rebuildGalleryFromMediaLibrary();
+      return rebuilt;
     }
-    const newFromAlbum = albumItems.filter((a) => !seen.has(a.imageUrl));
-
-    // Merge: stored items first (preserves user's styleLabel/styleId metadata),
-    // then any album-only items, then sort newest-first and cap to max.
-    const merged = [...storedItems, ...newFromAlbum]
-      .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
-      .slice(0, GALLERY_MAX_ITEMS);
 
     // Filter out items whose local file no longer exists (e.g. user cleared app data)
     const verified = [];
-    for (const item of merged) {
+    for (const item of storedItems) {
       if (item.isLocal && item.imageUrl?.startsWith('file://')) {
         try {
           const info = await FileSystem.getInfoAsync(item.imageUrl);
@@ -789,16 +779,13 @@ async function loadGallery() {
         } catch {
           // File missing, skip it
         }
-      } else if (item.isLocal && item.imageUrl) {
-        // MediaLibrary URI (content:// or ph://) — always include; OS manages these
-        verified.push(item);
       } else {
-        // Remote URL — keep (may still work briefly)
+        // MediaLibrary URI (content:// or ph://) or remote URL — keep as-is
         verified.push(item);
       }
     }
 
-    // Persist the merged + verified list so subsequent loads are fast.
+    // Persist only if stale items were pruned
     if (verified.length !== storedItems.length) {
       await AsyncStorage.setItem(GALLERY_STORAGE_KEY, JSON.stringify(verified));
     }
@@ -1026,18 +1013,29 @@ function GalleryScreen({ onBack }) {
         )}
       </View>
 
-      {/* Fullscreen image viewer with pinch-zoom and swipe gestures */}
-      <ImageView
-        images={items.map((item) => ({ uri: item.imageUrl }))}
-        imageIndex={viewerIndex}
+      {/* Fullscreen image viewer — custom Modal to avoid react-native-image-viewing opacity bleed */}
+      <Modal
         visible={viewerVisible}
+        transparent={false}
+        animationType="none"
         onRequestClose={() => setViewerVisible(false)}
-        onImageIndexChange={(idx) => setViewerIndex(idx)}
-        swipeToCloseEnabled={false}
-        doubleTapToZoomEnabled
-        HeaderComponent={renderViewerHeader}
-        FooterComponent={renderViewerFooter}
-      />
+        statusBarTranslucent
+      >
+        <View style={{ flex: 1, backgroundColor: '#000' }}>
+          {renderViewerHeader()}
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            {items[viewerIndex] && (
+              <Image
+                source={{ uri: items[viewerIndex].imageUrl }}
+                style={{ width: '100%', height: '100%' }}
+                resizeMode="contain"
+                fadeDuration={0}
+              />
+            )}
+          </View>
+          {renderViewerFooter()}
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
