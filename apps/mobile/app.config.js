@@ -39,6 +39,17 @@ export default {
       },
     },
     web: { bundler: 'metro' },
+    plugins: [
+      [
+        'expo-media-library',
+        {
+          photosPermission: 'Allow FunnyFy to access your photos.',
+          savePhotosPermission: 'Allow FunnyFy to save your caricatures.',
+          isAccessMediaLocationEnabled: true,
+          granularPermissions: ['photo'],
+        },
+      ],
+    ],
     extra: {
       // Correct EAS project ID provided by `eas build`
       eas: { projectId: '09895e1f-da8e-4d28-88e1-e8ba89949281' }
