@@ -138,11 +138,20 @@ export default async function handler(
   } catch (err: any) {
     console.error('[user/subscription] Failed to get subscription:', err);
     const debug = req.query.debug === '1' || req.query.debug === 'true';
+    if (debug) {
+      // Bypass safeErrorResponse's NODE_ENV check so we can diagnose prod issues
+      return res.status(500).json({
+        ok: false,
+        error: 'INTERNAL_ERROR',
+        detail: String(err?.message || err),
+        stack: err?.stack,
+      });
+    }
     return safeErrorResponse(
       res,
       500,
       'INTERNAL_ERROR',
-      debug ? String(err?.message || err) : 'Failed to get subscription info'
+      'Failed to get subscription info'
     );
   }
 }

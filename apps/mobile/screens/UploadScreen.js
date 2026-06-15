@@ -1,12 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { SafeAreaView, StatusBar, View, TouchableOpacity, Image, Text, Platform } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  Image,
+  SafeAreaView,
+  StatusBar,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
+import * as ImagePicker from 'expo-image-picker';
 import { useNotifications } from '../components/NotificationProvider';
+import { SkeletonLoader } from '../components/MenuModal';
+import { BOTTOM_INSET_MIN } from '../constants';
 import styles from '../styles';
-
-const BOTTOM_INSET_MIN = Platform.OS === 'android' ? 48 : 34;
 
 export default function UploadScreen({ style, onStart, onBackToStyle, canGenerateMore, subscriptionInfo, onSubscribe }) {
   const insets = useSafeAreaInsets();
@@ -24,7 +31,6 @@ export default function UploadScreen({ style, onStart, onBackToStyle, canGenerat
     }
   }, [error]);
 
-  // Calculate quota percentage for progress bar
   const getQuotaInfo = () => {
     if (!subscriptionInfo || !subscriptionInfo.usage) {
       return { current: 0, limit: 3, percentage: 0, isLow: false, isExceeded: false };
@@ -98,6 +104,38 @@ export default function UploadScreen({ style, onStart, onBackToStyle, canGenerat
 
   const quotaOk = canGenerateMore !== false;
   const canGenerate = !!imageUri && !picking && quotaOk;
+
+  const handleCrop = async () => {
+    if (!imageUri || picking) return;
+    setPicking(true);
+    setError('');
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 0.9,
+      });
+
+      if (!result.canceled && result.assets && result.assets[0]) {
+        const uri = result.assets[0].uri;
+        setImageUri(uri);
+        try {
+          const base64 = await FileSystem.readAsStringAsync(uri, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+          setImageDataUrl(`data:image/jpeg;base64,${base64}`);
+        } catch (fsErr) {
+          console.error('Failed to read cropped image:', fsErr);
+          setError('Failed to read cropped image.');
+        }
+      }
+    } catch (err) {
+      console.error('Crop error:', err);
+      setError('Failed to crop image.');
+    } finally {
+      setPicking(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safe}>

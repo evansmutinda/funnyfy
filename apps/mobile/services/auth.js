@@ -36,11 +36,17 @@ function generateUUID() {
 // Main init function — call this on app startup
 // revenuecatUserId: the anonymous ID from RevenueCat SDK (optional)
 export async function initAuth(apiBase, revenuecatUserId = null) {
-  // Return stored auth if we already have it
+  // Return stored auth if we already have it AND a valid token.
+  // (If token is missing/null we must re-auth — happens when a prior session
+  //  failed to get a token e.g. while the backend DB was down.)
   const stored = await readStored();
-  if (stored?.userId) {
+  if (stored?.userId && stored?.token) {
     console.log('[Auth] Using stored auth, userId:', stored.userId);
     return stored;
+  }
+  if (stored?.userId && !stored?.token) {
+    console.log('[Auth] Stored auth has no token, clearing and re-authenticating...');
+    await FileSystem.deleteAsync(AUTH_FILE, { idempotent: true });
   }
 
   // Try to get auth from backend (creates user in DB)
@@ -64,8 +70,8 @@ export async function initAuth(apiBase, revenuecatUserId = null) {
       }
     }
 
-    const errorText = await res.text().catch(() => 'unknown');
-    console.warn('[Auth] Backend returned error:', res.status, errorText);
+    const errorBody = await res.json().catch(() => ({}));
+    console.warn('[Auth] Backend returned error:', res.status, errorBody.error, errorBody.hint || '');
   } catch (err) {
     console.warn('[Auth] Backend unavailable, using local ID. Error:', err.message);
   }

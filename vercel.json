@@ -12,9 +12,6 @@
     "api/job.ts": {
       "maxDuration": 10
     },
-    "api/usage.ts": {
-      "maxDuration": 10
-    },
     "api/sync-subscription.ts": {
       "maxDuration": 10
     },

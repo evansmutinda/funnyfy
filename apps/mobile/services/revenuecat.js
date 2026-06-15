@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import Purchases from 'react-native-purchases';
+import Purchases, { LOG_LEVEL } from 'react-native-purchases';
 
 const IOS_KEY = process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY;
 const ANDROID_KEY = process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY;
@@ -17,10 +17,19 @@ export async function initRevenueCat(appUserId) {
     return;
   }
 
-  await Purchases.configure({
+  // Enable verbose logging so adb logcat shows what RC is doing
+  Purchases.setLogLevel(LOG_LEVEL.VERBOSE);
+
+  console.log('[RevenueCat] Configuring with key prefix:', apiKey.slice(0, 8) + '...');
+
+  Purchases.configure({
     apiKey,
-    appUserID: appUserId || null, // replace with real user id when auth is added
+    appUserID: appUserId || null,
   });
+}
+
+export async function isConfigured() {
+  return Purchases.isConfigured();
 }
 
 export async function getOfferings() {

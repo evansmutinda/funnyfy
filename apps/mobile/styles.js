@@ -1,10 +1,6 @@
-import { StyleSheet, Platform, Dimensions } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-const BOTTOM_INSET_MIN = Platform.OS === 'android' ? 48 : 34;
-const FUNNYFY_FOLDER_NAME = 'Funnyfy';
-
-export default StyleSheet.create({
+const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: '#ffffff',
@@ -1013,7 +1009,8 @@ export default StyleSheet.create({
     width: '100%',
     aspectRatio: 1,
     borderRadius: 12,
-    backgroundColor: '#F7F7F8',
+    backgroundColor: '#E2E8F0',
+    resizeMode: 'cover',
   },
   galleryItemLabel: {
     marginTop: 6,
@@ -1029,6 +1026,27 @@ export default StyleSheet.create({
     textAlign: 'center',
     marginTop: 16,
     fontStyle: 'italic',
+  },
+  viewerHeader: {
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.35)',
+  },
+  viewerCloseButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  viewerCloseIcon: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '600',
+    lineHeight: 20,
   },
   viewerFooter: {
     paddingHorizontal: 16,
@@ -1542,11 +1560,6 @@ export default StyleSheet.create({
     height: '100%',
     borderRadius: 999,
   },
-  quotaWarningText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#92400e',
-  },
   quotaExceededTextFull: {
     fontSize: 12,
     fontWeight: '600',
@@ -1658,12 +1671,6 @@ export default StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     color: '#065f46',
-  },
-  actionButtonText: {
-    color: '#ffffff',
-    fontWeight: '800',
-    fontSize: 16,
-    letterSpacing: 0.5,
   },
   secondaryActionButton: {
     backgroundColor: '#ffffff',
@@ -1831,3 +1838,5 @@ export default StyleSheet.create({
     color: '#EF4444',
   },
 });
+
+export default styles;

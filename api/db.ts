@@ -27,9 +27,14 @@ function getPool(): Pool {
   cachedPool = new Pool({
     connectionString,
     ssl: { rejectUnauthorized: false },
-    max: 10, // Max connections in pool
+    max: 10,
     idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 2000,
+    connectionTimeoutMillis: 8000, // Supabase free tier can be slow to wake from pause
+  });
+
+  // Clear cached pool on terminal errors so the next request gets a fresh pool
+  cachedPool.on('error', () => {
+    cachedPool = null;
   });
 
   return cachedPool;
@@ -39,8 +44,16 @@ export async function query<T extends QueryResultRow = any>(
   text: string,
   params?: any[]
 ): Promise<QueryResult<T>> {
-  const pool = getPool();
-  return pool.query<T>(text, params);
+  try {
+    const pool = getPool();
+    return await pool.query<T>(text, params);
+  } catch (err: any) {
+    // Clear pool on connection-level errors so the next invocation retries fresh
+    if (err?.code === 'ECONNREFUSED' || err?.code === 'ENOTFOUND' || err?.message?.includes('password authentication')) {
+      cachedPool = null;
+    }
+    throw err;
+  }
 }
 
 // Tagged template helper:

@@ -143,11 +143,8 @@ export default async function handler(
     });
   } catch (err: any) {
     console.error('[auth/token] Failed to generate token:', err);
-    return safeErrorResponse(
-      res,
-      500,
-      'TOKEN_GENERATION_FAILED',
-      'Failed to generate authentication token'
-    );
+    // Include a sanitized DB error hint so mobile logs can diagnose without Vercel dashboard access
+    const hint = err?.message?.replace(/password=\S+/gi, 'password=***') || 'unknown';
+    return res.status(500).json({ ok: false, error: 'TOKEN_GENERATION_FAILED', hint });
   }
 }
