@@ -150,7 +150,7 @@ export default async function handler(
         }
       } else {
         await query(
-          `UPDATE subscriptions SET current_period_end = $2, updated_at = NOW() WHERE id = $3`,
+          `UPDATE subscriptions SET current_period_end = $1, updated_at = NOW() WHERE id = $2`,
           [periodEnd, existingSub.rows[0].id]
         );
       }
