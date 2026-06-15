@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { query } from './db';
-import { applyMiddleware } from './utils/middleware';
-import { safeErrorResponse } from './utils/security';
-import { getEstimatedWaitTime } from './utils/queue-stats';
+import { query } from './_utils/db';
+import { applyMiddleware } from './_utils/middleware';
+import { safeErrorResponse } from './_utils/security';
+import { getEstimatedWaitTime } from './_utils/queue-stats';
 
 export default async function handler(
   req: VercelRequest,

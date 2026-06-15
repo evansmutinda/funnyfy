@@ -4,10 +4,10 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import jwt from 'jsonwebtoken';
-import { query } from '../db';
-import { applyMiddleware, parseBody } from '../utils/middleware';
-import { safeErrorResponse } from '../utils/security';
-import { validateBody } from '../utils/validation';
+import { query } from '../_utils/db';
+import { applyMiddleware, parseBody } from '../_utils/middleware';
+import { safeErrorResponse } from '../_utils/security';
+import { validateBody } from '../_utils/validation';
 import { z } from 'zod';
 
 const JWT_SECRET = process.env.JWT_SECRET || process.env.AUTH_SECRET;

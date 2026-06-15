@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getEnabledStyles } from './styles-config';
+import { getEnabledStyles } from './_utils/styles-config';
 
 const allowedOrigin = process.env.ALLOWED_ORIGIN || '*';
 

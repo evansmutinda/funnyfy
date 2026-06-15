@@ -2,10 +2,10 @@
 // Returns subscription info, tier, quota usage
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { query } from '../db';
-import { applyMiddleware } from '../utils/middleware';
-import { requireAuth } from '../utils/auth';
-import { safeErrorResponse } from '../utils/security';
+import { query } from '../_utils/db';
+import { applyMiddleware } from '../_utils/middleware';
+import { requireAuth } from '../_utils/auth';
+import { safeErrorResponse } from '../_utils/security';
 
 const TIER_QUOTAS: Record<string, number> = {
   'starter': 50,

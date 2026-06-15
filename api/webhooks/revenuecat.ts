@@ -2,10 +2,10 @@
 // Receives subscription events from RevenueCat and syncs to database
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { query } from '../db';
+import { query } from '../_utils/db';
 import crypto from 'crypto';
-import { setSecurityHeaders, safeErrorResponse, getClientIp } from '../utils/security';
-import { logSecurityEventFromRequest } from '../utils/security-logging';
+import { setSecurityHeaders, safeErrorResponse, getClientIp } from '../_utils/security';
+import { logSecurityEventFromRequest } from '../_utils/security-logging';
 import { z } from 'zod';
 
 const REVENUECAT_WEBHOOK_SECRET = process.env.REVENUECAT_WEBHOOK_SECRET;

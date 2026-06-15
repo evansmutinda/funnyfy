@@ -2,11 +2,11 @@
 // Configure in vercel.json to run every 10 seconds
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { query } from '../db';
-import { processJob, type JobRow } from '../utils/process-job';
-import { checkDailySpendingCap, shouldPauseQueue, recordJobCost, getEstimatedCost } from '../utils/cost-protection';
-import { getStyleById } from '../styles-config';
-import { verifyJWT } from '../utils/security';
+import { query } from '../_utils/db';
+import { processJob, type JobRow } from '../_utils/process-job';
+import { checkDailySpendingCap, shouldPauseQueue, recordJobCost, getEstimatedCost } from '../_utils/cost-protection';
+import { getStyleById } from '../_utils/styles-config';
+import { verifyJWT } from '../_utils/security';
 
 const MAX_CONCURRENT_JOBS = Number(process.env.MAX_CONCURRENT_JOBS || 10);
 

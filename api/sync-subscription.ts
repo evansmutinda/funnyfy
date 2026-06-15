@@ -3,7 +3,7 @@
 // Usage: POST with body: { userId: "test-user-123", tier: "popular", productId: "popular_monthly" }
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { query } from './db';
+import { query } from './_utils/db';
 
 const allowedOrigin = process.env.ALLOWED_ORIGIN || '*';
 

@@ -1,8 +1,8 @@
 // Shared function to process a job with Replicate API
 // Used by the async queue worker (api/cron/process-queue.ts)
 
-import { query } from './_utils/db';
-import { getStyleById } from './_utils/styles-config';
+import { query } from './db';
+import { getStyleById } from './styles-config';
 
 const targetUrl = process.env.TARGET_API_URL;
 const targetApiKey = process.env.TARGET_API_KEY;
@@ -99,7 +99,6 @@ export async function processJob(job: JobRow): Promise<void> {
         const nudity = (modData as any)?.nudity;
 
         if (nudity && typeof nudity.raw === 'number' && nudity.raw >= NSFW_RAW_THRESHOLD) {
-          // Record infringement
           if (job.user_id) {
             try {
               await query(
@@ -119,7 +118,6 @@ export async function processJob(job: JobRow): Promise<void> {
               console.error('[process-job] Failed to record NSFW infringement:', infErr);
             }
           }
-          // Fail the job
           await query(
             `UPDATE jobs SET status = 'failed', error_message = $1, completed_at = NOW() WHERE id = $2`,
             ['CONTENT_NOT_ALLOWED: Image failed NSFW moderation', job.id]
@@ -129,7 +127,6 @@ export async function processJob(job: JobRow): Promise<void> {
       }
     } catch (modErr: any) {
       if (modErr.message === 'CONTENT_NOT_ALLOWED') throw modErr;
-      // Sightengine failure: fail open, log and continue
       console.warn('[process-job] Sightengine check failed (proceeding):', modErr?.message || modErr);
     }
   }
@@ -151,13 +148,7 @@ export async function processJob(job: JobRow): Promise<void> {
   if (!fetchRes.ok) {
     const errorMsg = typeof data === 'object' ? JSON.stringify(data) : String(data);
     await query(
-      `
-        UPDATE jobs
-        SET status = $1,
-            error_message = $2,
-            completed_at = NOW()
-        WHERE id = $3
-      `,
+      `UPDATE jobs SET status = $1, error_message = $2, completed_at = NOW() WHERE id = $3`,
       ['failed', errorMsg, job.id]
     );
     throw new Error(`Replicate API error: ${errorMsg}`);
@@ -172,10 +163,7 @@ export async function processJob(job: JobRow): Promise<void> {
       const statusUrl: string = prediction.urls.get;
 
       for (let attempt = 0; attempt < 25; attempt++) {
-        if (terminalStatuses.has(prediction.status)) {
-          break;
-        }
-
+        if (terminalStatuses.has(prediction.status)) break;
         await sleep(2000);
 
         const statusRes = await fetch(statusUrl, {
@@ -190,10 +178,7 @@ export async function processJob(job: JobRow): Promise<void> {
           .catch(() => ({ error: 'Non-JSON response from target API' }));
 
         if (!statusRes.ok) {
-          console.error('Replicate status poll error:', {
-            status: statusRes.status,
-            data: statusData
-          });
+          console.error('Replicate status poll error:', { status: statusRes.status, data: statusData });
           break;
         }
 
@@ -206,7 +191,6 @@ export async function processJob(job: JobRow): Promise<void> {
     console.error('Error while polling Replicate status:', pollErr);
   }
 
-  // Check Replicate status - succeeded vs failed/canceled
   const replicateStatus = (data as any)?.status;
   const outputUrl = getImageUrlFromOutput((data as any)?.output);
   const replicateId = (data as any)?.id ?? null;
@@ -214,15 +198,8 @@ export async function processJob(job: JobRow): Promise<void> {
 
   if (replicateStatus === 'succeeded' && outputUrl) {
     await query(
-      `
-        UPDATE jobs
-        SET status = $1,
-            output_image_url = $2,
-            replicate_prediction_id = $3,
-            error_message = NULL,
-            completed_at = NOW()
-        WHERE id = $4
-      `,
+      `UPDATE jobs SET status = $1, output_image_url = $2, replicate_prediction_id = $3,
+       error_message = NULL, completed_at = NOW() WHERE id = $4`,
       ['completed', outputUrl, replicateId, job.id]
     );
   } else {
@@ -230,15 +207,8 @@ export async function processJob(job: JobRow): Promise<void> {
       ? `Replicate ${replicateStatus}: ${replicateError || 'No details'}`
       : (outputUrl ? null : 'Replicate did not return an image');
     await query(
-      `
-        UPDATE jobs
-        SET status = 'failed',
-            output_image_url = NULL,
-            replicate_prediction_id = $1,
-            error_message = $2,
-            completed_at = NOW()
-        WHERE id = $3
-      `,
+      `UPDATE jobs SET status = 'failed', output_image_url = NULL,
+       replicate_prediction_id = $1, error_message = $2, completed_at = NOW() WHERE id = $3`,
       [replicateId, errorMsg || 'Generation failed', job.id]
     );
     throw new Error(errorMsg || 'Replicate generation failed');

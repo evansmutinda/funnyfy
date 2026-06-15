@@ -3,13 +3,13 @@
 // This enables async processing via the queue worker
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { query } from './db';
-import { getStyleById } from './styles-config';
-import { applyMiddleware, parseBody, validateGenerateRequest } from './utils/middleware';
-import { requireAuth } from './utils/auth';
-import { safeErrorResponse } from './utils/security';
-import { checkAllRateLimits } from './utils/ratelimit';
-import { getEstimatedWaitTime } from './utils/queue-stats';
+import { query } from './_utils/db';
+import { getStyleById } from './_utils/styles-config';
+import { applyMiddleware, parseBody, validateGenerateRequest } from './_utils/middleware';
+import { requireAuth } from './_utils/auth';
+import { safeErrorResponse } from './_utils/security';
+import { checkAllRateLimits } from './_utils/ratelimit';
+import { getEstimatedWaitTime } from './_utils/queue-stats';
 
 function getCurrentMonthDate(): string {
   const d = new Date();
