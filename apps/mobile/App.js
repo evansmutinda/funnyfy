@@ -518,12 +518,14 @@ function AppContent() {
 
           // Manually sync subscription to backend (in case webhook is delayed or not configured)
           try {
-            console.log('[RevenueCat] Syncing subscription to backend...');
+            // Fall back to RC anonymous ID if auth userId is missing (e.g. backend was briefly down)
+            const syncUserId = userIdRef.current || customerInfo.originalAppUserId;
+            console.log('[RevenueCat] Syncing subscription to backend...', { syncUserId: syncUserId || '(none)' });
             const syncResponse = await fetch(`${API_BASE}/api/sync-subscription`, {
               method: 'POST',
-              headers: getApiHeaders(),
+              headers: { ...getApiHeaders(), 'x-user-id': syncUserId || '' },
               body: JSON.stringify({
-                userId: userIdRef.current,
+                userId: syncUserId,
                 productId: productIdentifier,
                 tier: productIdentifier.includes('starter') ? 'starter' :
                       productIdentifier.includes('popular') ? 'popular' :
