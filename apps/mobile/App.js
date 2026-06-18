@@ -1,3 +1,5 @@
+// URL polyfill — RevenueCat's sdk_initialized tracking uses URL.search (not fully supported in RN/Hermes)
+import 'react-native-url-polyfill/auto';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   AppState,
@@ -5,8 +7,8 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { initRevenueCat, getOfferings, purchasePackage, restorePurchases, getCustomerInfo, getAppUserId, hasRevenueCatKey, isConfigured as isRcConfigured } from './services/revenuecat';
-import { initAuth, resetAuthIfLocal } from './services/auth';
+import { initRevenueCat, getOfferings, purchasePackage, restorePurchases, getCustomerInfo, getAppUserId, hasRevenueCatKey, isConfigured as isRcConfigured, loginUser, getActiveSubscriptionDetails, tierFromProductId } from './services/revenuecat';
+import { initAuth, resetAuthIfLocal, forceReAuth } from './services/auth.js';
 import NotificationProvider, { useNotifications } from './components/NotificationProvider';
 import MenuModal from './components/MenuModal';
 import SplashScreen from './components/SplashScreen';
@@ -23,6 +25,7 @@ import {
   ABOUT_TEXT,
   STYLE_90S_CARTOON,
 } from './constants';
+import { getTrialRemaining, getTrialWarningMessage, isTrialUser } from './utils/trialWarnings';
 
 // Enforce HTTPS for security — prevent accidental HTTP misconfiguration
 if (API_BASE.startsWith('http://') && !API_BASE.includes('localhost') && !API_BASE.includes('127.0.0.1')) {
@@ -57,12 +60,16 @@ function AppContent() {
   const [subscriptionInfo, setSubscriptionInfo] = useState(null);
   const [subscriptionLoading, setSubscriptionLoading] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [restyleMode, setRestyleMode] = useState(false);
   const [userId, setUserId] = useState(null);
   const [authToken, setAuthToken] = useState(null);
   const [authReady, setAuthReady] = useState(false);
+  const [splashMinDone, setSplashMinDone] = useState(false);
   const userIdRef = useRef(null);
   const authTokenRef = useRef(null);
+  const authInitPromiseRef = useRef(null);
   const resultBackHandlerRef = useRef(null);
+  const subscriptionRefreshSeqRef = useRef(0);
 
   // Keep refs in sync so async functions always use the latest values
   useEffect(() => {
@@ -77,50 +84,185 @@ function AppContent() {
     ...(authTokenRef.current ? { Authorization: `Bearer ${authTokenRef.current}` } : {}),
   });
 
-  useEffect(() => {
-    const initialize = async () => {
-      // Initialize RevenueCat
-      const hasKey = hasRevenueCatKey();
-      setHasRcKey(hasKey);
+  const applyAuthState = (auth) => {
+    if (!auth?.userId) return auth;
+    setUserId(auth.userId);
+    setAuthToken(auth.token || null);
+    userIdRef.current = auth.userId;
+    authTokenRef.current = auth.token || null;
+    return auth;
+  };
 
-      let rcUserId = null;
-      if (hasKey) {
-        try {
-          await initRevenueCat(null); // RC generates its own anonymous ID
-          rcUserId = await getAppUserId();
-          console.log('[RevenueCat] Initialized, appUserId:', rcUserId);
-        } catch (err) {
-          console.error('[RevenueCat] init error:', err);
-        }
-      } else {
-        console.warn('[RevenueCat] Missing SDK key, skipping init');
-      }
+  const linkRevenueCatToBackend = async (backendUserId) => {
+    if (!hasRevenueCatKey() || !backendUserId) return null;
+    try {
+      const rcCustomerInfo = await loginUser(backendUserId);
+      console.log('[RevenueCat] Linked to backend user:', backendUserId);
+      return rcCustomerInfo;
+    } catch (loginErr) {
+      console.warn('[RevenueCat] logIn error (non-fatal):', loginErr?.message || loginErr);
+      return null;
+    }
+  };
 
-      // Initialize auth — gets or creates a real user in the database
-      // First clear any local fallback ID from previous failed attempts
-      await resetAuthIfLocal();
+  const performAuthInit = async () => {
+    const hasKey = hasRevenueCatKey();
+    setHasRcKey(hasKey);
+
+    let rcUserId = null;
+    if (hasKey) {
       try {
-        const auth = await initAuth(API_BASE, rcUserId);
-        setUserId(auth.userId);
-        setAuthToken(auth.token);
-        userIdRef.current = auth.userId;
-        authTokenRef.current = auth.token;
-        if (auth.isLocal) {
-          console.warn('[Auth] Running with local ID — backend unavailable. Check DATABASE_URL in Vercel.');
-        }
+        await initRevenueCat(null);
+        rcUserId = await getAppUserId();
+        console.log('[RevenueCat] Initialized, appUserId:', rcUserId);
       } catch (err) {
-        console.error('[Auth] init error:', err);
+        console.error('[RevenueCat] init error:', err);
       }
+    } else {
+      console.warn('[RevenueCat] Missing SDK key, skipping init');
+    }
 
-      setAuthReady(true);
-    };
+    await resetAuthIfLocal();
 
-    initialize();
+    let auth;
+    try {
+      auth = await initAuth(API_BASE, rcUserId);
+      applyAuthState(auth);
+      console.log('[AUTH_DEBUG] API_BASE:', API_BASE);
+      console.log('[AUTH_DEBUG] userId:', auth.userId);
+      console.log('[AUTH_DEBUG] hasToken:', !!auth.token);
+      console.log('[AUTH_DEBUG] isLocal:', !!auth.isLocal);
+
+      if (auth.isLocal) {
+        console.warn('[Auth] Running with local ID — backend unavailable. Check DATABASE_URL in Vercel.');
+      } else if (auth.userId && auth.token && hasKey) {
+        const rcCustomerInfo = await linkRevenueCatToBackend(auth.userId);
+        if (rcCustomerInfo) {
+          // sync happens after ensureAuthenticated is available — defer via getCustomerInfo in refresh
+        }
+      }
+    } catch (err) {
+      console.error('[Auth] init error:', err);
+      auth = { userId: null, token: null, isLocal: true };
+    }
+
+    return auth;
+  };
+
+  const ensureAuthenticated = async () => {
+    if (authInitPromiseRef.current) {
+      try {
+        await authInitPromiseRef.current;
+      } catch (err) {
+        console.warn('[Auth] Waiting for init failed:', err?.message || err);
+      }
+    }
+
+    if (userIdRef.current && authTokenRef.current) {
+      return { userId: userIdRef.current, token: authTokenRef.current, isLocal: false };
+    }
+
+    console.log('[Auth] Ensuring authentication...');
+    const rcUserId = hasRevenueCatKey() ? await getAppUserId().catch(() => null) : null;
+
+    // No JWT means stored auth is stale or startup raced — force a fresh token
+    let auth = await forceReAuth(API_BASE, rcUserId);
+    applyAuthState(auth);
+
+    if (!auth.token && auth.isLocal) {
+      console.warn('[Auth] Still no token after forceReAuth — backend may be unreachable');
+      return auth;
+    }
+
+    if (auth.userId && auth.token && hasRevenueCatKey()) {
+      await linkRevenueCatToBackend(auth.userId);
+    }
+
+    return auth;
+  };
+
+  // Push RevenueCat purchase state to our backend (webhook may lag or be unconfigured)
+  const syncSubscriptionToBackend = async (customerInfo) => {
+    if (!userIdRef.current || !authTokenRef.current) {
+      await ensureAuthenticated();
+    }
+
+    const syncUserId = userIdRef.current;
+    if (!syncUserId) {
+      console.warn('[subscription] sync skipped — no backend userId');
+      return { ok: false, error: 'no_user_id' };
+    }
+
+    const details = getActiveSubscriptionDetails(customerInfo);
+    if (!details?.productIdentifier) {
+      console.warn('[subscription] sync skipped — no active subscription in RevenueCat');
+      return { ok: false, error: 'no_active_subscription' };
+    }
+
+    const { productIdentifier, expirationDate } = details;
+    const tier = tierFromProductId(productIdentifier);
+
+    try {
+      const syncResponse = await fetch(`${API_BASE}/api/sync-subscription`, {
+        method: 'POST',
+        headers: getApiHeaders(),
+        body: JSON.stringify({
+          userId: syncUserId,
+          revenuecatUserId: customerInfo?.originalAppUserId,
+          productId: productIdentifier,
+          tier,
+          expirationDate: expirationDate || undefined,
+          platform: Platform.OS,
+        }),
+      });
+      const syncResult = await syncResponse.json();
+      if (syncResult.ok) {
+        console.log('[subscription] Synced to backend:', syncResult.subscription);
+      } else {
+        console.warn('[subscription] Sync failed:', syncResult.error);
+      }
+      return syncResult;
+    } catch (syncErr) {
+      console.error('[subscription] Sync error:', syncErr);
+      return { ok: false, error: String(syncErr?.message || syncErr) };
+    }
+  };
+
+  useEffect(() => {
+    authInitPromiseRef.current = performAuthInit()
+      .catch((err) => {
+        console.error('[Auth] Startup init failed:', err);
+        return null;
+      })
+      .finally(() => setAuthReady(true));
   }, []);
 
+  // Leave splash only after minimum display time AND auth has finished starting
+  useEffect(() => {
+    if (screen === 'splash' && splashMinDone && authReady) {
+      setScreen('style');
+    }
+  }, [screen, splashMinDone, authReady]);
+
+  const showTrialWarningIfNeeded = (subInfo) => {
+    if (!isTrialUser(subInfo)) return;
+    const remaining = getTrialRemaining(subInfo);
+    if (remaining !== 1) return;
+    showToast('Trial', getTrialWarningMessage(remaining), 'warning', {
+      actionLabel: 'Upgrade',
+      onAction: () => setScreen('subscription'),
+    });
+  };
+
   const refreshSubscription = async (retryCount = 0) => {
+    const refreshSeq = ++subscriptionRefreshSeqRef.current;
+
+    if (!userIdRef.current || !authTokenRef.current) {
+      await ensureAuthenticated();
+    }
+
     const currentUserId = userIdRef.current;
-    if (!currentUserId) return; // Not authenticated yet
+    if (!currentUserId) return;
     setSubscriptionLoading(true);
     const maxRetries = 2;
 
@@ -128,26 +270,14 @@ function AppContent() {
       if (hasRevenueCatKey()) {
         try {
           const customerInfo = await getCustomerInfo();
-          const activeEntitlements = customerInfo?.entitlements?.active || {};
-          const activeEnt = Object.values(activeEntitlements)[0];
-          if (activeEnt?.productIdentifier && activeEnt?.expirationDate) {
-            await fetch(`${API_BASE}/api/sync-subscription`, {
-              method: 'POST',
-              headers: getApiHeaders(),
-              body: JSON.stringify({
-                userId: currentUserId,
-                productId: activeEnt.productIdentifier,
-                tier: activeEnt.productIdentifier.includes('starter') ? 'starter' :
-                      activeEnt.productIdentifier.includes('popular') ? 'popular' :
-                      activeEnt.productIdentifier.includes('pro') ? 'pro' : 'starter',
-                expirationDate: activeEnt.expirationDate,
-                platform: Platform.OS,
-              }),
-            });
-          }
+          await syncSubscriptionToBackend(customerInfo);
         } catch (syncErr) {
           console.warn('[subscription] Pre-refresh sync failed (non-fatal):', syncErr);
         }
+      }
+
+      if (!authTokenRef.current) {
+        console.warn('[subscription] No JWT token — refresh may fail in production. Re-authenticate if stuck on trial.');
       }
 
       const res = await fetch(`${API_BASE}/api/user/subscription?userId=${encodeURIComponent(currentUserId)}&debug=1`, {
@@ -176,12 +306,15 @@ function AppContent() {
           return;
         }
         // Don't clear subscription info on client errors (keep last known state)
-        if (res.status >= 500) {
+        if (res.status >= 500 && refreshSeq === subscriptionRefreshSeqRef.current) {
           setSubscriptionInfo(null);
         }
         return;
       }
-      setSubscriptionInfo(json);
+      if (refreshSeq === subscriptionRefreshSeqRef.current) {
+        setSubscriptionInfo(json);
+      }
+      return json;
     } catch (err) {
       console.error('[subscription] error:', err);
       // Retry on network errors
@@ -363,8 +496,9 @@ function AppContent() {
                 // Auto-refresh subscription after successful generation
                 setTimeout(async () => {
                   console.log('[App] Auto-refreshing subscription after generation...');
-                  await refreshSubscription();
-                }, 500);
+                  const sub = await refreshSubscription();
+                  if (sub) showTrialWarningIfNeeded(sub);
+                }, 1500);
 
                 return; // Done
               } else {
@@ -444,6 +578,16 @@ function AppContent() {
     setSubscribeLoading(true);
     setError('');
     try {
+      const auth = await ensureAuthenticated();
+      if (!auth?.userId || !auth?.token) {
+        showToast(
+          'Connection required',
+          'Could not connect to the server. Check your internet and try again.',
+          'error'
+        );
+        return;
+      }
+
       if (!hasRcKey) {
         showToast('Subscriptions', 'RevenueCat SDK key is missing. Please set EXPO_PUBLIC_REVENUECAT_* env vars.', 'error');
         setSubscribeLoading(false);
@@ -496,77 +640,36 @@ function AppContent() {
       const purchaseResult = await purchasePackage(selected);
 
       console.log('[RevenueCat] Purchase result:', {
-        customerInfo: purchaseResult?.customerInfo,
-        productIdentifier: purchaseResult?.productIdentifier
+        productIdentifier: purchaseResult?.productIdentifier,
+        hasCustomerInfo: !!purchaseResult?.customerInfo,
       });
 
-      // Check if purchase was successful
-      if (purchaseResult?.customerInfo) {
-        const customerInfo = purchaseResult.customerInfo;
-        const activeEntitlements = customerInfo.entitlements?.active || {};
-        const hasActiveSubscription = Object.keys(activeEntitlements).length > 0;
-        const productIdentifier = purchaseResult.productIdentifier || customerInfo.allPurchasedProductIdentifiers?.[0];
+      // Re-fetch customer info — entitlements may not be populated immediately in purchaseResult
+      let customerInfo = purchaseResult?.customerInfo;
+      try {
+        customerInfo = (await getCustomerInfo()) || customerInfo;
+      } catch (infoErr) {
+        console.warn('[RevenueCat] getCustomerInfo after purchase failed:', infoErr);
+      }
 
-        if (hasActiveSubscription && productIdentifier) {
-          console.log('[RevenueCat] Purchase successful, active entitlements:', Object.keys(activeEntitlements));
+      const subDetails = getActiveSubscriptionDetails(customerInfo);
+      if (subDetails?.productIdentifier) {
+        console.log('[RevenueCat] Purchase successful:', subDetails.productIdentifier);
 
-          // Get expiration date (period end = next renewal) from active entitlement - NOT latestExpirationDate which can be wrong
-          const activeEnt = Object.values(activeEntitlements).find(e => e.productIdentifier === productIdentifier)
-            || Object.values(activeEntitlements)[0];
-          const expirationDate = activeEnt?.expirationDate
-            || customerInfo.allExpirationDates?.[productIdentifier];
-
-          // Manually sync subscription to backend (in case webhook is delayed or not configured)
-          try {
-            // Fall back to RC anonymous ID if auth userId is missing (e.g. backend was briefly down)
-            const syncUserId = userIdRef.current || customerInfo.originalAppUserId;
-            console.log('[RevenueCat] Syncing subscription to backend...', { syncUserId: syncUserId || '(none)' });
-            const syncResponse = await fetch(`${API_BASE}/api/sync-subscription`, {
-              method: 'POST',
-              headers: { ...getApiHeaders(), 'x-user-id': syncUserId || '' },
-              body: JSON.stringify({
-                userId: syncUserId,
-                productId: productIdentifier,
-                tier: productIdentifier.includes('starter') ? 'starter' :
-                      productIdentifier.includes('popular') ? 'popular' :
-                      productIdentifier.includes('pro') ? 'pro' : 'starter',
-                expirationDate: expirationDate,
-                platform: Platform.OS,
-              }),
-            });
-
-            const syncResult = await syncResponse.json();
-            if (syncResult.ok) {
-              console.log('[RevenueCat] Subscription synced successfully:', syncResult.subscription);
-            } else {
-              console.warn('[RevenueCat] Sync failed:', syncResult.error);
-            }
-          } catch (syncErr) {
-            console.error('[RevenueCat] Sync error (non-fatal):', syncErr);
-            // Don't block the user - webhook might still work
-          }
-
-          showToast('Purchase successful', 'Your subscription is now active', 'success');
-
-          // Refresh subscription immediately (sync should have updated it)
-          setTimeout(async () => {
-            console.log('[RevenueCat] Refreshing subscription after purchase...');
-            await refreshSubscription();
-          }, 1000);
-        } else {
-          console.warn('[RevenueCat] Purchase completed but no active entitlements found');
-          showToast('Purchase completed', 'Subscription will appear shortly. Refresh if it doesn\'t update.', 'warning');
-          // Still try to refresh
-          setTimeout(async () => {
-            await refreshSubscription();
-          }, 3000);
-        }
+        await ensureAuthenticated();
+        await syncSubscriptionToBackend(customerInfo);
+        showToast('Purchase successful', 'Your subscription is now active', 'success');
+        await refreshSubscription();
       } else {
-        console.warn('[RevenueCat] Purchase result missing customerInfo');
-        showToast('Purchase processing', 'Subscription will appear shortly', 'info');
-        setTimeout(async () => {
-          await refreshSubscription();
-        }, 3000);
+        console.warn('[RevenueCat] Purchase completed but no active subscription found yet');
+        showToast('Purchase completed', 'Subscription will appear shortly. Tap Refresh if it doesn\'t update.', 'warning');
+        await new Promise((r) => setTimeout(r, 2000));
+        try {
+          customerInfo = await getCustomerInfo();
+          await ensureAuthenticated();
+          await syncSubscriptionToBackend(customerInfo);
+        } catch {}
+        await refreshSubscription();
       }
     } catch (err) {
       console.error('[RevenueCat] Purchase error code:', err?.code);
@@ -657,12 +760,26 @@ function AppContent() {
   };
 
   const handleUploadStart = async ({ imageUri, imageDataUrl }) => {
-    setOriginal({ imageUri, prompt: style?.prompt });
-    setPendingJobId(null); // will be set after enqueue
+    setOriginal({ imageUri, imageDataUrl, prompt: style?.prompt });
+    setPendingJobId(null);
     setFailedAttempts(0);
     setError('');
+    setRestyleMode(false);
     setScreen('result');
     await callApi({ imageDataUrl });
+  };
+
+  const handleCancelRestyle = () => {
+    setRestyleMode(false);
+  };
+
+  const handleTryAnotherStyle = () => {
+    setRestyleMode(true);
+    setResult(null);
+    setError('');
+    setFailedAttempts(0);
+    setPendingJobId(null);
+    setScreen('style');
   };
 
   const handleRetry = async () => {
@@ -718,17 +835,23 @@ function AppContent() {
         setScreen('style');
         return true;
       }
-      if (screen === 'style') return false;
+      if (screen === 'style') {
+        if (restyleMode) {
+          handleCancelRestyle();
+          return true;
+        }
+        return false;
+      }
       if (screen === 'splash') return true;
       return false;
     };
 
     const sub = BackHandler.addEventListener('hardwareBackPress', onBackPress);
     return () => sub.remove();
-  }, [screen]);
+  }, [screen, restyleMode]);
 
   if (screen === 'splash') {
-    return <SplashScreen onComplete={() => setScreen('style')} />;
+    return <SplashScreen onComplete={() => setSplashMinDone(true)} />;
   }
 
   if (screen === 'style') {
@@ -737,9 +860,22 @@ function AppContent() {
         <StyleScreen
           selectedStyle={style}
           availableStyles={availableStyles}
+          restyleMode={restyleMode}
+          onCancelRestyle={handleCancelRestyle}
           onOpenMenu={() => setMenuOpen(true)}
           onNext={(s) => {
             setStyle(s);
+            if (restyleMode && original?.imageDataUrl) {
+              setRestyleMode(false);
+              setResult(null);
+              setError('');
+              setFailedAttempts(0);
+              setPendingJobId(null);
+              setScreen('result');
+              callApi({ imageDataUrl: original.imageDataUrl });
+              return;
+            }
+            setRestyleMode(false);
             setScreen('upload');
           }}
         />
@@ -748,6 +884,7 @@ function AppContent() {
           onClose={() => setMenuOpen(false)}
           onSelect={(id) => {
             setMenuOpen(false);
+            setRestyleMode(false);
             setScreen(id);
           }}
         />
@@ -822,7 +959,7 @@ function AppContent() {
         }
         subscriptionInfo={subscriptionInfo}
         onSubscribe={handleSubscribe}
-        onBackToStyle={() => setScreen('style')}
+        onBackToStyle={() => { setRestyleMode(false); setScreen('style'); }}
       />
     );
   }
@@ -840,7 +977,9 @@ function AppContent() {
         backHandlerRef={resultBackHandlerRef}
         style={style}
         onBack={() => { setScreen('upload'); setError(''); setFailedAttempts(0); }}
-        onHome={() => setScreen('style')}
+        onHome={() => { setRestyleMode(false); setScreen('style'); }}
+        onOpenGallery={() => setScreen('gallery')}
+        onTryAnotherStyle={handleTryAnotherStyle}
       />
     );
   }

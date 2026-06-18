@@ -18,14 +18,17 @@ For now we are using **one Test Store SDK key** for both iOS and Android.
 
 ## 2. Configure SDK Keys for the Mobile App
 
-In `apps/mobile/.env` (or via your shell environment when running Expo), set:
+In `apps/mobile/.env`:
 
 ```env
-EXPO_PUBLIC_API_URL=https://funnyfyapp.vercel.app
+# Staging (recommended for testing)
+EXPO_PUBLIC_API_URL=https://funnyfy-staging.vercel.app
 
-EXPO_PUBLIC_REVENUECAT_ANDROID_KEY=test_kXXXX...   # Your RevenueCat Test SDK key
-EXPO_PUBLIC_REVENUECAT_IOS_KEY=test_kXXXX...       # Same key is fine for now
+EXPO_PUBLIC_REVENUECAT_ANDROID_KEY=test_kXXXX...
+EXPO_PUBLIC_REVENUECAT_IOS_KEY=test_kXXXX...
 ```
+
+For production, use `https://funnyfyapp.vercel.app` after verifying Vercel `DATABASE_URL`.
 
 Notes:
 
@@ -245,13 +248,19 @@ A **Restore Purchases** button (black, matching design system) was added to the 
 ### Refresh Button
 A **Refresh** button (black) was also added to let users manually sync their subscription status from RevenueCat.
 
-### RevenueCat + Auth Integration
-The RevenueCat anonymous user ID is now passed to `/api/auth/token` on app startup. This links the RevenueCat subscription to the Supabase user record from the beginning.
+### RevenueCat + Auth Integration (June 2026)
+
+1. App gets JWT from `/api/auth/token` (with `revenuecatUserId` on first launch).
+2. **`Purchases.logIn(backendUserId)`** aliases the RC anonymous customer to the Supabase UUID — transfers purchases.
+3. After purchase, app calls **`POST /api/sync-subscription`** then refreshes `/api/user/subscription`.
+4. Webhook (`/api/webhooks/revenuecat`) still updates DB when configured — sync is a backup for delays.
+
+**Important:** Use staging backend (`https://funnyfy-staging.vercel.app`) until production `DATABASE_URL` is verified.
 
 ### Cancel Subscription (Production)
 The `/api/cancel-subscription` endpoint was previously blocked in production (returned 403). It is now fully production-ready and works for real users.
 
 ---
 
-**Last Updated**: May 2026
+**Last Updated**: June 2026
 

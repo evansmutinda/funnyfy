@@ -17,8 +17,8 @@ export async function initRevenueCat(appUserId) {
     return;
   }
 
-  // Enable verbose logging so adb logcat shows what RC is doing
-  Purchases.setLogLevel(LOG_LEVEL.VERBOSE);
+  // Verbose logs are useful when debugging purchases; WARN hides internal tracking noise
+  Purchases.setLogLevel(LOG_LEVEL.WARN);
 
   console.log('[RevenueCat] Configuring with key prefix:', apiKey.slice(0, 8) + '...');
 
@@ -56,4 +56,57 @@ export async function getAppUserId() {
   } catch {
     return null;
   }
+}
+
+// Link RevenueCat customer to our backend user UUID (transfers anonymous purchases)
+export async function loginUser(appUserId) {
+  if (!appUserId) return null;
+  const result = await Purchases.logIn(appUserId);
+  console.log('[RevenueCat] logIn complete, created:', result?.created, 'userId:', appUserId);
+  return result?.customerInfo || null;
+}
+
+export function tierFromProductId(productId) {
+  const lower = (productId || '').toLowerCase();
+  if (lower.includes('starter')) return 'starter';
+  if (lower.includes('popular')) return 'popular';
+  if (lower.includes('pro')) return 'pro';
+  return 'starter';
+}
+
+// Resolve active subscription details from CustomerInfo (entitlements or activeSubscriptions)
+export function getActiveSubscriptionDetails(customerInfo) {
+  if (!customerInfo) return null;
+
+  const activeEntitlements = customerInfo.entitlements?.active || {};
+  const entitlementValues = Object.values(activeEntitlements);
+  if (entitlementValues.length > 0) {
+    const ent = entitlementValues.find((e) => e?.productIdentifier) || entitlementValues[0];
+    if (ent?.productIdentifier) {
+      return {
+        productIdentifier: ent.productIdentifier,
+        expirationDate: ent.expirationDate || customerInfo.allExpirationDates?.[ent.productIdentifier] || null,
+      };
+    }
+  }
+
+  const activeSubs = customerInfo.activeSubscriptions;
+  if (Array.isArray(activeSubs) && activeSubs.length > 0) {
+    const productId = activeSubs[0];
+    return {
+      productIdentifier: productId,
+      expirationDate: customerInfo.allExpirationDates?.[productId] || null,
+    };
+  }
+
+  const purchased = customerInfo.allPurchasedProductIdentifiers;
+  if (Array.isArray(purchased) && purchased.length > 0) {
+    const productId = purchased[purchased.length - 1];
+    return {
+      productIdentifier: productId,
+      expirationDate: customerInfo.allExpirationDates?.[productId] || null,
+    };
+  }
+
+  return null;
 }

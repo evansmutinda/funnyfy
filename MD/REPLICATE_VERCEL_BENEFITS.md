@@ -330,15 +330,12 @@ export const STYLES_CONFIG = {
 ```
 Mobile App (React Native)
     ↓
-    POST /api/test
+    POST /api/enqueue  →  GET /api/job?id=...
     ↓
 Vercel Serverless Function
-    ├─ Validates request
-    ├─ Checks user quota
-    ├─ Gets protected prompt from config
-    ├─ Calls Replicate API (with protected key)
-    ├─ Polls for completion
-    └─ Returns result to mobile app
+    ├─ Validates request (auth, quota, image)
+    ├─ Creates job in queue
+    └─ Worker (process-job) calls Replicate, NSFW check, returns result
     ↓
 Replicate API
     ├─ Processes image generation

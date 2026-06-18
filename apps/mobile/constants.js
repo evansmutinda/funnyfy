@@ -196,18 +196,23 @@ export async function ensureFunnyfyFolder() {
 
 export async function saveToFunnyfyAlbum(localFileUri) {
   try {
-    const { status } = await MediaLibrary.requestPermissionsAsync();
+    // Write-only on Android — we only add new photos, never modify existing ones
+    const { status } = await MediaLibrary.requestPermissionsAsync(true);
     if (status !== 'granted') {
       console.warn('[Save] MediaLibrary permission denied');
       return false;
     }
-    const asset = await MediaLibrary.createAssetAsync(localFileUri);
+
     const existingAlbum = await MediaLibrary.getAlbumAsync(FUNNYFY_FOLDER_NAME);
+
     if (existingAlbum) {
-      await MediaLibrary.addAssetsToAlbumAsync([asset], existingAlbum, false);
+      // Save straight into the album — do NOT create then move (Android shows "modify photo?" for moves)
+      await MediaLibrary.createAssetAsync(localFileUri, existingAlbum);
     } else {
-      await MediaLibrary.createAlbumAsync(FUNNYFY_FOLDER_NAME, asset, false);
+      // First photo: create album with asset in one step (no separate move)
+      await MediaLibrary.createAlbumAsync(FUNNYFY_FOLDER_NAME, localFileUri, false);
     }
+
     return true;
   } catch (err) {
     console.error('[Save] saveToFunnyfyAlbum error:', err);

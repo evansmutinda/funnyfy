@@ -17,20 +17,17 @@
 ### Using PowerShell (Windows)
 
 ```powershell
-# Test the generation endpoint
-Invoke-RestMethod -Uri "https://funnyfy-staging.vercel.app/api/test" `
-  -Method POST `
-  -ContentType "application/json" `
-  -Body '{"payload":{"styleId":"90s-cartoon","imageUrl":"https://example.com/photo.jpg"}}'
-
-# Test the auth endpoint (creates/returns a user)
+# Test auth (creates/returns user + JWT)
 Invoke-RestMethod -Uri "https://funnyfy-staging.vercel.app/api/auth/token" `
   -Method POST `
   -ContentType "application/json" `
   -Body '{}'
 
-# Test subscription status (replace with real userId and token)
-$headers = @{ "x-user-id" = "YOUR-USER-ID"; "Authorization" = "Bearer YOUR-TOKEN" }
+# Test styles catalog
+Invoke-RestMethod -Uri "https://funnyfy-staging.vercel.app/api/styles" -Method GET
+
+# Test subscription status (replace with real token from auth above)
+$headers = @{ "Authorization" = "Bearer YOUR-TOKEN" }
 Invoke-RestMethod -Uri "https://funnyfy-staging.vercel.app/api/user/subscription" `
   -Headers $headers
 ```
@@ -75,26 +72,36 @@ Scan the QR code with:
 
 ### Step 4: Test Key Flows
 
-1. **Auth flow**: App should silently get a user ID from backend on first launch (check Metro logs for `[Auth] Got token from backend`)
+1. **Auth flow**: `[AUTH_DEBUG] hasToken: true` in Metro logs; no `resetAuthIfLocal is not a function`
 2. **Style selection**: Tap any style, verify selection highlights
-3. **Image upload**: Pick from gallery or camera
-4. **Generation**: Tap Generate — should show pulsing "Processing…" indicator
-5. **Result**: Before/after slider should work; Save and Share should work
-6. **Gallery**: Saved images should appear in Gallery screen
-7. **Subscription screen**: Current plan, usage, and plan cards should display
+3. **Image upload**: Pick from gallery (Android 13+: system picker, no extra permission) or camera
+4. **Generation**: `POST /api/enqueue` then poll `/api/job` — pulsing squares loader
+5. **Result**: Slider, save (silent — no "modify photo?" on Android), share
+6. **Gallery**: Saved images in in-app grid + Funnyfy device album
+7. **Subscription**: Purchase updates plan without manual refresh; Restore syncs to backend
 
 ---
 
 ## Method 3: Build and Test APK (Android)
 
-```bash
+### Local build (no EAS quota)
+
+```powershell
 cd apps/mobile
-npx expo build:android
-# OR with EAS:
-eas build --platform android --profile preview
+npx expo prebuild --platform android
+cd android
+.\gradlew.bat assembleDebug
 ```
 
-Install the APK on a physical Android device for realistic testing.
+APK: `android/app/build/outputs/apk/debug/app-debug.apk`  
+See `BUILD_APK_GUIDE.md` or run `.\build-apk-local.ps1` from project root.
+
+### EAS cloud build
+
+```bash
+cd apps/mobile
+eas build --platform android --profile preview
+```
 
 ---
 
@@ -103,8 +110,18 @@ Install the APK on a physical Android device for realistic testing.
 ### RevenueCat Test Store (Sandbox)
 1. Use the Test Store SDK key in `.env`
 2. Open the Subscription screen in the app
-3. Tap a plan and attempt purchase — RevenueCat Test Store handles this without real charges
-4. Check Vercel logs for webhook events (`INITIAL_PURCHASE`, etc.)
+3. Complete purchase (RevenueCat Test Store)
+4. Plan should update automatically; if not, tap **Refresh**
+5. Check logs: `[subscription] Synced to backend` and `[subscription] response: ... "isTrial":false`
+
+Manual sync endpoint (recovery):
+
+```powershell
+$headers = @{ "Authorization" = "Bearer YOUR-TOKEN"; "Content-Type" = "application/json" }
+Invoke-RestMethod -Uri "https://funnyfy-staging.vercel.app/api/sync-subscription" `
+  -Method POST -Headers $headers `
+  -Body '{"userId":"YOUR-USER-ID","productId":"popular_monthly","tier":"popular","platform":"android"}'
+```
 
 ### Verify Webhook
 ```powershell
@@ -128,19 +145,23 @@ Check Supabase `infringements` table to verify the record was created.
 
 | Symptom | Fix |
 |---------|-----|
-| `[Auth] Backend unavailable, using local ID` | Backend DB is down or auth endpoint missing; app still works with local ID |
-| `Network or server error` | Check `EXPO_PUBLIC_API_URL` in `.env`; verify Vercel deployment is live |
-| `TARGET_API_URL not configured` | Set env vars in Vercel dashboard and redeploy |
-| CORS errors | Verify `ALLOWED_ORIGIN` is set to `*` or your app origin in Vercel |
-| RevenueCat `No offerings` | Check products are set up in RevenueCat dashboard (see `REVENUECAT_SETUP.md`) |
+| `[Auth] Backend unavailable, using local ID` | Use staging URL; fix `DATABASE_URL` on Vercel for production |
+| `sync skipped — no backend userId` | Wait for splash/auth; update app (auth gating fix) |
+| `AUTHENTICATION_REQUIRED` | No JWT — check auth token; use staging backend |
+| `resetAuthIfLocal is not a function` | Remove `services/auth.ts` if present; use `auth.js` only |
+| `Network or server error` | Check `EXPO_PUBLIC_API_URL` in `.env`; verify deployment |
+| RevenueCat `sdk_initialized` error | Harmless; fixed with `react-native-url-polyfill` |
+| `No offerings` | Configure products in RevenueCat dashboard |
+| Subscription stuck on trial | Tap Refresh; verify `/api/sync-subscription` and `Purchases.logIn` |
 
 ---
 
 ## Quick Test Checklist
 
 - [ ] `/api/auth/token` returns `{ ok: true, userId, token }`
-- [ ] `/api/styles` returns list of 21 styles
-- [ ] `/api/user/subscription` returns plan and usage (with valid auth headers)
+- [ ] `/api/styles` returns list of styles
+- [ ] `/api/user/subscription` returns plan and usage (with Bearer token)
+- [ ] `/api/enqueue` + `/api/job` complete a generation
 - [ ] App launches and gets user ID without errors
 - [ ] Style selection works
 - [ ] Image upload and generation completes
@@ -148,8 +169,8 @@ Check Supabase `infringements` table to verify the record was created.
 - [ ] Gallery screen shows saved images
 - [ ] Subscription screen shows plan cards
 - [ ] Toast notifications appear (not system Alert dialogs)
-- [ ] Privacy Policy and Terms open correctly from Settings/Menu
+- [ ] Subscription purchase updates plan (not stuck on trial)
 
 ---
 
-**Last Updated**: May 2026
+**Last Updated**: June 2026

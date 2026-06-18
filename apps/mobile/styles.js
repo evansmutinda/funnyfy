@@ -1,5 +1,12 @@
 import { Platform, StyleSheet } from 'react-native';
 
+// Black & white theme — color reserved for success/error/status only
+const INK = '#0F172A';
+const PAPER = '#FFFFFF';
+const CANVAS = '#F3F4F6';
+const BORDER = '#E5E7EB';
+const MUTED = '#64748B';
+
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
@@ -37,6 +44,18 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 0,
     flexGrow: 1,
+    backgroundColor: '#F3F4F6',
+  },
+  styleScroll: {
+    flex: 1,
+    backgroundColor: '#F3F4F6',
+  },
+  styleScreenHeader: {
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 8,
+    zIndex: 10,
   },
   fixedHeader: {
     backgroundColor: '#ffffff',
@@ -101,12 +120,12 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 10,
     borderRadius: 999,
-    backgroundColor: '#eef2ff',
+    backgroundColor: CANVAS,
   },
   subscriptionPlanPillText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#4f46e5',
+    color: INK,
   },
   subscriptionRefreshButton: {
     paddingHorizontal: 10,
@@ -145,31 +164,138 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   sectionLabelSelected: {
-    color: '#f97316',
+    color: INK,
     fontWeight: '800',
   },
   styleGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    marginTop: 12,
+    marginTop: 4,
+    rowGap: 14,
   },
   card: {
     backgroundColor: 'transparent',
-    borderRadius: 16,
+    borderRadius: 20,
     padding: 0,
     borderWidth: 0,
     shadowOpacity: 0,
     elevation: 0,
     width: '48%',
-    marginBottom: 16,
   },
   styleCard: {
     marginTop: 0,
-    marginBottom: 16,
+  },
+  styleCategoryRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    paddingBottom: 14,
+  },
+  styleCategoryChip: {
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 999,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  styleCategoryChipActive: {
+    backgroundColor: INK,
+    borderColor: INK,
+  },
+  styleCategoryChipText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  styleCategoryChipTextActive: {
+    color: PAPER,
+    fontWeight: '700',
+  },
+  styleHeroCard: {
+    width: '100%',
+    marginBottom: 14,
+  },
+  styleHeroImageWrapper: {
+    aspectRatio: 16 / 9,
+    borderRadius: 20,
+  },
+  styleHeroBadge: {
+    position: 'absolute',
+    top: 12,
+    left: 12,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 999,
+    backgroundColor: INK,
+    zIndex: 2,
+  },
+  styleHeroBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
+  },
+  restyleBanner: {
+    marginHorizontal: 16,
+    marginBottom: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    backgroundColor: CANVAS,
+    borderWidth: 1,
+    borderColor: BORDER,
+    gap: 10,
+  },
+  restyleBannerRow: {
+    gap: 2,
+  },
+  restyleBannerBody: {
+    gap: 2,
+  },
+  restyleBannerTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: INK,
+  },
+  restyleBannerText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: MUTED,
+  },
+  restyleBannerCancel: {
+    paddingVertical: 11,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    backgroundColor: PAPER,
+    borderWidth: 1,
+    borderColor: BORDER,
+    alignItems: 'center',
+  },
+  restyleBannerCancelText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: INK,
+  },
+  restyleHeaderTitle: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '700',
+    color: INK,
+    textAlign: 'center',
+  },
+  styleTileRing: {
+    borderRadius: 20,
+    padding: 0,
+  },
+  styleTileRingSelected: {
+    padding: 3,
+    backgroundColor: INK,
   },
   styleCardSelected: {
-    transform: [{ scale: 0.97 }],
+    // legacy — selection uses styleTileRingSelected
   },
   cardRow: {
     flexDirection: 'row',
@@ -180,19 +306,26 @@ const styles = StyleSheet.create({
   },
   styleImageWrapper: {
     width: '100%',
-    aspectRatio: 3 / 4.4,
-    borderRadius: 16,
+    aspectRatio: 3 / 4,
+    borderRadius: 18,
     overflow: 'hidden',
-    backgroundColor: '#F7F7F8',
+    backgroundColor: '#E5E7EB',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 10,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.14,
+    shadowRadius: 12,
+    elevation: 5,
   },
   styleImage: {
     width: '100%',
     height: '100%',
+  },
+  styleTileGradient: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: '52%',
   },
   styleImageOverlay: {
     position: 'absolute',
@@ -200,17 +333,20 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     paddingHorizontal: 12,
-    paddingVertical: 10,
-    backgroundColor: 'transparent',
+    paddingBottom: 12,
+    paddingTop: 8,
   },
   styleImageOverlaySelected: {
-    backgroundColor: 'rgba(249, 115, 22, 0.4)',
+    // unused — ring selection on outer wrapper
   },
   styleImageLabel: {
-    color: '#f9fafb',
-    fontSize: 16,
-    fontWeight: '800',
-    letterSpacing: -0.3,
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: 0.15,
+    textShadowColor: 'rgba(0, 0, 0, 0.45)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   previewContainer: {
     flex: 1,
@@ -334,15 +470,15 @@ const styles = StyleSheet.create({
     color: '#111827',
   },
   button: {
-    backgroundColor: '#f97316',
+    backgroundColor: INK,
     paddingVertical: 16,
     borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 4,
-    shadowColor: '#f97316',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 4,
   },
@@ -366,6 +502,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 14,
     letterSpacing: 0.3,
+  },
+  tryAnotherStyleButton: {
+    width: '100%',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
   },
   errorBox: {
     backgroundColor: '#fef2f2',
@@ -418,7 +560,7 @@ const styles = StyleSheet.create({
   progressBarFill: {
     height: '100%',
     borderRadius: 999,
-    backgroundColor: '#f97316',
+    backgroundColor: INK,
   },
   progressBarLabelWrapper: {
     position: 'absolute',
@@ -448,10 +590,10 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     paddingVertical: 16,
     paddingHorizontal: 20,
-    backgroundColor: '#FFFBEB',
+    backgroundColor: CANVAS,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#FDE68A',
+    borderColor: BORDER,
     gap: 12,
   },
   errorRetryHeader: {
@@ -462,23 +604,23 @@ const styles = StyleSheet.create({
   errorRetryTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#92400E',
+    color: INK,
   },
   errorRetrySubtext: {
     fontSize: 13,
-    color: '#78350F',
+    color: MUTED,
     lineHeight: 18,
   },
   errorRetryMessage: {
     flex: 1,
     fontSize: 14,
-    color: '#92400E',
+    color: '#374151',
     fontWeight: '500',
     lineHeight: 20,
   },
   errorRetryHint: {
     fontSize: 12,
-    color: '#B45309',
+    color: MUTED,
   },
   retryButton: {
     alignSelf: 'center',
@@ -668,15 +810,15 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 8,
-    backgroundColor: '#fef3c7',
+    backgroundColor: CANVAS,
     borderWidth: 1,
-    borderColor: '#f59e0b',
+    borderColor: BORDER,
     alignItems: 'center',
   },
   quotaWarningText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#92400e',
+    color: '#374151',
   },
   quotaExceededButton: {
     paddingVertical: 8,
@@ -846,6 +988,21 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 13,
   },
+  quotaLowBanner: {
+    backgroundColor: CANVAS,
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: BORDER,
+  },
+  quotaLowBannerText: {
+    color: '#374151',
+    fontWeight: '600',
+    fontSize: 13,
+    textAlign: 'center',
+  },
   photoChooserContainer: {
     flex: 1,
     backgroundColor: '#ffffff',
@@ -941,10 +1098,57 @@ const styles = StyleSheet.create({
   },
   menuItemDesc: {},
   menuItemArrow: {},
+  mediaTileChipWrapper: {
+    width: 56,
+    aspectRatio: 3 / 4,
+    borderRadius: 12,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  mediaTileChipGradient: {
+    height: '58%',
+  },
+  mediaTileChipOverlay: {
+    paddingHorizontal: 6,
+    paddingBottom: 6,
+    paddingTop: 4,
+  },
+  mediaTileChipLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+  },
+  uploadStyleChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 12,
+    padding: 10,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  uploadStyleChipBody: {
+    flex: 1,
+    gap: 2,
+  },
+  uploadStyleChipLabel: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  uploadStyleChipChange: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: INK,
+  },
   galleryContainer: {
     flex: 1,
     paddingHorizontal: 16,
     paddingTop: 8,
+    backgroundColor: '#F3F4F6',
   },
   galleryClearIcon: {
     fontSize: 16,
@@ -998,27 +1202,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    paddingTop: 12,
-    rowGap: 12,
+    paddingTop: 8,
+    rowGap: 14,
   },
   galleryItem: {
     width: '48%',
-    marginBottom: 4,
-  },
-  galleryItemImage: {
-    width: '100%',
-    aspectRatio: 1,
-    borderRadius: 12,
-    backgroundColor: '#E2E8F0',
-    resizeMode: 'cover',
-  },
-  galleryItemLabel: {
-    marginTop: 6,
-  },
-  galleryItemStyle: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#0F172A',
   },
   galleryHint: {
     fontSize: 11,
@@ -1156,7 +1344,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
   },
   paywallCancelPill: {
-    backgroundColor: '#FAEEDA',
+    backgroundColor: '#F3F4F6',
     paddingVertical: 3,
     paddingHorizontal: 8,
     borderRadius: 99,
@@ -1164,7 +1352,7 @@ const styles = StyleSheet.create({
   paywallCancelPillText: {
     fontSize: 10,
     fontWeight: '600',
-    color: '#854F0B',
+    color: '#64748B',
   },
   paywallProgress: {
     height: 4,
@@ -1510,12 +1698,12 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     paddingHorizontal: 10,
     borderRadius: 999,
-    backgroundColor: '#eef2ff',
+    backgroundColor: CANVAS,
   },
   trialBadgeText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#4f46e5',
+    color: INK,
   },
   activeBadge: {
     paddingVertical: 4,
@@ -1531,14 +1719,14 @@ const styles = StyleSheet.create({
   cancelWarning: {
     padding: 12,
     borderRadius: 8,
-    backgroundColor: '#fef3c7',
+    backgroundColor: '#F9FAFB',
     borderWidth: 1,
-    borderColor: '#f59e0b',
+    borderColor: '#E5E7EB',
   },
   cancelWarningText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#92400e',
+    color: '#374151',
   },
   quotaInfoContainer: {
     gap: 8,
@@ -1611,25 +1799,25 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   tierCardSelected: {
-    borderColor: '#f97316',
+    borderColor: INK,
     borderWidth: 2.5,
-    backgroundColor: '#fff7ed',
+    backgroundColor: CANVAS,
   },
   tierCardPopular: {
-    borderColor: '#f97316',
-    backgroundColor: '#ffffff',
-    shadowColor: '#f97316',
-    shadowOpacity: 0.12,
+    borderColor: INK,
+    backgroundColor: PAPER,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
   },
   tierCardActive: {
-    borderColor: '#f97316',
-    backgroundColor: '#fff7ed',
+    borderColor: INK,
+    backgroundColor: CANVAS,
   },
   popularRibbon: {
     position: 'absolute',
     top: 0,
     right: 0,
-    backgroundColor: '#f97316',
+    backgroundColor: INK,
     paddingVertical: 4,
     paddingHorizontal: 12,
     borderTopRightRadius: 14,
@@ -1653,7 +1841,7 @@ const styles = StyleSheet.create({
   tierCardPrice: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#ea580c',
+    color: INK,
     marginTop: 4,
   },
   tierCardQuota: {
@@ -1747,6 +1935,18 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '500',
     lineHeight: 17,
+  },
+  toastAction: {
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255,255,255,0.14)',
+    flexShrink: 0,
+  },
+  toastActionText: {
+    color: PAPER,
+    fontSize: 12,
+    fontWeight: '700',
   },
   dialogBackdrop: {
     flex: 1,

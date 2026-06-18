@@ -17,6 +17,7 @@ import * as FileSystem from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
 import * as Sharing from 'expo-sharing';
 import { useNotifications } from '../components/NotificationProvider';
+import MediaTile from '../components/MediaTile';
 import { BOTTOM_INSET_MIN, FUNNYFY_FOLDER_NAME, getSavedImageFileName } from '../constants';
 import styles from '../styles';
 
@@ -88,7 +89,8 @@ async function scanFunnyfyAlbumAssets() {
   try {
     let permResult = await MediaLibrary.getPermissionsAsync();
     if (permResult.status !== 'granted') {
-      permResult = await MediaLibrary.requestPermissionsAsync(true);
+      // Read access for gallery scan (writeOnly=true is only for saving photos)
+      permResult = await MediaLibrary.requestPermissionsAsync(false);
     }
     if (permResult.status !== 'granted') {
       return [];
@@ -311,8 +313,8 @@ export default function GalleryScreen({ onBack }) {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-      <View style={{ height: insets.top, backgroundColor: '#ffffff' }} />
+      <StatusBar barStyle="dark-content" backgroundColor="#F3F4F6" />
+      <View style={{ height: insets.top, backgroundColor: '#F3F4F6' }} />
       <View style={styles.galleryContainer}>
         <View style={styles.headerBar}>
           <TouchableOpacity onPress={onBack} style={styles.iconButton}>
@@ -364,16 +366,10 @@ export default function GalleryScreen({ onBack }) {
                   onLongPress={() => handleDelete(item)}
                   android_ripple={null}
                 >
-                  <Image
-                    source={{ uri: item.imageUrl }}
-                    style={styles.galleryItemImage}
-                    fadeDuration={0}
+                  <MediaTile
+                    imageSource={{ uri: item.imageUrl }}
+                    label={item.styleLabel || 'Caricature'}
                   />
-                  <View style={styles.galleryItemLabel}>
-                    <Text style={styles.galleryItemStyle} numberOfLines={1}>
-                      {item.styleLabel || 'Caricature'}
-                    </Text>
-                  </View>
                 </Pressable>
               ))}
             </View>

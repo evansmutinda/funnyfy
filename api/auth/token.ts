@@ -79,6 +79,12 @@ export default async function handler(
 
       if (userResult.rows.length > 0) {
         finalUserId = userResult.rows[0].id;
+        if (revenuecatUserId) {
+          await query(
+            `UPDATE users SET revenuecat_user_id = $1, updated_at = NOW() WHERE id = $2 AND (revenuecat_user_id IS NULL OR revenuecat_user_id = $1)`,
+            [revenuecatUserId, finalUserId]
+          );
+        }
       } else {
         // Create new user with revenuecat_user_id
         const insertResult = await query<{ id: string }>(

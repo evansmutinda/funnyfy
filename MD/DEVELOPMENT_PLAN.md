@@ -39,7 +39,7 @@ This document outlines the development plan and current status of FunnyFy — a 
 - **Language**: TypeScript/Node.js
 - **Functions**:
   - `GET /api/styles` – style catalog
-  - `POST /api/test` – generation (polls Replicate, returns result)
+  - `POST /api/enqueue` – create job; client polls `GET /api/job?id=...`
   - `GET /api/user/subscription` – subscription + usage
   - `POST /api/sync-subscription` – RevenueCat sync
   - `POST /api/auth/token` – JWT auth (creates user in Supabase, issues token)
@@ -171,5 +171,5 @@ Styles are configured server-side in `api/styles-config.ts`. New styles can be a
 
 ---
 
-**Last Updated**: May 2026
+**Last Updated**: June 2026
 **Version**: Feature-complete, pre-submission

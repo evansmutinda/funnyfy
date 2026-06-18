@@ -10,23 +10,10 @@ import { requireAuth } from './_utils/auth';
 import { safeErrorResponse } from './_utils/security';
 import { checkAllRateLimits } from './_utils/ratelimit';
 import { getEstimatedWaitTime } from './_utils/queue-stats';
-
-function getCurrentMonthDate(): string {
-  const d = new Date();
-  return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0, 10);
-}
-
-const TIER_QUOTAS: Record<string, number> = {
-  'starter': 50,
-  'popular': 100,
-  'pro': 250,
-};
+import { getCurrentMonthDate, getTierQuota, TRIAL_LIMIT } from './_utils/usage';
 
 function getQuotaForTier(tier: string | null): number {
-  if (!tier) {
-    throw new Error('User tier is required');
-  }
-  return TIER_QUOTAS[tier.toLowerCase()] || 0;
+  return getTierQuota(tier);
 }
 
 export default async function handler(
@@ -60,7 +47,6 @@ export default async function handler(
   let userTier: string | null = null;
   let subscriptionStatus: string | null = null;
   let trialGenerationsUsed: number = 0;
-  const TRIAL_LIMIT = 3;
 
   try {
     const userResult = await query<{ 

@@ -1,6 +1,6 @@
 # FunnyFy App - Current Status
 
-**Last Updated**: May 2026
+**Last Updated**: June 2026
 **Version**: 1.0.2 (Android versionCode: 5, iOS buildNumber: 2)
 **Status**: Feature-Complete – Ready for App Store Submission
 
@@ -37,15 +37,19 @@ FunnyFy is a React Native mobile application that transforms user photos into AI
 - ✅ **Centered style labels**: Style picker text centered under cards with improved typography
 
 ### Auth System
-- ✅ `services/auth.js` — JWT auth service, persisted on device
+- ✅ `services/auth.js` — JWT auth service, persisted on device (use `auth.js` only; do not add `auth.ts`)
 - ✅ Backend creates real user in Supabase DB on first launch (`/api/auth/token`)
 - ✅ JWT token stored in device filesystem (not AsyncStorage)
-- ✅ Local UUID fallback: if backend/DB is down, app still works with a locally generated ID
-- ✅ `resetAuthIfLocal()` helper to force re-auth when DB recovers
-- ✅ RevenueCat anonymous user ID passed to backend on auth (links subscription to user)
+- ✅ Auth retries 3× before local fallback; `forceReAuth()` on stale/missing token
+- ✅ `ensureAuthenticated()` before purchases, generation, and API calls
+- ✅ Splash waits for auth to finish (prevents purchase before userId is set)
+- ✅ `Purchases.logIn(backendUserId)` links RevenueCat to backend UUID (transfers purchases)
+- ✅ Local UUID fallback only if backend/DB is unreachable
+- ✅ `resetAuthIfLocal()` clears local fallback when DB recovers
 
 ### Paywall / Subscription UI
 - ✅ Subscription screen with Current Plan, Usage This Month, Available Plans
+- ✅ **Purchase → sync → refresh flow working** (manual sync via `/api/sync-subscription` + auto refresh)
 - ✅ Pricing: $5 / $10 / $25 (no .99)
 - ✅ Plan benefits removed; quota-only display
 - ✅ Date format: dd/mmm/yyyy (e.g. 10/Feb/2025)
@@ -59,15 +63,16 @@ FunnyFy is a React Native mobile application that transforms user photos into AI
 ### Backend (Vercel Serverless)
 - ✅ Serverless API endpoints
 - ✅ Style catalog API (`/api/styles`)
-- ✅ Generation API (`/api/test`) – polls Replicate, returns completed result
+- ✅ Async generation: `POST /api/enqueue` → poll `GET /api/job?id=...`
+- ✅ Queue worker (`/api/cron/process-queue`) processes jobs via `api/process-job.ts`
 - ✅ User subscription API (`/api/user/subscription`)
 - ✅ Sync subscription, RevenueCat webhook handling
 - ✅ 21 styles with protected prompts
 - ✅ Usage tracking, quota enforcement
 - ✅ Replicate status handling: succeeded/failed/canceled; usage incremented only on success
 - ✅ **JWT auth endpoint** (`/api/auth/token`): Creates/returns user in Supabase, issues JWT
-- ✅ **NSFW moderation** (Sightengine): Blocks explicit images before Replicate, shows clean modal dialog, **no retry limit**
-- ✅ **Image upload validation** (in `api/test.ts`): MIME type check, 10MB size limit, magic byte verification (JPEG/PNG/WEBP/GIF)
+- ✅ **NSFW moderation** (Sightengine): in `api/process-job.ts`, blocks before Replicate
+- ✅ **Image upload validation**: in `api/enqueue.ts` / middleware (MIME, size, magic bytes)
 - ✅ **Cancel subscription endpoint** (`/api/cancel-subscription`): Production-ready
 - ✅ **Admin dashboard** (`/admin/login`): Login, queue stats, security logs
 
@@ -103,6 +108,19 @@ FunnyFy is a React Native mobile application that transforms user photos into AI
 18. Cyborg
 
 **Models Used**: `black-forest-labs/flux-kontext-pro` and `google/nano-banana`
+
+---
+
+## 📱 Recent Changes (June 2026)
+
+| Change | Description |
+|--------|-------------|
+| **Subscription sync fix** | `Purchases.logIn`, post-purchase sync, auth gating — purchases update plan immediately |
+| **Staging backend** | Use `https://funnyfy-staging.vercel.app` in `.env` for testing (production auth DB needs fix) |
+| **Silent gallery save** | Save directly into Funnyfy album via `createAssetAsync(uri, album)` — no Android "modify photo?" prompt |
+| **Android photo picker** | Gallery pick on Android 13+ uses system picker (no extra permission prompt) |
+| **Local APK builds** | `build-apk-local.ps1` + Gradle (`assembleDebug`) — no EAS quota needed |
+| **URL polyfill** | `react-native-url-polyfill` fixes harmless RevenueCat `sdk_initialized` tracking error |
 
 ---
 
@@ -194,9 +212,10 @@ FunnyFy is a React Native mobile application that transforms user photos into AI
 
 ### Key Endpoints
 - `GET /api/styles` – style catalog
-- `POST /api/test` – generation (sync poll)
+- `POST /api/enqueue` – create generation job
+- `GET /api/job?id=...` – poll job status
 - `GET /api/user/subscription` – subscription + usage
-- `POST /api/sync-subscription` – RevenueCat sync
+- `POST /api/sync-subscription` – manual RevenueCat → DB sync
 - `POST /api/auth/token` – JWT auth (creates user in DB)
 - `POST /api/cancel-subscription` – cancel active subscription
 - `POST /api/webhooks/revenuecat` – RevenueCat event webhook
@@ -209,8 +228,8 @@ FunnyFy is a React Native mobile application that transforms user photos into AI
 - **App name**: FunnyFy
 - **Package**: `com.evansks.funnyfyapp`
 - **Version**: 1.0.2 (versionCode: 5, buildNumber: 2)
-- **Staging**: `https://funnyfy-staging.vercel.app`
-- **Production**: `https://funnyfyapp.vercel.app`
+- **Staging**: `https://funnyfy-staging.vercel.app` ← **use for dev/testing**
+- **Production**: `https://funnyfyapp.vercel.app` — ⚠️ verify `DATABASE_URL` on Vercel before release (auth was failing with wrong Postgres password as of June 2026)
 - **Admin**: `/admin/login`
 - **Cost per generation**: ~$0.04
 - **Failed Replicate runs**: Not billed (see `MD/REPLICATE_BILLING_FAILED_RUNS.md`)

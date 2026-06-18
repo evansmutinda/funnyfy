@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Image,
   PanResponder,
@@ -34,13 +34,15 @@ export function getImageUrlFromOutput(output) {
   return output.url || null;
 }
 
-export default function ResultScreen({ original, result, loading, error, failedAttempts = 0, onRetry, onBack, onHome, subscriptionInfo, backHandlerRef, style }) {
+export default function ResultScreen({ original, result, loading, error, failedAttempts = 0, onRetry, onBack, onHome, onOpenGallery, onTryAnotherStyle, subscriptionInfo, backHandlerRef, style }) {
   const insets = useSafeAreaInsets();
   const { showToast, showDialog, closeDialog } = useNotifications();
   const imageUrl = result ? getImageUrlFromOutput(result.output) : null;
   const [mix, setMix] = useState(0);
   const [canvasWidth, setCanvasWidth] = useState(0);
   const [hasBeenSaved, setHasBeenSaved] = useState(false);
+  const sliderDemoDoneRef = useRef(false);
+  const sliderUserTouchedRef = useRef(false);
   const hasResult = !!result && !!imageUrl;
   const maxRetriesReached = error && failedAttempts >= 3;
 
@@ -52,8 +54,69 @@ export default function ResultScreen({ original, result, loading, error, failedA
     if (hasResult) {
       setMix(0);
       setHasBeenSaved(false);
+      sliderDemoDoneRef.current = false;
+      sliderUserTouchedRef.current = false;
     }
-  }, [hasResult]);
+  }, [hasResult, imageUrl]);
+
+  const showSavedToast = useCallback((savedPath) => {
+    showToast('Saved', savedPath, 'success', {
+      actionLabel: 'View in Gallery',
+      onAction: () => onOpenGallery?.(),
+    });
+  }, [onOpenGallery, showToast]);
+
+  useEffect(() => {
+    if (!hasResult || canvasWidth <= 0 || sliderDemoDoneRef.current) return undefined;
+
+    let frameId = null;
+    let cancelled = false;
+    const delayMs = 600;
+    const sweepMs = 1400;
+    const pauseMs = 400;
+    const returnMs = 1200;
+
+    const easeInOut = (t) => (t < 0.5 ? 2 * t * t : 1 - ((-2 * t + 2) ** 2) / 2);
+
+    const timeoutId = setTimeout(() => {
+      if (cancelled || sliderUserTouchedRef.current) return;
+
+      const start = Date.now();
+      const totalMs = sweepMs + pauseMs + returnMs;
+
+      const tick = () => {
+        if (cancelled || sliderUserTouchedRef.current) return;
+
+        const elapsed = Date.now() - start;
+        if (elapsed >= totalMs) {
+          setMix(0);
+          sliderDemoDoneRef.current = true;
+          return;
+        }
+
+        let nextMix = 0;
+        if (elapsed < sweepMs) {
+          nextMix = easeInOut(elapsed / sweepMs);
+        } else if (elapsed < sweepMs + pauseMs) {
+          nextMix = 1;
+        } else {
+          const t = (elapsed - sweepMs - pauseMs) / returnMs;
+          nextMix = 1 - easeInOut(t);
+        }
+
+        setMix(nextMix);
+        frameId = requestAnimationFrame(tick);
+      };
+
+      frameId = requestAnimationFrame(tick);
+    }, delayMs);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+      if (frameId != null) cancelAnimationFrame(frameId);
+    };
+  }, [hasResult, canvasWidth, imageUrl]);
 
   const handleShare = async () => {
     if (!imageUrl || loading) return;
@@ -114,7 +177,7 @@ export default function ResultScreen({ original, result, loading, error, failedA
 
         setHasBeenSaved(true);
         if (!silent) {
-          showToast('Saved', savedPath, 'success');
+          showSavedToast(savedPath);
         }
         return true;
       }
@@ -144,7 +207,7 @@ export default function ResultScreen({ original, result, loading, error, failedA
           closeDialog();
           const didSave = await handleDownload({ silent: true });
           if (didSave) {
-            showToast('Saved', `Gallery › ${FUNNYFY_FOLDER_NAME} album`, 'success');
+            showSavedToast(`Gallery › ${FUNNYFY_FOLDER_NAME} album`);
             setTimeout(() => navigate(), 400);
           } else {
             showToast('Save failed', 'Could not save the image', 'error');
@@ -169,6 +232,9 @@ export default function ResultScreen({ original, result, loading, error, failedA
         onMoveShouldSetPanResponder: () => true,
         onStartShouldSetPanResponderCapture: () => true,
         onMoveShouldSetPanResponderCapture: () => true,
+        onPanResponderGrant: () => {
+          sliderUserTouchedRef.current = true;
+        },
         onPanResponderMove: (evt) => {
           if (canvasWidth > 0) {
             const newMix = Math.max(0, Math.min(1, evt.nativeEvent.locationX / canvasWidth));
@@ -263,7 +329,7 @@ export default function ResultScreen({ original, result, loading, error, failedA
               ) : error ? (
                 <View style={styles.errorRetryContainer}>
                   <View style={styles.errorRetryHeader}>
-                    <Feather name="alert-circle" size={18} color="#B45309" />
+                    <Feather name="alert-circle" size={18} color="#DC2626" />
                     <Text style={styles.errorRetryMessage}>{error}</Text>
                   </View>
                   <TouchableOpacity
@@ -292,6 +358,16 @@ export default function ResultScreen({ original, result, loading, error, failedA
                   <Text style={styles.primaryButtonText} numberOfLines={1}>Share</Text>
                 </TouchableOpacity>
               </View>
+              {hasResult && onTryAnotherStyle ? (
+                <TouchableOpacity
+                  style={[styles.secondaryButton, styles.tryAnotherStyleButton, loading && styles.buttonDisabled]}
+                  onPress={() => confirmNavigate(onTryAnotherStyle)}
+                  disabled={loading}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.secondaryButtonText}>Try another style</Text>
+                </TouchableOpacity>
+              ) : null}
             </View>
           </View>
         ) : null}

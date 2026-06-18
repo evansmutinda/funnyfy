@@ -175,7 +175,7 @@ While users track **generations** (credits), you track **dollar costs**:
 
 ### Cost Per Generation
 
-From `api/utils/cost-protection.ts`:
+From `api/_utils/cost-protection.ts`:
 ```typescript
 const MODEL_COSTS: Record<string, number> = {
   'black-forest-labs/flux-kontext-pro': 0.04,  // $0.04 per generation
@@ -279,5 +279,5 @@ SELECT SUM(cost_usd) FROM cost_tracking WHERE date >= CURRENT_DATE - INTERVAL '1
 ---
 
 **Last Updated:** January 2025  
-**Related Files:** `api/enqueue.ts`, `api/user/subscription.ts`, `api/utils/cost-protection.ts`
+**Related Files:** `api/enqueue.ts`, `api/user/subscription.ts`, `api/_utils/cost-protection.ts`
 

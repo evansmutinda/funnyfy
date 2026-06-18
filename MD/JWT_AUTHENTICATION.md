@@ -2,103 +2,130 @@
 
 This document explains how FunnyFy's authentication system works, end-to-end.
 
+**Last Updated**: June 2026
+
 ---
 
 ## Overview
 
-FunnyFy uses a lightweight JWT (JSON Web Token) authentication system. On first launch, the app calls the backend to create a real user record in Supabase and get a token. That token is stored on the device and used for all subsequent API calls.
+FunnyFy uses JWT authentication. On launch, the app gets a token from `/api/auth/token`, stores it on device, and sends it on every API call. RevenueCat is linked to the same backend user via `Purchases.logIn(userId)`.
 
-If the backend is unavailable, the app generates a local ID and keeps working (graceful fallback).
+If the backend is unavailable, the app falls back to a local UUID (limited — no JWT, subscriptions and generation fail in production until re-auth).
 
 ---
 
-## How It Works (Plain English)
+## Flow (App Startup)
 
-Think of JWT authentication like a hotel key card:
-- The **backend** is the front desk — it checks your identity and gives you a key card (JWT token)
-- The **app** stores the key card and shows it to every door (API endpoint)
-- Each door checks the key card is valid before letting you in
+1. Initialize RevenueCat SDK (anonymous ID first)
+2. `initAuth(API_BASE, revenuecatUserId)` — get JWT from backend (3 retries)
+3. `Purchases.logIn(backendUserId)` — link RC customer to backend UUID; transfer prior purchases
+4. Splash screen waits for auth before main UI
+5. `refreshSubscription()` — sync RC state to backend if needed
 
 ---
 
 ## Components
 
 ### Backend: `/api/auth/token`
+
 - **File**: `api/auth/token.ts`
 - **Method**: `POST`
-- **Request body**: `{ revenuecatUserId?: string }`
-- **What it does**:
-  1. Checks if a user with this RevenueCat ID already exists in Supabase
-  2. If not, creates a new user row (`subscription_tier: 'trial'`, `trial_generations_used: 0`)
-  3. Signs a JWT with `JWT_SECRET` containing the user's UUID
-  4. Returns `{ ok: true, userId, token }`
+- **Body**: `{ revenuecatUserId?: string }`
+- Creates or finds user in Supabase; links `revenuecat_user_id` when provided
+- Returns `{ ok: true, userId, token }` (JWT expires in 30 days)
 
 ### Mobile: `services/auth.js`
-- **Function**: `initAuth(apiBase, revenuecatUserId)`
-- **Called on**: App startup, after RevenueCat initialises
-- **What it does**:
-  1. Checks device for stored auth (`.funnyfyauth.json`)
-  2. If found, returns stored `{ userId, token, isLocal }`
-  3. If not found, calls `/api/auth/token` to get real credentials
-  4. If backend fails, generates a local UUID (fallback)
-  5. Stores result on device filesystem
+
+**Use this file only.** Do not add `auth.ts` — Metro may resolve the wrong module.
+
+| Function | Purpose |
+|----------|---------|
+| `initAuth(apiBase, revenuecatUserId)` | Get or restore auth; 3× retry before local fallback |
+| `forceReAuth(apiBase, revenuecatUserId)` | Clear stored auth and fetch fresh token |
+| `resetAuthIfLocal()` | Clear local fallback ID on startup |
+| `clearAuth()` | Logout / wipe stored credentials |
+
+**Storage**: `.funnyfyauth.json` in app document directory (not AsyncStorage)
+
+### Mobile: `App.js` helpers
+
+| Function | Purpose |
+|----------|---------|
+| `ensureAuthenticated()` | Wait for init; re-auth if no JWT |
+| `syncSubscriptionToBackend(customerInfo)` | POST `/api/sync-subscription` after RC purchase |
+
+### RevenueCat: `services/revenuecat.js`
+
+| Function | Purpose |
+|----------|---------|
+| `loginUser(appUserId)` | `Purchases.logIn` — link RC to backend UUID |
+| `getActiveSubscriptionDetails()` | Read entitlements for sync |
 
 ### API Calls
-All API calls from the app include:
+
+All protected endpoints require:
+
 ```
-x-user-id: <userId>
 Authorization: Bearer <token>
+x-user-id: <userId>
 ```
 
-Backend endpoints use `requireAuth(req, res)` from `api/utils/auth.ts` to verify these.
+In **production**, only the JWT is accepted (not query/body `userId`). Backend: `requireAuth()` in `api/_utils/auth.ts`.
 
 ---
 
 ## Local Fallback
 
-If the backend or database is down:
-- `isLocal: true` is set on the auth object
-- A UUID is generated locally and stored
-- The app continues to work (generation, quota display, etc.)
-- When the backend recovers, call `resetAuthIfLocal()` to get a real auth on next launch
+When backend/DB is down:
 
-```js
-// In auth.js
-export async function resetAuthIfLocal() {
-  const stored = await readStored();
-  if (stored?.isLocal) {
-    await FileSystem.deleteAsync(AUTH_FILE, { idempotent: true });
-  }
-}
-```
+- `{ userId: localUuid, token: null, isLocal: true }` is stored
+- App shows "Server unavailable" toast
+- Purchases and `/api/enqueue` fail with `AUTHENTICATION_REQUIRED`
+- `resetAuthIfLocal()` + restart fixes once backend is back
 
 ---
 
-## Environment Variables Required
+## Environment Variables (Backend)
 
 ```bash
 JWT_SECRET=your-long-random-secret-key
-DATABASE_URL=your-supabase-connection-string
+DATABASE_URL=postgresql://...   # Must match Supabase — production was broken if auth returns TOKEN_GENERATION_FAILED
 ```
 
 ---
 
-## Limitations (Known)
+## Testing Auth
 
-- The current system uses **anonymous user IDs** — there is no email/password login
-- Users cannot sign in across devices (a reinstall gets a new user ID)
-- Full user accounts (email/password, cross-device sync) are planned for a future version using Supabase Auth or Clerk
+```powershell
+# Staging (working)
+Invoke-RestMethod -Uri "https://funnyfy-staging.vercel.app/api/auth/token" -Method POST -ContentType "application/json" -Body "{}"
+
+# Expect: ok=true, userId, token
+```
+
+Metro logs to verify in app:
+
+```
+[AUTH_DEBUG] hasToken: true
+[RevenueCat] Linked to backend user: <uuid>
+```
+
+---
+
+## Limitations
+
+- Anonymous users only — no email/password login
+- No cross-device account sync (reinstall = new user unless RevenueCat restore)
+- Future: Supabase Auth or Clerk
 
 ---
 
 ## Security Notes
 
-- JWT tokens are signed with `JWT_SECRET` using HS256
-- Tokens do not expire currently (add expiry in future)
-- Tokens are stored on device filesystem, not AsyncStorage (slightly more secure)
-- All API endpoints validate the token using `requireAuth()`
+- JWT signed with HS256 via `JWT_SECRET`
+- Token expiry: 30 days (`TOKEN_EXPIRATION` in `api/auth/token.ts`)
+- Production rejects unauthenticated requests (no `x-user-id`-only bypass)
 
 ---
 
-**Last Updated**: May 2026
-**See also**: `SECURITY.md`, `api/auth/token.ts`, `apps/mobile/services/auth.js`
+**See also**: `SECURITY.md`, `REVENUECAT_PURCHASE_TESTING.md`, `api/auth/token.ts`, `apps/mobile/services/auth.js`

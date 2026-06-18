@@ -11,11 +11,13 @@ FunnyFy is a React Native mobile app (Android & iOS) that transforms user photos
 - `apps/mobile/` - React Native mobile app (Expo SDK 52)
 - `apps/mobile/services/` - Auth and RevenueCat service modules
 - `api/` - Vercel serverless functions (backend API)
+- `api/_utils/` - Shared backend utilities (auth, security, validation, middleware)
 - `api/auth/` - JWT authentication endpoint
-- `api/utils/` - Shared backend utilities (auth, security, validation, middleware)
 - `api/webhooks/` - RevenueCat webhook handler
 - `api/user/` - User subscription endpoints
 - `api/admin/` - Admin dashboard backend
+- `build-apk.ps1` - EAS cloud APK build (uses quota)
+- `build-apk-local.ps1` - Local Gradle APK build (no EAS quota)
 - `MD/` - Development documentation and planning files
 
 ## Key Documentation Files
@@ -29,6 +31,8 @@ FunnyFy is a React Native mobile app (Android & iOS) that transforms user photos
 | `SECURITY.md` | Security features and middleware guide |
 | `REVENUECAT_SETUP.md` | RevenueCat SDK + webhook setup |
 | `NSFW_MODERATION_SIGHTENGINE.md` | NSFW blocking implementation |
+| `BUILD_APK_GUIDE.md` | EAS and **local Gradle** APK build instructions |
+| `REVENUECAT_PURCHASE_TESTING.md` | Subscription purchase + sync testing |
 | `TESTING.md` | API and mobile testing guide |
 | `USER_GUIDELINES.md` | Communication preferences for AI assistance |
 
@@ -47,7 +51,7 @@ FunnyFy is a React Native mobile app (Android & iOS) that transforms user photos
 - ✅ Before/after comparison slider
 - ✅ Save and share functionality
 - ✅ Gallery screen (view saved caricatures, full-screen viewer)
-- ✅ RevenueCat subscriptions (Starter $5, Popular $10, Pro $25)
+- ✅ RevenueCat subscriptions with backend sync (`Purchases.logIn` + `/api/sync-subscription`)
 - ✅ Usage tracking and quota enforcement (Supabase)
 - ✅ Retry up to 3 times on generation failure; billing confirmation on max retries
 - ✅ Save-before-navigate prompt when leaving result screen
@@ -73,8 +77,8 @@ FunnyFy is a React Native mobile app (Android & iOS) that transforms user photos
 - **API**: Node.js/TypeScript serverless functions
 - **Styles**: 21 styles (flux-kontext-pro and nano-banana models)
 - **Security**: API keys server-side, prompts protected, NSFW moderation, JWT auth, input validation
-- **Staging URL**: `https://funnyfy-staging.vercel.app`
-- **Production URL**: `https://funnyfyapp.vercel.app`
+- **Staging URL**: `https://funnyfy-staging.vercel.app` ← use for development/testing
+- **Production URL**: `https://funnyfyapp.vercel.app` (fix `DATABASE_URL` on Vercel before release)
 
 ### Pricing Tiers (Finalized)
 - **Starter**: $5/month = 50 images/month
@@ -113,5 +117,5 @@ FunnyFy is a React Native mobile app (Android & iOS) that transforms user photos
 
 ---
 
-**Last Updated**: May 2026
+**Last Updated**: June 2026
 **Status**: Feature-complete, ready for app store submission

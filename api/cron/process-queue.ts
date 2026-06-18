@@ -7,6 +7,7 @@ import { processJob, type JobRow } from '../_utils/process-job';
 import { checkDailySpendingCap, shouldPauseQueue, recordJobCost, getEstimatedCost } from '../_utils/cost-protection';
 import { getStyleById } from '../_utils/styles-config';
 import { verifyJWT } from '../_utils/security';
+import { creditUsageForJob } from '../_utils/usage';
 
 const MAX_CONCURRENT_JOBS = Number(process.env.MAX_CONCURRENT_JOBS || 10);
 
@@ -66,15 +67,23 @@ export default async function handler(
       });
     }
 
-    // Get next pending job (priority-based, oldest first)
-    // FOR UPDATE SKIP LOCKED requires a transaction
+    // Atomically claim one pending job (prevents duplicate processing / double usage credit)
     const jobResult = await query<JobRow & { style_id: string }>(
       `
-        SELECT id, user_id, style_id, input_image_url
-        FROM jobs
-        WHERE status = 'pending'
-        ORDER BY priority DESC, created_at ASC
-        LIMIT 1
+        WITH next_job AS (
+          SELECT id
+          FROM jobs
+          WHERE status = 'pending'
+          ORDER BY priority DESC, created_at ASC
+          LIMIT 1
+          FOR UPDATE SKIP LOCKED
+        )
+        UPDATE jobs j
+        SET status = 'processing',
+            started_at = NOW()
+        FROM next_job
+        WHERE j.id = next_job.id
+        RETURNING j.id, j.user_id, j.style_id, j.input_image_url
       `
     );
 
@@ -104,16 +113,7 @@ export default async function handler(
       });
     }
 
-    // Mark job as processing
-    await query(
-      `
-        UPDATE jobs
-        SET status = 'processing',
-            started_at = NOW()
-        WHERE id = $1
-      `,
-      [job.id]
-    );
+    // Mark job as processing — already done by atomic claim above
 
     // Process the job (this may take a while)
     try {
@@ -124,49 +124,9 @@ export default async function handler(
         await recordJobCost(job.id, styleConfig.model);
       }
 
-      // Update usage tracking after successful completion
-      const currentMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10);
-      
-      // Check if user is in trial or subscribed
+      // Update usage tracking after successful completion (once per job)
       if (job.user_id) {
-        const userResult = await query<{ subscription_status: string; trial_generations_used: number }>(
-          `
-            SELECT subscription_status, trial_generations_used
-            FROM users
-            WHERE id = $1
-          `,
-          [job.user_id]
-        );
-
-        if (userResult.rows.length > 0) {
-          const subscriptionStatus = userResult.rows[0].subscription_status;
-          const trialGenerationsUsed = userResult.rows[0].trial_generations_used ?? 0;
-          const TRIAL_LIMIT = 3;
-          const isTrialUser = subscriptionStatus === 'trial' || (subscriptionStatus !== 'active' && trialGenerationsUsed < TRIAL_LIMIT);
-
-          if (isTrialUser) {
-            // Increment trial usage
-            await query(
-              `
-                UPDATE users
-                SET trial_generations_used = trial_generations_used + 1
-                WHERE id = $1
-              `,
-              [job.user_id]
-            );
-          } else {
-            // Increment monthly usage
-            await query(
-              `
-                INSERT INTO usage_tracking (user_id, month, count, last_reset_at)
-                VALUES ($1, $2, 1, NOW())
-                ON CONFLICT (user_id, month)
-                DO UPDATE SET count = usage_tracking.count + 1
-              `,
-              [job.user_id, currentMonth]
-            );
-          }
-        }
+        await creditUsageForJob(job.id, job.user_id);
       }
 
       return res.status(200).json({

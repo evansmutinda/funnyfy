@@ -49,31 +49,38 @@ export async function initAuth(apiBase, revenuecatUserId = null) {
     await FileSystem.deleteAsync(AUTH_FILE, { idempotent: true });
   }
 
-  // Try to get auth from backend (creates user in DB)
-  try {
-    console.log('[Auth] Requesting token from backend...');
-    const res = await fetch(`${apiBase}/api/auth/token`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(
-        revenuecatUserId ? { revenuecatUserId } : {}
-      ),
-    });
+  // Try to get auth from backend (creates user in DB) — retry a few times on transient failures
+  const maxAttempts = 3;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      console.log('[Auth] Requesting token from backend...', attempt > 0 ? `(retry ${attempt})` : '');
+      const res = await fetch(`${apiBase}/api/auth/token`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(
+          revenuecatUserId ? { revenuecatUserId } : {}
+        ),
+      });
 
-    if (res.ok) {
-      const data = await res.json();
-      if (data.ok && data.token && data.userId) {
-        const auth = { userId: data.userId, token: data.token, isLocal: false };
-        await writeStored(auth);
-        console.log('[Auth] Got token from backend, userId:', data.userId);
-        return auth;
+      if (res.ok) {
+        const data = await res.json();
+        if (data.ok && data.token && data.userId) {
+          const auth = { userId: data.userId, token: data.token, isLocal: false };
+          await writeStored(auth);
+          console.log('[Auth] Got token from backend, userId:', data.userId);
+          return auth;
+        }
       }
+
+      const errorBody = await res.json().catch(() => ({}));
+      console.warn('[Auth] Backend returned error:', res.status, errorBody.error, errorBody.hint || '');
+    } catch (err) {
+      console.warn('[Auth] Backend request failed:', err.message);
     }
 
-    const errorBody = await res.json().catch(() => ({}));
-    console.warn('[Auth] Backend returned error:', res.status, errorBody.error, errorBody.hint || '');
-  } catch (err) {
-    console.warn('[Auth] Backend unavailable, using local ID. Error:', err.message);
+    if (attempt < maxAttempts - 1) {
+      await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
+    }
   }
 
   // Fallback: generate a local UUID and persist it
@@ -92,6 +99,12 @@ export async function clearAuth() {
   try {
     await FileSystem.deleteAsync(AUTH_FILE, { idempotent: true });
   } catch {}
+}
+
+// Force a fresh token from the backend (clears stored auth first)
+export async function forceReAuth(apiBase, revenuecatUserId = null) {
+  await clearAuth();
+  return initAuth(apiBase, revenuecatUserId);
 }
 
 // Call this once to force re-authentication (clears any local fallback ID)

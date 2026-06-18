@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [1.0.3] - 2026-06-15
+
+### Fixed
+- **Subscriptions**: RevenueCat `Purchases.logIn` links purchases to backend user; post-purchase sync + refresh; auth gating before purchase
+- **Auth startup race**: Splash waits for auth; `ensureAuthenticated()` / `forceReAuth()`; removed conflicting `auth.ts` (use `auth.js` only)
+- **Gallery save prompt**: Android "Allow gallery to modify this photo?" removed — save directly into Funnyfy album (no move-after-create)
+- **Staging URL**: Correct URL is `https://funnyfy-staging.vercel.app` (not `funnyfyapp-staging`)
+
+### Added
+- **Local APK build**: `build-apk-local.ps1` and Gradle `assembleDebug` / `assembleRelease` (no EAS quota)
+- **react-native-url-polyfill**: Fixes RevenueCat `sdk_initialized` tracking error in Metro logs
+- **Auth retries**: 3 attempts before local fallback in `initAuth()`
+
+### Changed
+- Android gallery pick uses system photo picker (Android 13+, no library permission for pick)
+- RevenueCat log level reduced to WARN (less terminal noise)
+
+---
+
 ## [1.0.2] - 2026-05-21
 
 ### Added

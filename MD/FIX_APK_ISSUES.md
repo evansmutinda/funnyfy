@@ -48,13 +48,10 @@ DO UPDATE SET
 You can also create the user by calling your test webhook endpoint:
 
 ```bash
-curl -X POST https://funnyfyapp.vercel.app/api/test-revenuecat-webhook \
+curl -X POST https://funnyfy-staging.vercel.app/api/sync-subscription \
   -H "Content-Type: application/json" \
-  -d '{
-    "userId": "test-user-123",
-    "tier": "starter",
-    "platform": "test"
-  }'
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{"userId":"YOUR-USER-UUID","productId":"starter_monthly","tier":"starter","platform":"test"}'
 ```
 
 **Note**: The backend validation requires UUID format, but since the user lookup allows `revenuecat_user_id`, we need to ensure the user exists with that ID.
@@ -65,7 +62,7 @@ curl -X POST https://funnyfyapp.vercel.app/api/test-revenuecat-webhook \
 
 **Problem**: Environment variables (`EXPO_PUBLIC_REVENUECAT_*`) are not included in the APK build.
 
-**Solution**: Set them as EAS secrets so they're included in builds.
+**Solution**: Set them in `apps/mobile/.env` for local Gradle builds, or as EAS secrets for cloud builds.
 
 ---
 

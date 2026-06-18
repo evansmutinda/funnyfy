@@ -356,7 +356,7 @@ Your codebase already includes excellent cost protection:
    - Automatically pauses queue if exceeded
    - **Critical for trial periods!**
 
-2. **Rate Limiting** (in `api/utils/ratelimit.ts`)
+2. **Rate Limiting** (in `api/_utils/ratelimit.ts`)
    - Burst limits per tier
    - Daily safety limits
    - Prevents abuse

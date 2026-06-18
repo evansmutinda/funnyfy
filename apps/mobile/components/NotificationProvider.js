@@ -5,18 +5,35 @@ import ConfirmDialog from './ConfirmDialog';
 export const NotificationContext = React.createContext({
   showToast: () => {},
   showDialog: () => {},
+  closeDialog: () => {},
 });
 
 export function useNotifications() {
   return React.useContext(NotificationContext);
 }
 
+const EMPTY_TOAST = {
+  visible: false,
+  title: '',
+  message: '',
+  type: 'info',
+  actionLabel: null,
+  onAction: null,
+};
+
 export default function NotificationProvider({ children }) {
-  const [toast, setToast] = useState({ visible: false, title: '', message: '', type: 'info' });
+  const [toast, setToast] = useState(EMPTY_TOAST);
   const [dialog, setDialog] = useState({ visible: false });
 
-  const showToast = useCallback((title, message, type = 'info') => {
-    setToast({ visible: true, title: title || '', message: message || '', type });
+  const showToast = useCallback((title, message, type = 'info', options = {}) => {
+    setToast({
+      visible: true,
+      title: title || '',
+      message: message || '',
+      type,
+      actionLabel: options.actionLabel || null,
+      onAction: options.onAction || null,
+    });
   }, []);
 
   const hideToast = useCallback(() => {
@@ -44,6 +61,8 @@ export default function NotificationProvider({ children }) {
         title={toast.title}
         message={toast.message}
         type={toast.type}
+        actionLabel={toast.actionLabel}
+        onAction={toast.onAction}
         onHide={hideToast}
       />
       <ConfirmDialog

@@ -52,33 +52,35 @@ This guide walks through testing the complete subscription purchase flow:
    ```
 
 3. **In the app:**
-   - Tap "Manage Subscription"
-   - Select a package (Starter/Popular/Pro)
-   - Complete purchase using sandbox/test account
-   - Wait 2-3 seconds
-   - Tap "Refresh" on style screen
-   - Verify plan pill shows new tier and quota
+   - Open Subscription from the menu
+   - Select Starter / Popular / Pro and complete purchase
+   - Plan should update automatically (sync + refresh)
+   - If needed, tap **Refresh** or **Restore**
 
-4. **Verify webhook was called:**
-   - Check Vercel logs for webhook endpoint
-   - Check database: `SELECT * FROM subscriptions WHERE user_id = '...'`
-   - Check database: `SELECT * FROM users WHERE revenuecat_user_id = '...'`
+4. **Verify backend:**
+   - Metro logs: `[subscription] Synced to backend`
+   - Vercel logs: `POST /api/sync-subscription` or webhook `INITIAL_PURCHASE`
+   - Database: `subscriptions` and `users.subscription_status = 'active'`
 
-### Method 2: Test Endpoint (Quick Backend Testing)
+### Method 2: Manual Sync Endpoint (Quick Backend Testing)
 
-Use the test endpoint to simulate a purchase without RevenueCat:
+Use when webhook is delayed or for recovery:
 
 ```bash
-curl -X POST https://funnyfy-staging.vercel.app/api/test-revenuecat-webhook \
+curl -X POST https://funnyfy-staging.vercel.app/api/sync-subscription \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT" \
   -d '{
-    "userId": "test-user-123",
-    "tier": "starter",
-    "platform": "test"
+    "userId": "YOUR-USER-UUID",
+    "productId": "popular_monthly",
+    "tier": "popular",
+    "platform": "android"
   }'
 ```
 
-Then refresh subscription in the app to see the update.
+Then refresh subscription in the app.
+
+> **Note:** The archived `/api/test-revenuecat-webhook` endpoint is not active. Use `/api/sync-subscription` or the live webhook.
 
 ### Method 3: Manual Database Update (For Debugging)
 

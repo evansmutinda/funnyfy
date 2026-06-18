@@ -17,30 +17,31 @@ The app now has a real authentication system:
 
 **Auth service API:**
 ```js
-import { initAuth, resetAuthIfLocal } from './services/auth';
+import { initAuth, resetAuthIfLocal, forceReAuth } from './services/auth.js';
 
-// On app startup:
 const auth = await initAuth(API_BASE, revenuecatUserId);
 // Returns: { userId, token, isLocal }
 
-// Force re-auth (clears local fallback):
-await resetAuthIfLocal();
+await forceReAuth(API_BASE, revenuecatUserId); // clear + fresh token
+await resetAuthIfLocal(); // clear local fallback only
 ```
 
-### 2. Input Validation (`api/utils/validation.ts`)
+After auth, `Purchases.logIn(userId)` links RevenueCat to the backend user.
+
+### 2. Input Validation (`api/_utils/validation.ts`)
 - **Zod schemas** for all input types
 - **UUID validation** for user IDs
 - **URL validation** with protocol checks
 - **Style ID validation** (alphanumeric, lowercase, hyphens only)
 - **Request body validation** helpers
 
-### 3. Image Upload Validation (`api/test.ts`)
-Before processing any image:
-- **MIME type check**: Only `image/jpeg`, `image/png`, `image/webp`, `image/gif` accepted
+### 3. Image Upload Validation (`api/enqueue.ts` + middleware)
+Before a job is enqueued:
+- **MIME type check**: Only `image/jpeg`, `image/png`, `image/webp`, `image/gif`
 - **File size limit**: 10MB maximum
-- **Magic byte verification**: File header bytes checked to confirm actual image type (prevents fake MIME types)
+- **Magic byte verification**: File header bytes checked (prevents fake MIME types)
 
-### 4. NSFW Content Moderation (`api/test.ts` + Sightengine)
+### 4. NSFW Content Moderation (`api/process-job.ts` + Sightengine)
 - Images screened by Sightengine **before** sending to Replicate
 - Threshold: `nudity.raw >= 0.3` → blocked (adjustable via `NSFW_RAW_THRESHOLD`)
 - Blocked images create an `infringements` record in Supabase
@@ -51,7 +52,7 @@ Before processing any image:
 - App checks `API_BASE` on startup; throws an error if HTTP is used in non-localhost environments
 - Prevents accidental misconfiguration sending data over unencrypted connections
 
-### 6. Security Headers (`api/utils/security.ts`)
+### 6. Security Headers (`api/_utils/security.ts`)
 - **HSTS** (HTTP Strict Transport Security)
 - **Content Security Policy** (CSP)
 - **X-Content-Type-Options** (prevent MIME sniffing)
@@ -59,12 +60,12 @@ Before processing any image:
 - **Referrer-Policy**
 - **Permissions-Policy**
 
-### 7. Input Sanitization (`api/utils/security.ts`)
+### 7. Input Sanitization (`api/_utils/security.ts`)
 - **String sanitization** (removes XSS vectors)
 - **URL sanitization** (validates protocol, length)
 - **Max length limits**
 
-### 8. Safe Error Handling (`api/utils/security.ts`)
+### 8. Safe Error Handling (`api/_utils/security.ts`)
 - Production hides internal error details
 - Development mode shows full details for debugging
 
@@ -73,7 +74,7 @@ Before processing any image:
 - Burst protection by tier
 - Daily safety limits
 
-### 10. Middleware Helpers (`api/utils/middleware.ts`)
+### 10. Middleware Helpers (`api/_utils/middleware.ts`)
 - Combined CORS, security headers, and OPTIONS handling
 - Request body parsing with error handling
 - Request validation helpers
@@ -137,4 +138,4 @@ DAILY_SPENDING_CAP=100
 
 ---
 
-**Last Updated**: May 2026
+**Last Updated**: June 2026

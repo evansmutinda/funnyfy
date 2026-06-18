@@ -107,6 +107,14 @@ CREATE INDEX IF NOT EXISTS idx_jobs_status_priority ON jobs(status, priority DES
 CREATE INDEX IF NOT EXISTS idx_jobs_user_id ON jobs(user_id);
 CREATE INDEX IF NOT EXISTS idx_jobs_created_at ON jobs(created_at DESC);
 
+-- One row per job that was credited toward quota (prevents double-count on queue races)
+CREATE TABLE IF NOT EXISTS job_usage_credits (
+  job_id      UUID PRIMARY KEY REFERENCES jobs(id) ON DELETE CASCADE,
+  credited_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_job_usage_credits_credited_at ON job_usage_credits(credited_at DESC);
+
 -- ============================================================
 -- RATE LIMITS (IP-based burst protection)
 -- ============================================================

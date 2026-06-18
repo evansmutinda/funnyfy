@@ -224,7 +224,7 @@ curl https://funnyfyapp.vercel.app/api/db-test
 
 ### Test API Endpoint
 ```bash
-curl -X POST https://funnyfyapp.vercel.app/api/test \
+curl -X POST https://funnyfy-staging.vercel.app/api/auth/token \
   -H "Content-Type: application/json" \
   -H "X-User-Id: your-user-id" \
   -d '{"payload":{"styleId":"anime","imageUrl":"https://example.com/image.jpg"}}'

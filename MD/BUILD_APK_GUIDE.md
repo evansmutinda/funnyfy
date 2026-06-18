@@ -1,180 +1,141 @@
 # How to Build APK for FunnyFy App
 
-## Prerequisites
-
-1. **EAS CLI installed** (if not already):
-   ```bash
-   npm install -g eas-cli
-   ```
-
-2. **Logged into EAS** (if not already):
-   ```bash
-   eas login
-   ```
-
-3. **Navigate to mobile app directory**:
-   ```bash
-   cd apps/mobile
-   ```
+Two options: **local Gradle build** (free, no EAS quota) or **EAS cloud build**.
 
 ---
 
-## Build Options
+## Option A: Local Build (Recommended if EAS quota exhausted)
 
-You have two build profiles configured for APK:
+### Prerequisites
 
-### Option 1: Preview Build (Recommended for Testing)
+1. **Android Studio** installed with Android SDK Platform 34 or 35
+2. **JDK 17** (bundled with Android Studio)
+3. Set environment variable:
+   ```powershell
+   $env:ANDROID_HOME = "$env:LOCALAPPDATA\Android\Sdk"
+   ```
 
-**Best for**: Testing on your device, sharing with testers
+### Steps
+
+1. **Configure `.env`** in `apps/mobile/` (values are baked in at build time):
+   ```env
+   EXPO_PUBLIC_API_URL=https://funnyfy-staging.vercel.app
+   EXPO_PUBLIC_REVENUECAT_ANDROID_KEY=test_kXXXX...
+   EXPO_PUBLIC_REVENUECAT_IOS_KEY=test_kXXXX...
+   ```
+
+2. **Generate native Android project** (first time, or after `app.config.js` changes):
+   ```powershell
+   cd apps/mobile
+   npx expo prebuild --platform android
+   ```
+
+3. **Build debug APK** (easiest — for testing on your device):
+   ```powershell
+   cd android
+   .\gradlew.bat assembleDebug
+   ```
+
+   **Output:** `apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk`
+
+4. **Or use the script** from project root:
+   ```powershell
+   .\build-apk-local.ps1
+   ```
+
+### Release APK (optional)
+
+```powershell
+cd apps/mobile/android
+.\gradlew.bat assembleRelease
+```
+
+Release builds require signing configuration. Use debug builds for sideload testing.
+
+### Rebuild after `.env` changes
+
+```powershell
+cd apps/mobile
+npx expo prebuild --platform android --clean
+cd android
+.\gradlew.bat assembleDebug
+```
+
+---
+
+## Option B: EAS Cloud Build
+
+Uses EAS build minutes (free tier has monthly quota).
+
+### Prerequisites
 
 ```bash
+npm install -g eas-cli
+eas login
 cd apps/mobile
+```
+
+### Preview Build (testing APK)
+
+```bash
 eas build --profile preview --platform android
 ```
 
-**What this does:**
-- Builds an APK file
-- Internal distribution (not for Play Store)
-- Good for testing subscription features
-- Download link will be provided when build completes
+Or from project root:
 
-**Time**: ~10-15 minutes
+```powershell
+.\build-apk.ps1
+# or
+.\build-apk.ps1 -Profile preview
+```
 
----
+**Time**: ~10–15 minutes in the cloud.
 
-### Option 2: Production Build (For Play Store or Final Testing)
-
-**Best for**: Production release or final testing
+### Production Build
 
 ```bash
-cd apps/mobile
 eas build --profile production --platform android
 ```
 
-**What this does:**
-- Builds an APK file
-- Production-ready build
-- Can be used for Play Store submission or testing
-- Download link will be provided when build completes
-
-**Time**: ~10-15 minutes
-
----
-
-## Build Process
-
-1. **Run the build command** (choose one above)
-
-2. **EAS will prompt you**:
-   - If you need to configure anything
-   - If you want to use existing credentials or create new ones
-
-3. **Build happens in the cloud**:
-   - You'll see a build URL
-   - You can watch progress in terminal or visit the URL
-   - Build typically takes 10-15 minutes
-
-4. **Download the APK**:
-   - When build completes, you'll get a download link
-   - Click the link to download the APK
-   - Or check your EAS dashboard: https://expo.dev/accounts/[your-account]/projects/funnyfy/builds
+Note: `eas.json` production profile builds an **AAB** by default (Play Store). Preview profile builds an **APK**.
 
 ---
 
 ## Installing the APK
 
-### On Android Device:
-
-1. **Enable "Install from Unknown Sources"**:
-   - Go to Settings → Security
-   - Enable "Install unknown apps" or "Unknown sources"
-
-2. **Transfer APK to device**:
-   - Download APK on your computer
-   - Transfer to Android device (USB, email, cloud storage, etc.)
-
-3. **Install**:
-   - Tap the APK file on your device
-   - Follow installation prompts
-   - App will be installed
+1. Enable **Install unknown apps** for your file manager (Settings → Apps)
+2. Copy APK to your Android device
+3. Tap to install
 
 ---
 
 ## Environment Variables
 
-If you need to set environment variables for the build:
+| Build type | Where to set |
+|------------|--------------|
+| **Local Gradle** | `apps/mobile/.env` — rebuild after changes |
+| **EAS cloud** | `eas secret:create` — see `apps/mobile/README-ENV.md` |
 
-**Option A: EAS Secrets (Recommended)**
-```bash
-eas secret:create --scope project --name EXPO_PUBLIC_API_URL --value https://your-api-url.com
-eas secret:create --scope project --name EXPO_PUBLIC_REVENUECAT_ANDROID_KEY --value your-key
-eas secret:create --scope project --name EXPO_PUBLIC_REVENUECAT_IOS_KEY --value your-key
-```
+Required variables:
+- `EXPO_PUBLIC_API_URL`
+- `EXPO_PUBLIC_REVENUECAT_ANDROID_KEY`
+- `EXPO_PUBLIC_REVENUECAT_IOS_KEY`
 
-**Option B: .env file (for local builds only)**
-- Create `apps/mobile/.env` file
-- Add variables like: `EXPO_PUBLIC_API_URL=https://your-api-url.com`
-- Note: `.env` files are NOT included in EAS builds (use secrets instead)
-
----
-
-## Quick Start (One Command)
-
-For the fastest testing build:
-
-```bash
-cd apps/mobile
-eas build --profile preview --platform android
-```
-
-Then wait ~10-15 minutes and download the APK from the provided link.
+**Staging URL for testing:** `https://funnyfy-staging.vercel.app`
 
 ---
 
 ## Troubleshooting
 
-### "EAS CLI not found"
-```bash
-npm install -g eas-cli
-```
-
-### "Not logged in"
-```bash
-eas login
-```
-
-### "Project not linked"
-```bash
-eas build:configure
-```
-
-### Want to see build status
-- Visit: https://expo.dev/accounts/[your-account]/projects/funnyfy/builds
-- Or check terminal output for build URL
+| Issue | Fix |
+|-------|-----|
+| `gradlew` not found | Run `npx expo prebuild --platform android` first |
+| JDK errors | Install JDK 17; set `JAVA_HOME` |
+| SDK not found | Install Android SDK via Android Studio |
+| Release build fails | Use `assembleDebug` for testing |
+| EAS quota exhausted | Use **Option A** (local build) |
+| Wrong API in APK | Update `.env` and rebuild |
 
 ---
 
-## Build Configuration
-
-Your current `eas.json` configuration:
-
-- **Preview profile**: Builds APK for internal testing
-- **Production profile**: Builds APK for release
-- **Development profile**: Builds development client (not APK)
-
-Both preview and production will create APK files you can install directly.
-
----
-
-## Next Steps After Building
-
-1. Download the APK
-2. Install on your Android device
-3. Test the app functionality
-4. Test subscription purchases (if configured)
-5. Share with testers if needed
-
----
-
-**Need help?** Check EAS docs: https://docs.expo.dev/build/introduction/
-
+**Last Updated**: June 2026

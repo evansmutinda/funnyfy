@@ -9,7 +9,7 @@ The app uses environment variables from `.env` file in this directory (`apps/mob
 ### Required Variables
 
 - `EXPO_PUBLIC_API_URL` - Your backend API URL
-  - **Staging**: `https://funnyfyapp-staging.vercel.app` (for testing)
+  - **Staging**: `https://funnyfy-staging.vercel.app` (for testing)
   - **Production**: `https://funnyfyapp.vercel.app` (when ready)
 - `EXPO_PUBLIC_REVENUECAT_ANDROID_KEY` - RevenueCat Android SDK key
 - `EXPO_PUBLIC_REVENUECAT_IOS_KEY` - RevenueCat iOS SDK key
@@ -24,7 +24,7 @@ The app uses environment variables from `.env` file in this directory (`apps/mob
 2. Edit `.env` - **Start with STAGING values** (already set in `env.example`):
    ```
    # STAGING (for testing)
-   EXPO_PUBLIC_API_URL=https://funnyfyapp-staging.vercel.app
+   EXPO_PUBLIC_API_URL=https://funnyfy-staging.vercel.app
    EXPO_PUBLIC_REVENUECAT_ANDROID_KEY=test_kDONbOMshuIcMeJIywMnnVsYOxu
    EXPO_PUBLIC_REVENUECAT_IOS_KEY=test_kDONbOMshuIcMeJIywMnnVsYOxu
    ```

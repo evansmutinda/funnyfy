@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Image,
+  Platform,
   SafeAreaView,
   StatusBar,
   Text,
@@ -11,8 +12,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as FileSystem from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import { useNotifications } from '../components/NotificationProvider';
+import MediaTile from '../components/MediaTile';
 import { SkeletonLoader } from '../components/MenuModal';
-import { BOTTOM_INSET_MIN } from '../constants';
+import { BOTTOM_INSET_MIN, getStyleImage } from '../constants';
+import { getTrialRemaining, getTrialWarningMessage, isTrialUser } from '../utils/trialWarnings';
 import styles from '../styles';
 
 export default function UploadScreen({ style, onStart, onBackToStyle, canGenerateMore, subscriptionInfo, onSubscribe }) {
@@ -23,6 +26,7 @@ export default function UploadScreen({ style, onStart, onBackToStyle, canGenerat
   const [picking, setPicking] = useState(false);
   const [pickingSource, setPickingSource] = useState(null);
   const [error, setError] = useState('');
+  const trialWarnedRef = useRef(false);
 
   useEffect(() => {
     if (error) {
@@ -30,6 +34,19 @@ export default function UploadScreen({ style, onStart, onBackToStyle, canGenerat
       setError('');
     }
   }, [error]);
+
+  useEffect(() => {
+    if (trialWarnedRef.current || !subscriptionInfo) return;
+    if (!isTrialUser(subscriptionInfo)) return;
+    const remaining = getTrialRemaining(subscriptionInfo);
+    const message = getTrialWarningMessage(remaining);
+    if (!message) return;
+    trialWarnedRef.current = true;
+    showToast('Trial', message, remaining === 1 ? 'warning' : 'info', {
+      actionLabel: remaining === 1 ? 'Upgrade' : undefined,
+      onAction: remaining === 1 ? onSubscribe : undefined,
+    });
+  }, [subscriptionInfo]);
 
   const getQuotaInfo = () => {
     if (!subscriptionInfo || !subscriptionInfo.usage) {
@@ -43,6 +60,7 @@ export default function UploadScreen({ style, onStart, onBackToStyle, canGenerat
   };
 
   const quotaInfo = getQuotaInfo();
+  const trialRemaining = isTrialUser(subscriptionInfo) ? getTrialRemaining(subscriptionInfo) : null;
 
   const pickImage = async (useCamera = false) => {
     if (picking) return;
@@ -61,18 +79,21 @@ export default function UploadScreen({ style, onStart, onBackToStyle, canGenerat
           return;
         }
         result = await ImagePicker.launchCameraAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          mediaTypes: ['images'],
           allowsEditing: true,
           quality: 0.9,
         });
       } else {
-        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (status !== 'granted') {
-          setError('Photo library permission is required to select images.');
-          return;
+        // Android 13+ uses the system photo picker — no library permission needed
+        if (Platform.OS !== 'android') {
+          const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+          if (status !== 'granted') {
+            setError('Photo library permission is required to select images.');
+            return;
+          }
         }
         result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          mediaTypes: ['images'],
           allowsEditing: true,
           quality: 0.9,
         });
@@ -164,6 +185,34 @@ export default function UploadScreen({ style, onStart, onBackToStyle, canGenerat
         {quotaInfo.isExceeded && (
           <TouchableOpacity onPress={onSubscribe} style={styles.quotaExceededBanner}>
             <Text style={styles.quotaExceededBannerText}>Quota reached — tap to upgrade</Text>
+          </TouchableOpacity>
+        )}
+
+        {!quotaInfo.isExceeded && trialRemaining === 1 ? (
+          <TouchableOpacity onPress={onSubscribe} style={styles.quotaLowBanner}>
+            <Text style={styles.quotaLowBannerText}>
+              1 caricature left on your trial — tap to upgrade
+            </Text>
+          </TouchableOpacity>
+        ) : null}
+
+        {style && (
+          <TouchableOpacity
+            style={styles.uploadStyleChip}
+            onPress={onBackToStyle}
+            activeOpacity={0.85}
+          >
+            <MediaTile
+              imageSource={getStyleImage(style)}
+              label=""
+              variant="chip"
+            />
+            <View style={styles.uploadStyleChipBody}>
+              <Text style={styles.uploadStyleChipLabel} numberOfLines={1}>
+                {style.label}
+              </Text>
+              <Text style={styles.uploadStyleChipChange}>Change style</Text>
+            </View>
           </TouchableOpacity>
         )}
 

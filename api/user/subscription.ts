@@ -6,17 +6,7 @@ import { query } from '../_utils/db';
 import { applyMiddleware } from '../_utils/middleware';
 import { requireAuth } from '../_utils/auth';
 import { safeErrorResponse } from '../_utils/security';
-
-const TIER_QUOTAS: Record<string, number> = {
-  'starter': 50,
-  'popular': 100,
-  'pro': 250,
-};
-
-function getCurrentMonthDate(): string {
-  const d = new Date();
-  return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0, 10);
-}
+import { getCurrentMonthDate, getTierQuota, TRIAL_LIMIT } from '../_utils/usage';
 
 export default async function handler(
   req: VercelRequest,
@@ -60,11 +50,8 @@ export default async function handler(
     const userId = user.id;
     const subscriptionStatus = user.subscription_status ?? 'trial';
     const trialGenerationsUsed = user.trial_generations_used ?? 0;
-    const TRIAL_LIMIT = 3;
-    const isTrialUser = subscriptionStatus === 'trial' || 
-                       (subscriptionStatus !== 'active' && trialGenerationsUsed < TRIAL_LIMIT);
 
-    // Get active subscription (if any)
+    // Get active subscription (if any) — must run before isTrialUser
     let subscriptionResult: { rows: Array<{ tier: string; status: string; current_period_start: string; current_period_end: string; cancel_at_period_end: boolean; pending_tier?: string | null }> };
     try {
       subscriptionResult = await query(
@@ -79,6 +66,12 @@ export default async function handler(
         [userId]
       );
     }
+
+    // Active subscription record wins over trial status (handles stale user row after purchase)
+    const isTrialUser = subscriptionResult.rows.length === 0 && (
+      subscriptionStatus === 'trial' ||
+      (subscriptionStatus !== 'active' && trialGenerationsUsed < TRIAL_LIMIT)
+    );
 
     let subscription = null;
     if (subscriptionResult.rows.length > 0) {
@@ -120,7 +113,7 @@ export default async function handler(
         [userId, currentMonth]
       );
       const current = usageResult.rows[0]?.count ?? 0;
-      const limit = TIER_QUOTAS[subscription.tier.toLowerCase()] || 0;
+      const limit = getTierQuota(subscription.tier);
 
       usage = {
         current,
@@ -137,7 +130,6 @@ export default async function handler(
     });
   } catch (err: any) {
     console.error('[user/subscription] Failed to get subscription:', err);
-    const debug = req.query.debug === '1' || req.query.debug === 'true';
     if (debug) {
       // Bypass safeErrorResponse's NODE_ENV check so we can diagnose prod issues
       return res.status(500).json({

@@ -51,6 +51,7 @@ export default async function handler(
   }
 
   const userId = (req.headers['x-user-id'] as string) || body.userId;
+  const revenuecatUserId = body.revenuecatUserId || body.revenuecat_user_id;
   const tier = body.tier || (body.productId ? mapProductIdToTier(body.productId) : null);
   const productId = body.productId || body.productIdentifier;
   const expirationDate = body.expirationDate || body.expiresDate;
@@ -107,6 +108,14 @@ export default async function handler(
       dbUserId = insertResult.rows[0].id;
     } else {
       dbUserId = userResult.rows[0].id;
+    }
+
+    // Keep RevenueCat app user ID linked to the backend user (needed for webhooks)
+    if (revenuecatUserId) {
+      await query(
+        `UPDATE users SET revenuecat_user_id = $1, updated_at = NOW() WHERE id = $2 AND (revenuecat_user_id IS NULL OR revenuecat_user_id = $1)`,
+        [revenuecatUserId, dbUserId]
+      );
     }
 
     // Calculate period end (expiration = next renewal date)
