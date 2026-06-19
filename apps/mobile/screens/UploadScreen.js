@@ -18,7 +18,16 @@ import { BOTTOM_INSET_MIN, getStyleImage } from '../constants';
 import { getTrialRemaining, getTrialWarningMessage, isTrialUser } from '../utils/trialWarnings';
 import styles from '../styles';
 
-export default function UploadScreen({ style, onStart, onBackToStyle, canGenerateMore, subscriptionInfo, onSubscribe }) {
+export default function UploadScreen({
+  style,
+  isOnline = true,
+  onStart,
+  onBackToStyle,
+  canGenerateMore,
+  subscriptionInfo,
+  onSubscribe,
+  onOpenSubscription,
+}) {
   const insets = useSafeAreaInsets();
   const { showToast, showDialog, closeDialog } = useNotifications();
   const [imageUri, setImageUri] = useState(null);
@@ -124,7 +133,7 @@ export default function UploadScreen({ style, onStart, onBackToStyle, canGenerat
   };
 
   const quotaOk = canGenerateMore !== false;
-  const canGenerate = !!imageUri && !picking && quotaOk;
+  const canGenerate = !!imageUri && !picking && quotaOk && isOnline;
 
   const handleCrop = async () => {
     if (!imageUri || picking) return;
@@ -168,7 +177,12 @@ export default function UploadScreen({ style, onStart, onBackToStyle, canGenerat
             <Text style={styles.iconButtonIcon}>‹</Text>
           </TouchableOpacity>
           {subscriptionInfo && (
-            <View style={styles.headerPill}>
+            <TouchableOpacity
+              onPress={onOpenSubscription}
+              style={styles.headerPill}
+              activeOpacity={0.85}
+              disabled={!onOpenSubscription}
+            >
               <View style={styles.headerPillProgress}>
                 <View style={[styles.headerPillProgressFill, { width: `${Math.min(quotaInfo.percentage, 100)}%` }]} />
               </View>
@@ -177,7 +191,7 @@ export default function UploadScreen({ style, onStart, onBackToStyle, canGenerat
                   ? `Trial · ${quotaInfo.current}/${quotaInfo.limit}`
                   : `${subscriptionInfo.subscription.tier.charAt(0).toUpperCase() + subscriptionInfo.subscription.tier.slice(1)} · ${quotaInfo.current}/${quotaInfo.limit}`}
               </Text>
-            </View>
+            </TouchableOpacity>
           )}
           <View style={{ width: 36 }} />
         </View>
@@ -194,6 +208,14 @@ export default function UploadScreen({ style, onStart, onBackToStyle, canGenerat
               1 caricature left on your trial — tap to upgrade
             </Text>
           </TouchableOpacity>
+        ) : null}
+
+        {!isOnline ? (
+          <View style={styles.quotaLowBanner}>
+            <Text style={styles.quotaLowBannerText}>
+              You&apos;re offline. Connect to the internet to generate caricatures.
+            </Text>
+          </View>
         ) : null}
 
         {style && (
@@ -261,6 +283,14 @@ export default function UploadScreen({ style, onStart, onBackToStyle, canGenerat
           <TouchableOpacity
             style={[styles.primaryButton, (!canGenerate || picking) && styles.buttonDisabled]}
             onPress={() => {
+              if (!isOnline) {
+                showToast(
+                  'No connection',
+                  'Connect to the internet to generate caricatures.',
+                  'warning',
+                );
+                return;
+              }
               if (!quotaOk && onSubscribe) {
                 showDialog({
                   title: 'Quota Exceeded',
@@ -280,7 +310,11 @@ export default function UploadScreen({ style, onStart, onBackToStyle, canGenerat
             disabled={!canGenerate || picking}
           >
             <Text style={styles.primaryButtonText}>
-              {quotaOk ? 'Generate caricature' : 'Upgrade to continue'}
+              {!isOnline
+                ? 'No internet connection'
+                : quotaOk
+                  ? 'Generate caricature'
+                  : 'Upgrade to continue'}
             </Text>
           </TouchableOpacity>
         </View>

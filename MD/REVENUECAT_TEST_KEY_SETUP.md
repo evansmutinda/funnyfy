@@ -64,7 +64,7 @@ eas secret:create --scope project \
 ### Test Keys (What You Have Now)
 - ✅ Universal: One key works for both Android and iOS
 - ✅ Format: `test_xxxxxxxx` or `test_goog_...` / `test_appl_...`
-- ✅ Use for: Testing in Expo Go, EAS builds, TestFlight, Internal Testing
+- ✅ Use for: Sandbox/test purchases in **debug APK** or EAS dev builds (Expo Go is smoke-test only)
 - ✅ Works with: Sandbox/test purchases (free)
 
 ### Production Keys (Later, When You Launch)

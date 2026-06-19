@@ -4,6 +4,35 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [1.0.4] - 2026-06-18
+
+### Added
+- **Offline UX**: `@react-native-community/netinfo`, top banner when disconnected, Upload generate guard, auto-refresh on reconnect
+- **Style catalog**: 160 styles across 16 categories from `Funnyfy_Categories_Updated.xlsx` (142 placeholders disabled; 18 legacy styles enabled)
+- **Catalog generator**: `scripts/generate-style-catalog.py` → `apps/mobile/data/styleCatalog.js` + `api/_utils/style-catalog.ts`
+- **Two-level style picker**: Home shows category tiles only; tap a category → 2-column style grid
+- **Category tile layout**: Alternating full-width + two half-width cards (`index % 3 === 0` → wide)
+- **Auto versioning**: `apps/mobile/version.json`, `scripts/bump-version.js`, auto-bump in `build-apk-local.ps1` / `build-apk.ps1`
+- **Paywall marquee**: `PaywallStyleMarquee.js` — scrolling style preview strip on subscription hero
+- **Runtime app version**: About screen reads version from `expo-constants` (falls back to `version.json`)
+- **Plus Jakarta Sans on style cards**: `@expo-google-fonts/plus-jakarta-sans` + `expo-font`; `constants/fonts.js`
+
+### Changed
+- **Offline at launch**: Replaced blocking “no internet” dialog with top banner + `DEFAULT_ENABLED_STYLES` fallback
+- **Style screen**: White background, **FunnyFy** wordmark + bordered menu button; back uses standard icon button
+- **Style tiles in categories**: 2-column discovery layout (was 3-column dense); taller aspect ratio (`0.72`)
+- **90s Cartoon** tile label shortened to **90s**; thumbnail uses `assets/toon.jpg`
+- **Subscription screen**: Split layout — ink hero + style marquee on top; white scrollable sheet (usage, plans, actions)
+- **Cartoons category**: Live styles **90s** + **Chibi** + **Anime** with `toon.jpg` / `chibi.jpg` / `anime.jpg` thumbnails
+- **Style card shell**: White (`#FFFFFF`), 24px radius, soft shadow; full-bleed `cover` image
+- **Style card labels**: Plus Jakarta Sans Regular, left-aligned, on bottom gradient; **dark rounded backdrop pill** behind text for readability on bright/busy images
+- **Discovery labels**: No longer inherit bold `styleImageLabel` — regular weight only on picker tiles
+
+### Fixed
+- Missing asset bundle errors when style thumbnail `require()` paths don't exist (use existing assets in `apps/mobile/assets/`)
+
+---
+
 ## [1.0.3] - 2026-06-15
 
 ### Fixed
@@ -11,15 +40,25 @@ All notable changes to this project will be documented in this file.
 - **Auth startup race**: Splash waits for auth; `ensureAuthenticated()` / `forceReAuth()`; removed conflicting `auth.ts` (use `auth.js` only)
 - **Gallery save prompt**: Android "Allow gallery to modify this photo?" removed — save directly into Funnyfy album (no move-after-create)
 - **Staging URL**: Correct URL is `https://funnyfy-staging.vercel.app` (not `funnyfyapp-staging`)
+- **Usage counter skips**: Idempotent per-job credits (`job_usage_credits` table); atomic queue job claim (`FOR UPDATE SKIP LOCKED`); fixed subscription API query order; stale refresh guard in app
 
 ### Added
 - **Local APK build**: `build-apk-local.ps1` and Gradle `assembleDebug` / `assembleRelease` (no EAS quota)
 - **react-native-url-polyfill**: Fixes RevenueCat `sdk_initialized` tracking error in Metro logs
 - **Auth retries**: 3 attempts before local fallback in `initAuth()`
+- **Shared `MediaTile` component**: ShotCam-style tiles (gradient label on image) for style picker, gallery, upload chip
+- **Style screen**: Category chips (All/Cartoon/Art/Fun), hero "Popular" tile, restyle mode with cancel/back
+- **Upload screen**: Selected-style chip with "Change style"
+- **Result screen**: Auto before/after slider demo; "Try another style" (same photo); save toast with "View in Gallery"
+- **Trial warnings**: Soft banner/toast when 1 caricature left on trial
+- **Backend**: `api/_utils/usage.ts`, migration `004-job-usage-credits.sql`
 
 ### Changed
 - Android gallery pick uses system photo picker (Android 13+, no library permission for pick)
 - RevenueCat log level reduced to WARN (less terminal noise)
+- **App theme**: Black & white UI (orange accent removed); green/red reserved for success/error states
+- Result slider auto-demo timing slowed for readability
+- Gallery grid matches style picker tile design (gray page background `#F3F4F6`)
 
 ---
 

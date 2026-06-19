@@ -48,8 +48,8 @@ export function PulsingSquare({ delay }) {
 export default function MenuModal({ visible, onClose, onSelect }) {
   const insets = useSafeAreaInsets();
   const items = [
-    { id: 'gallery',      label: 'My Gallery',    icon: 'image' },
-    { id: 'subscription', label: 'Subscriptions',      icon: 'star' },
+    { id: 'gallery',      label: 'My Gallery',       icon: 'image' },
+    { id: 'subscription', label: 'Subscription',     icon: 'credit-card' },
     { id: 'privacy',      label: 'Privacy Policy',     icon: 'shield' },
     { id: 'terms',        label: 'Terms & Conditions', icon: 'file-text' },
     { id: 'about',        label: 'About',              icon: 'info' },

@@ -7,7 +7,8 @@
 
 param(
     [switch]$Release,
-    [switch]$SkipPrebuild
+    [switch]$SkipPrebuild,
+    [switch]$NoVersionBump
 )
 
 $ErrorActionPreference = "Stop"
@@ -56,6 +57,18 @@ Write-Host ""
 Write-Host "Installing npm dependencies..." -ForegroundColor Yellow
 npm install
 if ($LASTEXITCODE -ne 0) { exit 1 }
+
+if (-not $NoVersionBump) {
+    Write-Host ""
+    Write-Host "Bumping build numbers (version.json)..." -ForegroundColor Yellow
+    node scripts/bump-version.js --build
+    if ($LASTEXITCODE -ne 0) { exit 1 }
+} else {
+    Write-Host "Skipping version bump (-NoVersionBump)" -ForegroundColor Gray
+}
+
+$versionInfo = Get-Content (Join-Path $mobileDir "version.json") -Raw | ConvertFrom-Json
+Write-Host "App version: $($versionInfo.version) (Android versionCode $($versionInfo.androidVersionCode))" -ForegroundColor Cyan
 
 if (-not $SkipPrebuild) {
     Write-Host ""

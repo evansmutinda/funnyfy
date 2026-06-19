@@ -2,9 +2,11 @@
 
 Two options: **local Gradle build** (free, no EAS quota) or **EAS cloud build**.
 
+**Recommended for daily testing:** use a **local debug APK** instead of Expo Go. Expo Go auto-updates from the store and can break SDK 52 compatibility; a debug APK matches your project’s native modules (RevenueCat, NetInfo, etc.). See `MD/TESTING.md` → **Method 2**.
+
 ---
 
-## Option A: Local Build (Recommended if EAS quota exhausted)
+## Option A: Local Build (Recommended)
 
 ### Prerequisites
 
@@ -24,24 +26,27 @@ Two options: **local Gradle build** (free, no EAS quota) or **EAS cloud build**.
    EXPO_PUBLIC_REVENUECAT_IOS_KEY=test_kXXXX...
    ```
 
-2. **Generate native Android project** (first time, or after `app.config.js` changes):
+2. **One-command build** (recommended — auto-bumps version, prebuilds, assembles APK):
+   ```powershell
+   # From project root
+   .\build-apk-local.ps1
+   ```
+   Skip version bump: `.\build-apk-local.ps1 -NoVersionBump`  
+   See `MD/TESTING.md` → **App versioning** for `version.json` details.
+
+3. **Manual steps** (if you prefer):
    ```powershell
    cd apps/mobile
    npx expo prebuild --platform android
    ```
 
-3. **Build debug APK** (easiest — for testing on your device):
+4. **Build debug APK** (when using manual prebuild):
    ```powershell
-   cd android
+   cd apps/mobile/android
    .\gradlew.bat assembleDebug
    ```
 
    **Output:** `apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk`
-
-4. **Or use the script** from project root:
-   ```powershell
-   .\build-apk-local.ps1
-   ```
 
 ### Release APK (optional)
 
@@ -106,6 +111,20 @@ Note: `eas.json` production profile builds an **AAB** by default (Play Store). P
 1. Enable **Install unknown apps** for your file manager (Settings → Apps)
 2. Copy APK to your Android device
 3. Tap to install
+4. Run `npm start` in `apps/mobile` on your PC — the installed app loads JS from Metro on the same Wi‑Fi network (fast refresh)
+
+---
+
+## Expo Go vs debug APK
+
+| Concern | Debug APK (`build-apk-local.ps1`) | Expo Go |
+|---------|-------------------------------------|---------|
+| SDK version drift | No — tied to your project | Yes — app store updates |
+| Subscriptions (RevenueCat) | Supported | Unreliable |
+| Offline banner (NetInfo) | Native module included | May vary |
+| Production parity | High | Low |
+
+**Block Expo Go auto-update (Android):** Play Store → Expo Go → **⋮** → disable **Enable auto-update**.
 
 ---
 

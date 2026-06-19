@@ -1,15 +1,18 @@
 // Expo app configuration
+// Version: apps/mobile/version.json (bump via scripts/bump-version.js or build scripts)
 // Note: EXPO_PUBLIC_* environment variables are automatically available in the app
 // They are loaded from:
 // 1. .env file in this directory (for local development)
 // 2. EAS secrets (for EAS builds - set via: eas secret:create)
 // 3. System environment variables
 
+const versionInfo = require('./version.json');
+
 export default {
   expo: {
     name: 'FunnyFy',
     slug: 'funnyfyapp',
-    version: '1.0.2',
+    version: versionInfo.version,
     platforms: ['android', 'ios'],
     orientation: 'portrait',
     icon: './assets/icon.jpg',
@@ -20,13 +23,13 @@ export default {
     },
     updates: { fallbackToCacheTimeout: 0 },
     assetBundlePatterns: ['**/*'],
-    ios: { 
+    ios: {
       supportsTablet: true,
-      buildNumber: '2'
+      buildNumber: String(versionInfo.iosBuildNumber),
     },
     android: {
       package: 'com.evansks.funnyfyapp',
-      versionCode: 5,
+      versionCode: versionInfo.androidVersionCode,
       permissions: [
         'CAMERA',
         'READ_EXTERNAL_STORAGE',
@@ -40,6 +43,7 @@ export default {
     },
     web: { bundler: 'metro' },
     plugins: [
+      'expo-font',
       [
         'expo-media-library',
         {
@@ -52,7 +56,7 @@ export default {
     ],
     extra: {
       // Correct EAS project ID provided by `eas build`
-      eas: { projectId: '09895e1f-da8e-4d28-88e1-e8ba89949281' }
-    }
-  }
+      eas: { projectId: '09895e1f-da8e-4d28-88e1-e8ba89949281' },
+    },
+  },
 };

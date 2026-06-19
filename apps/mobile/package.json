@@ -1,19 +1,26 @@
 {
   "name": "funnyfy-mobile",
-  "version": "0.1.0",
+  "version": "1.0.3",
   "private": true,
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "start": "expo start",
     "android": "expo run:android",
-    "ios": "expo run:ios"
+    "ios": "expo run:ios",
+    "version:bump": "node scripts/bump-version.js --build",
+    "version:patch": "node scripts/bump-version.js --patch",
+    "version:minor": "node scripts/bump-version.js --minor",
+    "version:major": "node scripts/bump-version.js --major"
   },
   "dependencies": {
+    "@expo-google-fonts/plus-jakarta-sans": "^0.4.2",
     "@expo/metro-runtime": "~4.0.1",
     "@react-native-async-storage/async-storage": "^1.23.1",
+    "@react-native-community/netinfo": "11.4.1",
     "@types/react": "~18.3.12",
     "expo": "~52.0.0",
     "expo-file-system": "~18.0.12",
+    "expo-font": "~13.0.4",
     "expo-image-manipulator": "~12.0.1",
     "expo-image-picker": "~16.0.6",
     "expo-linear-gradient": "~14.0.2",

@@ -1,4 +1,5 @@
 import { Dimensions, Platform } from 'react-native';
+import Constants from 'expo-constants';
 import * as FileSystem from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
 
@@ -7,6 +8,11 @@ export const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'https://funnyfyapp.v
 export const SUPPORT_EMAIL = 'support@funnyfy.app';
 export const APP_NAME = 'FunnyFy';
 export const COMPANY_NAME = 'FunnyFy';
+
+const APP_VERSION =
+  Constants.expoConfig?.version ??
+  Constants.manifest2?.extra?.expoClient?.version ??
+  require('./version.json').version;
 
 export const PRIVACY_POLICY_TEXT = `Last updated: ${new Date().toLocaleDateString()}
 
@@ -169,7 +175,7 @@ Transform your photos into amazing caricatures with the power of AI.
 
 Pick a style, upload a photo, and watch the magic happen.
 
-Version 1.0.1
+Version ${APP_VERSION}
 
 Made with care.
 
@@ -250,11 +256,25 @@ export const STYLE_CARD_IMAGE_WC = require('./assets/wc.jpg');
 export const STYLE_CARD_IMAGE_PXL = require('./assets/pxl.jpg');
 export const STYLE_CARD_IMAGE_FUNKO = require('./assets/funko.jpg');
 
+export const PAYWALL_MARQUEE_IMAGES = [
+  STYLE_CARD_IMAGE_ANIME,
+  STYLE_CARD_IMAGE_CHIBI,
+  STYLE_CARD_IMAGE_PXL,
+  STYLE_CARD_IMAGE_3DCLAY,
+  STYLE_CARD_IMAGE_NEON,
+  STYLE_CARD_IMAGE_OILPAINT,
+  STYLE_CARD_IMAGE_LOWPOLY,
+  STYLE_CARD_IMAGE_FUNKO,
+  STYLE_CARD_IMAGE_SUPERHERO,
+  STYLE_CARD_IMAGE_WC,
+];
+
 export function getStyleImage(style) {
   if (!style) return STYLE_CARD_IMAGE_DEFAULT;
   const label = (style.label || '').toLowerCase();
   const id = (style.id || '').toLowerCase();
 
+  if (id === '90s-cartoon' || label.includes('90s')) return STYLE_CARD_IMAGE_DEFAULT;
   if (id === 'chibi' || label.includes('chibi')) return STYLE_CARD_IMAGE_CHIBI;
   if (id === 'neon' || label.includes('neon')) return STYLE_CARD_IMAGE_NEON;
   if (id === 'anime' || label.includes('anime')) return STYLE_CARD_IMAGE_ANIME;
@@ -278,6 +298,6 @@ export function getStyleImage(style) {
 
 export const STYLE_90S_CARTOON = {
   id: '90s-cartoon',
-  label: '90s Cartoon',
+  label: '90s',
   description: 'Classic 90s animated cartoon style'
 };

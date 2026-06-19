@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { getEnabledStyles } from './_utils/styles-config';
+import { STYLE_CATEGORIES } from './_utils/style-catalog';
 
 const allowedOrigin = process.env.ALLOWED_ORIGIN || '*';
 
@@ -29,10 +30,9 @@ export default async function handler(
   // Return styles (prompts are protected on server - not sent to client)
   return res.status(200).json({
     ok: true,
+    categories: STYLE_CATEGORIES,
     styles: styles.map(({ prompt, model, ...style }) => ({
       ...style,
-      // Don't send prompt or model to client - they're protected
-      // Prompt and model will be used server-side only in test.ts
-    }))
+    })),
   });
 }

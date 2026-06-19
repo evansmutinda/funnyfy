@@ -2,23 +2,41 @@
 
 ## Current Status
 
-You currently have **17 styles** configured. This guide shows you how to easily add more styles to compete with other apps.
+You have **160 styles** in the catalog (from `Funnyfy_Categories_Updated.xlsx`) across **16 categories**. **18 legacy styles** are enabled with real prompts and thumbnails. The rest are placeholders (`enabled: false`) until you add prompts and tile art.
 
 ---
 
 ## How Styles Work in Your App
 
-### The Good News
-- ✅ **Styles are server-side** - Add them in `api/styles-config.ts`
-- ✅ **No app update needed** - New styles appear instantly via `/api/styles` endpoint
-- ✅ **Easy to add** - Just add a new entry to the `STYLES_CONFIG` object
-- ✅ **Can enable/disable** - Use `enabled: false` to temporarily disable styles
+### Catalog vs enabled styles
 
-### The Process
-1. Add style to `api/styles-config.ts`
-2. Deploy to Vercel (or it auto-deploys)
-3. App fetches new styles from `/api/styles` endpoint
-4. Users see new styles immediately!
+| Layer | File | Purpose |
+|-------|------|---------|
+| **Full catalog** | `api/_utils/style-catalog.ts`, `apps/mobile/data/styleCatalog.js` | All 160 styles + categories (generated) |
+| **Live config** | `api/_utils/styles-config.ts` | Prompts, models, `enabled: true/false` |
+| **Tile thumbnails** | `apps/mobile/constants.js` → `getStyleImage()` | Maps style id/label → `assets/*.jpg` |
+
+### Regenerate catalog from spreadsheet
+
+```bash
+python scripts/generate-style-catalog.py
+```
+
+Outputs:
+- `apps/mobile/data/styleCatalog.js`
+- `api/_utils/style-catalog.ts`
+
+### Enable a catalog style
+
+1. Set `enabled: true` and a real `prompt` in `api/_utils/styles-config.ts` (or add to `LEGACY_STYLES`)
+2. Add thumbnail: place image in `apps/mobile/assets/` and map in `getStyleImage()` in `constants.js`
+3. Add to `DEFAULT_ENABLED_STYLES` in `styleCatalog.js` (or regenerate script's legacy list)
+4. Deploy API to Vercel
+
+### The Good News
+- ✅ **Prompts are server-side** — protected in `api/_utils/styles-config.ts`
+- ✅ **New enabled styles** appear via `/api/styles` without a full app update (thumbnails need app bundle if using local assets)
+- ✅ **Can enable/disable** — `enabled: false` hides placeholders
 
 ---
 
@@ -45,9 +63,9 @@ Here are popular style categories that work well for caricature apps:
 - **CGI Animation** (Pixar/Toy Story style)
 
 ### Cartoon/Anime
-- **90s Cartoon** ✅ (you have this)
-- **Anime** ✅ (you have this)
-- **Chibi** ✅ (you have this)
+- **90s** (`90s-cartoon`) ✅ — Cartoons, `toon.jpg`, prompt: `Make this a 90s cartoon`
+- **Anime** ✅ — Anime & Manga, `anime.jpg`
+- **Chibi** ✅ — Cartoons, `chibi.jpg`
 - **Pixar-like** ✅ (you have this)
 - **Disney Classic** (old Disney animation)
 - **Modern Cartoon** (Rick and Morty style)
@@ -78,7 +96,7 @@ Here are popular style categories that work well for caricature apps:
 
 ## How to Add a New Style
 
-### Step 1: Open `api/styles-config.ts`
+### Step 1: Open `api/_utils/styles-config.ts`
 
 This file contains all your styles. Each style has:
 - `id`: Unique identifier (lowercase, use hyphens)
@@ -121,7 +139,21 @@ Let's say you want to add a "Pencil Sketch" style:
 },
 ```
 
-### Step 4: Deploy
+### Step 4: Add mobile thumbnail (required for tile preview)
+
+1. Add image to `apps/mobile/assets/` (e.g. `pencil-sketch.jpg`)
+2. In `apps/mobile/constants.js`:
+
+```javascript
+export const STYLE_CARD_IMAGE_PENCIL = require('./assets/pencil-sketch.jpg');
+
+// In getStyleImage():
+if (id === 'pencil-sketch' || label.includes('pencil')) return STYLE_CARD_IMAGE_PENCIL;
+```
+
+3. Rebuild or reload the app (local `require()` assets are bundled in the APK)
+
+### Step 5: Deploy
 
 After saving the file:
 - If using Vercel with auto-deploy: Just commit and push to GitHub
@@ -422,31 +454,30 @@ Each style uses the same API cost:
 
 ---
 
-## Quick Reference: All Your Current Styles
+## Quick Reference: Enabled Live Styles (18)
 
-You currently have:
-1. 90s Cartoon ✅
-2. Chibi ✅
-3. Neon ✅
-4. Anime ✅
-5. Custom 1 ✅
-6. 3D Clay ✅
-7. Oil Paint ✅
-8. Low-Poly ✅
-9. Water Color ✅
-10. Pixar-like ✅
-11. Funko Pop ✅
-12. Custom 2 ✅
-13. Neanderthal ✅
-14. Neanderthal 3D ✅
-15. Hand-Drawn ✅
-16. Superhero ✅
-17. Super Villain ✅
-18. Cyborg ✅
+| # | Label | Id | Category |
+|---|-------|-----|----------|
+| 1 | 90s | `90s-cartoon` | Cartoons |
+| 2 | Chibi | `chibi` | Cartoons |
+| 3 | Neon | `neon` | Art |
+| 4 | Anime | `anime` | Anime & Manga |
+| 5 | Custom 1 | `custom1` | Trending |
+| 6 | Custom 2 | `custom2` | Trending |
+| 7 | 3D Clay | `3dclay` | 3D Characters |
+| 8 | Oil Paint | `oil-paint` | Paintings |
+| 9 | Low-Poly Cartoon | `low-poly` | Art |
+| 10 | Water Color | `water-color` | Paintings |
+| 11 | Pixar-like | `pixar-like` | 3D Characters |
+| 12 | Funko Pop | `funko-pop` | 3D Characters |
+| 13 | Neanderthal | `neandc` | Fantasy & Mythical |
+| 14 | Neanderthal 3D | `neand3d` | Fantasy & Mythical |
+| 15 | Hand-Drawn | `handd` | Caricatures |
+| 16 | Superhero | `superhero` | Video Games |
+| 17 | Super Villain | `villian` | Video Games |
+| 18 | Cyborg | `cyborg` | Video Games |
 
-**Total: 17 styles**
-
-Adding 10-15 more popular styles would bring you to **27-32 styles**, which is competitive with other apps!
+**+ 142 catalog placeholders** — enable as thumbnails and prompts are ready.
 
 ---
 

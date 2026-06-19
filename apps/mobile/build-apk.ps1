@@ -1,6 +1,10 @@
 # FunnyFy - APK Build Script (PowerShell)
 # This script builds a production APK for Android using EAS Build
 
+param(
+    [switch]$NoVersionBump
+)
+
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "FunnyFy - APK Build Script" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
@@ -59,6 +63,24 @@ if ($LASTEXITCODE -ne 0) {
 } else {
     Write-Host "Logged in as: $whoamiOutput" -ForegroundColor Green
 }
+
+if (-not $NoVersionBump) {
+    Write-Host ""
+    Write-Host "Bumping build numbers (version.json)..." -ForegroundColor Yellow
+    node scripts/bump-version.js --build
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "Version bump failed." -ForegroundColor Red
+        Read-Host "Press Enter to exit"
+        exit 1
+    }
+} else {
+    Write-Host ""
+    Write-Host "Skipping version bump (-NoVersionBump)" -ForegroundColor Gray
+}
+
+$versionInfo = Get-Content version.json -Raw | ConvertFrom-Json
+Write-Host ""
+Write-Host "Building version $($versionInfo.version) (Android versionCode $($versionInfo.androidVersionCode))" -ForegroundColor Cyan
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan

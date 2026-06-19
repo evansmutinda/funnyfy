@@ -9,113 +9,88 @@ FunnyFy is a React Native mobile app (Android & iOS) that transforms user photos
 ## Project Structure
 
 - `apps/mobile/` - React Native mobile app (Expo SDK 52)
-- `apps/mobile/services/` - Auth and RevenueCat service modules
-- `api/` - Vercel serverless functions (backend API)
-- `api/_utils/` - Shared backend utilities (auth, security, validation, middleware)
-- `api/auth/` - JWT authentication endpoint
-- `api/webhooks/` - RevenueCat webhook handler
-- `api/user/` - User subscription endpoints
-- `api/admin/` - Admin dashboard backend
-- `build-apk.ps1` - EAS cloud APK build (uses quota)
-- `build-apk-local.ps1` - Local Gradle APK build (no EAS quota)
-- `MD/` - Development documentation and planning files
+- `apps/mobile/data/styleCatalog.js` - Generated style catalog (160 styles, 16 categories)
+- `apps/mobile/version.json` - App version single source of truth
+- `apps/mobile/scripts/bump-version.js` - Version bump script
+- `apps/mobile/services/` - Auth and RevenueCat (`auth.js`, `revenuecat.js`)
+- `apps/mobile/components/MediaTile.js` - Shared tile (style picker, gallery, upload chip)
+- `apps/mobile/constants/fonts.js` - Plus Jakarta Sans (`@expo-google-fonts/plus-jakarta-sans`)
+- `apps/mobile/components/PaywallStyleMarquee.js` - Scrolling style strip on subscription hero
+- `apps/mobile/components/NetworkProvider.js` - Connectivity state (`@react-native-community/netinfo`)
+- `apps/mobile/components/OfflineBanner.js` - Non-blocking offline bar
+- `apps/mobile/utils/` - Style categories, subscription dates, trial warnings
+- `api/_utils/styles-config.ts` - Enabled styles + prompts (server-side)
+- `api/_utils/style-catalog.ts` - Full catalog from spreadsheet
+- `scripts/generate-style-catalog.py` - Regenerate catalog from xlsx
+- `api/` - Vercel serverless functions
+- `build-apk.ps1` - EAS cloud APK build (`apps/mobile/`)
+- `build-apk-local.ps1` - Local Gradle APK build (repo root)
+- `MD/` - Development documentation
 
 ## Key Documentation Files
 
 | File | Purpose |
 |------|---------|
 | `STATUS.md` | **Current app status and launch checklist** ⭐ |
-| `DEVELOPMENT_PLAN.md` | Complete development plan and architecture |
-| `PRICING_STRATEGY.md` | Pricing tiers and revenue projections |
-| `DATABASE_SCHEMA.md` | Full Supabase schema reference |
-| `SECURITY.md` | Security features and middleware guide |
-| `REVENUECAT_SETUP.md` | RevenueCat SDK + webhook setup |
-| `NSFW_MODERATION_SIGHTENGINE.md` | NSFW blocking implementation |
-| `BUILD_APK_GUIDE.md` | EAS and **local Gradle** APK build instructions |
-| `REVENUECAT_PURCHASE_TESTING.md` | Subscription purchase + sync testing |
-| `TESTING.md` | API and mobile testing guide |
-| `USER_GUIDELINES.md` | Communication preferences for AI assistance |
+| `CHANGELOG.md` | Version history |
+| `TESTING.md` | API, mobile, and versioning test guide |
+| `DEVELOPMENT_PLAN.md` | Architecture and phases |
+| `ADDING_MORE_STYLES_GUIDE.md` | Enable catalog styles + thumbnails |
+| `BUILD_APK_GUIDE.md` | EAS and local APK builds (preferred over Expo Go) |
+| `DATABASE_SCHEMA.md` | Supabase schema |
+| `REVENUECAT_SETUP.md` | RevenueCat SDK + webhook |
 
 ## Current Status
 
 **✅ Production-Ready – Awaiting App Store Submission**
 
-**Version**: 1.0.2 (Android versionCode: 5, iOS buildNumber: 2)
+**Version**: 1.0.3 (`apps/mobile/version.json`) — auto-bumps on build
 
 ### Implemented Features
-- ✅ React Native mobile app (Android & iOS via Expo SDK 52)
-- ✅ 21 caricature styles available
-- ✅ Image upload (camera & gallery)
-- ✅ Style selection with preview images
-- ✅ Real-time generation with pulsing progress indicator
-- ✅ Before/after comparison slider
-- ✅ Save and share functionality
-- ✅ Gallery screen (view saved caricatures, full-screen viewer)
-- ✅ RevenueCat subscriptions with backend sync (`Purchases.logIn` + `/api/sync-subscription`)
-- ✅ Usage tracking and quota enforcement (Supabase)
-- ✅ Retry up to 3 times on generation failure; billing confirmation on max retries
-- ✅ Save-before-navigate prompt when leaving result screen
-- ✅ Plan badge as progress bar (Upload & Result screens)
-- ✅ Toast notification system (replaces system Alert dialogs)
-- ✅ ConfirmDialog component (with optional 3-button layout)
-- ✅ Full Privacy Policy & Terms of Service (13 sections each, in-app)
-- ✅ NSFW content moderation (Sightengine) with infringement tracking and bans
-- ✅ JWT authentication (backend-issued token, stored on device)
-- ✅ Auth service with local UUID fallback (app works even if DB is down)
-- ✅ Restore Purchases button (Play Store policy requirement)
-- ✅ Subscription cancellation endpoint (production-ready)
-- ✅ Admin dashboard (login, queue stats, security logs)
-- ✅ Image upload validation (MIME type, size limit, magic byte verification)
-- ✅ HTTPS enforcement for API calls
-- ✅ Vercel serverless backend
-- ✅ Protected API keys (server-side only)
-- ✅ Style configuration (server-side, no app updates needed)
+- ✅ React Native mobile app (Expo SDK 52)
+- ✅ **160-style catalog**, **18 enabled** live styles across 16 categories
+- ✅ **Two-level style picker**: category tiles → style grid per category
+- ✅ ShotCam-style `MediaTile` tiles: white cards, gradient + Plus Jakarta Sans label with dark backdrop pill (style picker)
+- ✅ Image upload with style chip; generation via enqueue + job poll
+- ✅ Before/after slider + auto-demo on result; **Try another style** restyle flow
+- ✅ Gallery, save/share, toast notifications, ConfirmDialog
+- ✅ RevenueCat subscriptions + backend sync
+- ✅ Usage quota, NSFW moderation, JWT auth, admin dashboard
+- ✅ **Auto versioning** on local/EAS builds
+- ✅ **Offline UX**: banner when disconnected; gallery/styles browse offline; generation blocked until online
+- ✅ Subscription screen: ink hero + marquee + white scrollable sheet
 
-### Backend Infrastructure
-- **Hosting**: Vercel (serverless functions)
-- **Database**: Supabase (users, subscriptions, usage_tracking, jobs, infringements, security_logs, cost_tracking)
-- **API**: Node.js/TypeScript serverless functions
-- **Styles**: 21 styles (flux-kontext-pro and nano-banana models)
-- **Security**: API keys server-side, prompts protected, NSFW moderation, JWT auth, input validation
-- **Staging URL**: `https://funnyfy-staging.vercel.app` ← use for development/testing
-- **Production URL**: `https://funnyfyapp.vercel.app` (fix `DATABASE_URL` on Vercel before release)
+### Recommended testing (Android)
+Use a **local debug APK** (`.\build-apk-local.ps1`) instead of **Expo Go** when possible — Expo Go auto-updates from the store and may break SDK 52 compatibility. See `MD/TESTING.md` and `MD/BUILD_APK_GUIDE.md`.
 
-### Pricing Tiers (Finalized)
-- **Starter**: $5/month = 50 images/month
-- **Popular**: $10/month = 100 images/month
-- **Pro**: $25/month = 250 images/month
-- No yearly plans initially
+### Style Picker (current UX)
+1. **Home**: 16 category tiles (wide/compact alternation), white background, FunnyFy wordmark + menu
+2. **Category**: 2-column style grid, taller white cards; labels left-aligned with dark pill behind text; e.g. Cartoons → **90s**, **Chibi**, **Anime**
+3. **Restyle**: Flat list of all enabled styles with banner
+
+### Backend
+- **Staging**: `https://funnyfy-staging.vercel.app`
+- **Production**: `https://funnyfyapp.vercel.app`
+- **Styles API**: `GET /api/styles` returns enabled styles + `categories`
+
+### Pricing
+- Starter $5 / Popular $10 / Pro $25 per month
 
 ### App Identifiers
-- **App name**: FunnyFy
+- **Name**: FunnyFy
 - **Package**: `com.evansks.funnyfyapp`
-- **Version**: 1.0.2 (Android versionCode: 5, iOS buildNumber: 2)
 
 ## Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
 | Mobile | React Native (Expo SDK 52) |
-| Backend | Vercel serverless (Node.js/TypeScript) |
-| Database | Supabase (Postgres) |
-| AI Generation | Replicate API |
+| Backend | Vercel serverless (TypeScript) |
+| Database | Supabase |
+| AI | Replicate API |
 | Subscriptions | RevenueCat |
-| Auth | Custom JWT (backend-issued) |
-| NSFW Moderation | Sightengine |
-| Notifications | Custom Toast/ConfirmDialog system |
-
-## Next Steps for Launch
-1. ✅ Subscription management (RevenueCat)
-2. ✅ Database and usage tracking (Supabase)
-3. ✅ Quota enforcement
-4. ✅ Privacy policy & terms of service (in-app)
-5. ✅ NSFW moderation
-6. ✅ JWT authentication
-7. ✅ Toast notifications and UX polish
-8. [ ] App store submission (Google Play)
-9. [ ] App store assets (screenshots, descriptions, icon)
+| Auth | Custom JWT |
 
 ---
 
 **Last Updated**: June 2026
-**Status**: Feature-complete, ready for app store submission

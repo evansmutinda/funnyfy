@@ -1,5 +1,7 @@
-import { Platform } from 'react-native';
+import { Linking, Platform } from 'react-native';
 import Purchases, { LOG_LEVEL } from 'react-native-purchases';
+
+const ANDROID_PACKAGE = 'com.evansks.funnyfyapp';
 
 const IOS_KEY = process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY;
 const ANDROID_KEY = process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY;
@@ -109,4 +111,46 @@ export function getActiveSubscriptionDetails(customerInfo) {
   }
 
   return null;
+}
+
+/** Active entitlement billing flags from RevenueCat (source of truth for auto-renew). */
+export function getSubscriptionBillingState(customerInfo) {
+  if (!customerInfo) return null;
+
+  const activeEntitlements = customerInfo.entitlements?.active || {};
+  const entitlementValues = Object.values(activeEntitlements);
+  const ent = entitlementValues.find((e) => e?.productIdentifier) || entitlementValues[0];
+  if (!ent?.productIdentifier) return null;
+
+  return {
+    productIdentifier: ent.productIdentifier,
+    expirationDate: ent.expirationDate || customerInfo.allExpirationDates?.[ent.productIdentifier] || null,
+    willRenew: ent.willRenew !== false,
+    cancelAtPeriodEnd: ent.willRenew === false,
+    managementURL: customerInfo.managementURL || null,
+  };
+}
+
+export function getSubscriptionManagementURL(customerInfo) {
+  const billing = getSubscriptionBillingState(customerInfo);
+  if (billing?.managementURL) return billing.managementURL;
+
+  if (Platform.OS === 'android') {
+    return `https://play.google.com/store/account/subscriptions?package=${ANDROID_PACKAGE}`;
+  }
+  return 'https://apps.apple.com/account/subscriptions';
+}
+
+export function getStoreSubscriptionLabel() {
+  return Platform.OS === 'ios' ? 'App Store' : 'Google Play';
+}
+
+/** Open Google Play / App Store subscription management (required to cancel auto-renew). */
+export async function openSubscriptionManagement(customerInfo) {
+  const url = getSubscriptionManagementURL(customerInfo);
+  const canOpen = await Linking.canOpenURL(url);
+  if (!canOpen) {
+    throw new Error('Cannot open subscription management URL');
+  }
+  await Linking.openURL(url);
 }

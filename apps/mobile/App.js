@@ -1,15 +1,37 @@
 // URL polyfill — RevenueCat's sdk_initialized tracking uses URL.search (not fully supported in RN/Hermes)
 import 'react-native-url-polyfill/auto';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useFonts,
+  PlusJakartaSans_400Regular,
+} from '@expo-google-fonts/plus-jakarta-sans';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AppState,
   BackHandler,
   Platform,
+  View,
 } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { initRevenueCat, getOfferings, purchasePackage, restorePurchases, getCustomerInfo, getAppUserId, hasRevenueCatKey, isConfigured as isRcConfigured, loginUser, getActiveSubscriptionDetails, tierFromProductId } from './services/revenuecat';
+import {
+  initRevenueCat,
+  getOfferings,
+  purchasePackage,
+  restorePurchases,
+  getCustomerInfo,
+  getAppUserId,
+  hasRevenueCatKey,
+  isConfigured as isRcConfigured,
+  loginUser,
+  getActiveSubscriptionDetails,
+  getSubscriptionBillingState,
+  openSubscriptionManagement,
+  getStoreSubscriptionLabel,
+  tierFromProductId,
+} from './services/revenuecat';
 import { initAuth, resetAuthIfLocal, forceReAuth } from './services/auth.js';
 import NotificationProvider, { useNotifications } from './components/NotificationProvider';
+import NetworkProvider, { useNetwork } from './components/NetworkProvider';
+import OfflineBanner from './components/OfflineBanner';
 import MenuModal from './components/MenuModal';
 import SplashScreen from './components/SplashScreen';
 import GalleryScreen from './screens/GalleryScreen';
@@ -23,8 +45,8 @@ import {
   PRIVACY_POLICY_TEXT,
   TERMS_TEXT,
   ABOUT_TEXT,
-  STYLE_90S_CARTOON,
 } from './constants';
+import { DEFAULT_ENABLED_STYLES } from './data/styleCatalog';
 import { getTrialRemaining, getTrialWarningMessage, isTrialUser } from './utils/trialWarnings';
 
 // Enforce HTTPS for security — prevent accidental HTTP misconfiguration
@@ -34,17 +56,37 @@ if (API_BASE.startsWith('http://') && !API_BASE.includes('localhost') && !API_BA
 }
 
 export default function App() {
+  const [fontsLoaded] = useFonts({
+    PlusJakartaSans_400Regular,
+  });
+
+  if (!fontsLoaded) {
+    return null;
+  }
+
   return (
     <SafeAreaProvider>
       <NotificationProvider>
-        <AppContent />
+        <NetworkProvider>
+          <AppContent />
+        </NetworkProvider>
       </NotificationProvider>
     </SafeAreaProvider>
   );
 }
 
+function AppShell({ children, showOfflineBanner = true }) {
+  return (
+    <View style={{ flex: 1 }}>
+      {showOfflineBanner ? <OfflineBanner /> : null}
+      {children}
+    </View>
+  );
+}
+
 function AppContent() {
   const { showToast, showDialog, closeDialog } = useNotifications();
+  const { isOnline } = useNetwork();
   const [screen, setScreen] = useState('splash');
   const [style, setStyle] = useState(null);
   const [original, setOriginal] = useState(null);
@@ -70,6 +112,8 @@ function AppContent() {
   const authInitPromiseRef = useRef(null);
   const resultBackHandlerRef = useRef(null);
   const subscriptionRefreshSeqRef = useRef(0);
+  const revenueCatExpirationRef = useRef(null);
+  const wasOnlineRef = useRef(true);
 
   // Keep refs in sync so async functions always use the latest values
   useEffect(() => {
@@ -267,10 +311,16 @@ function AppContent() {
     const maxRetries = 2;
 
     try {
+      let rcExpiration = revenueCatExpirationRef.current;
+      let rcBillingState = null;
       if (hasRevenueCatKey()) {
         try {
           const customerInfo = await getCustomerInfo();
           await syncSubscriptionToBackend(customerInfo);
+          const rcDetails = getActiveSubscriptionDetails(customerInfo);
+          rcExpiration = rcDetails?.expirationDate || null;
+          revenueCatExpirationRef.current = rcExpiration;
+          rcBillingState = getSubscriptionBillingState(customerInfo);
         } catch (syncErr) {
           console.warn('[subscription] Pre-refresh sync failed (non-fatal):', syncErr);
         }
@@ -312,7 +362,18 @@ function AppContent() {
         return;
       }
       if (refreshSeq === subscriptionRefreshSeqRef.current) {
-        setSubscriptionInfo(json);
+        let subscription = json.subscription;
+        if (subscription && rcBillingState) {
+          subscription = {
+            ...subscription,
+            cancelAtPeriodEnd: rcBillingState.cancelAtPeriodEnd,
+          };
+        }
+        setSubscriptionInfo({
+          ...json,
+          subscription,
+          revenueCatExpiration: rcExpiration,
+        });
       }
       return json;
     } catch (err) {
@@ -327,50 +388,44 @@ function AppContent() {
     }
   };
 
-  useEffect(() => {
-    const fetchStyles = async () => {
-      try {
-        const res = await fetch(`${API_BASE}/api/styles`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
+  const fetchStyles = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/styles`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
 
-        if (data.ok && Array.isArray(data.styles) && data.styles.length > 0) {
-          const serverStyles = data.styles.map((s) => ({
-            id: s.id,
-            label: s.label,
-            description: s.description,
-          }));
-          setAvailableStyles(serverStyles);
-        } else {
-          throw new Error('No styles returned');
-        }
-      } catch (err) {
-        console.error('Failed to fetch styles from server, using default:', err);
-        setAvailableStyles([STYLE_90S_CARTOON]);
-
-        // Show a network error dialog if the app launched with no connectivity
-        const isNetworkError = err.message?.includes('Failed to fetch') ||
-                                err.message?.includes('Network request failed') ||
-                                err.message?.includes('NetworkError');
-        if (isNetworkError) {
-          setTimeout(() => {
-            showDialog({
-              title: 'No internet connection',
-              message: 'FunnyFy requires an internet connection. Please check your network and try again.',
-              confirmLabel: 'Retry',
-              onConfirm: () => {
-                closeDialog();
-                // Retry fetching styles
-                fetchStyles();
-              },
-            });
-          }, 500);
-        }
+      if (data.ok && Array.isArray(data.styles) && data.styles.length > 0) {
+        const serverStyles = data.styles.map((s) => ({
+          id: s.id,
+          label: s.label,
+          description: s.description,
+          categoryId: s.categoryId,
+        }));
+        setAvailableStyles(serverStyles);
+      } else {
+        throw new Error('No styles returned');
       }
-    };
-
-    fetchStyles();
+    } catch (err) {
+      console.error('Failed to fetch styles from server, using default:', err);
+      setAvailableStyles(DEFAULT_ENABLED_STYLES);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchStyles();
+  }, [fetchStyles]);
+
+  useEffect(() => {
+    if (!wasOnlineRef.current && isOnline) {
+      console.log('[Network] Back online — refreshing styles and subscription');
+      fetchStyles();
+      refreshSubscription();
+      ensureAuthenticated()
+        .then((auth) => applyAuthState(auth))
+        .catch((err) => console.warn('[Network] Re-auth on reconnect failed:', err?.message || err));
+    }
+    wasOnlineRef.current = isOnline;
+  }, [isOnline, fetchStyles]);
 
   // Refresh subscription once auth is ready
   useEffect(() => {
@@ -575,6 +630,14 @@ function AppContent() {
     if (selectedTier && typeof selectedTier !== 'string') {
       selectedTier = null;
     }
+    if (!isOnline) {
+      showToast(
+        'No connection',
+        'Connect to the internet to purchase or restore subscriptions.',
+        'warning',
+      );
+      return;
+    }
     setSubscribeLoading(true);
     setError('');
     try {
@@ -696,6 +759,14 @@ function AppContent() {
   };
 
   const handleRestorePurchases = async () => {
+    if (!isOnline) {
+      showToast(
+        'No connection',
+        'Connect to the internet to restore purchases.',
+        'warning',
+      );
+      return;
+    }
     if (!hasRcKey) {
       showToast('Restore', 'RevenueCat is not configured', 'error');
       return;
@@ -718,40 +789,28 @@ function AppContent() {
     }
   };
 
-  const handleCancelSubscription = async () => {
+  const handleManageSubscription = async () => {
+    const storeName = getStoreSubscriptionLabel();
     showDialog({
-      title: 'Cancel Subscription?',
-      message: 'Your subscription will remain active until the end of the current billing period.',
-      cancelLabel: 'Keep Subscription',
-      confirmLabel: 'Cancel Subscription',
-      destructive: true,
+      title: 'Manage subscription',
+      message: `To cancel auto-renew, turn it off in ${storeName}. Your plan stays active until the end of the current billing period. When you return here, tap Refresh to update your status.`,
+      cancelLabel: 'Not now',
+      confirmLabel: `Open ${storeName}`,
+      destructive: false,
       onCancel: closeDialog,
       onConfirm: async () => {
         closeDialog();
         setSubscribeLoading(true);
         try {
-          const res = await fetch(`${API_BASE}/api/cancel-subscription`, {
-            method: 'POST',
-            headers: getApiHeaders(),
-            body: JSON.stringify({ userId: userIdRef.current }),
-          });
-
-          const json = await res.json();
-          if (json.ok) {
-            showToast(
-              'Subscription cancelled',
-              'Active until end of current period. Resubscribe anytime.',
-              'success'
-            );
-            setTimeout(async () => {
-              await refreshSubscription();
-            }, 1000);
-          } else {
-            showToast('Error', json.error || 'Failed to cancel subscription', 'error');
-          }
+          const customerInfo = await getCustomerInfo();
+          await openSubscriptionManagement(customerInfo);
         } catch (err) {
-          console.error('[Cancel Subscription] error:', err);
-          showToast('Error', 'Failed to cancel subscription. Try again later.', 'error');
+          console.error('[Manage Subscription] error:', err);
+          showToast(
+            'Could not open subscriptions',
+            `Open ${storeName} manually, then tap Refresh here.`,
+            'error',
+          );
         } finally {
           setSubscribeLoading(false);
         }
@@ -760,6 +819,14 @@ function AppContent() {
   };
 
   const handleUploadStart = async ({ imageUri, imageDataUrl }) => {
+    if (!isOnline) {
+      showToast(
+        'No connection',
+        'Connect to the internet to generate caricatures.',
+        'warning',
+      );
+      return;
+    }
     setOriginal({ imageUri, imageDataUrl, prompt: style?.prompt });
     setPendingJobId(null);
     setFailedAttempts(0);
@@ -856,7 +923,7 @@ function AppContent() {
 
   if (screen === 'style') {
     return (
-      <>
+      <AppShell>
         <StyleScreen
           selectedStyle={style}
           availableStyles={availableStyles}
@@ -866,6 +933,14 @@ function AppContent() {
           onNext={(s) => {
             setStyle(s);
             if (restyleMode && original?.imageDataUrl) {
+              if (!isOnline) {
+                showToast(
+                  'No connection',
+                  'Connect to the internet to generate caricatures.',
+                  'warning',
+                );
+                return;
+              }
               setRestyleMode(false);
               setResult(null);
               setError('');
@@ -888,64 +963,79 @@ function AppContent() {
             setScreen(id);
           }}
         />
-      </>
+      </AppShell>
     );
   }
 
   if (screen === 'privacy') {
     return (
-      <InfoScreen
-        title="Privacy Policy"
-        content={PRIVACY_POLICY_TEXT}
-        onBack={() => setScreen('style')}
-      />
+      <AppShell>
+        <InfoScreen
+          title="Privacy Policy"
+          content={PRIVACY_POLICY_TEXT}
+          onBack={() => setScreen('style')}
+        />
+      </AppShell>
     );
   }
 
   if (screen === 'terms') {
     return (
-      <InfoScreen
-        title="Terms & Conditions"
-        content={TERMS_TEXT}
-        onBack={() => setScreen('style')}
-      />
+      <AppShell>
+        <InfoScreen
+          title="Terms & Conditions"
+          content={TERMS_TEXT}
+          onBack={() => setScreen('style')}
+        />
+      </AppShell>
     );
   }
 
   if (screen === 'about') {
     return (
-      <InfoScreen
-        title="About"
-        content={ABOUT_TEXT}
-        onBack={() => setScreen('style')}
-      />
+      <AppShell>
+        <InfoScreen
+          title="About"
+          content={ABOUT_TEXT}
+          onBack={() => setScreen('style')}
+        />
+      </AppShell>
     );
   }
 
   if (screen === 'gallery') {
-    return <GalleryScreen onBack={() => setScreen('style')} />;
+    return (
+      <AppShell>
+        <GalleryScreen onBack={() => setScreen('style')} />
+      </AppShell>
+    );
   }
 
   if (screen === 'subscription') {
     return (
-      <SubscriptionScreen
-        subscriptionInfo={subscriptionInfo}
-        subscriptionLoading={subscriptionLoading}
-        onRefreshSubscription={refreshSubscription}
-        onSubscribe={handleSubscribe}
-        subscribeLoading={subscribeLoading}
-        onCancelSubscription={handleCancelSubscription}
-        onRestorePurchases={handleRestorePurchases}
-        onClose={() => setScreen('style')}
-      />
+      <AppShell>
+        <SubscriptionScreen
+          subscriptionInfo={subscriptionInfo}
+          subscriptionLoading={subscriptionLoading}
+          onRefreshSubscription={refreshSubscription}
+          onSubscribe={handleSubscribe}
+          subscribeLoading={subscribeLoading}
+          onManageSubscription={handleManageSubscription}
+          storeSubscriptionLabel={getStoreSubscriptionLabel()}
+          onRestorePurchases={handleRestorePurchases}
+          onClose={() => setScreen('style')}
+        />
+      </AppShell>
     );
   }
 
   if (screen === 'upload') {
     return (
-      <UploadScreen
-        style={style}
-        onStart={handleUploadStart}
+      <AppShell>
+        <UploadScreen
+          style={style}
+          isOnline={isOnline}
+          onStart={handleUploadStart}
         canGenerateMore={
           subscriptionInfo
             ? // If not trial and we have usage + limit, enforce quota
@@ -959,14 +1049,17 @@ function AppContent() {
         }
         subscriptionInfo={subscriptionInfo}
         onSubscribe={handleSubscribe}
+        onOpenSubscription={() => setScreen('subscription')}
         onBackToStyle={() => { setRestyleMode(false); setScreen('style'); }}
-      />
+        />
+      </AppShell>
     );
   }
 
   if (screen === 'result') {
     return (
-      <ResultScreen
+      <AppShell>
+        <ResultScreen
         original={original}
         result={result}
         loading={loading}
@@ -980,7 +1073,8 @@ function AppContent() {
         onHome={() => { setRestyleMode(false); setScreen('style'); }}
         onOpenGallery={() => setScreen('gallery')}
         onTryAnotherStyle={handleTryAnotherStyle}
-      />
+        />
+      </AppShell>
     );
   }
 

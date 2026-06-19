@@ -10,13 +10,15 @@ This document outlines the development plan and current status of FunnyFy — a 
 ### ✅ Completed (Feature-Complete)
 - **Mobile App**: React Native (Expo SDK 52) — Android & iOS compatible
 - **Backend**: Vercel serverless functions (Node.js/TypeScript)
-- **Styles**: 21 caricature styles implemented
-- **Core Features**: Image upload, style selection, generation, save/share, gallery
-- **Security**: API keys and prompts protected server-side; JWT auth; NSFW moderation; image validation; HTTPS enforcement
-- **Subscriptions**: RevenueCat (Starter $5, Popular $10, Pro $25); tier selection fix; restore purchases; cancellation
-- **Database**: Supabase (users, subscriptions, usage_tracking, jobs, infringements, security_logs, cost_tracking)
-- **UI/UX**: Toast notification system, ConfirmDialog, full Privacy Policy & Terms in-app, Gallery screen, progress bar badge
-- **Auth**: JWT-based auth service (`services/auth.js`), backend creates real user in DB on first launch, local UUID fallback
+- **Styles**: 160 in catalog; **18 enabled** legacy styles with live prompts
+- **Style UX**: Two-level picker (categories → styles), `MediaTile` discovery layout — white cards, Plus Jakarta Sans labels, dark backdrop pill
+- **Core Features**: Image upload, style selection, generation, save/share, gallery, restyle
+- **Security**: API keys and prompts protected server-side; JWT auth; NSFW moderation; image validation
+- **Subscriptions**: RevenueCat; split paywall UI (hero marquee + plans sheet)
+- **Versioning**: `version.json` + auto-bump on APK builds
+- **Database**: Supabase (users, subscriptions, usage_tracking, jobs, infringements, etc.)
+- **UI/UX**: Toast system, ConfirmDialog, Privacy Policy & Terms, Gallery screen
+- **Auth**: JWT-based auth service (`services/auth.js`), local UUID fallback
 
 ### 🚧 Deferred (Post-Launch)
 - Formal real authentication (Supabase Auth / Clerk) — current JWT system is functional but uses anonymous IDs
@@ -76,19 +78,27 @@ Key tables:
 - expo-file-system for auth token persistence
 
 ### 2.2 Screens
-1. **Style Selection** — grid of 21 styles, tap to select
-2. **Upload** — camera or gallery, plan badge progress bar
-3. **Result** — before/after slider, save/share, plan badge
+1. **Style Selection** — level 1: 16 category tiles; level 2: enabled styles per category (2-column grid)
+2. **Upload** — camera or gallery, selected-style chip, plan badge progress bar
+3. **Result** — before/after slider + auto-demo, save/share, try another style
 4. **Gallery** — saved caricature grid, full-screen viewer
-5. **Subscription** — current plan, usage, plan selection, restore/refresh/cancel
+5. **Subscription** — ink hero + style marquee; usage, plans, restore/refresh in white sheet
 
-### 2.3 Notification System
+### 2.3 Offline / connectivity
+- **`@react-native-community/netinfo`** via `NetworkProvider` — tracks online/offline
+- **`OfflineBanner`** — non-blocking top bar when disconnected
+- **Fallback styles** — `DEFAULT_ENABLED_STYLES` if `/api/styles` fails
+- **Blocked offline**: generate, subscribe, restore purchases
+- **Works offline**: gallery, about, legal pages, style browsing (cached/fallback catalog)
+- **On reconnect**: refresh styles, subscription, re-auth if needed
+
+### 2.4 Notification System
 - **ToastNotification**: Floating in-app toast (success, error, info)
 - **ConfirmDialog**: Modal with 2 or 3 buttons (e.g. Save / Discard / Cancel)
 - **NotificationContext**: Provider wraps the whole app; all screens share notification state
 - All `Alert.alert` calls have been migrated to this system
 
-### 2.4 Auth Flow
+### 2.5 Auth Flow
 1. App starts → `initRevenueCat()` → get RevenueCat anonymous user ID
 2. `initAuth(apiBase, revenuecatUserId)` → POST `/api/auth/token`
 3. Backend creates/finds user in Supabase, returns `{ userId, token }`
@@ -103,7 +113,7 @@ Key tables:
 ### ✅ Phase 1: MVP (Complete)
 - React Native app with Expo
 - Vercel serverless backend
-- 21 styles
+- 18 enabled styles (160 in catalog)
 - Image upload, generation, save/share
 - Replicate integration
 
@@ -121,7 +131,8 @@ Key tables:
 - Restore Purchases + Refresh buttons
 - Subscription cancellation (production-ready)
 - Admin dashboard
-- versionCode: 4
+- **Mobile UI polish (v1.0.3–1.0.4)**: MediaTile tiles, two-level categories, restyle flow, subscription marquee, auto versioning, offline UX
+- versionCode: 5
 
 ### 📋 Phase 3: Launch Preparation (Current)
 - [ ] App store assets (screenshots, descriptions, icon)
@@ -138,13 +149,15 @@ Key tables:
 
 ---
 
-## 4. Style Catalog (21 Styles)
+## 4. Style Catalog
 
-Models:
-- **Primary**: `black-forest-labs/flux-kontext-pro` (most styles)
-- **Secondary**: `google/nano-banana` (neanderthal, hand-drawn, superhero, villain, cyborg)
+- **160 styles** in spreadsheet catalog across **16 categories**
+- **18 enabled** legacy styles with live prompts (see `STATUS.md` for table)
+- Models:
+  - **Primary**: `black-forest-labs/flux-kontext-pro` (most styles)
+  - **Secondary**: `google/nano-banana` (custom2, neand3d, handd, superhero, villain, cyborg)
 
-Styles are configured server-side in `api/styles-config.ts`. New styles can be added without an app update.
+Styles are configured server-side in `api/_utils/styles-config.ts`. Thumbnails are bundled in `apps/mobile/assets/` via `getStyleImage()` in `constants.js`.
 
 ---
 
@@ -153,6 +166,7 @@ Styles are configured server-side in `api/styles-config.ts`. New styles can be a
 | Decision | Rationale |
 |----------|-----------|
 | Expo SDK 52 (not 53/54) | expo-file-system v19 has breaking changes; SDK 53 jumps to React 19; RevenueCat compatibility; ship what works |
+| Local debug APK over Expo Go | SDK lock, RevenueCat, NetInfo; Expo Go auto-updates break compatibility |
 | JWT auth with local fallback | App works even when DB is down; real user IDs in DB when available |
 | Sightengine for NSFW | Server-side before Replicate; affordable; returns confidence scores for thresholding |
 | Toast/ConfirmDialog system | Better UX than system Alert dialogs; consistent look across Android/iOS |

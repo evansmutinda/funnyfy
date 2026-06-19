@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
+  BackHandler,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -7,15 +8,34 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MediaTile from '../components/MediaTile';
-import { BOTTOM_INSET_MIN, STYLE_90S_CARTOON, getStyleImage } from '../constants';
+import { BOTTOM_INSET_MIN, getStyleImage } from '../constants';
 import {
+  DEFAULT_ENABLED_STYLES,
+  STYLE_CATALOG,
   STYLE_CATEGORIES,
   getStyleCategory,
-  pickHeroStyle,
 } from '../utils/styleCategories';
 import styles from '../styles';
+
+function resolveStyleCategory(style) {
+  return style?.categoryId || getStyleCategory(style?.id);
+}
+
+function getCategoryPreviewStyle(categoryId, styleList) {
+  const enabled = styleList.find((s) => resolveStyleCategory(s) === categoryId);
+  if (enabled) return enabled;
+  return STYLE_CATALOG.find((s) => s.categoryId === categoryId) || null;
+}
+
+const BROWSE_CATEGORIES = STYLE_CATEGORIES.filter((cat) => cat.id !== 'all');
+
+/** Alternate: full-width row, then two half-width cards */
+function getCategoryTileLayout(index) {
+  return index % 3 === 0 ? 'wide' : 'compact';
+}
 
 export default function StyleScreen({
   selectedStyle,
@@ -26,55 +46,65 @@ export default function StyleScreen({
   onCancelRestyle,
 }) {
   const insets = useSafeAreaInsets();
-  const [category, setCategory] = useState('all');
+  const [activeCategory, setActiveCategory] = useState(null);
   const styleList = Array.isArray(availableStyles) && availableStyles.length > 0
     ? availableStyles
-    : [STYLE_90S_CARTOON];
+    : DEFAULT_ENABLED_STYLES;
 
-  const heroStyle = useMemo(() => pickHeroStyle(styleList), [styleList]);
+  const browsingCategories = !restyleMode && activeCategory === null;
+  const activeCategoryMeta = BROWSE_CATEGORIES.find((cat) => cat.id === activeCategory);
 
-  const filteredStyles = useMemo(() => {
-    let list = styleList;
-    if (category !== 'all') {
-      list = list.filter((s) => getStyleCategory(s.id) === category);
-    }
-    if (category === 'all' && heroStyle) {
-      list = list.filter((s) => s.id !== heroStyle.id);
-    }
-    return list;
-  }, [styleList, category, heroStyle]);
+  const categoryStyles = useMemo(() => {
+    if (browsingCategories) return [];
+    if (restyleMode) return styleList;
+    return styleList.filter((s) => resolveStyleCategory(s) === activeCategory);
+  }, [activeCategory, browsingCategories, restyleMode, styleList]);
 
-  const showHero = category === 'all' && heroStyle && !restyleMode;
+  useEffect(() => {
+    if (browsingCategories || restyleMode) return undefined;
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      setActiveCategory(null);
+      return true;
+    });
+    return () => sub.remove();
+  }, [browsingCategories, restyleMode]);
 
   const handleCancel = () => {
     if (onCancelRestyle) onCancelRestyle();
   };
 
+  const handleBack = () => {
+    if (restyleMode) {
+      handleCancel();
+      return;
+    }
+    setActiveCategory(null);
+  };
+
   return (
-    <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F3F4F6" />
-      <View style={{ height: insets.top, backgroundColor: '#F3F4F6' }} />
+    <SafeAreaView style={styles.styleScreenSafe}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <View style={{ height: insets.top, backgroundColor: '#FFFFFF' }} />
 
       <View style={styles.styleScreenHeader}>
         <View style={styles.headerBar}>
-          {restyleMode ? (
-            <TouchableOpacity onPress={handleCancel} style={styles.iconButton}>
-              <Text style={styles.iconButtonIcon}>‹</Text>
-            </TouchableOpacity>
+          {browsingCategories ? (
+            <>
+              <Text style={styles.wordmark}>FunnyFy</Text>
+              <TouchableOpacity onPress={onOpenMenu} style={styles.menuButton}>
+                <Feather name="menu" size={20} color="#0F172A" />
+              </TouchableOpacity>
+            </>
           ) : (
-            <Text style={styles.wordmark}>FunnyFy</Text>
-          )}
-          {restyleMode ? (
-            <Text style={styles.restyleHeaderTitle} numberOfLines={1}>
-              Same photo
-            </Text>
-          ) : null}
-          {restyleMode ? (
-            <View style={{ width: 36 }} />
-          ) : (
-            <TouchableOpacity onPress={onOpenMenu} style={styles.iconButton}>
-              <Text style={styles.iconButtonIcon}>☰</Text>
-            </TouchableOpacity>
+            <>
+              <TouchableOpacity onPress={handleBack} style={styles.iconButton}>
+                <Text style={styles.iconButtonIcon}>‹</Text>
+              </TouchableOpacity>
+              <Text style={styles.restyleHeaderTitle} numberOfLines={1}>
+                {restyleMode ? 'Same photo' : activeCategoryMeta?.label || 'Styles'}
+              </Text>
+              <View style={{ width: 36 }} />
+            </>
           )}
         </View>
       </View>
@@ -99,65 +129,65 @@ export default function StyleScreen({
       ) : null}
 
       <ScrollView
-        contentContainerStyle={styles.styleContainer}
+        contentContainerStyle={[
+          styles.styleContainer,
+          { paddingBottom: Math.max(insets.bottom, BOTTOM_INSET_MIN) + 8 },
+        ]}
         style={styles.styleScroll}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.styleCategoryRow}>
-          {STYLE_CATEGORIES.map((cat) => {
-            const active = category === cat.id;
-            return (
-              <TouchableOpacity
-                key={cat.id}
-                style={[styles.styleCategoryChip, active && styles.styleCategoryChipActive]}
-                onPress={() => setCategory(cat.id)}
-                activeOpacity={0.85}
-              >
-                <Text
-                  style={[
-                    styles.styleCategoryChipText,
-                    active && styles.styleCategoryChipTextActive,
-                  ]}
+        {browsingCategories ? (
+          <View style={styles.discoveryGrid}>
+            {BROWSE_CATEGORIES.map((cat, index) => {
+              const layout = getCategoryTileLayout(index);
+              const isWide = layout === 'wide';
+              const previewStyle = getCategoryPreviewStyle(cat.id, styleList);
+              return (
+                <TouchableOpacity
+                  key={cat.id}
+                  style={isWide ? styles.discoveryCardWide : styles.discoveryCard}
+                  onPress={() => setActiveCategory(cat.id)}
+                  activeOpacity={0.92}
                 >
-                  {cat.label}
+                  <MediaTile
+                    imageSource={getStyleImage(previewStyle)}
+                    label={cat.label}
+                    variant={isWide ? 'discoveryWide' : 'discovery'}
+                  />
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        ) : (
+          <>
+            {categoryStyles.length === 0 ? (
+              <View style={styles.styleEmptyState}>
+                <Text style={styles.styleEmptyStateTitle}>Coming soon</Text>
+                <Text style={styles.styleEmptyStateText}>
+                  New styles for this category are on the way.
                 </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-
-        {showHero ? (
-          <TouchableOpacity
-            style={styles.styleHeroCard}
-            activeOpacity={0.92}
-            onPress={() => onNext(heroStyle)}
-          >
-            <MediaTile
-              imageSource={getStyleImage(heroStyle)}
-              label={heroStyle.label}
-              isSelected={selectedStyle?.id === heroStyle.id}
-              variant="hero"
-              badge="Popular"
-            />
-          </TouchableOpacity>
-        ) : null}
-
-        <View style={[styles.styleGrid, { paddingBottom: Math.max(insets.bottom, BOTTOM_INSET_MIN) }]}>
-          {filteredStyles.map((s) => (
-            <TouchableOpacity
-              key={s.id}
-              style={[styles.card, styles.styleCard]}
-              activeOpacity={0.92}
-              onPress={() => onNext(s)}
-            >
-              <MediaTile
-                imageSource={getStyleImage(s)}
-                label={s.label}
-                isSelected={selectedStyle?.id === s.id}
-              />
-            </TouchableOpacity>
-          ))}
-        </View>
+              </View>
+            ) : (
+              <View style={styles.discoveryGrid}>
+                {categoryStyles.map((s) => (
+                  <TouchableOpacity
+                    key={s.id}
+                    style={styles.discoveryCard}
+                    activeOpacity={0.92}
+                    onPress={() => onNext(s)}
+                  >
+                    <MediaTile
+                      imageSource={getStyleImage(s)}
+                      label={s.label}
+                      isSelected={selectedStyle?.id === s.id}
+                      variant="discovery"
+                    />
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

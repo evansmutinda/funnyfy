@@ -112,20 +112,18 @@ Subscribed users have monthly quotas tracked in `usage_tracking` table:
 ```
 
 **Tracking:**
-- Each successful generation increments `count`
+- Each successful generation increments `count` **once per job** (via `job_usage_credits` — see below)
 - Quota resets at the start of each billing month
 - When `count >= quota_limit`: User cannot generate more until next month
 
-**Code from `api/cron/process-queue.ts`:**
+**Code from `api/_utils/usage.ts` (called by `api/cron/process-queue.ts` after success):**
 ```typescript
-// When job completes successfully:
-await query(`
-  INSERT INTO usage_tracking (user_id, month, count, last_reset_at)
-  VALUES ($1, $2, 1, NOW())
-  ON CONFLICT (user_id, month)
-  DO UPDATE SET count = usage_tracking.count + 1
-`, [userId, currentMonth]);
+// 1. Insert job_usage_credits (idempotent — skips if job already credited)
+// 2. Then increment trial_generations_used OR usage_tracking.count
+await creditUsageForJob(jobId, userId);
 ```
+
+**Queue safety:** Jobs are claimed atomically with `FOR UPDATE SKIP LOCKED` so two workers cannot process the same job.
 
 ---
 

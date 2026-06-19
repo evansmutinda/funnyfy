@@ -122,9 +122,23 @@ export default async function handler(
     let periodEnd: Date;
     if (expirationDate) {
       periodEnd = new Date(expirationDate);
+      if (Number.isNaN(periodEnd.getTime())) {
+        periodEnd = new Date();
+        periodEnd.setMonth(periodEnd.getMonth() + 1);
+      } else {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const endDay = new Date(periodEnd);
+        endDay.setHours(0, 0, 0, 0);
+        // If expiration is today or in the past, advance one billing month for display/storage
+        if (endDay <= today) {
+          periodEnd = new Date(periodEnd);
+          periodEnd.setMonth(periodEnd.getMonth() + 1);
+        }
+      }
     } else {
       periodEnd = new Date();
-      periodEnd.setDate(periodEnd.getDate() + 30); // Default 30 days
+      periodEnd.setMonth(periodEnd.getMonth() + 1);
     }
 
     // Update existing subscription for user, or create new one

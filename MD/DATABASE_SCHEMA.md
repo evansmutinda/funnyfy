@@ -12,6 +12,7 @@ PostgreSQL schema for FunnyFy (Supabase / Vercel Postgres). Run migrations in or
 4. `api/migrations-security-logs.sql` — Security logs
 5. `api/migrations-infringements.sql` — Infringements + user bans
 6. `api/migrations-pending-tier.sql` — Pending tier for deferred plan changes
+7. `api/migrations/004-job-usage-credits.sql` — Idempotent per-job usage credits (also in `migrations-master.sql`)
 
 ---
 
@@ -22,6 +23,7 @@ PostgreSQL schema for FunnyFy (Supabase / Vercel Postgres). Run migrations in or
 | `users` | User accounts, subscription tier, trial usage, banned_at |
 | `infringements` | Content policy violations (NSFW); multiple → ban |
 | `usage_tracking` | Monthly generation counts per user |
+| `job_usage_credits` | One row per job credited toward quota (prevents double-count) |
 | `jobs` | Image generation jobs (queue) |
 | `subscriptions` | Active subscriptions (RevenueCat sync) |
 | `subscription_history` | Subscription event audit trail |
@@ -81,6 +83,19 @@ Tracks monthly generation counts per user for quota enforcement.
 | `last_reset_at` | TIMESTAMPTZ | DEFAULT NOW() | |
 
 **Unique constraint:** `(user_id, month)`
+
+---
+
+## job_usage_credits
+
+Ensures each completed job increments quota **at most once** (prevents double-count when queue workers race).
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `job_id` | UUID | PRIMARY KEY, REFERENCES jobs(id) ON DELETE CASCADE | Job that was credited |
+| `credited_at` | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | When usage was applied |
+
+**Logic:** `api/_utils/usage.ts` → `creditUsageForJob()` inserts here first; only on success does it increment `trial_generations_used` or `usage_tracking.count`.
 
 ---
 
