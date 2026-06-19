@@ -91,8 +91,8 @@ export default function StyleScreen({
           {browsingCategories ? (
             <>
               <Text style={styles.wordmark}>FunnyFy</Text>
-              <TouchableOpacity onPress={onOpenMenu} style={styles.menuButton}>
-                <Feather name="menu" size={20} color="#0F172A" />
+              <TouchableOpacity onPress={onOpenMenu} style={styles.menuButton} hitSlop={8}>
+                <Feather name="menu" size={22} color="#0F172A" />
               </TouchableOpacity>
             </>
           ) : (
