@@ -400,6 +400,7 @@ pwdManageLink, pwdManageLinkText
 - [ ] Remove any remaining unused keys if new screens add styles (audit periodically).
 
 - [ ] Branded splash PNG — see `To do/SPLASH_ASSET.md` (native `#0B0F19` splash + `expo-splash-screen` in place).
+- [ ] **Sentry integration** — error reporting for mobile (optional API); see `To do/SENTRY_INTEGRATION.md`.
 
 ### Next UI sections
 

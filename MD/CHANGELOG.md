@@ -52,6 +52,7 @@ All notable changes to this project will be documented in this file.
 - (Optional) Replace Photo Tips concept cards with real example photos: 2 "good" (front-facing portrait + clear-lit smile) and 2 "bad" (sunglasses/occlusion + side profile). Drop into `apps/mobile/assets/tips/` and set `image:` on each `TIP_EXAMPLES` item in `components/PhotoTipsSheet.js` (icons render until `image` is provided).
 - Set Android navigation bar color at runtime in Expo Go if needed (`expo-navigation-bar` installed; `app.config.js` already uses `#0B0F19` for native builds).
 - Branded splash PNG — see `To do/SPLASH_ASSET.md` (native `#0B0F19` splash works today).
+- **Sentry error reporting** — see `To do/SENTRY_INTEGRATION.md` (mobile + optional API).
 - Design Section 3 (Wait / Perceived Performance) — optional further narrative polish beyond moderation + generate steps (see `MD/UI_REDESIGN_2026_06.md` §9).
 
 ---

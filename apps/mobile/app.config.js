@@ -17,6 +17,9 @@ export default {
     orientation: 'portrait',
     icon: './assets/icon.jpg',
     splash: {
+      // Android 12+ needs a splash image drawable; transparent pixel = solid color only.
+      image: './assets/splash-transparent.png',
+      resizeMode: 'contain',
       backgroundColor: '#0B0F19',
     },
     updates: { fallbackToCacheTimeout: 0 },
@@ -47,6 +50,14 @@ export default {
     web: { bundler: 'metro' },
     plugins: [
       'expo-font',
+      [
+        'expo-splash-screen',
+        {
+          backgroundColor: '#0B0F19',
+          image: './assets/splash-transparent.png',
+          resizeMode: 'contain',
+        },
+      ],
       [
         'expo-media-library',
         {

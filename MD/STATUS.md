@@ -135,7 +135,7 @@ FunnyFy is a React Native mobile application that transforms user photos into AI
 - [ ] Enable more catalog styles (thumbnails + prompts per style)
 - [ ] Style tile before/after auto-sliders (curated demo assets)
 - [ ] E003 high-demand error: friendly "generators busy" message
-- [ ] Error tracking (Sentry), Analytics
+- [ ] Error tracking (**Sentry**) — see `To do/SENTRY_INTEGRATION.md`; Analytics
 - [ ] Subscription trial (time-based 3-day trial via Play Store)
 
 ---
@@ -149,7 +149,7 @@ FunnyFy is a React Native mobile application that transforms user photos into AI
 - [x] NSFW moderation (Sightengine)
 - [x] JWT authentication
 - [x] Auto versioning for builds
-- [ ] Error tracking (Sentry)
+- [ ] Error tracking (Sentry) — `To do/SENTRY_INTEGRATION.md`
 - [ ] Analytics
 
 ### Business
