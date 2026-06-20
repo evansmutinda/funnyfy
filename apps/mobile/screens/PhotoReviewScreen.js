@@ -1,57 +1,46 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import {
+  Image,
   StatusBar,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNotifications } from '../components/NotificationProvider';
 import PressScale from '../components/PressScale';
-import ComparisonFade from '../components/ComparisonFade';
 import PhotoTipsSheet from '../components/PhotoTipsSheet';
 import useImagePicker from '../hooks/useImagePicker';
-import { getComparisonPair } from '../data/comparisonPairs';
-import { getTrialRemaining, getTrialWarningMessage, isTrialUser } from '../utils/trialWarnings';
+import { isTrialUser, getTrialRemaining } from '../utils/trialWarnings';
 import styles from '../styles';
 
 /**
- * Pre-pick upload screen. Shows the chosen style as a looping
- * before/after comparison so the user can preview what they're
- * about to apply, then provides Gallery / Camera entry points.
+ * Post-pick review of a photo. Solid dark surface (no comparison
+ * fade), with a header band, a flex-grown middle that centers the
+ * picked photo, and a bottom action band — so the preview card is
+ * always symmetric within the space between header and actions
+ * regardless of safe-area insets.
  *
- * Gallery / Camera open the OS picker + crop, then `onPicked`.
+ * Reuses upload* styles for visual parity with UploadScreen.
  */
-export default function UploadScreen({
+export default function PhotoReviewScreen({
   style,
+  imageUri,
+  imageDataUrl,
   isOnline = true,
-  onPicked,
-  onBackToStyle,
-  canGenerateMore,
   subscriptionInfo,
+  canGenerateMore,
+  onStart,
   onSubscribe,
   onOpenSubscription,
+  onReplacePhoto,
+  onBack,
 }) {
   const insets = useSafeAreaInsets();
-  const { showToast } = useNotifications();
-  const { pickImage, picking, pickingSource } = useImagePicker();
+  const { showToast, showDialog, closeDialog } = useNotifications();
+  const { pickImage, picking } = useImagePicker();
   const [tipsVisible, setTipsVisible] = useState(false);
-  const trialWarnedRef = useRef(false);
-
-  useEffect(() => {
-    if (trialWarnedRef.current || !subscriptionInfo) return;
-    if (!isTrialUser(subscriptionInfo)) return;
-    const remaining = getTrialRemaining(subscriptionInfo);
-    const message = getTrialWarningMessage(remaining);
-    if (!message) return;
-    trialWarnedRef.current = true;
-    showToast('Trial', message, remaining === 1 ? 'warning' : 'info', {
-      actionLabel: remaining === 1 ? 'Upgrade' : undefined,
-      onAction: remaining === 1 ? onSubscribe : undefined,
-    });
-  }, [subscriptionInfo]);
 
   const getQuotaInfo = () => {
     if (!subscriptionInfo || !subscriptionInfo.usage) {
@@ -70,47 +59,50 @@ export default function UploadScreen({
 
   const quotaInfo = getQuotaInfo();
   const trialRemaining = isTrialUser(subscriptionInfo) ? getTrialRemaining(subscriptionInfo) : null;
-  const comparisonPair = getComparisonPair(style);
+  const quotaOk = canGenerateMore !== false;
+  const canGenerate = !!imageUri && !picking && quotaOk && isOnline;
 
-  const handlePick = async (useCamera) => {
-    const picked = await pickImage(useCamera);
-    if (picked && onPicked) {
-      onPicked(picked);
+  const handleChooseAnother = async () => {
+    const next = await pickImage(false);
+    if (next && onReplacePhoto) {
+      onReplacePhoto(next);
     }
   };
 
+  const handleGenerate = () => {
+    if (!isOnline) {
+      showToast(
+        'No connection',
+        'Connect to the internet to generate caricatures.',
+        'warning',
+      );
+      return;
+    }
+    if (!quotaOk && onSubscribe) {
+      showDialog({
+        title: 'Quota Exceeded',
+        message: `You've used all ${quotaInfo.limit} caricatures this month. Upgrade your plan to continue.`,
+        cancelLabel: 'Cancel',
+        confirmLabel: 'Upgrade',
+        onCancel: closeDialog,
+        onConfirm: () => {
+          closeDialog();
+          onSubscribe();
+        },
+      });
+      return;
+    }
+    onStart({ imageUri, imageDataUrl });
+  };
+
   return (
-    <View style={styles.uploadRoot}>
+    <View style={styles.reviewRoot}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
-      {/* Comparison background — looping before/after for the selected style */}
-      <ComparisonFade
-        beforeSource={comparisonPair.before}
-        afterSource={comparisonPair.after}
-        style={styles.uploadBackgroundFill}
-        imageStyle={styles.uploadBackgroundImage}
-      />
-
-      {/* Top scrim — improves legibility of header chips */}
-      <LinearGradient
-        pointerEvents="none"
-        colors={['rgba(0,0,0,0.55)', 'rgba(0,0,0,0.18)', 'rgba(0,0,0,0)']}
-        locations={[0, 0.6, 1]}
-        style={[styles.uploadScrimTop, { height: 180 + insets.top }]}
-      />
-
-      {/* Bottom scrim — improves legibility of action cards */}
-      <LinearGradient
-        pointerEvents="none"
-        colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.45)', 'rgba(0,0,0,0.85)']}
-        locations={[0, 0.45, 1]}
-        style={styles.uploadScrimBottom}
-      />
-
-      {/* Header */}
-      <View style={[styles.uploadTopLayer, { paddingTop: insets.top + 8 }]}>
+      {/* Header band — natural flow at top */}
+      <View style={[styles.reviewHeaderBand, { paddingTop: insets.top + 8 }]}>
         <View style={styles.uploadHeaderRow}>
-          <PressScale onPress={onBackToStyle} style={styles.uploadCircleButton}>
+          <PressScale onPress={onBack} style={styles.uploadCircleButton}>
             <Feather name="chevron-left" size={22} color="#FFFFFF" />
           </PressScale>
 
@@ -143,7 +135,7 @@ export default function UploadScreen({
 
         <View style={styles.uploadFloatingChipRow}>
           {style ? (
-            <PressScale onPress={onBackToStyle} style={styles.uploadFloatingChip}>
+            <PressScale onPress={onBack} style={styles.uploadFloatingChip}>
               <View style={styles.uploadFloatingChipDot} />
               <Text style={styles.uploadFloatingChipText} numberOfLines={1}>
                 {style.label}
@@ -186,62 +178,61 @@ export default function UploadScreen({
         ) : null}
       </View>
 
-      {/* Bottom action cards */}
-      <View style={[styles.uploadBottomLayer, { paddingBottom: Math.max(insets.bottom, 16) + 8 }]}>
-        <View style={styles.uploadActionStack}>
-          <View style={styles.uploadActionCardRow}>
-            <ActionCard
-              icon="image"
-              title="Gallery"
-              description="Pick and crop from your library"
-              ctaLabel={
-                picking && pickingSource === 'gallery' ? 'Opening…' : 'Select Photo'
-              }
-              onPress={() => handlePick(false)}
-              disabled={picking}
+      {/* Centered preview — flex-grows to fill the gap between bands */}
+      <View style={styles.reviewPreviewBand}>
+        <View style={styles.reviewPreviewCard}>
+          {imageUri ? (
+            <Image
+              source={{ uri: imageUri }}
+              style={styles.reviewPreviewImage}
             />
-            <ActionCard
-              icon="camera"
-              title="Camera"
-              description="Take a photo, then crop it"
-              ctaLabel={
-                picking && pickingSource === 'camera' ? 'Opening…' : 'Take Photo'
-              }
-              onPress={() => handlePick(true)}
-              disabled={picking}
-            />
-          </View>
+          ) : null}
         </View>
+      </View>
+
+      {/* Action band — natural flow at bottom */}
+      <View style={[styles.reviewActionBand, { paddingBottom: Math.max(insets.bottom, 16) + 8 }]}>
+        <View style={styles.uploadInlineActionsRow}>
+          <PressScale
+            onPress={onBack}
+            style={styles.uploadSmallGhostButton}
+            disabled={picking}
+          >
+            <Feather name="x" size={14} color="#FFFFFF" />
+            <Text style={styles.uploadSmallGhostButtonText}>Remove</Text>
+          </PressScale>
+          <PressScale
+            onPress={handleChooseAnother}
+            style={styles.uploadSmallGhostButton}
+            disabled={picking}
+          >
+            <Feather name="refresh-ccw" size={14} color="#FFFFFF" />
+            <Text style={styles.uploadSmallGhostButtonText}>Choose another</Text>
+          </PressScale>
+        </View>
+
+        <PressScale
+          onPress={handleGenerate}
+          disabled={!canGenerate || picking}
+          style={[
+            styles.uploadGenerateButton,
+            (!canGenerate || picking) && styles.uploadGenerateButtonDisabled,
+          ]}
+        >
+          <Text style={styles.uploadGenerateButtonText}>
+            {!isOnline
+              ? 'No internet connection'
+              : quotaOk
+                ? 'Generate'
+                : 'Upgrade to continue'}
+          </Text>
+        </PressScale>
       </View>
 
       <PhotoTipsSheet
         visible={tipsVisible}
         onClose={() => setTipsVisible(false)}
       />
-    </View>
-  );
-}
-
-function ActionCard({ icon, title, description, ctaLabel, onPress, disabled }) {
-  return (
-    <View style={styles.uploadActionCard}>
-      <View style={styles.uploadActionCardIcon}>
-        <Feather name={icon} size={22} color="#FFFFFF" />
-      </View>
-      <Text style={styles.uploadActionCardTitle}>{title}</Text>
-      <Text style={styles.uploadActionCardDescription} numberOfLines={2}>
-        {description}
-      </Text>
-      <PressScale
-        onPress={onPress}
-        disabled={disabled}
-        style={[
-          styles.uploadActionCardCta,
-          disabled && styles.uploadActionCardCtaDisabled,
-        ]}
-      >
-        <Text style={styles.uploadActionCardCtaText}>{ctaLabel}</Text>
-      </PressScale>
     </View>
   );
 }

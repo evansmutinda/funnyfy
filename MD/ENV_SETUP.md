@@ -60,9 +60,9 @@ This guide explains all environment variables needed for FunnyFy and how to conf
   - **Format**: Number
 
 - **`CRON_SECRET`** (Optional, but recommended)
-  - **Description**: Secret for protecting cron endpoints
+  - **Description**: Secret for protecting `/api/cron/*` endpoints
   - **How to generate**: Same as `JWT_SECRET`
-  - **Usage**: Set in Vercel Cron job configuration
+  - **Usage**: Configured in [cron-job.org](https://cron-job.org/) as the request `Authorization` header: `Bearer <CRON_SECRET>`. The mobile app does **not** use this secret — it kicks the queue using the user's JWT.
   - **Note**: Prevents unauthorized access to `/api/cron/*` endpoints
 
 #### **RevenueCat Webhooks**

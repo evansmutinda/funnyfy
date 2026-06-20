@@ -1,257 +1,71 @@
 import { Platform, StyleSheet } from 'react-native';
 import { FONT_PLUS_JAKARTA } from './constants/fonts';
 
-// Black & white theme — color reserved for success/error/status only
+// Dark-first theme — color reserved for success/error/status only
 const INK = '#0F172A';
 const PAPER = '#FFFFFF';
-const CANVAS = '#F3F4F6';
-const BORDER = '#E5E7EB';
-const MUTED = '#64748B';
+const DARK_BG = '#0B0F19';
+const DARK_SURFACE = 'rgba(255,255,255,0.06)';
+const DARK_CHIP = 'rgba(255,255,255,0.08)';
+const DARK_BORDER = 'rgba(255,255,255,0.12)';
+const DARK_MUTED = 'rgba(255,255,255,0.65)';
 
 const styles = StyleSheet.create({
-  safe: {
+      safe: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: DARK_BG,
   },
-  splashSafe: {
-    backgroundColor: '#ffffff',
-  },
-  splashContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  splashImage: {
-    width: 220,
-    height: 220,
-    borderRadius: 28,
-  },
-  container: {
-    padding: 20,
-    paddingTop: 16,
-    paddingBottom: 20,
-    gap: 16,
-    flexGrow: 1,
-    alignItems: 'center',
-  },
-  resultContainer: {
-    flex: 1,
-    padding: 20,
-    paddingTop: 16,
-    gap: 0,
-  },
-  styleContainer: {
+
+  
+    styleContainer: {
     paddingHorizontal: 16,
     paddingTop: 8,
     paddingBottom: 0,
     flexGrow: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: DARK_BG,
   },
-  styleScroll: {
+
+  
+    styleScroll: {
     flex: 1,
-    backgroundColor: PAPER,
+    backgroundColor: DARK_BG,
   },
-  styleScreenSafe: {
+
+  
+    styleScreenSafe: {
     flex: 1,
-    backgroundColor: PAPER,
+    backgroundColor: DARK_BG,
   },
+
+  
   styleScreenHeader: {
-    backgroundColor: PAPER,
+    backgroundColor: DARK_BG,
     paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 8,
-    zIndex: 10,
-  },
-  styleScreenWordmark: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: INK,
-    letterSpacing: -0.3,
-  },
-  styleScreenIconButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#F7F7F8',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  styleScreenIconButtonIcon: {
-    fontSize: 16,
-    color: INK,
-    lineHeight: 18,
-  },
-  styleScreenCategoryTitle: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: '600',
-    color: INK,
-    textAlign: 'center',
-    letterSpacing: -0.2,
-    marginHorizontal: 8,
-  },
-  fixedHeader: {
-    backgroundColor: '#ffffff',
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 8,
-    zIndex: 10,
-  },
-  uploadContainer: {
-    flex: 1,
-    padding: 24,
-    paddingTop: 8,
-    gap: 16,
-  },
-  uploadHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingTop: 16,
-    paddingBottom: 8,
-    marginBottom: 4,
-  },
-  resultHeader: {
     paddingTop: 8,
     paddingBottom: 12,
-    marginBottom: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    zIndex: 10,
   },
-  uploadImageContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    minHeight: 200,
-  },
-  uploadButtonsContainer: {
-    gap: 12,
-    paddingBottom: Platform.OS === 'android' ? 8 : 8,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: '900',
-    color: '#111827',
-    marginTop: 4,
-    letterSpacing: -0.5,
-  },
-  subtitle: {
-    fontSize: 15,
-    color: '#6b7280',
-    fontWeight: '500',
-    lineHeight: 22,
-  },
-  subscriptionSummaryContainer: {
-    marginTop: 8,
-    marginBottom: 4,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 8,
-  },
-  subscriptionPlanPill: {
-    flex: 1,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 999,
-    backgroundColor: CANVAS,
-  },
-  subscriptionPlanPillText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: INK,
-  },
-  subscriptionRefreshButton: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    backgroundColor: '#ffffff',
-  },
-  subscriptionRefreshText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#4b5563',
-  },
-  subscribeButton: {
-    alignSelf: 'center',
-    marginTop: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    backgroundColor: '#111827',
-    borderRadius: 12,
-  },
-  subscribeButtonText: {
-    color: '#fff',
-    fontWeight: '700',
-    fontSize: 15,
-  },
-  sectionLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#9ca3af',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginTop: 4,
-    marginBottom: 0,
-    textAlign: 'center',
-  },
-  sectionLabelSelected: {
-    color: INK,
-    fontWeight: '800',
-  },
-  styleGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginTop: 4,
-    rowGap: 14,
-  },
-  card: {
-    backgroundColor: 'transparent',
-    borderRadius: 20,
-    padding: 0,
-    borderWidth: 0,
-    shadowOpacity: 0,
-    elevation: 0,
-    width: '48%',
-  },
-  styleCard: {
-    marginTop: 0,
-  },
+
+  
   discoveryGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     rowGap: 16,
   },
-  discoveryDenseGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    rowGap: 8,
-  },
+
+  
   discoveryCard: {
     width: '48.2%',
     backgroundColor: 'transparent',
   },
-  discoveryCardWide: {
-    width: '100%',
-    backgroundColor: 'transparent',
-  },
-  discoveryCardDense: {
-    width: '31.6%',
-    backgroundColor: 'transparent',
-  },
-  discoveryTileRing: {
-    borderRadius: 24,
-  },
-  discoveryTileRingSelected: {
-    // selection shown via styleCardImageShellSelected shadow
-  },
+
+  
   styleCardOuter: {
     width: '100%',
   },
+
+  
   styleCardImageShell: {
     borderRadius: 24,
     overflow: 'hidden',
@@ -263,11 +77,17 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 2,
   },
-  styleCardImageShellSelected: {
+
+  
+    styleCardImageShellSelected: {
+    borderColor: PAPER,
+    borderWidth: 2,
     shadowOpacity: 0.1,
     shadowRadius: 14,
     elevation: 4,
   },
+
+  
   discoveryImageWrapper: {
     aspectRatio: 0.72,
     borderRadius: 24,
@@ -276,6 +96,8 @@ const styles = StyleSheet.create({
     shadowRadius: 0,
     elevation: 0,
   },
+
+  
   discoveryWideImageWrapper: {
     aspectRatio: 2.15,
     borderRadius: 24,
@@ -284,6 +106,8 @@ const styles = StyleSheet.create({
     shadowRadius: 0,
     elevation: 0,
   },
+
+  
   discoveryDenseImageWrapper: {
     aspectRatio: 0.88,
     borderRadius: 14,
@@ -292,15 +116,23 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 3,
   },
+
+  
   discoveryTileGradient: {
     height: '46%',
   },
+
+  
   discoveryWideTileGradient: {
     height: '55%',
   },
+
+  
   discoveryDenseTileGradient: {
     height: '50%',
   },
+
+  
   discoveryImageOverlay: {
     paddingHorizontal: 14,
     paddingBottom: 14,
@@ -308,9 +140,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     alignSelf: 'stretch',
   },
-  discoveryImageOverlayRight: {
-    alignItems: 'flex-end',
-  },
+
+  
   discoveryWideImageOverlay: {
     paddingHorizontal: 16,
     paddingBottom: 14,
@@ -318,9 +149,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     alignSelf: 'stretch',
   },
-  discoveryWideImageOverlayRight: {
-    alignItems: 'flex-end',
-  },
+
+  
   discoveryDenseImageOverlay: {
     paddingHorizontal: 8,
     paddingBottom: 8,
@@ -328,24 +158,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     alignSelf: 'stretch',
   },
-  discoveryLabelBackdrop: {
-    backgroundColor: 'rgba(0, 0, 0, 0.52)',
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    alignSelf: 'flex-start',
-    maxWidth: '100%',
-  },
-  discoveryWideLabelBackdrop: {
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-  },
-  discoveryDenseLabelBackdrop: {
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 5,
-  },
+
+  
   discoveryImageLabel: {
     fontFamily: FONT_PLUS_JAKARTA,
     fontSize: 14,
@@ -355,6 +169,8 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     alignSelf: 'stretch',
   },
+
+  
   discoveryWideImageLabel: {
     fontFamily: FONT_PLUS_JAKARTA,
     fontSize: 14,
@@ -364,12 +180,8 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     alignSelf: 'stretch',
   },
-  discoveryImageLabelRight: {
-    textAlign: 'right',
-  },
-  discoveryWideImageLabelRight: {
-    textAlign: 'right',
-  },
+
+  
   discoveryDenseImageLabel: {
     fontFamily: FONT_PLUS_JAKARTA,
     fontSize: 11,
@@ -379,92 +191,38 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     alignSelf: 'stretch',
   },
+
+  
   styleEmptyState: {
     paddingVertical: 48,
     paddingHorizontal: 24,
     alignItems: 'center',
     gap: 8,
   },
-  styleEmptyStateTitle: {
+
+  
+    styleEmptyStateTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: INK,
+    color: PAPER,
     letterSpacing: -0.2,
   },
-  styleEmptyStateText: {
+
+  
+    styleEmptyStateText: {
     fontSize: 14,
-    color: MUTED,
+    color: DARK_MUTED,
     textAlign: 'center',
     lineHeight: 20,
   },
-  styleCategoryGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    rowGap: 14,
-    marginBottom: 16,
-  },
-  styleCategoryCard: {
-    width: '48%',
-  },
-  styleSectionTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: 'rgba(255,255,255,0.72)',
-    letterSpacing: 0.4,
-    textTransform: 'uppercase',
-    marginBottom: 12,
-  },
-  styleCategoryRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    paddingBottom: 14,
-  },
-  styleCategoryChip: {
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 999,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  styleCategoryChipActive: {
-    backgroundColor: INK,
-    borderColor: INK,
-  },
-  styleCategoryChipOnDark: {
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    borderColor: 'rgba(255,255,255,0.22)',
-  },
-  styleCategoryChipActiveOnDark: {
-    backgroundColor: PAPER,
-    borderColor: PAPER,
-  },
-  styleCategoryChipTextOnDark: {
-    color: 'rgba(255,255,255,0.82)',
-  },
-  styleCategoryChipTextActiveOnDark: {
-    color: INK,
-    fontWeight: '700',
-  },
-  styleCategoryChipText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#6B7280',
-  },
-  styleCategoryChipTextActive: {
-    color: PAPER,
-    fontWeight: '700',
-  },
-  styleHeroCard: {
-    width: '100%',
-    marginBottom: 14,
-  },
+
+  
   styleHeroImageWrapper: {
     aspectRatio: 16 / 9,
     borderRadius: 20,
   },
+
+  
   styleHeroBadge: {
     position: 'absolute',
     top: 12,
@@ -475,6 +233,8 @@ const styles = StyleSheet.create({
     backgroundColor: INK,
     zIndex: 2,
   },
+
+  
   styleHeroBadgeText: {
     color: '#FFFFFF',
     fontSize: 11,
@@ -482,80 +242,76 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
     textTransform: 'uppercase',
   },
-  restyleBanner: {
+
+  
+    restyleBanner: {
     marginHorizontal: 16,
     marginBottom: 8,
     paddingVertical: 12,
     paddingHorizontal: 14,
     borderRadius: 12,
-    backgroundColor: CANVAS,
+    backgroundColor: DARK_CHIP,
     borderWidth: 1,
-    borderColor: BORDER,
+    borderColor: DARK_BORDER,
     gap: 10,
   },
+
+  
   restyleBannerRow: {
     gap: 2,
   },
+
+  
   restyleBannerBody: {
     gap: 2,
   },
-  restyleBannerTitle: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: INK,
-  },
-  restyleBannerText: {
+
+  
+    restyleBannerText: {
     fontSize: 13,
     fontWeight: '500',
-    color: MUTED,
+    color: DARK_MUTED,
   },
-  restyleBannerCancel: {
+
+  
+    restyleBannerCancel: {
     paddingVertical: 11,
     paddingHorizontal: 14,
     borderRadius: 10,
     backgroundColor: PAPER,
-    borderWidth: 1,
-    borderColor: BORDER,
+    borderWidth: 0,
     alignItems: 'center',
   },
+
+  
   restyleBannerCancelText: {
     fontSize: 14,
     fontWeight: '700',
     color: INK,
   },
-  restyleHeaderTitle: {
+
+  
+    restyleHeaderTitle: {
     flex: 1,
     fontSize: 16,
     fontWeight: '700',
-    color: INK,
+    color: PAPER,
     textAlign: 'center',
   },
-  restyleHeaderTitleOnDark: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    textAlign: 'left',
-    alignSelf: 'stretch',
-  },
+
+  
   styleTileRing: {
     borderRadius: 20,
     padding: 0,
   },
-  styleTileRingSelected: {
+
+  
+    styleTileRingSelected: {
     padding: 3,
-    backgroundColor: INK,
+    backgroundColor: PAPER,
   },
-  styleCardSelected: {
-    // legacy — selection uses styleTileRingSelected
-  },
-  cardRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  cardHalf: {
-    flex: 1,
-  },
+
+  
   styleImageWrapper: {
     width: '100%',
     aspectRatio: 3 / 4,
@@ -568,10 +324,14 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 5,
   },
+
+  
   styleImage: {
     width: '100%',
     height: '100%',
   },
+
+  
   styleTileGradient: {
     position: 'absolute',
     left: 0,
@@ -579,6 +339,8 @@ const styles = StyleSheet.create({
     bottom: 0,
     height: '52%',
   },
+
+  
   styleImageOverlay: {
     position: 'absolute',
     left: 0,
@@ -588,9 +350,8 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     paddingTop: 8,
   },
-  styleImageOverlaySelected: {
-    // unused — ring selection on outer wrapper
-  },
+
+  
   styleImageLabel: {
     color: '#FFFFFF',
     fontSize: 15,
@@ -600,40 +361,8 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
   },
-  previewContainer: {
-    flex: 1,
-    width: '100%',
-    gap: 16,
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    minHeight: 200,
-  },
-  previewCanvas: {
-    width: '100%',
-    flex: 1,
-    maxHeight: 'none',
-    minHeight: 300,
-    borderRadius: 20,
-    overflow: 'hidden',
-    backgroundColor: '#f9fafb',
-    borderWidth: 2,
-    borderColor: '#e5e7eb',
-    position: 'relative',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  previewImage: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    width: '100%',
-    height: '100%',
-  },
+
+  
   afterMask: {
     position: 'absolute',
     top: 0,
@@ -641,6 +370,8 @@ const styles = StyleSheet.create({
     left: 0,
     overflow: 'hidden',
   },
+
+  
   previewOverlay: {
     position: 'absolute',
     top: 0,
@@ -650,6 +381,8 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
+
+  
   sliderHandleContainer: {
     position: 'absolute',
     top: 0,
@@ -657,6 +390,8 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
   },
+
+  
   sliderLine: {
     position: 'absolute',
     top: 0,
@@ -669,599 +404,131 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
-  sliderKnob: {
+
+  
+    sliderKnob: {
     position: 'absolute',
     top: '50%',
-    marginTop: -16,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#ffffff',
+    marginTop: -18,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: PAPER,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.85)',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  sliderKnobText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#111827',
-  },
-  photoPreview: {
-    width: '100%',
-    height: '100%',
-    maxHeight: '100%',
-    borderRadius: 12,
-    resizeMode: 'contain',
-  },
-  photoPlaceholder: {
-    width: '100%',
-    height: '100%',
-    minHeight: 200,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#F7F7F8',
-  },
-  photoPlaceholderText: {
-    fontSize: 14,
-    color: '#9ca3af',
-    fontWeight: '500',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 10,
-    padding: 12,
-    backgroundColor: '#ffffff',
-    textAlignVertical: 'top',
-    fontSize: 13,
-    color: '#111827',
-  },
-  button: {
-    backgroundColor: INK,
-    paddingVertical: 16,
-    borderRadius: 999,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.35,
+    shadowRadius: 6,
     elevation: 4,
   },
-  secondaryButton: {
-    backgroundColor: '#ffffff',
-    borderWidth: 2,
-    borderColor: '#e5e7eb',
-  },
+
+  
   buttonDisabled: {
     opacity: 0.5,
     shadowOpacity: 0.1,
   },
-  buttonText: {
-    color: '#ffffff',
-    fontWeight: '800',
-    fontSize: 15,
-    letterSpacing: 0.5,
-  },
-  secondaryButtonText: {
-    color: '#111827',
-    fontWeight: '700',
-    fontSize: 14,
-    letterSpacing: 0.3,
-  },
-  tryAnotherStyleButton: {
-    width: '100%',
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  errorBox: {
-    backgroundColor: '#fef2f2',
-    borderRadius: 12,
-    padding: 14,
-    borderWidth: 1.5,
-    borderColor: '#fecaca',
-    marginTop: 8,
-  },
-  errorText: {
-    color: '#dc2626',
-    fontSize: 13,
-    fontWeight: '600',
-    lineHeight: 18,
-  },
-  bottomActionsContainer: {
-    width: '100%',
-    gap: 12,
-    alignItems: 'center',
-    paddingBottom: Platform.OS === 'android' ? 8 : 0,
-  },
-  progressContainer: {
-    width: '100%',
-    marginTop: 0,
-    marginBottom: 0,
-    gap: 8,
-  },
-  skeletonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 10,
-    paddingVertical: 12,
-  },
-  skeletonSquare: {
-    width: 18,
-    height: 18,
-    borderRadius: 4,
-    backgroundColor: '#0F172A',
-  },
-  skeletonBar: {},
-  progressBarTrack: {
-    width: '100%',
-    height: 28,
-    borderRadius: 999,
-    backgroundColor: '#e5e7eb',
-    overflow: 'hidden',
-    justifyContent: 'center',
-  },
-  progressBarFill: {
-    height: '100%',
-    borderRadius: 999,
-    backgroundColor: INK,
-  },
-  progressBarLabelWrapper: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  progressBarLabelText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  progressBarLabelTextLight: {
-    color: '#f9fafb',
-  },
-  progressBarLabelTextDark: {
-    color: '#374151',
-  },
-  progressLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#4b5563',
-    marginBottom: 4,
-  },
-  errorRetryContainer: {
+
+  
+    errorRetryContainer: {
     width: '100%',
     marginBottom: 12,
     paddingVertical: 16,
     paddingHorizontal: 20,
-    backgroundColor: CANVAS,
+    backgroundColor: DARK_CHIP,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: BORDER,
+    borderColor: DARK_BORDER,
     gap: 12,
   },
+
+  
   errorRetryHeader: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 10,
   },
-  errorRetryTitle: {
+
+  
+    errorRetryTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: INK,
+    color: PAPER,
   },
-  errorRetrySubtext: {
+
+  
+    errorRetrySubtext: {
     fontSize: 13,
-    color: MUTED,
+    color: DARK_MUTED,
     lineHeight: 18,
   },
-  errorRetryMessage: {
+
+  
+    errorRetryMessage: {
     flex: 1,
     fontSize: 14,
-    color: '#374151',
+    color: DARK_MUTED,
     fontWeight: '500',
     lineHeight: 20,
   },
-  errorRetryHint: {
-    fontSize: 12,
-    color: MUTED,
-  },
-  retryButton: {
+
+  
+    retryButton: {
     alignSelf: 'center',
     paddingVertical: 11,
     paddingHorizontal: 32,
-    backgroundColor: '#0F172A',
-    borderRadius: 12,
+    backgroundColor: PAPER,
+    borderRadius: 999,
   },
-  retryButtonText: {
-    color: '#ffffff',
-    fontWeight: '600',
+
+  
+    retryButtonText: {
+    color: INK,
+    fontWeight: '700',
     fontSize: 15,
     letterSpacing: 0.2,
   },
-  actionsRow: {
-    width: '100%',
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 0,
-    paddingBottom: 0,
-  },
-  actionButtonWrapper: {
-    flex: 1,
-    flexBasis: 0,
-    minWidth: 0,
-  },
-  actionButton: {
-    width: '100%',
-    minHeight: 52,
-    borderRadius: 14,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    backgroundColor: '#ffffff',
-    borderWidth: 2,
-    borderColor: '#e5e7eb',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  actionButtonText: {
-    color: '#111827',
-    fontWeight: '700',
-    fontSize: 16,
-    letterSpacing: 0.3,
-    flexShrink: 0,
-  },
-  backButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#ffffff',
-    borderWidth: 1.5,
-    borderColor: '#e5e7eb',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  backButtonIcon: {
-    fontSize: 32,
-    color: '#111827',
-    fontWeight: '900',
-    textAlign: 'center',
-    lineHeight: 32,
-    width: 32,
-    height: 32,
-  },
-  homeButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#ffffff',
-    borderWidth: 1.5,
-    borderColor: '#e5e7eb',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  homeButtonIcon: {
-    fontSize: 20,
-    color: '#111827',
-    fontWeight: '900',
-    textAlign: 'center',
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#e5e7eb',
-    marginVertical: 12,
-  },
-  badgeAsBarContainer: {
-    flex: 1,
-    width: '100%',
-    height: 32,
-    borderRadius: 999,
-    overflow: 'hidden',
-    position: 'relative',
-    backgroundColor: '#e5e7eb',
-  },
-  badgeAsBarFill: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    bottom: 0,
-    borderRadius: 999,
-    borderTopRightRadius: 0,
-    borderBottomRightRadius: 0,
-  },
-  badgeAsBarTextWrapper: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  badgeAsBarText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#1f2937',
-    textShadowColor: 'rgba(255,255,255,0.9)',
-    textShadowOffset: { width: 0, height: 0.5 },
-    textShadowRadius: 2,
-  },
-  uploadSubscriptionBadge: {
-    flex: 1,
-    width: '100%',
-    height: 32,
-    borderRadius: 999,
-    backgroundColor: '#F1F5F9',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  uploadSubscriptionBadgeText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#0F172A',
-  },
-  resultBadgeAsBarContainer: {
-    flex: 1,
-    marginHorizontal: 8,
-    height: 32,
-    borderRadius: 999,
-    overflow: 'hidden',
-    position: 'relative',
-    backgroundColor: '#e5e7eb',
-  },
-  resultSubscriptionBadge: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 32,
-    borderRadius: 999,
-    backgroundColor: '#F1F5F9',
-    marginHorizontal: 8,
-  },
-  resultSubscriptionBadgeText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#0F172A',
-  },
-  quotaProgressContainer: {
-    marginTop: 8,
-    marginBottom: 12,
-    gap: 8,
-  },
-  quotaProgressBar: {
-    width: '100%',
-    height: 6,
-    borderRadius: 999,
-    backgroundColor: '#e5e7eb',
-    overflow: 'hidden',
-  },
-  quotaProgressFill: {
-    height: '100%',
-    borderRadius: 999,
-    transition: 'width 0.3s ease',
-  },
-  quotaWarningButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    backgroundColor: CANVAS,
-    borderWidth: 1,
-    borderColor: BORDER,
-    alignItems: 'center',
-  },
-  quotaWarningText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#374151',
-  },
-  quotaExceededButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    backgroundColor: '#fee2e2',
-    borderWidth: 1,
-    borderColor: '#ef4444',
-    alignItems: 'center',
-  },
-  quotaExceededText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#991b1b',
-  },
+
+  
   headerBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
     gap: 10,
   },
-  wordmark: {
+
+  
+    wordmark: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#0F172A',
+    color: PAPER,
     letterSpacing: -0.3,
   },
-  headerPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F7F7F8',
-    borderRadius: 999,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    gap: 8,
-    flexShrink: 1,
-  },
-  headerPillProgress: {
-    width: 36,
-    height: 4,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 2,
-    overflow: 'hidden',
-  },
-  headerPillProgressFill: {
-    height: '100%',
-    backgroundColor: '#0F172A',
-    borderRadius: 2,
-  },
-  headerPillText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#0F172A',
-  },
-  iconButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#F7F7F8',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconButtonIcon: {
-    fontSize: 16,
-    color: '#0F172A',
-    fontWeight: '600',
-  },
-  styleCardLabel: {
-    marginTop: 8,
-    paddingHorizontal: 2,
-    alignItems: 'center',
-  },
-  styleCardName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#0F172A',
-    lineHeight: 19,
-    textAlign: 'center',
-    letterSpacing: 0.2,
-  },
-  styleCardDesc: {
-    fontSize: 12,
-    color: '#64748B',
-    marginTop: 2,
-    textAlign: 'center',
-  },
-  photoPlaceholderIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#F1F5F9',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-  },
-  photoPlaceholderIconText: {
-    fontSize: 28,
-    color: '#0F172A',
-    fontWeight: '300',
-    lineHeight: 32,
-  },
-  photoPlaceholderTitle: {
-    fontSize: 15,
-    color: '#0F172A',
-    fontWeight: '600',
-  },
-  photoPlaceholderHint: {
-    fontSize: 12,
-    color: '#64748B',
-    marginTop: 2,
-  },
-  cropChip: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    backgroundColor: 'rgba(15, 23, 42, 0.75)',
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderRadius: 99,
-  },
-  cropChipText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  uploadSourceRow: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  slimButton: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
+
+  
+    iconButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: DARK_CHIP,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 10,
-    paddingVertical: 11,
+    borderColor: DARK_BORDER,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  slimButtonText: {
-    color: '#0F172A',
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  primaryButton: {
-    backgroundColor: '#0F172A',
-    borderRadius: 10,
-    paddingVertical: 13,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  primaryButtonText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  quotaExceededBanner: {
-    backgroundColor: '#FEF2F2',
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    alignItems: 'center',
-  },
-  quotaExceededBannerText: {
-    color: '#A32D2D',
-    fontWeight: '600',
-    fontSize: 13,
-  },
-  quotaLowBanner: {
-    backgroundColor: CANVAS,
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: BORDER,
-  },
-  quotaLowBannerText: {
-    color: '#374151',
-    fontWeight: '600',
-    fontSize: 13,
-    textAlign: 'center',
-  },
-  offlineBanner: {
-    backgroundColor: INK,
+
+  
+    offlineBanner: {
+    backgroundColor: 'rgba(239, 68, 68, 0.92)',
     paddingVertical: 10,
     paddingHorizontal: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
+
+  
   offlineBannerText: {
     color: '#FFFFFF',
     fontWeight: '600',
@@ -1269,80 +536,41 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 18,
   },
-  photoChooserContainer: {
-    flex: 1,
-    backgroundColor: '#ffffff',
-    paddingHorizontal: 12,
-    paddingTop: 8,
-  },
-  photoChooserHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  photoChooserLoadingContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  photoChooserEmptyContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  photoChooserEmptyText: {
-    fontSize: 16,
-    color: '#64748B',
-    fontWeight: '500',
-  },
-  photoGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    paddingVertical: 8,
-    gap: 8,
-  },
-  photoGridItem: {
-    width: '48.5%',
-    aspectRatio: 1,
-    borderRadius: 12,
-    overflow: 'hidden',
-    backgroundColor: '#F7F7F8',
-  },
-  photoGridImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
+
+  
   menuBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.45)',
     justifyContent: 'flex-end',
   },
-  menuSheet: {
-    backgroundColor: '#FFFFFF',
+
+  
+    menuDismissArea: {
+    flex: 1,
+  },
+
+  
+    menuSheet: {
+    backgroundColor: '#0B0F19',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
+    borderTopWidth: 1,
+    borderColor: DARK_BORDER,
     paddingTop: 8,
     paddingHorizontal: 8,
   },
-  menuHandle: {
+
+  
+    menuHandle: {
     alignSelf: 'center',
     width: 36,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: 'rgba(255,255,255,0.22)',
     marginBottom: 8,
   },
-  menuHeader: {},
-  menuHeaderIcon: {},
-  menuHeaderIconText: {},
-  menuHeaderTitle: {},
-  menuHeaderSub: {},
-  menuDivider: {},
-  menuItemsContainer: {},
-  menuItemDivider: {},
+
+  
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1350,20 +578,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 12,
   },
+
+  
   menuItemIcon: {
     marginRight: 14,
   },
-  menuItemIconWrap: {},
-  menuItemContent: {},
-  menuItemText: {
+
+  
+    menuItemText: {
     flex: 1,
     fontSize: 16,
     fontWeight: '400',
-    color: '#0F172A',
+    color: '#FFFFFF',
     letterSpacing: 0.3,
   },
-  menuItemDesc: {},
-  menuItemArrow: {},
+
+  
   mediaTileChipWrapper: {
     width: 56,
     aspectRatio: 3 / 4,
@@ -1373,64 +603,48 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 3,
   },
+
+  
   mediaTileChipGradient: {
     height: '58%',
   },
+
+  
   mediaTileChipOverlay: {
     paddingHorizontal: 6,
     paddingBottom: 6,
     paddingTop: 4,
   },
+
+  
   mediaTileChipLabel: {
     fontSize: 9,
     fontWeight: '700',
   },
-  uploadStyleChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 12,
-    padding: 10,
-    backgroundColor: '#F3F4F6',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  uploadStyleChipBody: {
-    flex: 1,
-    gap: 2,
-  },
-  uploadStyleChipLabel: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#0F172A',
-  },
-  uploadStyleChipChange: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: INK,
-  },
-  galleryContainer: {
+
+  
+    galleryContainer: {
     flex: 1,
     paddingHorizontal: 16,
     paddingTop: 8,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: DARK_BG,
   },
-  galleryClearIcon: {
-    fontSize: 16,
-    color: '#0F172A',
-    fontWeight: '600',
-  },
+
+  
   galleryHeaderActions: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
+
+  
   galleryLoadingContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
+
+  
   galleryEmptyContainer: {
     flex: 1,
     alignItems: 'center',
@@ -1438,32 +652,36 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     gap: 12,
   },
-  galleryEmptyIcon: {
+
+  
+    galleryEmptyIcon: {
     width: 56,
     height: 56,
     borderRadius: 16,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: DARK_CHIP,
+    borderWidth: 1,
+    borderColor: DARK_BORDER,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 4,
   },
-  galleryEmptyIconText: {
-    fontSize: 26,
-    color: '#0F172A',
-    fontWeight: '600',
-    lineHeight: 30,
-  },
-  galleryEmptyTitle: {
+
+  
+    galleryEmptyTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#0F172A',
+    color: PAPER,
   },
-  galleryEmptyText: {
+
+  
+    galleryEmptyText: {
     fontSize: 13,
-    color: '#64748B',
+    color: DARK_MUTED,
     textAlign: 'center',
     lineHeight: 18,
   },
+
+  
   galleryGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -1471,16 +689,22 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     rowGap: 14,
   },
+
+  
   galleryItem: {
     width: '48%',
   },
-  galleryHint: {
+
+  
+    galleryHint: {
     fontSize: 11,
-    color: '#94A3B8',
+    color: 'rgba(255,255,255,0.45)',
     textAlign: 'center',
     marginTop: 16,
     fontStyle: 'italic',
   },
+
+  
   viewerHeader: {
     paddingHorizontal: 16,
     paddingBottom: 12,
@@ -1488,6 +712,8 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     backgroundColor: 'rgba(0,0,0,0.35)',
   },
+
+  
   viewerCloseButton: {
     width: 36,
     height: 36,
@@ -1496,28 +722,30 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  viewerCloseIcon: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '600',
-    lineHeight: 20,
-  },
+
+  
   viewerFooter: {
     paddingHorizontal: 16,
     paddingTop: 12,
     backgroundColor: 'rgba(0,0,0,0.7)',
     gap: 10,
   },
+
+  
   viewerFooterLabel: {
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
     textAlign: 'center',
   },
+
+  
   viewerActionsRow: {
     flexDirection: 'row',
     gap: 10,
   },
+
+  
   viewerActionButton: {
     flex: 1,
     backgroundColor: 'rgba(255,255,255,0.15)',
@@ -1527,88 +755,50 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
   },
+
+  
   viewerActionButtonText: {
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
   },
+
+  
   infoContainer: {
     flex: 1,
     padding: 24,
     paddingTop: 8,
   },
+
+  
   infoContent: {
     paddingTop: 16,
     paddingBottom: 24,
   },
-  infoText: {
+
+  
+    infoText: {
     fontSize: 14,
     lineHeight: 22,
-    color: '#334155',
+    color: DARK_MUTED,
   },
-  paywallContainer: {
-    flex: 1,
-  },
-  paywallScreenSafe: {
-    flex: 1,
-    backgroundColor: '#0F172A',
-  },
-  paywallHero: {
-    backgroundColor: '#0F172A',
-    paddingBottom: 28,
-    overflow: 'hidden',
-  },
-  paywallHeroTopRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingTop: 4,
-    paddingBottom: 4,
-    zIndex: 2,
-  },
-  paywallCloseButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.14)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  paywallCloseButtonIcon: {
-    fontSize: 26,
-    color: '#FFFFFF',
-    lineHeight: 28,
-    marginTop: -2,
-  },
-  paywallHeroBlock: {
-    paddingTop: 4,
-    paddingBottom: 16,
-  },
-  paywallHeroTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    letterSpacing: -0.4,
-  },
-  paywallHeroSubtext: {
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.82)',
-    lineHeight: 18,
-    marginTop: 4,
-    paddingHorizontal: 20,
-    textAlign: 'center',
-  },
+
+  
   paywallMarqueeWrap: {
     height: 132,
     marginTop: 4,
     overflow: 'hidden',
   },
+
+  
   paywallMarqueeRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
     gap: 12,
   },
+
+  
   paywallMarqueeTile: {
     width: 96,
     height: 120,
@@ -1618,924 +808,31 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.55)',
     backgroundColor: '#1E293B',
   },
+
+  
   paywallMarqueeImage: {
     width: '100%',
     height: '100%',
   },
+
+  
   paywallMarqueeGradient: {
     ...StyleSheet.absoluteFillObject,
   },
-  paywallSheet: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    marginTop: -20,
-    paddingHorizontal: 20,
-    paddingTop: 20,
-  },
-  paywallScreenHeader: {
-    backgroundColor: 'transparent',
-    borderBottomWidth: 0,
-  },
-  paywallScroll: {
-    flex: 1,
-    backgroundColor: 'transparent',
-  },
-  paywallScrollContent: {
-    paddingBottom: 0,
-  },
-  paywallPlanSummaryCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    padding: 14,
-    marginBottom: 16,
-    gap: 4,
-  },
-  paywallPlanSummaryText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#0F172A',
-  },
-  paywallPlanSummaryMuted: {
-    fontSize: 12,
-    color: '#64748B',
-  },
-  paywallUsageCard: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    padding: 16,
-    marginBottom: 14,
-    gap: 10,
-  },
-  paywallCardInkStripe: {
-    height: 4,
-    backgroundColor: '#0F172A',
-    marginHorizontal: -16,
-    marginTop: -16,
-    marginBottom: 4,
-  },
-  paywallUsageTitleBlock: {
-    flex: 1,
-    gap: 2,
-  },
-  paywallUsagePlanName: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#0F172A',
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-  },
-  paywallUsageTopRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: 8,
-  },
-  paywallUsageLine: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#0F172A',
-    letterSpacing: -0.2,
-    lineHeight: 22,
-  },
-  paywallRenewalRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  paywallUsageFootnote: {
-    fontSize: 13,
-    color: '#334155',
-    lineHeight: 18,
-  },
-  paywallUsageMuted: {
-    fontSize: 13,
-    color: '#64748B',
-    marginTop: 6,
-    textAlign: 'center',
-  },
-  paywallTrialHintCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#0F172A',
-    borderLeftWidth: 4,
-    padding: 12,
-    marginBottom: 14,
-    gap: 4,
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  paywallTrialHintTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#0F172A',
-  },
-  paywallTrialHint: {
-    fontSize: 13,
-    color: '#334155',
-    lineHeight: 18,
-  },
-  paywallTierCardPopular: {
-    borderColor: '#0F172A',
-    borderWidth: 2,
-    backgroundColor: '#FFFFFF',
-    overflow: 'hidden',
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 4,
-  },
-  paywallTierAccent: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    bottom: 0,
-    width: 4,
-    backgroundColor: '#0F172A',
-  },
-  paywallTierPriceBlock: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  paywallTierRadio: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: '#CBD5E1',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  paywallTierRadioSelected: {
-    borderColor: '#0F172A',
-  },
-  paywallTierRadioDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#0F172A',
-  },
-  paywallTierTagline: {
-    fontSize: 12,
-    color: '#334155',
-    marginTop: 4,
-    lineHeight: 16,
-  },
-  paywallPrimaryButton: {
-    backgroundColor: '#0F172A',
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  paywallLegalText: {
-    fontSize: 11,
-    color: '#64748B',
-    textAlign: 'center',
-    marginTop: 8,
-    lineHeight: 16,
-  },
-  paywallSecondaryOutlineButton: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1.5,
-    borderColor: '#0F172A',
-    borderRadius: 10,
-    paddingVertical: 13,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  secondaryOutlineButton: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 10,
-    paddingVertical: 13,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  secondaryOutlineButtonText: {
-    color: '#0F172A',
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  usageScreenSafe: {
-    flex: 1,
-    backgroundColor: '#F3F4F6',
-  },
-  usageScreenContainer: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 8,
-  },
-  usageScreenHeader: {
-    backgroundColor: '#F3F4F6',
-  },
-  usageScroll: {
-    flex: 1,
-    backgroundColor: '#F3F4F6',
-  },
-  usageScrollContent: {
-    paddingBottom: 16,
-    gap: 12,
-  },
-  usageCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    padding: 16,
-    gap: 12,
-  },
-  usageCardHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    gap: 8,
-  },
-  usagePlanLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#64748B',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  usageHeadline: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#0F172A',
-    marginTop: 4,
-    lineHeight: 24,
-  },
-  usageSubtext: {
-    fontSize: 13,
-    color: '#64748B',
-    marginTop: 4,
-    lineHeight: 18,
-  },
-  usageCardMuted: {
-    fontSize: 13,
-    color: '#64748B',
-    marginTop: 8,
-    textAlign: 'center',
-  },
-  usageProgressRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  usageProgressTrack: {
-    flex: 1,
-    height: 10,
-    backgroundColor: '#E2E8F0',
-    borderRadius: 5,
-    overflow: 'hidden',
-  },
-  usageProgressFill: {
-    height: '100%',
-    backgroundColor: '#0F172A',
-    borderRadius: 5,
-  },
-  usageProgressNumbers: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#0F172A',
-    minWidth: 44,
-    textAlign: 'right',
-  },
-  usageRenewalText: {
-    fontSize: 12,
-    color: '#64748B',
-  },
-  usageUpgradeCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#0F172A',
-    padding: 14,
-  },
-  usageUpgradeTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#0F172A',
-  },
-  usageUpgradeSubtext: {
-    fontSize: 13,
-    color: '#64748B',
-    marginTop: 4,
-  },
-  usageActions: {
-    paddingTop: 12,
-  },
-  paywallPlanCard: {
-    backgroundColor: '#F7F7F8',
-    borderRadius: 14,
-    padding: 14,
-    marginTop: 4,
-    marginBottom: 16,
-  },
-  paywallPlanHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  paywallPlanTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#0F172A',
-  },
-  paywallPlanQuotaText: {
-    fontSize: 12,
-    color: '#64748B',
-    marginTop: 2,
-  },
-  paywallPlanRenewalText: {
-    fontSize: 12,
-    color: '#64748B',
-    marginTop: 8,
-  },
-  paywallPendingText: {
-    fontSize: 12,
-    color: '#0F172A',
-    fontWeight: '500',
-    marginTop: 4,
-  },
-  paywallActivePill: {
-    backgroundColor: '#EAF3DE',
-    paddingVertical: 3,
-    paddingHorizontal: 8,
-    borderRadius: 99,
-  },
-  paywallActivePillText: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: '#3B6D11',
-    letterSpacing: 0.4,
-  },
-  paywallUpgradePill: {
-    backgroundColor: '#F1F5F9',
-    paddingVertical: 3,
-    paddingHorizontal: 8,
-    borderRadius: 99,
-  },
-  paywallUpgradePillText: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: '#0F172A',
-    letterSpacing: 0.4,
-  },
-  paywallCancelPill: {
-    backgroundColor: '#F3F4F6',
-    paddingVertical: 3,
-    paddingHorizontal: 8,
-    borderRadius: 99,
-  },
-  paywallCancelPillText: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: '#64748B',
-  },
-  paywallProgress: {
-    height: 4,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 2,
-    overflow: 'hidden',
-  },
-  paywallProgressFill: {
-    height: '100%',
-    backgroundColor: '#0F172A',
-    borderRadius: 2,
-  },
-  paywallSectionTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#0F172A',
-    marginBottom: 12,
-    marginTop: 2,
-    letterSpacing: -0.2,
-  },
-  paywallTierCard: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1.5,
-    borderColor: '#D1D5DB',
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 10,
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.07,
-    shadowRadius: 8,
-    elevation: 2,
-    overflow: 'hidden',
-  },
-  paywallTierCardSelected: {
-    borderWidth: 2,
-    borderColor: '#0F172A',
-    shadowOpacity: 0.12,
-    elevation: 4,
-  },
-  paywallTierCardCurrent: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 2,
-    borderColor: '#0F172A',
-  },
-  paywallTierRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  paywallTierLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    flex: 1,
-    flexWrap: 'wrap',
-  },
-  paywallTierName: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#0F172A',
-  },
-  paywallTierPrice: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#0F172A',
-  },
-  paywallTierPriceUnit: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#475569',
-  },
-  paywallTierDesc: {
-    fontSize: 12,
-    color: '#334155',
-    marginTop: 4,
-  },
-  paywallTierBadgeCurrent: {
-    backgroundColor: '#0F172A',
-    paddingVertical: 2,
-    paddingHorizontal: 7,
-    borderRadius: 99,
-  },
-  paywallTierBadgeCurrentText: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    letterSpacing: 0.5,
-  },
-  paywallTierBadgePopular: {
-    backgroundColor: '#0F172A',
-    paddingVertical: 2,
-    paddingHorizontal: 7,
-    borderRadius: 99,
-  },
-  paywallTierBadgePopularText: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    letterSpacing: 0.5,
-  },
-  paywallTierBadgeNeutral: {
-    backgroundColor: '#F1EFE8',
-    paddingVertical: 2,
-    paddingHorizontal: 7,
-    borderRadius: 99,
-  },
-  paywallTierBadgeNeutralText: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: '#5F5E5A',
-    letterSpacing: 0.5,
-  },
-  paywallActions: {
-    marginTop: 20,
-    paddingTop: 4,
-    gap: 8,
-  },
-  paywallHeroIconWrapper: {
-    alignItems: 'center',
-    paddingTop: 8,
-    paddingBottom: 16,
-  },
-  paywallHeroIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
-    backgroundColor: '#F1F5F9',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  paywallHeroIconText: {
-    fontSize: 26,
-    color: '#0F172A',
-    fontWeight: '600',
-    lineHeight: 30,
-  },
-  paywallCancelLink: {
-    fontSize: 13,
-    color: '#A32D2D',
-    fontWeight: '500',
-    paddingVertical: 8,
-  },
-  cropScreenSafe: {
-    flex: 1,
-    backgroundColor: '#1a1a1a',
-  },
-  cropScreenContainer: {
-    flex: 1,
-    backgroundColor: '#1a1a1a',
-  },
-  cropScreenTopBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    backgroundColor: '#1a1a1a',
-    borderBottomWidth: 1,
-    borderBottomColor: '#333333',
-  },
-  cropScreenBackButton: {
+
+  
+  menuButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  cropScreenBackIcon: {
-    fontSize: 24,
-    color: '#ffffff',
-    fontWeight: '600',
-  },
-  cropScreenDoneButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-    backgroundColor: '#0F172A',
-    borderRadius: 8,
-  },
-  cropScreenDoneText: {
-    color: '#ffffff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  cropScreenCanvasWrapper: {
-    flex: 1,
-    backgroundColor: '#000000',
-    overflow: 'hidden',
-  },
-  cropScreenCanvas: {
-    flex: 1,
-    width: '100%',
-    position: 'relative',
-    backgroundColor: '#000000',
-  },
-  cropImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'contain',
-  },
-  cropOverlay: {
-    position: 'absolute',
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-  },
-  cropBoxBorder: {
-    position: 'absolute',
-    borderWidth: 2,
-    borderColor: '#0F172A',
-  },
-  cropHandle: {
-    position: 'absolute',
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 2,
-    borderColor: '#0F172A',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cropHandleInner: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#0F172A',
-  },
-  styleHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  menuButton: {
-    padding: 8,
-    marginRight: -8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  menuButtonIcon: {
-    fontSize: 20,
-    color: '#111827',
-    fontWeight: '900',
-  },
-  subscriptionContainer: {
-    padding: 24,
-    paddingTop: 60,
-    gap: 24,
-    flexGrow: 1,
-  },
-  subscriptionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
-  },
-  subscriptionHeaderContent: {
-    gap: 2,
-  },
-  subscriptionTitle: {
-    fontSize: 28,
-    fontWeight: '900',
-    color: '#0f172a',
-    letterSpacing: -0.5,
-  },
-  subscriptionTagline: {
-    fontSize: 15,
-    color: '#64748b',
-    fontWeight: '500',
-  },
-  closeButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#ffffff',
-    borderWidth: 1.5,
-    borderColor: '#e5e7eb',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  closeButtonIcon: {
-    fontSize: 20,
-    color: '#111827',
-    fontWeight: '900',
-  },
-  section: {
-    gap: 12,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#111827',
-    marginBottom: 4,
-  },
-  loadingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    padding: 16,
-  },
-  loadingText: {
-    fontSize: 14,
-    color: '#6b7280',
-  },
-  planCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 20,
-    borderWidth: 2,
-    borderColor: '#e2e8f0',
-    gap: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  planCardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  planCardTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#111827',
-  },
-  planCardDescription: {
-    fontSize: 14,
-  },
-  pendingTierText: {
-    fontSize: 12,
-    color: '#6b7280',
-    marginTop: 4,
-  },
-  trialBadge: {
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-    borderRadius: 999,
-    backgroundColor: CANVAS,
-  },
-  trialBadgeText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: INK,
-  },
-  activeBadge: {
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-    borderRadius: 999,
-    backgroundColor: '#d1fae5',
-  },
-  activeBadgeText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#065f46',
-  },
-  cancelWarning: {
-    padding: 12,
-    borderRadius: 8,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: DARK_CHIP,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  cancelWarningText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#374151',
-  },
-  quotaInfoContainer: {
-    gap: 8,
-    marginTop: 8,
-  },
-  quotaInfoText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
-  },
-  quotaProgressBarFull: {
-    width: '100%',
-    height: 8,
-    borderRadius: 999,
-    backgroundColor: '#e5e7eb',
-    overflow: 'hidden',
-  },
-  quotaProgressFillFull: {
-    height: '100%',
-    borderRadius: 999,
-  },
-  quotaExceededTextFull: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#991b1b',
-  },
-  statsCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 20,
-    borderWidth: 2,
-    borderColor: '#e2e8f0',
-    gap: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  statRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    borderColor: DARK_BORDER,
     alignItems: 'center',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    justifyContent: 'center',
   },
-  statLabel: {
-    fontSize: 14,
-    color: '#6b7280',
-    lineHeight: 20,
-  },
-  statValue: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#111827',
-  },
-  tierCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 20,
-    borderWidth: 2,
-    borderColor: '#e2e8f0',
-    marginBottom: 12,
-    gap: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  tierCardSelected: {
-    borderColor: INK,
-    borderWidth: 2.5,
-    backgroundColor: CANVAS,
-  },
-  tierCardPopular: {
-    borderColor: INK,
-    backgroundColor: PAPER,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-  },
-  tierCardActive: {
-    borderColor: INK,
-    backgroundColor: CANVAS,
-  },
-  popularRibbon: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    backgroundColor: INK,
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-    borderTopRightRadius: 14,
-    borderBottomLeftRadius: 10,
-  },
-  popularRibbonText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#ffffff',
-  },
-  tierCardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  tierCardTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#111827',
-  },
-  tierCardPrice: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: INK,
-    marginTop: 4,
-  },
-  tierCardQuota: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#64748b',
-  },
-  currentBadge: {
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-    borderRadius: 999,
-    backgroundColor: '#d1fae5',
-  },
-  currentBadgeText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#065f46',
-  },
-  secondaryActionButton: {
-    backgroundColor: '#ffffff',
-    borderWidth: 2,
-    borderColor: '#e5e7eb',
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-  },
-  secondaryActionButtonText: {
-    color: '#111827',
-    fontWeight: '700',
-    fontSize: 15,
-  },
-  cancelButton: {
-    backgroundColor: '#ffffff',
-    borderWidth: 2,
-    borderColor: '#ef4444',
-    marginTop: 8,
-  },
-  cancelButtonText: {
-    color: '#ef4444',
-    fontWeight: '700',
-    fontSize: 15,
-  },
+
+  
   toastContainer: {
     position: 'absolute',
     top: 0,
@@ -2545,6 +842,8 @@ const styles = StyleSheet.create({
     zIndex: 9999,
     elevation: 9999,
   },
+
+  
   toastInner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -2559,6 +858,8 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     elevation: 10,
   },
+
+  
   toastIconCircle: {
     width: 28,
     height: 28,
@@ -2567,28 +868,38 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexShrink: 0,
   },
+
+  
   toastIconText: {
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '800',
     lineHeight: 16,
   },
+
+  
   toastTextWrap: {
     flex: 1,
     gap: 1,
   },
+
+  
   toastTitle: {
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '700',
     letterSpacing: -0.1,
   },
+
+  
   toastMessage: {
     color: 'rgba(255,255,255,0.78)',
     fontSize: 13,
     fontWeight: '500',
     lineHeight: 17,
   },
+
+  
   toastAction: {
     paddingVertical: 6,
     paddingHorizontal: 10,
@@ -2596,11 +907,15 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.14)',
     flexShrink: 0,
   },
+
+  
   toastActionText: {
     color: PAPER,
     fontSize: 12,
     fontWeight: '700',
   },
+
+  
   dialogBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(15, 23, 42, 0.5)',
@@ -2608,88 +923,1670 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 24,
   },
-  dialogCard: {
+
+  
+    dialogCard: {
     width: '100%',
     maxWidth: 360,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#151B28',
     borderRadius: 22,
+    borderWidth: 1,
+    borderColor: DARK_BORDER,
     paddingVertical: 28,
     paddingHorizontal: 24,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.18,
+    shadowOpacity: 0.35,
     shadowRadius: 28,
     elevation: 16,
   },
-  dialogTitle: {
+
+  
+    dialogTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#0F172A',
+    color: PAPER,
     letterSpacing: -0.3,
     marginBottom: 10,
   },
-  dialogMessage: {
+
+  
+    dialogMessage: {
     fontSize: 15,
     fontWeight: '400',
-    color: '#64748B',
+    color: DARK_MUTED,
     lineHeight: 22,
     marginBottom: 24,
   },
+
+  
   dialogActionsRow: {
     flexDirection: 'row',
     gap: 10,
   },
-  dialogCancelButton: {
+
+  dialogActionsStack: {
+    flexDirection: 'column',
+  },
+
+  dialogConfirmButtonFull: {
+    flex: 0,
+    width: '100%',
+    paddingVertical: 16,
+    borderRadius: 999,
+  },
+
+  
+    dialogCancelButton: {
     flex: 1,
     paddingVertical: 14,
     borderRadius: 14,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: DARK_CHIP,
+    borderWidth: 1,
+    borderColor: DARK_BORDER,
     alignItems: 'center',
   },
-  dialogCancelText: {
-    color: '#0F172A',
+
+  
+    dialogCancelText: {
+    color: PAPER,
     fontWeight: '600',
     fontSize: 15,
   },
-  dialogConfirmButton: {
+
+  
+    dialogConfirmButton: {
     flex: 1,
     paddingVertical: 14,
     borderRadius: 14,
-    backgroundColor: '#0F172A',
+    backgroundColor: PAPER,
     alignItems: 'center',
   },
-  dialogConfirmDestructive: {
-    backgroundColor: '#0F172A',
+
+  
+    dialogConfirmDestructive: {
+    backgroundColor: '#EF4444',
   },
-  dialogConfirmText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
+
+  
+    dialogConfirmText: {
+    color: INK,
+    fontWeight: '700',
     fontSize: 15,
   },
-  dialogConfirmTextDestructive: {
-    color: '#FFFFFF',
+
+  
+    dialogConfirmTextDestructive: {
+    color: PAPER,
   },
-  dialogNeutralButton: {
+
+  
+    dialogNeutralButton: {
     flex: 1,
     paddingVertical: 14,
     borderRadius: 14,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'transparent',
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    borderColor: DARK_BORDER,
     alignItems: 'center',
   },
-  dialogNeutralDestructive: {
+
+  
+    dialogNeutralDestructive: {
     borderColor: '#EF4444',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'transparent',
   },
-  dialogNeutralText: {
-    color: '#0F172A',
+
+  
+    dialogNeutralText: {
+    color: PAPER,
     fontWeight: '600',
     fontSize: 15,
   },
+
+  
   dialogNeutralTextDestructive: {
     color: '#EF4444',
   },
+
+  
+    styleHomeContainer: {
+    paddingTop: 4,
+    paddingBottom: 0,
+    flexGrow: 1,
+    backgroundColor: DARK_BG,
+  },
+
+  
+    styleRowSection: {
+    marginBottom: 18,
+  },
+
+  
+    styleRowHeader: {
+    paddingHorizontal: 20,
+    paddingTop: 4,
+    paddingBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+
+  
+    styleRowTitle: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 17,
+    fontWeight: '700',
+    color: PAPER,
+    letterSpacing: -0.3,
+  },
+
+  
+    styleRowSeeAll: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+
+  
+    styleRowSeeAllText: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 13,
+    fontWeight: '600',
+    color: DARK_MUTED,
+  },
+
+  
+    styleRowList: {
+    paddingHorizontal: 16,
+    paddingRight: 4,
+    gap: 12,
+  },
+
+  
+    styleRowCard: {
+    width: 130,
+  },
+
+  
+    styleRowSeeAllTile: {
+    width: 130,
+    borderRadius: 24,
+    backgroundColor: DARK_CHIP,
+    borderWidth: 1,
+    borderColor: DARK_BORDER,
+    overflow: 'hidden',
+  },
+
+  
+    styleRowSeeAllTileInner: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingHorizontal: 8,
+  },
+
+  
+    styleRowSeeAllTileText: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 14,
+    fontWeight: '700',
+    color: PAPER,
+    letterSpacing: -0.2,
+  },
+
+  
+    styleRowSeeAllTileCount: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 11,
+    fontWeight: '500',
+    color: DARK_MUTED,
+  },
+
+  
+    tipsScroll: {
+    flex: 1,
+  },
+
+  
+    tipsScrollContent: {
+    paddingTop: 8,
+  },
+
+  
+    uploadRoot: {
+    flex: 1,
+    backgroundColor: '#0B0F19',
+  },
+
+  
+    uploadBackgroundFill: {
+    ...StyleSheet.absoluteFillObject,
+  },
+
+  
+    uploadBackgroundImage: {
+    ...StyleSheet.absoluteFillObject,
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+
+  
+    uploadScrimTop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+  },
+
+  
+    uploadScrimBottom: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 320,
+  },
+
+  
+    uploadTopLayer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 16,
+  },
+
+  
+    uploadHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+
+  
+    uploadCircleButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  
+    uploadHeaderPill: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 999,
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+    gap: 4,
+    minWidth: 110,
+  },
+
+  
+    uploadHeaderPillProgress: {
+    height: 3,
+    width: '100%',
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    borderRadius: 999,
+    overflow: 'hidden',
+  },
+
+  
+    uploadHeaderPillProgressFill: {
+    height: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 999,
+  },
+
+  
+    uploadHeaderPillText: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    letterSpacing: -0.1,
+  },
+
+  
+    uploadFloatingChipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 14,
+  },
+
+  
+    uploadFloatingChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+    maxWidth: 220,
+  },
+
+  
+    uploadFloatingChipDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#10B981',
+  },
+
+  
+    uploadFloatingChipText: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    letterSpacing: -0.1,
+    flexShrink: 1,
+  },
+
+  
+    uploadInlineBanner: {
+    marginTop: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    backgroundColor: 'rgba(15, 23, 42, 0.7)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    alignSelf: 'flex-start',
+    maxWidth: '100%',
+  },
+
+  
+    uploadInlineBannerText: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    letterSpacing: -0.1,
+  },
+
+  
+    uploadBottomLayer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 16,
+  },
+
+  
+    uploadActionStack: {
+    gap: 14,
+  },
+
+  
+    uploadActionCardRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+
+  
+    uploadActionCard: {
+    flex: 1,
+    padding: 16,
+    borderRadius: 22,
+    backgroundColor: 'rgba(15, 23, 42, 0.78)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    gap: 8,
+    minHeight: 180,
+  },
+
+  
+    uploadActionCardIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 2,
+  },
+
+  
+    uploadActionCardTitle: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: -0.2,
+  },
+
+  
+    uploadActionCardDescription: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 12,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.7)',
+    lineHeight: 17,
+    letterSpacing: -0.05,
+    marginBottom: 6,
+    flex: 1,
+  },
+
+  
+    uploadActionCardCta: {
+    paddingVertical: 11,
+    borderRadius: 999,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  
+    uploadActionCardCtaDisabled: {
+    opacity: 0.55,
+  },
+
+  
+    uploadActionCardCtaText: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 13,
+    fontWeight: '700',
+    color: INK,
+    letterSpacing: -0.1,
+  },
+
+  
+    uploadInlineActionsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    alignSelf: 'center',
+    justifyContent: 'center',
+  },
+
+  
+    uploadSmallGhostButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 999,
+    backgroundColor: 'rgba(15, 23, 42, 0.65)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+  },
+
+  
+    uploadSmallGhostButtonText: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    letterSpacing: -0.1,
+  },
+
+  
+    uploadGenerateButton: {
+    paddingVertical: 16,
+    borderRadius: 18,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  
+    uploadGenerateButtonDisabled: {
+    opacity: 0.5,
+  },
+
+  
+    uploadGenerateButtonText: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 15,
+    fontWeight: '700',
+    color: INK,
+    letterSpacing: -0.2,
+  },
+
+  
+    tipsRoot: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#0B0F19',
+    paddingHorizontal: 20,
+    zIndex: 1000,
+    elevation: 1000,
+  },
+
+  
+    tipsTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingBottom: 12,
+  },
+
+  
+    tipsCloseCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  
+    tipsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    rowGap: 24,
+  },
+
+  
+    tipsGridCell: {
+    width: '48%',
+    alignItems: 'center',
+  },
+
+  
+    tipsBadge: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#0B0F19',
+  },
+
+  
+    tipsBadgeGood: {
+    backgroundColor: '#10B981',
+  },
+
+  
+    tipsBadgeBad: {
+    backgroundColor: '#EF4444',
+  },
+
+  
+    tipsRulesBlock: {
+    marginTop: 36,
+    gap: 12,
+  },
+
+  
+    tipsRuleRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+
+  
+    tipsRuleBullet: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 1,
+  },
+
+  
+    tipsRuleBulletText: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: -0.1,
+  },
+
+  
+    tipsRuleText: {
+    flex: 1,
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 13,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.85)',
+    lineHeight: 19,
+    letterSpacing: -0.1,
+  },
+
+  
+    tipsFooter: {
+    position: 'absolute',
+    left: 20,
+    right: 20,
+    bottom: 0,
+    paddingTop: 8,
+  },
+
+  
+    tipsContinueButton: {
+    paddingVertical: 16,
+    borderRadius: 18,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  
+    tipsContinueButtonText: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 15,
+    fontWeight: '700',
+    color: INK,
+    letterSpacing: -0.2,
+  },
+
+  
+    tipsTopTitle: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: -0.3,
+  },
+
+  
+    tipsCloseCirclePlaceholder: {
+    width: 40,
+    height: 40,
+  },
+
+  
+    tipsLead: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 14,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.7)',
+    lineHeight: 20,
+    letterSpacing: -0.1,
+    marginBottom: 24,
+  },
+
+  
+    tipsConceptCard: {
+    width: '100%',
+    aspectRatio: 1,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+
+  
+    tipsConceptCardGood: {
+    backgroundColor: 'rgba(16,185,129,0.12)',
+    borderColor: 'rgba(16,185,129,0.35)',
+  },
+
+  
+    tipsConceptCardBad: {
+    backgroundColor: 'rgba(239,68,68,0.12)',
+    borderColor: 'rgba(239,68,68,0.35)',
+  },
+
+  
+    tipsConceptIconBg: {
+    width: 76,
+    height: 76,
+    borderRadius: 38,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  
+    tipsConceptIconBgGood: {
+    backgroundColor: 'rgba(16,185,129,0.18)',
+  },
+
+  
+    tipsConceptIconBgBad: {
+    backgroundColor: 'rgba(239,68,68,0.18)',
+  },
+
+  
+    tipsConceptImage: {
+    width: '100%',
+    height: '100%',
+  },
+
+  
+    tipsConceptTitle: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginTop: 12,
+    letterSpacing: -0.2,
+  },
+
+  
+    tipsConceptSubtitle: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 12,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.55)',
+    marginTop: 2,
+    letterSpacing: -0.1,
+    textAlign: 'center',
+  },
+
+  
+    pwdRoot: {
+    flex: 1,
+    backgroundColor: '#0B0F19',
+  },
+
+  
+    pwdHeroWrap: {
+    position: 'relative',
+  },
+
+  
+    pwdHeroBottomScrim: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 70,
+  },
+
+  
+    pwdFloatingCloseWrap: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    zIndex: 10,
+    padding: 12,
+  },
+
+  
+    pwdCloseCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(11, 15, 25, 0.78)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.28)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.35,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+
+  
+    pwdScroll: {
+    flex: 1,
+  },
+
+  
+    pwdScrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+  },
+
+  
+    pwdHeadlineBlock: {
+    marginTop: 2,
+    marginBottom: 14,
+    gap: 3,
+  },
+
+  
+    pwdHeadline: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: -0.5,
+    lineHeight: 27,
+  },
+
+  
+    pwdSubhead: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 12.5,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.6)',
+    lineHeight: 17,
+    letterSpacing: -0.1,
+  },
+
+  
+    pwdUsageCard: {
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.10)',
+    borderRadius: 14,
+    padding: 12,
+    marginBottom: 16,
+    gap: 8,
+  },
+
+  
+    pwdUsageTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+
+  
+    pwdUsageTitleBlock: {
+    flex: 1,
+    gap: 1,
+  },
+
+  
+    pwdUsagePlanName: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: -0.2,
+  },
+
+  
+    pwdUsageLine: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 11.5,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.6)',
+    letterSpacing: -0.1,
+  },
+
+  
+    pwdStatusPill: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+
+  
+    pwdStatusPillActive: {
+    backgroundColor: 'rgba(16,185,129,0.16)',
+    borderColor: 'rgba(16,185,129,0.45)',
+  },
+
+  
+    pwdStatusPillTrial: {
+    backgroundColor: 'rgba(245,158,11,0.16)',
+    borderColor: 'rgba(245,158,11,0.45)',
+  },
+
+  
+    pwdStatusPillCancel: {
+    backgroundColor: 'rgba(239,68,68,0.16)',
+    borderColor: 'rgba(239,68,68,0.45)',
+  },
+
+  
+    pwdStatusPillText: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+  },
+
+  
+    pwdStatusPillTextActive: {
+    color: '#10B981',
+  },
+
+  
+    pwdStatusPillTextTrial: {
+    color: '#F59E0B',
+  },
+
+  
+    pwdStatusPillTextCancel: {
+    color: '#EF4444',
+  },
+
+  
+    pwdProgressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+
+  
+    pwdProgressTrack: {
+    flex: 1,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: 'rgba(255,255,255,0.10)',
+    overflow: 'hidden',
+  },
+
+  
+    pwdProgressFill: {
+    height: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 3,
+  },
+
+  
+    pwdProgressNumbers: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 11,
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.85)',
+    letterSpacing: -0.1,
+  },
+
+  
+    pwdFootnoteRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+
+  
+    pwdFootnoteText: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 11,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.55)',
+    letterSpacing: -0.1,
+  },
+
+  
+    pwdPendingText: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#F59E0B',
+    letterSpacing: -0.1,
+  },
+
+  
+    pwdSectionTitle: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 11,
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.55)',
+    letterSpacing: 0.7,
+    textTransform: 'uppercase',
+    marginBottom: 8,
+  },
+
+  
+    pwdTierCard: {
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.10)',
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 12,
+  },
+
+  
+    pwdTierCardSelected: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#FFFFFF',
+  },
+
+  
+    pwdTierCardCurrent: {
+    backgroundColor: 'rgba(16,185,129,0.10)',
+    borderColor: 'rgba(16,185,129,0.45)',
+  },
+
+  
+    pwdTierRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+
+  
+    pwdTierLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flex: 1,
+  },
+
+  
+    pwdTierName: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: -0.2,
+  },
+
+  
+    pwdTierNameDark: {
+    color: '#0F172A',
+  },
+
+  
+    pwdTierBadgePopular: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 5,
+    backgroundColor: 'rgba(255,255,255,0.14)',
+  },
+
+  
+    pwdTierBadgePopularSelected: {
+    backgroundColor: 'rgba(15,23,42,0.10)',
+  },
+
+  
+    pwdTierBadgePopularText: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 8.5,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: 0.4,
+  },
+
+  
+    pwdTierBadgePopularTextSelected: {
+    color: '#0F172A',
+  },
+
+  
+    pwdTierBadgeCurrent: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 5,
+    backgroundColor: 'rgba(16,185,129,0.20)',
+  },
+
+  
+    pwdTierBadgeCurrentText: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 8.5,
+    fontWeight: '800',
+    color: '#10B981',
+    letterSpacing: 0.4,
+  },
+
+  
+    pwdTierPriceBlock: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+
+  
+    pwdTierPrice: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: -0.2,
+  },
+
+  
+    pwdTierPriceDark: {
+    color: '#0F172A',
+  },
+
+  
+    pwdTierPriceUnit: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 10.5,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.55)',
+    letterSpacing: -0.1,
+  },
+
+  
+    pwdTierPriceUnitDark: {
+    color: 'rgba(15,23,42,0.55)',
+  },
+
+  
+    pwdTierRadio: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.30)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  
+    pwdTierRadioSelected: {
+    borderColor: '#0F172A',
+    backgroundColor: '#0F172A',
+  },
+
+  
+    pwdTierRadioCurrent: {
+    borderColor: '#10B981',
+    backgroundColor: '#10B981',
+  },
+
+  
+    pwdTierRadioDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: '#FFFFFF',
+  },
+
+  
+    pwdTierMeta: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 11.5,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.55)',
+    marginTop: 4,
+    letterSpacing: -0.1,
+  },
+
+  
+    pwdTierMetaDark: {
+    color: 'rgba(15,23,42,0.65)',
+  },
+
+  
+    pwdLegalText: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 10,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.40)',
+    textAlign: 'center',
+    marginTop: 10,
+    lineHeight: 14,
+    letterSpacing: -0.1,
+  },
+
+  
+    pwdBottomBar: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    backgroundColor: '#0B0F19',
+    gap: 8,
+    zIndex: 20,
+    elevation: 20,
+  },
+
+  
+    pwdBottomScrim: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: -32,
+    height: 32,
+  },
+
+  
+    pwdPrimaryButton: {
+    paddingVertical: 13,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  
+    pwdPrimaryButtonDisabled: {
+    backgroundColor: 'rgba(255,255,255,0.25)',
+  },
+
+  
+    pwdPrimaryButtonText: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 14,
+    fontWeight: '700',
+    color: INK,
+    letterSpacing: -0.2,
+  },
+
+  
+    pwdGhostRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+
+  
+    pwdGhostButton: {
+    flex: 1,
+    paddingVertical: 9,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.10)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  
+    pwdGhostButtonText: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 12,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.85)',
+    letterSpacing: -0.1,
+  },
+
+  
+    pwdManageLink: {
+    alignSelf: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+
+  
+    pwdManageLinkText: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#EF4444',
+    letterSpacing: -0.1,
+  },
+
+  
+    reviewRoot: {
+    flex: 1,
+    backgroundColor: '#0B0F19',
+  },
+
+  
+    reviewHeaderBand: {
+    paddingHorizontal: 16,
+  },
+
+  
+    reviewPreviewBand: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+
+  
+    reviewPreviewCard: {
+    width: '100%',
+    flex: 1,
+    maxHeight: '100%',
+    borderRadius: 24,
+    overflow: 'hidden',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.18)',
+    backgroundColor: '#0B0F19',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 14 },
+    shadowOpacity: 0.45,
+    shadowRadius: 18,
+    elevation: 14,
+  },
+
+  
+    reviewPreviewImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'contain',
+  },
+
+  
+    reviewActionBand: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    gap: 10,
+  },
+
+  
+    discoveryCardCaption: {
+    marginTop: 8,
+    paddingHorizontal: 2,
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 12,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.88)',
+    lineHeight: 16,
+    letterSpacing: -0.15,
+    minHeight: 48,
+  },
+
+  
+    discoveryWideCardCaption: {
+    marginTop: 10,
+    fontSize: 14,
+    lineHeight: 18,
+    minHeight: 36,
+  },
+
+  
+    discoveryDenseCardCaption: {
+    marginTop: 6,
+    fontSize: 11,
+    lineHeight: 14,
+    minHeight: 42,
+  },
+
+  
+    styleRowSeeAllTileImage: {
+    width: '100%',
+    aspectRatio: 0.72,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  
+    styleRowSeeAllCaptionSpacer: {
+    marginTop: 8,
+    minHeight: 48,
+  },
+
+  
+    resultRoot: {
+    flex: 1,
+    backgroundColor: DARK_BG,
+    flexDirection: 'column',
+  },
+
+  
+    resultHeaderBand: {
+    paddingHorizontal: 16,
+    paddingBottom: 4,
+  },
+
+  
+    resultPreviewBand: {
+    flex: 1,
+    minHeight: 0,
+    paddingHorizontal: 12,
+    paddingTop: 4,
+    paddingBottom: 0,
+  },
+
+  
+    resultActionBand: {
+    flexShrink: 0,
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    gap: 8,
+  },
+
+  
+    resultLoadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(11, 15, 25, 0.72)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    paddingHorizontal: 24,
+    zIndex: 10,
+  },
+
+  
+    resultLoadingTitle: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 17,
+    fontWeight: '700',
+    color: PAPER,
+    letterSpacing: -0.2,
+    textAlign: 'center',
+  },
+
+  
+    resultLoadingSubtitle: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 13,
+    fontWeight: '500',
+    color: DARK_MUTED,
+    textAlign: 'center',
+    minHeight: 18,
+  },
+
+  
+    resultLoadingDots: {
+    flexDirection: 'row',
+    gap: 6,
+    marginTop: 4,
+  },
+
+  
+    resultLoadingDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: 'rgba(255,255,255,0.35)',
+  },
+
+  
+    resultLoadingDotActive: {
+    backgroundColor: PAPER,
+    transform: [{ scale: 1.2 }],
+  },
+
+  
+    resultChipDotLoading: {
+    backgroundColor: '#F59E0B',
+  },
+
+  
+    resultCompareBadge: {
+    position: 'absolute',
+    top: 12,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 999,
+    backgroundColor: 'rgba(15, 23, 42, 0.72)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.14)',
+    zIndex: 3,
+  },
+
+  
+    resultCompareBadgeLeft: {
+    left: 12,
+  },
+
+  
+    resultCompareBadgeRight: {
+    right: 12,
+  },
+
+  
+    resultCompareBadgeText: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 11,
+    fontWeight: '700',
+    color: PAPER,
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+  },
+
+  
+    resultCompareHintText: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 12,
+    fontWeight: '600',
+    color: DARK_MUTED,
+    letterSpacing: -0.05,
+  },
+
+  
+    resultActionRow: {
+    flexDirection: 'row',
+    gap: 10,
+    width: '100%',
+  },
+
+  
+    resultActionButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 15,
+    borderRadius: 18,
+    backgroundColor: PAPER,
+  },
+
+  
+    resultActionButtonSaved: {
+    backgroundColor: 'rgba(16, 185, 129, 0.14)',
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.38)',
+  },
+
+  
+    resultActionButtonText: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 14,
+    fontWeight: '700',
+    color: INK,
+    letterSpacing: -0.1,
+  },
+
+  
+    resultActionButtonTextSaved: {
+    color: '#10B981',
+  },
+
+  
+    resultGhostButton: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: 18,
+    backgroundColor: DARK_CHIP,
+    borderWidth: 1,
+    borderColor: DARK_BORDER,
+  },
+
+  
+    resultGhostButtonText: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 14,
+    fontWeight: '600',
+    color: PAPER,
+    letterSpacing: -0.05,
+  },
+
+  
+    sliderKnobIconRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 0,
+  },
+
+  
+    resultCompareCanvas: {
+    flex: 1,
+    width: '100%',
+    alignSelf: 'stretch',
+    overflow: 'hidden',
+  },
+
+  
+    resultCompareImage: {
+    ...StyleSheet.absoluteFillObject,
+    width: '100%',
+    height: '100%',
+  },
+
+  
+    resultPreviewCard: {
+    flex: 1,
+    width: '100%',
+    minHeight: 0,
+    borderRadius: 24,
+    overflow: 'hidden',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.18)',
+    backgroundColor: '#0B0F19',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 14 },
+    shadowOpacity: 0.45,
+    shadowRadius: 18,
+    elevation: 14,
+  },
+
+  
+    resultCompareHintOverlay: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    backgroundColor: 'rgba(11, 15, 25, 0.55)',
+    zIndex: 4,
+  },
+
+  
+    resultLoadingStatusHint: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 12,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.45)',
+    textAlign: 'center',
+    lineHeight: 16,
+  },
+
+  
+    pwdFootnoteTextCancel: {
+    color: '#EF4444',
+    fontWeight: '600',
+  },
+
+  
+    pwdManageLinkTextCancel: {
+    fontWeight: '700',
+  }
 });
 
 export default styles;

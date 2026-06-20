@@ -29,7 +29,7 @@ Copy the generated secrets to use in Step 2.
 | Variable | Value | How to Get |
 |----------|-------|------------|
 | `JWT_SECRET` | `xxxxx...` | Run `npm run generate-secrets` |
-| `CRON_SECRET` | `xxxxx...` | Run `npm run generate-secrets` |
+| `CRON_SECRET` | `xxxxx...` | Run `npm run generate-secrets` — also set in [cron-job.org](https://cron-job.org/) as `Authorization: Bearer <CRON_SECRET>` |
 | `REVENUECAT_WEBHOOK_SECRET` | `whsec_xxxxx...` | RevenueCat Dashboard → Integrations → Webhooks (see `MD/REVENUECAT_WEBHOOK_SETUP.md`) |
 
 #### Optional Variables (with defaults)

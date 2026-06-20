@@ -109,9 +109,34 @@ usageScreenSafe, usageCard, usageProgressTrack (8px), usageUpgradeCard, …
 
 **File**: `apps/mobile/screens/SubscriptionScreen.js` + `PaywallStyleMarquee.js`
 
-- **Top (ink hero)**: Dark `#0F172A` block with headline + auto-scrolling style image marquee (`PAYWALL_MARQUEE_IMAGES`)
-- **Bottom (white sheet)**: Scrollable — usage card, tier cards, Subscribe / Refresh / Restore, legal footer
-- **Not split across screens** — usage and plans live together in the white sheet (marquee stays in hero only)
+- **Full-bleed dark** (`#0B0F19`): marquee hero, usage card, slim stacked tier cards, pinned bottom CTA
+- **Status pills**: green ACTIVE / amber TRIAL / red CANCELING
+- **Tier states**: default (translucent), selected (solid white), current (green tint)
+- **Style group**: `pwd*` in `styles.js` (legacy `paywall*` keys were **pruned** June 2026 — restore from git for white-sheet rollback)
 
-**Revert reference**: This section documents the layout after restoring split hero + sheet (replacing earlier single-page or separated Usage screen experiments).
+**Menu**: Single entry **Subscription** in `MenuModal.js` (no separate Usage screen).
+
+---
+
+## June 2026 — Dark theme tokens (current)
+
+| Token | Value | Usage |
+|-------|-------|--------|
+| `DARK_BG` | `#0B0F19` | Primary app background |
+| `DARK_CHIP` / `DARK_BORDER` / `DARK_MUTED` | rgba | Chips, borders, secondary text |
+| `PAPER` | `#FFFFFF` | Text/icons on dark, primary CTAs |
+| `INK` | `#0F172A` | Text on white selected tier card |
+
+See `MD/UI_REDESIGN_2026_06.md` §4 for full redesign token table.
+
+---
+
+## Historical — split hero + white sheet (superseded)
+
+**Earlier June 2026 experiment** (documented below for revert reference):
+
+- **Top (ink hero)**: Dark `#0F172A` block with headline + auto-scrolling style image marquee
+- **Bottom (white sheet)**: Scrollable usage + tier cards
+
+This was replaced by the full-bleed dark `pwd*` layout. Legacy `paywall*` styles are no longer in `styles.js`.
 

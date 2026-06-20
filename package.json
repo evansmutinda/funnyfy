@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "echo \"Use 'npx vercel dev' from the project root instead of 'npm run dev'\" && exit 1",
     "generate-secrets": "node scripts/generate-secrets.js",
-    "verify-env": "node scripts/verify-env.js"
+    "verify-env": "node scripts/verify-env.js",
+    "generate-comparisons": "node scripts/generate-comparison-set.js"
   },
   "dependencies": {
     "@types/jsonwebtoken": "^9.0.5",

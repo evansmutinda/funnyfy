@@ -1,5 +1,6 @@
 import { Dimensions, Platform } from 'react-native';
 import Constants from 'expo-constants';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
 
@@ -186,6 +187,7 @@ export const BOTTOM_INSET_MIN = Platform.OS === 'android' ? 48 : 34;
 
 export const FUNNYFY_FOLDER_NAME = 'Funnyfy';
 export const FUNNYFY_ANDROID_FOLDER_PATH = `file:///storage/emulated/0/DCIM/${FUNNYFY_FOLDER_NAME}/`;
+const FUNNYFY_ALBUM_ID_KEY = '@funnyfy_media_album_id';
 
 export async function ensureFunnyfyFolder() {
   if (Platform.OS !== 'android') return;
@@ -202,24 +204,50 @@ export async function ensureFunnyfyFolder() {
 
 export async function saveToFunnyfyAlbum(localFileUri) {
   try {
-    // Write-only on Android — we only add new photos, never modify existing ones
-    const { status } = await MediaLibrary.requestPermissionsAsync(true);
-    if (status !== 'granted') {
-      console.warn('[Save] MediaLibrary permission denied');
+    // Write-only — one Android permission prompt; add photos, never modify existing.
+    let writePerm = await MediaLibrary.getPermissionsAsync(true);
+    if (writePerm.status !== 'granted') {
+      writePerm = await MediaLibrary.requestPermissionsAsync(true);
+    }
+    if (writePerm.status !== 'granted') {
+      console.warn('[Save] MediaLibrary write permission denied');
       return false;
     }
 
-    const existingAlbum = await MediaLibrary.getAlbumAsync(FUNNYFY_FOLDER_NAME);
+    const cachedAlbumId = await AsyncStorage.getItem(FUNNYFY_ALBUM_ID_KEY);
 
-    if (existingAlbum) {
-      // Save straight into the album — do NOT create then move (Android shows "modify photo?" for moves)
-      await MediaLibrary.createAssetAsync(localFileUri, existingAlbum);
-    } else {
-      // First photo: create album with asset in one step (no separate move)
-      await MediaLibrary.createAlbumAsync(FUNNYFY_FOLDER_NAME, localFileUri, false);
+    if (cachedAlbumId) {
+      try {
+        await MediaLibrary.createAssetAsync(localFileUri, {
+          id: cachedAlbumId,
+          title: FUNNYFY_FOLDER_NAME,
+        });
+        return true;
+      } catch (albumErr) {
+        // Album may have been deleted — fall through and recreate.
+        console.warn('[Save] cached album save failed, recreating album:', albumErr);
+        await AsyncStorage.removeItem(FUNNYFY_ALBUM_ID_KEY);
+      }
     }
 
-    return true;
+    // Save directly into album in one step — never create-then-move (that
+    // triggers Android's "Allow … to modify this photo?" dialog).
+    try {
+      const album = await MediaLibrary.createAlbumAsync(
+        FUNNYFY_FOLDER_NAME,
+        localFileUri,
+        false,
+      );
+      if (album?.id) {
+        await AsyncStorage.setItem(FUNNYFY_ALBUM_ID_KEY, album.id);
+      }
+      return true;
+    } catch (createErr) {
+      // Album may already exist (e.g. before we cached its id) — save without moving.
+      console.warn('[Save] createAlbumAsync failed, saving to library root:', createErr);
+      await MediaLibrary.createAssetAsync(localFileUri);
+      return true;
+    }
   } catch (err) {
     console.error('[Save] saveToFunnyfyAlbum error:', err);
     return false;

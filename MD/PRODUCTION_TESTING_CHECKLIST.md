@@ -27,7 +27,7 @@
   - [ ] Cost tracking migrations (`migrations-cost-tracking.sql`)
 - [ ] Admin user created in production database
 - [ ] RevenueCat webhook URL configured and tested
-- [ ] Vercel cron job configured (queue processing)
+- [ ] External cron configured at [cron-job.org](https://cron-job.org/) — `GET /api/cron/process-queue` with `Authorization: Bearer <CRON_SECRET>` (recommend every 1 minute)
 
 ---
 

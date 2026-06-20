@@ -93,10 +93,11 @@ function MyScreen() {
 
 All `Alert.alert` calls were replaced across:
 - **Gallery screen**: Clear-all confirmation
-- **Upload screen**: Errors and confirmations
+- **Upload / Review screens**: Errors and confirmations
 - **Result screen**: Save-before-leave (3-button), save success, share errors
-- **PhotoChooser**: Permission errors
 - **Subscribe / Subscription screen**: Purchase errors, restore errors, success messages
+
+(Permission errors surface via toast from `useImagePicker` / upload flow — there is no separate PhotoChooser screen.)
 
 ---
 
@@ -104,10 +105,10 @@ All `Alert.alert` calls were replaced across:
 
 - Toasts appear at the top of the screen (below status bar)
 - They auto-dismiss after ~3 seconds
-- ConfirmDialogs use the app's black/white color scheme
-- Primary action button is black; cancel is outlined
+- ConfirmDialogs use the app's dark theme (`#151B28` card on `#0B0F19` shell)
+- Primary action button is white pill; cancel is outlined
 
 ---
 
-**Last Updated**: May 2026
+**Last Updated**: June 2026
 **Implementation**: `App.js` (NotificationContext, ToastNotification, ConfirmDialog components)

@@ -1,22 +1,23 @@
 import React from 'react';
-import { SafeAreaView, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StatusBar, Text, View } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import PressScale from '../components/PressScale';
 import { BOTTOM_INSET_MIN } from '../constants';
 import styles from '../styles';
 
 export default function InfoScreen({ title, content, onBack }) {
   const insets = useSafeAreaInsets();
   return (
-    <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-      <View style={{ height: insets.top, backgroundColor: '#ffffff' }} />
-      <View style={styles.infoContainer}>
+    <View style={styles.safe}>
+      <StatusBar barStyle="light-content" backgroundColor="#0B0F19" />
+      <View style={[styles.infoContainer, { paddingTop: Math.max(insets.top, 8) }]}>
         <View style={styles.headerBar}>
-          <TouchableOpacity onPress={onBack} style={styles.iconButton}>
-            <Text style={styles.iconButtonIcon}>‹</Text>
-          </TouchableOpacity>
+          <PressScale onPress={onBack} style={styles.iconButton}>
+            <Feather name="chevron-left" size={22} color="#FFFFFF" />
+          </PressScale>
           <Text style={styles.wordmark}>{title}</Text>
-          <View style={{ width: 36 }} />
+          <View style={{ width: 40 }} />
         </View>
         <ScrollView
           style={{ flex: 1 }}
@@ -26,6 +27,6 @@ export default function InfoScreen({ title, content, onBack }) {
           <Text style={styles.infoText}>{content}</Text>
         </ScrollView>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }

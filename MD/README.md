@@ -16,6 +16,9 @@ FunnyFy is a React Native mobile app (Android & iOS) that transforms user photos
 - `apps/mobile/components/MediaTile.js` - Shared tile (style picker, gallery, upload chip)
 - `apps/mobile/constants/fonts.js` - Plus Jakarta Sans (`@expo-google-fonts/plus-jakarta-sans`)
 - `apps/mobile/components/PaywallStyleMarquee.js` - Scrolling style strip on subscription hero
+- `apps/mobile/components/MenuModal.js` - Dark bottom sheet app menu
+- `apps/mobile/components/ComparisonFade.js`, `PhotoTipsSheet.js`, `PressScale.js` - Upload flow UI
+- `apps/mobile/hooks/useImagePicker.js` - Gallery/camera pick + native crop (dev/APK)
 - `apps/mobile/components/NetworkProvider.js` - Connectivity state (`@react-native-community/netinfo`)
 - `apps/mobile/components/OfflineBanner.js` - Non-blocking offline bar
 - `apps/mobile/utils/` - Style categories, subscription dates, trial warnings
@@ -32,6 +35,7 @@ FunnyFy is a React Native mobile app (Android & iOS) that transforms user photos
 | File | Purpose |
 |------|---------|
 | `STATUS.md` | **Current app status and launch checklist** ⭐ |
+| `UI_REDESIGN_2026_06.md` | **June 2026 mobile UI redesign reference** |
 | `CHANGELOG.md` | Version history |
 | `TESTING.md` | API, mobile, and versioning test guide |
 | `DEVELOPMENT_PLAN.md` | Architecture and phases |

@@ -55,7 +55,7 @@ CRON_SECRET (different from production)
 | `DATABASE_URL` | Supabase → Project Settings → Database → Connection String (Transaction Pooler) |
 | `TARGET_API_KEY` | [Replicate Dashboard](https://replicate.com/account/api-tokens) → API Tokens |
 | `JWT_SECRET` | Generate: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
-| `CRON_SECRET` | Same as JWT_SECRET (generate new one) |
+| `CRON_SECRET` | Same as JWT_SECRET (generate new one). Also paste into [cron-job.org](https://cron-job.org/) → your job → **Authorization** header as `Bearer <CRON_SECRET>` |
 | `REVENUECAT_WEBHOOK_SECRET` | RevenueCat → Project Settings → Webhooks → Webhook Secret |
 | `ALLOWED_ORIGIN` | Your Vercel deployment URL (e.g., `https://funnyfyapp.vercel.app`) |
 

@@ -1,3 +1,5 @@
+// Polyfills must load before purchases-js (Expo Go browser mode).
+import '../polyfills';
 import { Linking, Platform } from 'react-native';
 import Purchases, { LOG_LEVEL } from 'react-native-purchases';
 
@@ -136,7 +138,12 @@ export function getSubscriptionManagementURL(customerInfo) {
   if (billing?.managementURL) return billing.managementURL;
 
   if (Platform.OS === 'android') {
-    return `https://play.google.com/store/account/subscriptions?package=${ANDROID_PACKAGE}`;
+    const productId = billing?.productIdentifier;
+    let url = `https://play.google.com/store/account/subscriptions?package=${ANDROID_PACKAGE}`;
+    if (productId) {
+      url += `&sku=${encodeURIComponent(productId)}`;
+    }
+    return url;
   }
   return 'https://apps.apple.com/account/subscriptions';
 }
@@ -147,10 +154,29 @@ export function getStoreSubscriptionLabel() {
 
 /** Open Google Play / App Store subscription management (required to cancel auto-renew). */
 export async function openSubscriptionManagement(customerInfo) {
-  const url = getSubscriptionManagementURL(customerInfo);
-  const canOpen = await Linking.canOpenURL(url);
-  if (!canOpen) {
-    throw new Error('Cannot open subscription management URL');
+  const billing = getSubscriptionBillingState(customerInfo);
+  const candidates = [
+    getSubscriptionManagementURL(customerInfo),
+    Platform.OS === 'android'
+      ? `https://play.google.com/store/account/subscriptions?package=${ANDROID_PACKAGE}`
+      : null,
+    Platform.OS === 'android' && billing?.productIdentifier
+      ? `https://play.google.com/store/account/subscriptions?package=${ANDROID_PACKAGE}&sku=${encodeURIComponent(billing.productIdentifier)}`
+      : null,
+  ].filter(Boolean);
+
+  let lastError = null;
+  for (const url of candidates) {
+    try {
+      // canOpenURL often returns false on Android 11+ without manifest
+      // queries — openURL still works, so try directly.
+      await Linking.openURL(url);
+      return;
+    } catch (err) {
+      lastError = err;
+      console.warn('[RevenueCat] openURL failed:', url, err?.message || err);
+    }
   }
-  await Linking.openURL(url);
+
+  throw lastError || new Error('Cannot open subscription management URL');
 }

@@ -1,9 +1,8 @@
-// URL polyfill — RevenueCat's sdk_initialized tracking uses URL.search (not fully supported in RN/Hermes)
-import 'react-native-url-polyfill/auto';
 import {
   useFonts,
   PlusJakartaSans_400Regular,
 } from '@expo-google-fonts/plus-jakarta-sans';
+import * as ExpoSplashScreen from 'expo-splash-screen';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AppState,
@@ -33,11 +32,11 @@ import NotificationProvider, { useNotifications } from './components/Notificatio
 import NetworkProvider, { useNetwork } from './components/NetworkProvider';
 import OfflineBanner from './components/OfflineBanner';
 import MenuModal from './components/MenuModal';
-import SplashScreen from './components/SplashScreen';
 import GalleryScreen from './screens/GalleryScreen';
 import InfoScreen from './screens/InfoScreen';
 import StyleScreen from './screens/StyleScreen';
 import UploadScreen from './screens/UploadScreen';
+import PhotoReviewScreen from './screens/PhotoReviewScreen';
 import SubscriptionScreen from './screens/SubscriptionScreen';
 import ResultScreen from './screens/ResultScreen';
 import {
@@ -48,6 +47,7 @@ import {
 } from './constants';
 import { DEFAULT_ENABLED_STYLES } from './data/styleCatalog';
 import { getTrialRemaining, getTrialWarningMessage, isTrialUser } from './utils/trialWarnings';
+import { isNsfwContentError, humanizeApiError, NSFW_REJECT_DIALOG } from './utils/contentErrors';
 
 // Enforce HTTPS for security — prevent accidental HTTP misconfiguration
 if (API_BASE.startsWith('http://') && !API_BASE.includes('localhost') && !API_BASE.includes('127.0.0.1')) {
@@ -55,20 +55,18 @@ if (API_BASE.startsWith('http://') && !API_BASE.includes('localhost') && !API_BA
   throw new Error('Insecure API URL: HTTPS required for production');
 }
 
+ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
+
 export default function App() {
   const [fontsLoaded] = useFonts({
     PlusJakartaSans_400Regular,
   });
 
-  if (!fontsLoaded) {
-    return null;
-  }
-
   return (
     <SafeAreaProvider>
       <NotificationProvider>
         <NetworkProvider>
-          <AppContent />
+          <AppContent fontsLoaded={fontsLoaded} />
         </NetworkProvider>
       </NotificationProvider>
     </SafeAreaProvider>
@@ -77,18 +75,20 @@ export default function App() {
 
 function AppShell({ children, showOfflineBanner = true }) {
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: '#0B0F19' }}>
       {showOfflineBanner ? <OfflineBanner /> : null}
       {children}
     </View>
   );
 }
 
-function AppContent() {
+function AppContent({ fontsLoaded }) {
   const { showToast, showDialog, closeDialog } = useNotifications();
   const { isOnline } = useNetwork();
-  const [screen, setScreen] = useState('splash');
+  const [screen, setScreen] = useState('style');
   const [style, setStyle] = useState(null);
+  // pickedImage: { uri, dataUrl } | null — OS-cropped photo for review → generate.
+  const [pickedImage, setPickedImage] = useState(null);
   const [original, setOriginal] = useState(null);
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -106,7 +106,7 @@ function AppContent() {
   const [userId, setUserId] = useState(null);
   const [authToken, setAuthToken] = useState(null);
   const [authReady, setAuthReady] = useState(false);
-  const [splashMinDone, setSplashMinDone] = useState(false);
+  const [splashHidden, setSplashHidden] = useState(false);
   const userIdRef = useRef(null);
   const authTokenRef = useRef(null);
   const authInitPromiseRef = useRef(null);
@@ -281,12 +281,12 @@ function AppContent() {
       .finally(() => setAuthReady(true));
   }, []);
 
-  // Leave splash only after minimum display time AND auth has finished starting
   useEffect(() => {
-    if (screen === 'splash' && splashMinDone && authReady) {
-      setScreen('style');
-    }
-  }, [screen, splashMinDone, authReady]);
+    if (!fontsLoaded || !authReady) return;
+    ExpoSplashScreen.hideAsync()
+      .catch(() => {})
+      .finally(() => setSplashHidden(true));
+  }, [fontsLoaded, authReady]);
 
   const showTrialWarningIfNeeded = (subInfo) => {
     if (!isTrialUser(subInfo)) return;
@@ -503,16 +503,21 @@ function AppContent() {
             throw new Error('No job ID returned from server');
           }
           setPendingJobId(jobId); // store so retry can resume polling
+          setJob({
+            status: enqueueJson.status || 'pending',
+            queuePosition: enqueueJson.queuePosition ?? null,
+            estimatedWaitTime: enqueueJson.estimatedWaitTime ?? null,
+          });
 
           // Kick the queue worker immediately so the job starts processing now,
-          // instead of waiting for the next scheduled cron tick (up to ~60s).
+          // instead of waiting for the next cron-job.org tick.
           // Uses the user's JWT (already in headers) — no secret embedded in the app.
           // Fire-and-forget: we don't await it, polling below picks up the result.
           fetch(`${API_BASE}/api/cron/process-queue`, {
             method: 'GET',
             headers: getApiHeaders(),
           }).catch((kickErr) => {
-            console.warn('[callApi] queue kick failed (non-fatal, cron will pick up):', kickErr?.message || kickErr);
+            console.warn('[callApi] queue kick failed (non-fatal, cron-job.org will pick up):', kickErr?.message || kickErr);
           });
 
           // Step 2: Poll for job completion
@@ -535,6 +540,7 @@ function AppContent() {
             }
 
             const jobInfo = jobData.job;
+            setJob(jobInfo);
 
             if (terminalStatuses.has(jobInfo.status)) {
               if (jobInfo.status === 'completed' && jobInfo.outputImageUrl) {
@@ -566,8 +572,23 @@ function AppContent() {
 
           throw new Error('Image generation timed out. Please check My Gallery later.');
         } catch (err) {
-          console.error('API error:', err);
           const errorMessage = err.message || String(err);
+
+          if (isNsfwContentError(errorMessage)) {
+            showDialog({
+              ...NSFW_REJECT_DIALOG,
+              onConfirm: () => {
+                closeDialog();
+                setPickedImage(null);
+                setScreen('upload');
+                setError('');
+                setFailedAttempts(0);
+              },
+            });
+            return;
+          }
+
+          console.error('API error:', err);
           let userMessage = 'Network or server error';
 
           if (
@@ -594,24 +615,7 @@ function AppContent() {
           ) {
             userMessage = 'Server error. Please try again later.';
           } else if (errorMessage && !errorMessage.includes('Network')) {
-            userMessage = errorMessage;
-          }
-
-          // For NSFW/inappropriate image errors, show a dialog
-          if (userMessage.toLowerCase().includes('cannot be processed') ||
-              userMessage.toLowerCase().includes('appropriate')) {
-            showDialog({
-              title: 'Image not supported',
-              message: 'This image cannot be processed. Please use an appropriate photo.',
-              confirmLabel: 'Try again',
-              onConfirm: () => {
-                closeDialog();
-                setScreen('upload');
-                setError('');
-                setFailedAttempts(0);
-              },
-            });
-            return;
+            userMessage = humanizeApiError(errorMessage);
           }
 
           setError(userMessage);
@@ -619,6 +623,7 @@ function AppContent() {
         } finally {
           clearTimeout(failsafeTimer);
           setLoading(false);
+          setJob(null);
         }
       },
     [style]
@@ -791,31 +796,25 @@ function AppContent() {
 
   const handleManageSubscription = async () => {
     const storeName = getStoreSubscriptionLabel();
-    showDialog({
-      title: 'Manage subscription',
-      message: `To cancel auto-renew, turn it off in ${storeName}. Your plan stays active until the end of the current billing period. When you return here, tap Refresh to update your status.`,
-      cancelLabel: 'Not now',
-      confirmLabel: `Open ${storeName}`,
-      destructive: false,
-      onCancel: closeDialog,
-      onConfirm: async () => {
-        closeDialog();
-        setSubscribeLoading(true);
-        try {
-          const customerInfo = await getCustomerInfo();
-          await openSubscriptionManagement(customerInfo);
-        } catch (err) {
-          console.error('[Manage Subscription] error:', err);
-          showToast(
-            'Could not open subscriptions',
-            `Open ${storeName} manually, then tap Refresh here.`,
-            'error',
-          );
-        } finally {
-          setSubscribeLoading(false);
-        }
-      },
-    });
+    setSubscribeLoading(true);
+    try {
+      let customerInfo = null;
+      try {
+        customerInfo = await getCustomerInfo();
+      } catch (rcErr) {
+        console.warn('[Manage Subscription] getCustomerInfo failed, using store fallback:', rcErr);
+      }
+      await openSubscriptionManagement(customerInfo);
+    } catch (err) {
+      console.error('[Manage Subscription] error:', err);
+      showToast(
+        'Could not open subscriptions',
+        `Open ${storeName} → Payments & subscriptions → FunnyFy, then tap Refresh here.`,
+        'error',
+      );
+    } finally {
+      setSubscribeLoading(false);
+    }
   };
 
   const handleUploadStart = async ({ imageUri, imageDataUrl }) => {
@@ -854,6 +853,7 @@ function AppContent() {
     if (pendingJobId) {
       setError('');
       setLoading(true);
+      setJob(null);
       const terminalStatuses = new Set(['completed', 'failed']);
       const maxAttempts = 40;
       try {
@@ -864,6 +864,7 @@ function AppContent() {
           });
           const jobData = await jobRes.json();
           const jobInfo = jobData.job;
+          setJob(jobInfo);
           if (terminalStatuses.has(jobInfo.status)) {
             if (jobInfo.status === 'completed' && jobInfo.outputImageUrl) {
               setResult({ status: 'succeeded', output: jobInfo.outputImageUrl });
@@ -879,10 +880,25 @@ function AppContent() {
         }
         throw new Error('Image generation timed out. Please check My Gallery later.');
       } catch (err) {
-        setError(err.message || 'Generation failed');
+        const errorMessage = err.message || String(err);
+        if (isNsfwContentError(errorMessage)) {
+          showDialog({
+            ...NSFW_REJECT_DIALOG,
+            onConfirm: () => {
+              closeDialog();
+              setPickedImage(null);
+              setScreen('upload');
+              setError('');
+              setFailedAttempts(0);
+            },
+          });
+          return;
+        }
+        setError(humanizeApiError(errorMessage) || 'Generation failed. Please try again.');
         setFailedAttempts((prev) => prev + 1);
       } finally {
         setLoading(false);
+        setJob(null);
       }
     }
     // No pending job — user must go back and start fresh
@@ -909,7 +925,6 @@ function AppContent() {
         }
         return false;
       }
-      if (screen === 'splash') return true;
       return false;
     };
 
@@ -917,8 +932,8 @@ function AppContent() {
     return () => sub.remove();
   }, [screen, restyleMode]);
 
-  if (screen === 'splash') {
-    return <SplashScreen onComplete={() => setSplashMinDone(true)} />;
+  if (!splashHidden) {
+    return null;
   }
 
   if (screen === 'style') {
@@ -951,6 +966,9 @@ function AppContent() {
               return;
             }
             setRestyleMode(false);
+            // Fresh style selection — clear any previously picked photo
+            // so the upload screen starts from its empty state.
+            setPickedImage(null);
             setScreen('upload');
           }}
         />
@@ -1035,22 +1053,50 @@ function AppContent() {
         <UploadScreen
           style={style}
           isOnline={isOnline}
+          onPicked={(image) => { setPickedImage(image); setScreen('review'); }}
+          canGenerateMore={
+            subscriptionInfo
+              ? !(
+                  !subscriptionInfo.isTrial &&
+                  subscriptionInfo.usage &&
+                  subscriptionInfo.usage.limit > 0 &&
+                  subscriptionInfo.usage.current >= subscriptionInfo.usage.limit
+                )
+              : true
+          }
+          subscriptionInfo={subscriptionInfo}
+          onSubscribe={handleSubscribe}
+          onOpenSubscription={() => setScreen('subscription')}
+          onBackToStyle={() => { setRestyleMode(false); setScreen('style'); }}
+        />
+      </AppShell>
+    );
+  }
+
+  if (screen === 'review') {
+    return (
+      <AppShell>
+        <PhotoReviewScreen
+          style={style}
+          imageUri={pickedImage?.uri}
+          imageDataUrl={pickedImage?.dataUrl}
+          isOnline={isOnline}
+          subscriptionInfo={subscriptionInfo}
+          canGenerateMore={
+            subscriptionInfo
+              ? !(
+                  !subscriptionInfo.isTrial &&
+                  subscriptionInfo.usage &&
+                  subscriptionInfo.usage.limit > 0 &&
+                  subscriptionInfo.usage.current >= subscriptionInfo.usage.limit
+                )
+              : true
+          }
           onStart={handleUploadStart}
-        canGenerateMore={
-          subscriptionInfo
-            ? // If not trial and we have usage + limit, enforce quota
-              !(
-                !subscriptionInfo.isTrial &&
-                subscriptionInfo.usage &&
-                subscriptionInfo.usage.limit > 0 &&
-                subscriptionInfo.usage.current >= subscriptionInfo.usage.limit
-              )
-            : true
-        }
-        subscriptionInfo={subscriptionInfo}
-        onSubscribe={handleSubscribe}
-        onOpenSubscription={() => setScreen('subscription')}
-        onBackToStyle={() => { setRestyleMode(false); setScreen('style'); }}
+          onSubscribe={handleSubscribe}
+          onOpenSubscription={() => setScreen('subscription')}
+          onReplacePhoto={(image) => setPickedImage(image)}
+          onBack={() => { setPickedImage(null); setScreen('upload'); }}
         />
       </AppShell>
     );
@@ -1063,13 +1109,22 @@ function AppContent() {
         original={original}
         result={result}
         loading={loading}
+        job={job}
         error={error}
         failedAttempts={failedAttempts}
         onRetry={handleRetry}
         subscriptionInfo={subscriptionInfo}
         backHandlerRef={resultBackHandlerRef}
         style={style}
-        onBack={() => { setScreen('upload'); setError(''); setFailedAttempts(0); }}
+        onBack={() => {
+          // From Result, prefer landing back on the review screen if
+          // the user's picked photo is still in memory (so they can
+          // hit Generate again immediately); otherwise fall back to
+          // the empty upload screen.
+          setScreen(pickedImage ? 'review' : 'upload');
+          setError('');
+          setFailedAttempts(0);
+        }}
         onHome={() => { setRestyleMode(false); setScreen('style'); }}
         onOpenGallery={() => setScreen('gallery')}
         onTryAnotherStyle={handleTryAnotherStyle}

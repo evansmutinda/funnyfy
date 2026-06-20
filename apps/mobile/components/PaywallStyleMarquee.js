@@ -10,13 +10,21 @@ import Animated, {
 } from 'react-native-reanimated';
 import styles from '../styles';
 
-const TILE_W = 96;
-const GAP = 12;
+const DEFAULT_TILE_W = 96;
+const DEFAULT_TILE_H = 120;
+const DEFAULT_WRAP_H = 132;
+const DEFAULT_GAP = 12;
 
-export default function PaywallStyleMarquee({ images }) {
+export default function PaywallStyleMarquee({
+  images,
+  tileWidth = DEFAULT_TILE_W,
+  tileHeight = DEFAULT_TILE_H,
+  wrapHeight = DEFAULT_WRAP_H,
+  gap = DEFAULT_GAP,
+}) {
   const sources = Array.isArray(images) && images.length > 0 ? images : [];
   const loop = [...sources, ...sources];
-  const segmentWidth = sources.length * (TILE_W + GAP);
+  const segmentWidth = sources.length * (tileWidth + gap);
   const offset = useSharedValue(0);
 
   useEffect(() => {
@@ -39,10 +47,16 @@ export default function PaywallStyleMarquee({ images }) {
   if (sources.length === 0) return null;
 
   return (
-    <View style={styles.paywallMarqueeWrap}>
-      <Animated.View style={[styles.paywallMarqueeRow, rowStyle]}>
+    <View style={[styles.paywallMarqueeWrap, { height: wrapHeight }]}>
+      <Animated.View style={[styles.paywallMarqueeRow, { gap }, rowStyle]}>
         {loop.map((source, index) => (
-          <View key={`marquee-${index}`} style={styles.paywallMarqueeTile}>
+          <View
+            key={`marquee-${index}`}
+            style={[
+              styles.paywallMarqueeTile,
+              { width: tileWidth, height: tileHeight },
+            ]}
+          >
             <Image source={source} style={styles.paywallMarqueeImage} resizeMode="cover" />
           </View>
         ))}

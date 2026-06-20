@@ -4,20 +4,20 @@ import {
   Image,
   Modal,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Feather } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
 import * as Sharing from 'expo-sharing';
 import { useNotifications } from '../components/NotificationProvider';
 import MediaTile from '../components/MediaTile';
+import PressScale from '../components/PressScale';
 import { BOTTOM_INSET_MIN, FUNNYFY_FOLDER_NAME, getSavedImageFileName } from '../constants';
 import styles from '../styles';
 
@@ -283,13 +283,13 @@ export default function GalleryScreen({ onBack }) {
   const renderViewerHeader = useCallback(() => {
     return (
       <View style={[styles.viewerHeader, { paddingTop: Math.max(insets.top, 12) }]}>
-        <TouchableOpacity
+        <PressScale
           style={styles.viewerCloseButton}
           onPress={() => setViewerVisible(false)}
           hitSlop={{ top: 12, right: 12, bottom: 12, left: 12 }}
         >
-          <Text style={styles.viewerCloseIcon}>✕</Text>
-        </TouchableOpacity>
+          <Feather name="x" size={22} color="#FFFFFF" />
+        </PressScale>
       </View>
     );
   }, [insets.top]);
@@ -303,44 +303,43 @@ export default function GalleryScreen({ onBack }) {
           {item.styleLabel || 'Caricature'}
         </Text>
         <View style={styles.viewerActionsRow}>
-          <TouchableOpacity style={styles.viewerActionButton} onPress={handleViewerShare}>
+          <PressScale style={styles.viewerActionButton} onPress={handleViewerShare}>
             <Text style={styles.viewerActionButtonText}>Share</Text>
-          </TouchableOpacity>
+          </PressScale>
         </View>
       </View>
     );
   }, [items, viewerIndex, handleViewerShare, insets.bottom]);
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F3F4F6" />
-      <View style={{ height: insets.top, backgroundColor: '#F3F4F6' }} />
-      <View style={styles.galleryContainer}>
+    <View style={styles.safe}>
+      <StatusBar barStyle="light-content" backgroundColor="#0B0F19" />
+      <View style={[styles.galleryContainer, { paddingTop: Math.max(insets.top, 8) }]}>
         <View style={styles.headerBar}>
-          <TouchableOpacity onPress={onBack} style={styles.iconButton}>
-            <Text style={styles.iconButtonIcon}>‹</Text>
-          </TouchableOpacity>
+          <PressScale onPress={onBack} style={styles.iconButton}>
+            <Feather name="chevron-left" size={22} color="#FFFFFF" />
+          </PressScale>
           <Text style={styles.wordmark}>My Gallery</Text>
           <View style={styles.galleryHeaderActions}>
             {items.length > 0 && (
-              <TouchableOpacity onPress={handleClearAll} style={styles.iconButton}>
-                <Text style={styles.galleryClearIcon}>🗑</Text>
-              </TouchableOpacity>
+              <PressScale onPress={handleClearAll} style={styles.iconButton}>
+                <Feather name="trash-2" size={18} color="#FFFFFF" />
+              </PressScale>
             )}
-            <TouchableOpacity onPress={onBack} style={styles.iconButton}>
-              <Text style={styles.iconButtonIcon}>✕</Text>
-            </TouchableOpacity>
+            <PressScale onPress={onBack} style={styles.iconButton}>
+              <Feather name="x" size={20} color="#FFFFFF" />
+            </PressScale>
           </View>
         </View>
 
         {loading ? (
           <View style={styles.galleryLoadingContainer}>
-            <ActivityIndicator size="large" color="#0F172A" />
+            <ActivityIndicator size="large" color="#FFFFFF" />
           </View>
         ) : items.length === 0 ? (
           <View style={styles.galleryEmptyContainer}>
             <View style={styles.galleryEmptyIcon}>
-              <Text style={styles.galleryEmptyIconText}>✦</Text>
+              <Feather name="image" size={26} color="#FFFFFF" />
             </View>
             <Text style={styles.galleryEmptyTitle}>No caricatures yet</Text>
             <Text style={styles.galleryEmptyText}>
@@ -400,6 +399,6 @@ export default function GalleryScreen({ onBack }) {
           {renderViewerFooter()}
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }

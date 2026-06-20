@@ -1,5 +1,8 @@
-// Vercel Cron Job: Processes pending jobs from the queue
-// Configure in vercel.json to run every 10 seconds
+// Queue worker: Processes pending jobs from the queue.
+// Scheduled externally by cron-job.org (https://cron-job.org/) — it sends
+// `Authorization: Bearer <CRON_SECRET>` on every tick. Also kicked
+// fire-and-forget from /api/enqueue and from the mobile app right after a
+// successful enqueue so the user doesn't wait for the next cron tick.
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { query } from '../_utils/db';
@@ -16,9 +19,9 @@ export default async function handler(
   res: VercelResponse
 ) {
   // Authorize the caller. Two accepted credentials:
-  //   1. The cron secret (used by cron-job.org / Vercel cron): Authorization: Bearer <CRON_SECRET>
+  //   1. The cron secret (sent by cron-job.org): Authorization: Bearer <CRON_SECRET>
   //   2. A valid user JWT (used by the mobile app to kick the queue right after enqueue,
-  //      so generation doesn't wait for the next scheduled cron tick).
+  //      so generation doesn't wait for the next scheduled tick).
   // The user-JWT path means we never have to embed CRON_SECRET in the mobile app.
   if (process.env.CRON_SECRET) {
     const authHeader = req.headers['authorization'];

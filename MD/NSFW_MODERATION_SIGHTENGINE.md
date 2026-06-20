@@ -58,9 +58,12 @@ Edit `NSFW_RAW_THRESHOLD` in `api/process-job.ts` (lower = stricter).
 
 ## User Experience
 
-- Blocked images: white modal — "Image not supported" / **Try again**
-- No retry limit on NSFW errors (user can pick a different photo)
-- Not the same as generation failure retries (3× for Replicate errors)
+- **While generating:** Result overlay shows four steps — submit, queue, **Checking content guidelines…** (moderation), then **Creating your {style}** / generating. If moderation fails, the infringement dialog appears; otherwise flow continues to Replicate.
+- **On block:** Dark dialog — title **Content not permitted**; message notes the upload was recorded and further violations may suspend the account; single **Understood** pill returns to upload (photo cleared).
+- No retry limit on NSFW errors (user can pick a different photo).
+- Not the same as generation failure retries (3× for Replicate errors).
+
+**Mobile helpers:** `apps/mobile/utils/contentErrors.js`, `apps/mobile/utils/jobProgress.js`
 
 ---
 

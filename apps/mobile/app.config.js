@@ -17,15 +17,18 @@ export default {
     orientation: 'portrait',
     icon: './assets/icon.jpg',
     splash: {
-      image: './assets/icon.jpg',
-      resizeMode: 'contain',
-      backgroundColor: '#ffffff',
+      backgroundColor: '#0B0F19',
     },
     updates: { fallbackToCacheTimeout: 0 },
     assetBundlePatterns: ['**/*'],
     ios: {
       supportsTablet: true,
       buildNumber: String(versionInfo.iosBuildNumber),
+      infoPlist: {
+        NSCameraUsageDescription: 'FunnyFy needs camera access to take photos for caricatures.',
+        NSPhotoLibraryUsageDescription: 'FunnyFy needs photo library access to pick photos for caricatures.',
+        NSPhotoLibraryAddUsageDescription: 'FunnyFy needs permission to save caricatures to your photo library.',
+      },
     },
     android: {
       package: 'com.evansks.funnyfyapp',
@@ -37,7 +40,7 @@ export default {
         'READ_MEDIA_IMAGES',
       ],
       navigationBar: {
-        backgroundColor: '#f9fafb',
+        backgroundColor: '#0B0F19',
         barStyle: 'light-content',
       },
     },

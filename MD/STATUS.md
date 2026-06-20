@@ -16,28 +16,28 @@ FunnyFy is a React Native mobile application that transforms user photos into AI
 
 ### Mobile App (React Native/Expo SDK 52)
 - ✅ Cross-platform app (Android & iOS)
-- ✅ Splash screen with branding
-- ✅ **Two-level style picker**: 16 category tiles on home → style grid per category
-- ✅ **ShotCam-style tiles** (`MediaTile`): white cards, bottom gradient, Plus Jakarta Sans labels with dark backdrop pill; wide/compact category layout
+- ✅ **Native splash** (`expo-splash-screen`): solid `#0B0F19` until fonts + auth; no in-app splash component
+- ✅ **Netflix-style style picker**: category rows + horizontal tiles + "See all" grid; dark `#0B0F19` shell
+- ✅ **Discovery tiles** (`MediaTile`): labels below image (3-line captions); `PressScale` on taps
 - ✅ **18 enabled caricature styles** (160 in catalog; placeholders disabled until prompts/thumbnails ready)
-- ✅ Image upload (camera & gallery) with **selected-style chip** on upload screen
-- ✅ **Pulsing squares loading animation** (4 squares fading black→grey in sequence)
-- ✅ Before/after comparison slider (drag to compare) + **auto-demo on result load**
+- ✅ **Two-step upload flow**: UploadScreen (comparison fade + Gallery/Camera) → PhotoReviewScreen (confirm + Generate); native crop in dev/APK via `react-native-image-crop-picker`
+- ✅ **Photo tips sheet**: full-screen dark overlay (not Modal) on Upload + Review
+- ✅ Before/after comparison slider on result + **4-phase job loading** (submit → queue → moderation → generate; title **Creating your {style}**)
 - ✅ **Try another style**: Regenerate same photo with a new style (restyle flow)
 - ✅ Save to device functionality (no system prompt)
 - ✅ Share functionality
 - ✅ Error handling and user feedback
 - ✅ **Offline UX**: NetInfo connectivity, non-blocking top banner, generate/purchase guards, auto-refresh on reconnect
-- ✅ **Modal dialog for NSFW errors** (white card style, "Try again" returns to upload)
+- ✅ **Content-policy dialog** for NSFW blocks: **Content not permitted** + **Understood** CTA; clears photo and returns to upload (Sightengine, pre-Replicate)
 - ✅ Safe area handling: Bottom insets prevent overlap with navigation bar
-- ✅ **Gallery screen**: Grid of saved caricatures (same tile design as style picker), full-screen viewer
+- ✅ **Gallery screen**: Dark theme; grid of saved caricatures, full-screen viewer
 - ✅ **Save toast**: "View in Gallery" action after successful save
 - ✅ **Toast notification system**: Beautiful in-app toasts replace all system Alert.alert calls
 - ✅ **ConfirmDialog component**: Custom modal with optional neutral 3rd button
 - ✅ **NotificationContext**: App-wide toast/notification state via React Context
 - ✅ **Full Privacy Policy** and **Terms of Service** (13 sections each, in-app)
-- ✅ **Menu with Feather icons**: Thin-stroke outline icons, clean styling
-- ✅ **White + ink theme**: White style screen; ink (`#0F172A`) text; green/red for success/error only
+- ✅ **Menu** (`MenuModal.js`): Dark bottom sheet from StyleScreen burger — Gallery, Subscription, Privacy, Terms, About
+- ✅ **Dark-first UI** (`#0B0F19`): Style, Upload, Review, Result, Gallery, Info, Subscription, Splash, app shell
 - ✅ **Trial soft warnings**: Banner/toast when 1 free generation remains
 - ✅ **Auto versioning**: `version.json` + bump scripts; About screen shows runtime version
 
@@ -53,7 +53,7 @@ FunnyFy is a React Native mobile application that transforms user photos into AI
 - ✅ `resetAuthIfLocal()` clears local fallback when DB recovers
 
 ### Paywall / Subscription UI
-- ✅ **Split layout**: Ink hero + `PaywallStyleMarquee` on top; white scrollable sheet below (usage, plans, actions)
+- ✅ **Full-bleed dark paywall** (`SubscriptionScreen.js`): `#0B0F19` hero + `PaywallStyleMarquee`, compact tier cards, pinned white CTA, canceling state (red pill + manage link)
 - ✅ Subscription screen with Current Plan, Usage This Month, Available Plans
 - ✅ **Purchase → sync → refresh flow** (`/api/sync-subscription` + auto refresh)
 - ✅ Pricing: $5 / $10 / $25 (no .99)
@@ -67,7 +67,7 @@ FunnyFy is a React Native mobile application that transforms user photos into AI
 - ✅ Serverless API endpoints
 - ✅ Style catalog API (`/api/styles`) — returns `categoryId` + `categories`
 - ✅ Async generation: `POST /api/enqueue` → poll `GET /api/job?id=...`
-- ✅ Queue worker (`/api/cron/process-queue`) via `api/process-job.ts`
+- ✅ Queue worker (`/api/cron/process-queue`) via `api/process-job.ts` — scheduled externally by [cron-job.org](https://cron-job.org/) (moved off Vercel cron)
 - ✅ User subscription API (`/api/user/subscription`)
 - ✅ Sync subscription, RevenueCat webhook handling
 - ✅ **160 styles in catalog**; **18 enabled** with protected prompts
@@ -115,10 +115,11 @@ FunnyFy is a React Native mobile application that transforms user photos into AI
 
 | Change | Description |
 |--------|-------------|
-| **Style catalog expansion** | 16 categories, 160 styles; two-level navigation; regenerate via `scripts/generate-style-catalog.py` |
-| **Tile layout polish** | Category grid: wide/compact alternation; style grid: 2-column, taller tiles; white card shell + label backdrop |
-| **Card typography** | Plus Jakarta Sans Regular on discovery labels; left-aligned; dark pill behind text |
-| **Subscription UI** | Ink hero + marquee; usage + plans in white bottom sheet |
+| **UI redesign (June 2026)** | Netflix-style StyleScreen, Upload→Review flow, dark theme app-wide, `pwd*` paywall — see `MD/UI_REDESIGN_2026_06.md` |
+| **Dead code cleanup** | Removed CropScreen, PhotoChooserScreen; pruned ~440 unused styles; `scripts/prune-unused-styles.js` |
+| **Menu + header polish** | Dark bottom sheet menu; style picker header + burger chip buttons |
+| **Result screen** | Three-band layout, real job progress, local preview cache, pinned actions |
+| **Style catalog expansion** | 16 categories, 160 styles; Netflix row navigation |
 | **Auto versioning** | `version.json`, `bump-version.js`, build script integration |
 | **90s label** | Renamed display label from "90s Cartoon" to **90s** |
 | **Usage counter fix** | `job_usage_credits` + atomic queue claim |

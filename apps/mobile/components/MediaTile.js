@@ -1,9 +1,15 @@
 import React from 'react';
-import { Image, Text, View } from 'react-native';
+import { Image, Platform, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import styles from '../styles';
 
 const DISCOVERY_VARIANTS = new Set(['discovery', 'discoveryWide', 'discoveryDense']);
+
+const CAPTION_MAX_LINES = {
+  discovery: 3,
+  discoveryWide: 2,
+  discoveryDense: 3,
+};
 
 /**
  * Shared image tile — style picker, gallery grid, upload chip.
@@ -21,6 +27,7 @@ export default function MediaTile({
   const isDiscovery = DISCOVERY_VARIANTS.has(variant);
   const isWide = variant === 'discoveryWide';
   const isDense = variant === 'discoveryDense';
+  const labelBelowImage = isDiscovery;
 
   const imageWrapperStyle = isDiscovery
     ? [
@@ -36,13 +43,21 @@ export default function MediaTile({
         isHero && styles.styleHeroImageWrapper,
       ];
 
-  const labelStyle = [
+  const overlayLabelStyle = [
     !isDiscovery && styles.styleImageLabel,
     isDiscovery && !isWide && !isDense && styles.discoveryImageLabel,
     isWide && styles.discoveryWideImageLabel,
     isDense && styles.discoveryDenseImageLabel,
     variant === 'chip' && styles.mediaTileChipLabel,
   ];
+
+  const captionStyle = [
+    styles.discoveryCardCaption,
+    isWide && styles.discoveryWideCardCaption,
+    isDense && styles.discoveryDenseCardCaption,
+  ];
+
+  const captionLines = CAPTION_MAX_LINES[variant] || 2;
 
   return (
     <View
@@ -58,7 +73,19 @@ export default function MediaTile({
             <Text style={styles.styleHeroBadgeText}>{badge}</Text>
           </View>
         ) : null}
-        {showLabel ? (
+        {isDiscovery ? (
+          <LinearGradient
+            colors={['transparent', 'rgba(0,0,0,0.12)', 'rgba(0,0,0,0.28)']}
+            locations={[0.65, 0.88, 1]}
+            style={[
+              styles.styleTileGradient,
+              isWide && styles.discoveryWideTileGradient,
+              isDense && styles.discoveryDenseTileGradient,
+              !isWide && !isDense && styles.discoveryTileGradient,
+            ]}
+          />
+        ) : null}
+        {showLabel && !labelBelowImage ? (
           <>
             <LinearGradient
               colors={
@@ -88,30 +115,23 @@ export default function MediaTile({
                 variant === 'chip' && styles.mediaTileChipOverlay,
               ]}
             >
-              {isDiscovery ? (
-                <View
-                  style={[
-                    styles.discoveryLabelBackdrop,
-                    isWide && styles.discoveryWideLabelBackdrop,
-                    isDense && styles.discoveryDenseLabelBackdrop,
-                  ]}
-                >
-                  <Text
-                    style={labelStyle}
-                    numberOfLines={isWide ? 1 : isDense ? 2 : 2}
-                  >
-                    {label}
-                  </Text>
-                </View>
-              ) : (
-                <Text style={labelStyle} numberOfLines={isWide ? 1 : isDense ? 2 : 2}>
-                  {label}
-                </Text>
-              )}
+              <Text style={overlayLabelStyle} numberOfLines={captionLines}>
+                {label}
+              </Text>
             </View>
           </>
         ) : null}
       </View>
+      {showLabel && labelBelowImage ? (
+        <Text
+          style={captionStyle}
+          numberOfLines={captionLines}
+          ellipsizeMode="tail"
+          {...(Platform.OS === 'android' ? { includeFontPadding: false } : {})}
+        >
+          {label}
+        </Text>
+      ) : null}
     </View>
   );
 }

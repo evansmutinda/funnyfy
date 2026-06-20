@@ -74,6 +74,7 @@ export default function NotificationProvider({ children }) {
         neutralDestructive={dialog.neutralDestructive}
         confirmLabel={dialog.confirmLabel}
         destructive={dialog.destructive}
+        hideCancel={dialog.hideCancel}
         onCancel={() => {
           if (dialog.onCancel) dialog.onCancel();
           closeDialog();

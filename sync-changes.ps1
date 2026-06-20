@@ -22,7 +22,6 @@ Write-Host "Staging backend files..."
 git add `
     api/*.ts `
     api/migrations.sql `
-    ToDo/01-throttle-queue-handling.md `
     package.json `
     package-lock.json
 
