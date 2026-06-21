@@ -12,25 +12,32 @@ All notable changes to this project will be documented in this file.
 - **Staggered fade-in entrance** for category rows on home (60ms per row) and for tiles within a per-category grid (35ms per tile) using `FadeInDown` from Reanimated.
 - **`ComparisonFade` component** (`components/ComparisonFade.js`): infinite crossfade between two `Image` sources. Used as the UploadScreen background to preview what the selected style does.
 - **`data/comparisonPairs.js`** + `getComparisonPair(style)`: placeholder pair source. Currently uses `assets/realistic.jpeg` as a shared "before" portrait plus each style's existing thumbnail as the "after". To be replaced with curated generated pairs (see `MD/CHANGELOG.md` TODO).
-- **Photo guidelines v3** (`PhotoTipsSheet.js`): full-screen dark sheet with a 2×2 grid of **color-coded concept cards** (green tinted with ✓ badge for "Face forward" + "Even lighting"; red tinted with ✕ badge for "No sunglasses" + "No side angles"). Each card is icon-driven by default (Feather `user` / `sun` / `eye-off` / `refresh-cw`) so the grid is meaningful before real example photos are sourced — pass an `image` field on a `TIP_EXAMPLES` item to swap to a real photo. Numbered rules block explicitly warns about repeated NSFW violations leading to account suspension (protects users from accidentally triggering the 3-strike ban via `infringements` table). White `Got it` CTA pinned to bottom. Triggered from the floating "Photo tips" chip on UploadScreen.
+- **Photo guidelines v3** (`PhotoTipsSheet.js`): full-screen dark sheet with pictorial placeholder grid + numbered rules (NSFW ban warning). **Auto-shown** on Upload when a style is selected; **Do not show this again** per style. No header chip on Upload/Review.
 - **PhotoTipsSheet implemented as in-tree overlay, not `<Modal>`**: rewritten as an `Animated.View` with `position: absolute` + `zIndex: 1000` + Reanimated `withTiming` slide-up. Android hardware back handled via `BackHandler.addEventListener('hardwareBackPress')`. Fixes a multi-bug failure mode on Android (Expo SDK 52 / RN 0.76.9) where `<Modal transparent statusBarTranslucent>` rendered as a translucent empty window with `onRequestClose` not firing. See `MD/UI_REDESIGN_2026_06.md` §7.
 - **SubscriptionScreen v2 (full-bleed dark)** (`SubscriptionScreen.js`): rewritten to use the same dark surface (`#0B0F19`) as UploadScreen/PhotoTipsSheet so the entire creation funnel feels continuous. Marquee stays in the hero with a `LinearGradient` bottom scrim. Floating circular close button (top-right). Translucent dark usage card with color-coded status pill (green ACTIVE / amber TRIAL / red CANCELING) and white progress fill. Tier cards now have three visual states: **default** (translucent dark + hollow radio), **selected** (solid white card with dark text + filled dot — mirrors the "Generate" CTA pattern), **current** (green-tinted with green border + green check radio). Bottom action bar is pinned (not scrolling) with white pill "Continue with …" CTA, translucent dark Refresh/Restore ghost buttons, and a subtle "Manage in Google Play" link. All interactive elements use `PressScale`; cards stagger in via `FadeInDown`. New `pwd*` style group; legacy `paywall*` keys kept for rollback. See `MD/UI_REDESIGN_2026_06.md` §8.
 - **`scripts/generate-comparison-set.js`** + `npm run generate-comparisons`: helper that runs each reference photo in `apps/mobile/assets/comparisons/before/` through every enabled style via `/api/enqueue` + `/api/job`, downloads results, and saves them to `apps/mobile/assets/comparisons/<styleId>/<beforeBaseName>-after.jpg`. Skips files that already exist (cheap to resume). Configured via `API_BASE`, `AUTH_TOKEN`, `STYLE_FILTER`, `CONCURRENCY` env vars.
 
-- **`useImagePicker` hook** (`hooks/useImagePicker.js`): shared pick/camera + crop invocation. In **dev/APK builds** uses `react-native-image-crop-picker` (dark cropper chrome `#0B0F19`, free-form crop, JPEG + base64). In **Expo Go** falls back to `expo-image-picker` (no native crop module). Returns `{ uri, dataUrl } | null`. Lifted to `App.js`; UploadScreen and PhotoReviewScreen call `onPickPhoto(useCamera)`.
-- **`PhotoReviewScreen`** (`screens/PhotoReviewScreen.js`): post-pick confirm on solid `#0B0F19` — header band, flex-1 preview (`contain`), Remove / Choose another / **Generate**. New `review*` style group; reuses `upload*` for chips and buttons.
+- **`useImagePicker` hook** (`hooks/useImagePicker.js`): gallery/camera pick + **OS crop** via `expo-image-picker` (`allowsEditing: true`) in all builds. Returns `{ uri, dataUrl } | null`.
+- **`UploadFlowHeader`** (`components/UploadFlowHeader.js`): shared header for Upload + Review — back, style pill (left), usage pill (right).
+- **`PhotoReviewScreen`** (`screens/PhotoReviewScreen.js`): post-pick confirm on solid `#0B0F19` — `UploadFlowHeader`, flex-1 preview (`contain`), Remove / Choose another / **Generate**.
 - **`utils/jobProgress.js`**: four-phase result loading copy — submit → queue → **content moderation** ("Checking content guidelines…") → generate; title **Creating your {style}**; 4 step dots; moderation phase timed from job `startedAt` (~6s).
 - **`utils/contentErrors.js`**: maps `CONTENT_NOT_ALLOWED` / NSFW API errors to human copy; infringement dialog constants (`NSFW_REJECT_DIALOG`, `humanizeApiError()`).
 - **Native splash via `expo-splash-screen`**: custom entry `apps/mobile/index.js` + `polyfills.js`; solid `#0B0F19` native splash (no image) held until fonts + auth finish; in-app `SplashScreen.js` removed.
 - **`To do/SPLASH_ASSET.md`**: deferred checklist for when a branded splash PNG is ready.
 
 ### Changed
+- **Upload / Review header pills** (`UploadFlowHeader.js`): single row `[ ← back ] [ style pill ] ···· [ usage pill ]` on Upload and Generate screens. Usage pill always on the **right**; style pill truncates. **Removed** Photo tips header chip on both screens.
+- **Photo tips** (`PhotoTipsSheet.js`, `stylePhotoTips.js`, `photoTipsPrefs.js`): auto-opens on Upload when a style is selected; per-style **Do not show this again** (AsyncStorage); pictorial placeholders until real assets added. No manual chip.
+- **Offline banner** (`OfflineBanner.js`, `NetworkProvider.js`): global orange overlay (non-blocking); warning toasts match. Replaces in-flow red bar that shifted layout.
+- **`useImagePicker`**: all builds use **`expo-image-picker`** OS crop only (`react-native-image-crop-picker` removed — caused squished crops in debug APK).
+- **Style picker spacing**: tighter symmetric gaps between category rows (`gap: 4`).
+- **Style picker burger** (`menuButton`): icon-only — **no** circular chip background (see docs; do not re-add).
 - **Result screen loading** (`ResultScreen.js` + `jobProgress.js`): **Creating your {style}** title; moderation step in progress UI; NSFW failure shows infringement dialog then returns to upload.
 - **NSFW / content-policy UX** (`contentErrors.js`, `ConfirmDialog.js`, `App.js`): polite but firm **Content not permitted** dialog; single full-width **Understood** CTA (`hideCancel`); no raw `CONTENT_NOT_ALLOWED` in UI.
-- **PhotoReviewScreen**: Generate button is **Generate** only (style name stays in header chip).
+- **PhotoReviewScreen**: Generate button is **Generate** only (style name stays in header **style pill**).
 - **RevenueCat Expo Go**: `polyfills.js` stubs `window.location` before `purchases-js` loads — fixes `sdk_initialized` / `URL.search` console error in browser mode.
 - **Upload flow is two screens** (`UploadScreen` → `PhotoReviewScreen`). UploadScreen is pre-pick browse (`ComparisonFade` + Gallery/Camera cards). Pick returns straight to `review` with `{ uri, dataUrl }` — no in-app `CropScreen`. Navigation: back from Result → `review` if photo in memory else `upload`; Remove on review → `upload`; NSFW reject → `upload` (clears `pickedImage`).
-- **App-wide dark theme** (`#0B0F19`): StyleScreen, Gallery, Info, Result, MenuModal, Splash, App shell; shared `DARK_*` tokens in `styles.js`. Style picker header + burger use dark chip buttons (white icons/text).
+- **App-wide dark theme** (`#0B0F19`): StyleScreen, Gallery, Info, Result, MenuModal, Splash, App shell; shared `DARK_*` tokens in `styles.js`. Style picker header: wordmark + icon-only burger menu (no chip background).
 - **MenuModal** (`components/MenuModal.js`): solid dark bottom sheet (`#0B0F19`), native `slide` animation, dim backdrop + flex dismiss area (sheet taps don't close), hardware back to dismiss. Items: Gallery, Subscription, Privacy, Terms, About.
 - **Result screen** (`ResultScreen.js`): three-band layout, real job-status loading copy, local preview cache, pinned save/share actions, before/after compare slider.
 - **Subscription screen**: canceling state (red pill, footnote, manage link); manage opens Play/App Store directly.
@@ -38,18 +45,21 @@ All notable changes to this project will be documented in this file.
 - **Cron moved off Vercel**: Queue worker (`/api/cron/process-queue`) is now scheduled by [cron-job.org](https://cron-job.org/) instead of Vercel cron. The `crons` block was removed from `vercel.json`. cron-job.org sends `Authorization: Bearer <CRON_SECRET>` on every tick; the mobile-app + `/api/enqueue` fire-and-forget kick still works via the user JWT path (no secret embedded in the app).
 
 ### Removed
-- **`CropScreen`** and custom in-app crop (`PanResponder` + `expo-image-manipulator` flow) — replaced by native crop in `useImagePicker` (dev/APK builds).
+- **`CropScreen`** and custom in-app crop — OS crop via `expo-image-picker` only.
+- **`react-native-image-crop-picker`** — removed (squished cropped photos in debug APK).
+- **Photo tips header chip** on Upload and Review — replaced by auto-show sheet on Upload.
 - **`PhotoChooserScreen.js`** — unused; gallery pick uses OS picker from Upload/Review.
 - **`processPickedImage.js`**, **`apps/mobile/api/test.ts`** — dead code.
 - **`SplashScreen.js`** (in-app JS splash with 2s timer) — replaced by native splash + `expo-splash-screen`.
 - `ToDo/` folder (architectural plans from 2025 — superseded by `MD/STATUS.md`, `MD/DEVELOPMENT_PLAN.md`, and `MD/CHANGELOG.md`). Splash deferral notes live in **`To do/SPLASH_ASSET.md`**.
 
 ### Deprecated (superseded — kept in git history only)
-- Earlier **[Unreleased]** notes describing a three-screen Upload → **CropScreen** → Review flow and `CropScreen.js` — that approach was tried and removed in favour of native OS crop via `react-native-image-crop-picker`.
+- Earlier **[Unreleased]** notes describing `react-native-image-crop-picker` for dev/APK — replaced by `expo-image-picker` in all builds.
+- Floating header layout with stacked chips + center usage pill + Photo tips chip — replaced by `UploadFlowHeader`.
 
 ### TODO
 - Run `npm run generate-comparisons` (requires `API_BASE` + `AUTH_TOKEN` env vars + 4-8 reference faces in `apps/mobile/assets/comparisons/before/`). Then register pairs in `COMPARISON_OVERRIDES` in `data/comparisonPairs.js`.
-- (Optional) Replace Photo Tips concept cards with real example photos: 2 "good" (front-facing portrait + clear-lit smile) and 2 "bad" (sunglasses/occlusion + side profile). Drop into `apps/mobile/assets/tips/` and set `image:` on each `TIP_EXAMPLES` item in `components/PhotoTipsSheet.js` (icons render until `image` is provided).
+- (Optional) Replace Photo Tips placeholders with real example photos in `data/stylePhotoTips.js` — drop assets into `apps/mobile/assets/tips/` and set `image:` on each example item.
 - Set Android navigation bar color at runtime in Expo Go if needed (`expo-navigation-bar` installed; `app.config.js` already uses `#0B0F19` for native builds).
 - Branded splash PNG — see `To do/SPLASH_ASSET.md` (native `#0B0F19` splash works today).
 - **Sentry error reporting** — see `To do/SENTRY_INTEGRATION.md` (mobile + optional API).

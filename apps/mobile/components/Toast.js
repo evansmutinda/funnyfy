@@ -15,6 +15,7 @@ export default function Toast({
   const slideAnim = useRef(new Animated.Value(-100)).current;
   const insets = useSafeAreaInsets();
   const hasAction = Boolean(actionLabel && onAction);
+  const isWarning = type === 'warning';
 
   useEffect(() => {
     if (visible) {
@@ -42,7 +43,7 @@ export default function Toast({
 
   const accent = type === 'success' ? '#10B981'
     : type === 'error' ? '#DC2626'
-    : type === 'warning' ? '#64748B'
+    : type === 'warning' ? '#FFFFFF'
     : '#0F172A';
 
   const icon = type === 'success' ? '✓'
@@ -67,13 +68,29 @@ export default function Toast({
         { paddingTop: insets.top + 8, transform: [{ translateY: slideAnim }] },
       ]}
     >
-      <View style={styles.toastInner}>
-        <View style={[styles.toastIconCircle, { backgroundColor: accent }]}>
-          <Text style={styles.toastIconText}>{icon}</Text>
+      <View style={[styles.toastInner, isWarning && styles.toastInnerWarning]}>
+        <View
+          style={[
+            styles.toastIconCircle,
+            { backgroundColor: accent },
+            isWarning && { borderWidth: 0 },
+          ]}
+        >
+          <Text style={[styles.toastIconText, isWarning && { color: '#EA580C' }]}>
+            {icon}
+          </Text>
         </View>
         <View style={styles.toastTextWrap}>
-          {title ? <Text style={styles.toastTitle}>{title}</Text> : null}
-          {message ? <Text style={styles.toastMessage}>{message}</Text> : null}
+          {title ? (
+            <Text style={[styles.toastTitle, isWarning && styles.toastTitleWarning]}>
+              {title}
+            </Text>
+          ) : null}
+          {message ? (
+            <Text style={[styles.toastMessage, isWarning && styles.toastMessageWarning]}>
+              {message}
+            </Text>
+          ) : null}
         </View>
         {hasAction ? (
           <TouchableOpacity
@@ -82,7 +99,9 @@ export default function Toast({
             activeOpacity={0.85}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Text style={styles.toastActionText}>{actionLabel}</Text>
+            <Text style={[styles.toastActionText, isWarning && { color: '#FFFFFF' }]}>
+              {actionLabel}
+            </Text>
           </TouchableOpacity>
         ) : null}
       </View>

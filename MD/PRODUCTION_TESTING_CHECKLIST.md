@@ -375,13 +375,20 @@
 ### End-to-End Flow
 - [ ] **Complete Generation Flow**
   - [ ] Open app
-  - [ ] Select style
-  - [ ] Upload image
+  - [ ] Select style (Netflix row or See all grid)
+  - [ ] Photo tips sheet auto-opens on Upload (unless dismissed for that style)
+  - [ ] Verify header pills: style name left, usage quota right (`UploadFlowHeader`)
+  - [ ] Pick image (Gallery/Camera) — OS crop via `expo-image-picker`
+  - [ ] Review screen — same header pills; confirm photo
   - [ ] Start generation
   - [ ] Verify job enqueued correctly
   - [ ] Verify polling works (job status updates)
   - [ ] Verify result displayed when complete
   - [ ] Verify error handling if job fails
+- [ ] **Offline UX (mobile)**
+  - [ ] Airplane mode — orange overlay banner visible; does not push header layout
+  - [ ] Generate/subscribe blocked; warning toast if attempted
+  - [ ] Reconnect — banner clears; styles/subscription refresh
 - [ ] **Subscription Flow**
   - [ ] View subscription screen
   - [ ] Purchase subscription

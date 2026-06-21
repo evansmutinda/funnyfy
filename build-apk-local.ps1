@@ -86,6 +86,17 @@ if (-not (Test-Path $androidDir)) {
     exit 1
 }
 
+# Debug builds skip JS bundling by default — patch so APK works without Metro/USB.
+$buildGradle = Join-Path $androidDir "app\build.gradle"
+if (Test-Path $buildGradle) {
+    $g = Get-Content $buildGradle -Raw
+    if ($g -notmatch 'debuggableVariants\s*=\s*\[\]') {
+        $g = $g -replace '(react \{\r?\n)', "`$1    debuggableVariants = []`r`n"
+        [System.IO.File]::WriteAllText($buildGradle, $g)
+        Write-Host "Patched build.gradle: debug APK bundles JS (standalone install)" -ForegroundColor Green
+    }
+}
+
 Set-Location $androidDir
 
 $variant = if ($Release) { "Release" } else { "Debug" }

@@ -10,11 +10,14 @@ import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNotifications } from '../components/NotificationProvider';
 import PressScale from '../components/PressScale';
+import UploadFlowHeader, { getUploadQuotaInfo } from '../components/UploadFlowHeader';
 import ComparisonFade from '../components/ComparisonFade';
 import PhotoTipsSheet from '../components/PhotoTipsSheet';
 import useImagePicker from '../hooks/useImagePicker';
 import { getComparisonPair } from '../data/comparisonPairs';
+import { getStylePhotoTips } from '../data/stylePhotoTips';
 import { getTrialRemaining, getTrialWarningMessage, isTrialUser } from '../utils/trialWarnings';
+import { isPhotoTipsDismissed, setPhotoTipsDismissed } from '../utils/photoTipsPrefs';
 import styles from '../styles';
 
 /**
@@ -26,7 +29,6 @@ import styles from '../styles';
  */
 export default function UploadScreen({
   style,
-  isOnline = true,
   onPicked,
   onBackToStyle,
   canGenerateMore,
@@ -39,6 +41,23 @@ export default function UploadScreen({
   const { pickImage, picking, pickingSource } = useImagePicker();
   const [tipsVisible, setTipsVisible] = useState(false);
   const trialWarnedRef = useRef(false);
+  const styleTips = getStylePhotoTips(style?.id);
+
+  useEffect(() => {
+    if (!style?.id || !styleTips) return undefined;
+
+    let cancelled = false;
+    (async () => {
+      const dismissed = await isPhotoTipsDismissed(style.id);
+      if (!cancelled && !dismissed) {
+        setTipsVisible(true);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [style?.id, styleTips]);
 
   useEffect(() => {
     if (trialWarnedRef.current || !subscriptionInfo) return;
@@ -53,20 +72,7 @@ export default function UploadScreen({
     });
   }, [subscriptionInfo]);
 
-  const getQuotaInfo = () => {
-    if (!subscriptionInfo || !subscriptionInfo.usage) {
-      return { current: 0, limit: 3, percentage: 0, isLow: false, isExceeded: false };
-    }
-    const { current, limit } = subscriptionInfo.usage;
-    const percentage = limit > 0 ? (current / limit) * 100 : 0;
-    return {
-      current,
-      limit,
-      percentage,
-      isLow: percentage >= 80 && percentage < 100,
-      isExceeded: percentage >= 100,
-    };
-  };
+  const getQuotaInfo = () => getUploadQuotaInfo(subscriptionInfo);
 
   const quotaInfo = getQuotaInfo();
   const trialRemaining = isTrialUser(subscriptionInfo) ? getTrialRemaining(subscriptionInfo) : null;
@@ -76,6 +82,13 @@ export default function UploadScreen({
     const picked = await pickImage(useCamera);
     if (picked && onPicked) {
       onPicked(picked);
+    }
+  };
+
+  const handleTipsClose = async ({ dontShowAgain } = {}) => {
+    setTipsVisible(false);
+    if (dontShowAgain && style?.id) {
+      await setPhotoTipsDismissed(style.id, true);
     }
   };
 
@@ -109,58 +122,13 @@ export default function UploadScreen({
 
       {/* Header */}
       <View style={[styles.uploadTopLayer, { paddingTop: insets.top + 8 }]}>
-        <View style={styles.uploadHeaderRow}>
-          <PressScale onPress={onBackToStyle} style={styles.uploadCircleButton}>
-            <Feather name="chevron-left" size={22} color="#FFFFFF" />
-          </PressScale>
-
-          {subscriptionInfo ? (
-            <PressScale
-              onPress={onOpenSubscription}
-              style={styles.uploadHeaderPill}
-              disabled={!onOpenSubscription}
-            >
-              <View style={styles.uploadHeaderPillProgress}>
-                <View
-                  style={[
-                    styles.uploadHeaderPillProgressFill,
-                    { width: `${Math.min(quotaInfo.percentage, 100)}%` },
-                  ]}
-                />
-              </View>
-              <Text style={styles.uploadHeaderPillText}>
-                {subscriptionInfo.isTrial || !subscriptionInfo.subscription
-                  ? `Trial · ${quotaInfo.current}/${quotaInfo.limit}`
-                  : `${subscriptionInfo.subscription.tier.charAt(0).toUpperCase() + subscriptionInfo.subscription.tier.slice(1)} · ${quotaInfo.current}/${quotaInfo.limit}`}
-              </Text>
-            </PressScale>
-          ) : (
-            <View style={{ width: 40 }} />
-          )}
-
-          <View style={{ width: 40 }} />
-        </View>
-
-        <View style={styles.uploadFloatingChipRow}>
-          {style ? (
-            <PressScale onPress={onBackToStyle} style={styles.uploadFloatingChip}>
-              <View style={styles.uploadFloatingChipDot} />
-              <Text style={styles.uploadFloatingChipText} numberOfLines={1}>
-                {style.label}
-              </Text>
-              <Feather name="chevron-down" size={14} color="rgba(255,255,255,0.85)" />
-            </PressScale>
-          ) : null}
-
-          <PressScale
-            onPress={() => setTipsVisible(true)}
-            style={styles.uploadFloatingChip}
-            hitSlop={6}
-          >
-            <Feather name="info" size={14} color="#FFFFFF" />
-            <Text style={styles.uploadFloatingChipText}>Photo tips</Text>
-          </PressScale>
-        </View>
+        <UploadFlowHeader
+          onBack={onBackToStyle}
+          onStylePress={onBackToStyle}
+          style={style}
+          subscriptionInfo={subscriptionInfo}
+          onOpenSubscription={onOpenSubscription}
+        />
 
         {quotaInfo.isExceeded ? (
           <TouchableOpacity onPress={onSubscribe} style={styles.uploadInlineBanner}>
@@ -176,13 +144,6 @@ export default function UploadScreen({
               1 caricature left on your trial — tap to upgrade
             </Text>
           </TouchableOpacity>
-        ) : !isOnline ? (
-          <View style={styles.uploadInlineBanner}>
-            <Feather name="wifi-off" size={14} color="rgba(255,255,255,0.8)" />
-            <Text style={styles.uploadInlineBannerText}>
-              You&apos;re offline — connect to generate
-            </Text>
-          </View>
         ) : null}
       </View>
 
@@ -216,7 +177,9 @@ export default function UploadScreen({
 
       <PhotoTipsSheet
         visible={tipsVisible}
-        onClose={() => setTipsVisible(false)}
+        onClose={handleTipsClose}
+        styleLabel={style?.label}
+        tips={styleTips}
       />
     </View>
   );

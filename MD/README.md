@@ -13,14 +13,17 @@ FunnyFy is a React Native mobile app (Android & iOS) that transforms user photos
 - `apps/mobile/version.json` - App version single source of truth
 - `apps/mobile/scripts/bump-version.js` - Version bump script
 - `apps/mobile/services/` - Auth and RevenueCat (`auth.js`, `revenuecat.js`)
-- `apps/mobile/components/MediaTile.js` - Shared tile (style picker, gallery, upload chip)
+- `apps/mobile/components/MediaTile.js` - Shared tile (style picker, gallery)
+- `apps/mobile/components/UploadFlowHeader.js` - Shared upload/review header (back + style pill + usage pill)
+- `apps/mobile/data/stylePhotoTips.js` - Per-style photo tips config for auto-show sheet
+- `apps/mobile/utils/photoTipsPrefs.js` - AsyncStorage "don't show tips again" per style
 - `apps/mobile/constants/fonts.js` - Plus Jakarta Sans (`@expo-google-fonts/plus-jakarta-sans`)
 - `apps/mobile/components/PaywallStyleMarquee.js` - Scrolling style strip on subscription hero
 - `apps/mobile/components/MenuModal.js` - Dark bottom sheet app menu
 - `apps/mobile/components/ComparisonFade.js`, `PhotoTipsSheet.js`, `PressScale.js` - Upload flow UI
-- `apps/mobile/hooks/useImagePicker.js` - Gallery/camera pick + native crop (dev/APK)
-- `apps/mobile/components/NetworkProvider.js` - Connectivity state (`@react-native-community/netinfo`)
-- `apps/mobile/components/OfflineBanner.js` - Non-blocking offline bar
+- `apps/mobile/hooks/useImagePicker.js` - Gallery/camera pick + OS crop (`expo-image-picker`)
+- `apps/mobile/components/NetworkProvider.js` - Connectivity state + global `OfflineBanner`
+- `apps/mobile/components/OfflineBanner.js` - Orange offline overlay (non-blocking)
 - `apps/mobile/utils/` - Style categories, subscription dates, trial warnings
 - `api/_utils/styles-config.ts` - Enabled styles + prompts (server-side)
 - `api/_utils/style-catalog.ts` - Full catalog from spreadsheet
@@ -53,24 +56,29 @@ FunnyFy is a React Native mobile app (Android & iOS) that transforms user photos
 ### Implemented Features
 - ✅ React Native mobile app (Expo SDK 52)
 - ✅ **160-style catalog**, **18 enabled** live styles across 16 categories
-- ✅ **Two-level style picker**: category tiles → style grid per category
-- ✅ ShotCam-style `MediaTile` tiles: white cards, gradient + Plus Jakarta Sans label with dark backdrop pill (style picker)
-- ✅ Image upload with style chip; generation via enqueue + job poll
-- ✅ Before/after slider + auto-demo on result; **Try another style** restyle flow
-- ✅ Gallery, save/share, toast notifications, ConfirmDialog
+- ✅ **Netflix-style style picker**: dark `#0B0F19`, category rows + horizontal style carousels, "See all" grid
+- ✅ **Upload → Review** two-screen flow with `UploadFlowHeader` (back + style pill left + usage pill right)
+- ✅ **Photo tips**: auto-opens on Upload per style; "Do not show again" per style; OS crop via `expo-image-picker`
+- ✅ Before/after compare on result (no Before/After badges); **Try another style** restyle flow
+- ✅ Gallery, save/share, toast notifications (`warning` = orange for offline), ConfirmDialog
 - ✅ RevenueCat subscriptions + backend sync
 - ✅ Usage quota, NSFW moderation, JWT auth, admin dashboard
 - ✅ **Auto versioning** on local/EAS builds
-- ✅ **Offline UX**: banner when disconnected; gallery/styles browse offline; generation blocked until online
-- ✅ Subscription screen: ink hero + marquee + white scrollable sheet
+- ✅ **Offline UX**: orange global overlay banner; gallery/styles browse offline; generation blocked until online
+- ✅ Subscription screen: full-bleed dark paywall (`#0B0F19`) + marquee + pinned CTA
 
 ### Recommended testing (Android)
 Use a **local debug APK** (`.\build-apk-local.ps1`) instead of **Expo Go** when possible — Expo Go auto-updates from the store and may break SDK 52 compatibility. See `MD/TESTING.md` and `MD/BUILD_APK_GUIDE.md`.
 
 ### Style Picker (current UX)
-1. **Home**: 16 category tiles (wide/compact alternation), white background, FunnyFy wordmark + menu
-2. **Category**: 2-column style grid, taller white cards; labels left-aligned with dark pill behind text; e.g. Cartoons → **90s**, **Chibi**, **Anime**
-3. **Restyle**: Flat list of all enabled styles with banner
+1. **Home**: Netflix-style category rows on dark background; FunnyFy wordmark + icon-only burger menu
+2. **See all**: 2-column discovery grid per category
+3. **Restyle** (from result): flat list of enabled styles + banner
+
+### Upload / Generate (current UX)
+1. **Upload**: comparison fade background; header pills; Gallery/Camera cards; photo tips sheet auto-opens once per style
+2. **Review**: same header pills; photo preview; Remove / Choose another / **Generate**
+3. **Crop**: OS picker via `expo-image-picker` (`allowsEditing: true`) — all builds
 
 ### Backend
 - **Staging**: `https://funnyfy-staging.vercel.app`

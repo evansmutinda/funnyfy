@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
   
     styleContainer: {
     paddingHorizontal: 16,
-    paddingTop: 8,
+    paddingTop: 12,
     paddingBottom: 0,
     flexGrow: 1,
     backgroundColor: DARK_BG,
@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
     backgroundColor: DARK_BG,
     paddingHorizontal: 16,
     paddingTop: 8,
-    paddingBottom: 12,
+    paddingBottom: 8,
     zIndex: 10,
   },
 
@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    rowGap: 16,
+    rowGap: 20,
   },
 
   
@@ -520,21 +520,66 @@ const styles = StyleSheet.create({
   },
 
   
-    offlineBanner: {
-    backgroundColor: 'rgba(239, 68, 68, 0.92)',
-    paddingVertical: 10,
+    offlineBannerContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
     paddingHorizontal: 16,
+    zIndex: 9998,
+    elevation: 9998,
+  },
+
+  
+    offlineBannerInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#EA580C',
+    borderRadius: 14,
+    paddingVertical: 13,
+    paddingHorizontal: 14,
+    gap: 12,
+    borderWidth: 2,
+    borderColor: '#FDBA74',
+    shadowColor: '#EA580C',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.55,
+    shadowRadius: 14,
+    elevation: 12,
+  },
+
+  
+    offlineBannerIconCircle: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
 
   
-  offlineBannerText: {
+    offlineBannerTextWrap: {
+    flex: 1,
+    gap: 2,
+  },
+
+  
+    offlineBannerTitle: {
+    fontFamily: FONT_PLUS_JAKARTA,
     color: '#FFFFFF',
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '800',
+    letterSpacing: -0.1,
+  },
+
+  
+    offlineBannerMessage: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    color: 'rgba(255,255,255,0.95)',
     fontSize: 13,
-    textAlign: 'center',
-    lineHeight: 18,
+    fontWeight: '600',
+    lineHeight: 17,
   },
 
   
@@ -824,10 +869,6 @@ const styles = StyleSheet.create({
   menuButton: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: DARK_CHIP,
-    borderWidth: 1,
-    borderColor: DARK_BORDER,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -857,6 +898,25 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 16,
     elevation: 10,
+  },
+
+
+  toastInnerWarning: {
+    backgroundColor: '#EA580C',
+    borderWidth: 2,
+    borderColor: '#FDBA74',
+    shadowColor: '#EA580C',
+    shadowOpacity: 0.45,
+  },
+
+
+  toastTitleWarning: {
+    color: '#FFFFFF',
+  },
+
+
+  toastMessageWarning: {
+    color: 'rgba(255,255,255,0.92)',
   },
 
   
@@ -1051,34 +1111,34 @@ const styles = StyleSheet.create({
 
   
     styleHomeContainer: {
-    paddingTop: 4,
+    paddingTop: 10,
     paddingBottom: 0,
     flexGrow: 1,
     backgroundColor: DARK_BG,
+    gap: 4,
   },
 
   
     styleRowSection: {
-    marginBottom: 18,
+    gap: 6,
   },
 
   
     styleRowHeader: {
-    paddingHorizontal: 20,
-    paddingTop: 4,
-    paddingBottom: 10,
+    paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    minHeight: 26,
   },
 
   
     styleRowTitle: {
     fontFamily: FONT_PLUS_JAKARTA,
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '700',
     color: PAPER,
-    letterSpacing: -0.3,
+    letterSpacing: -0.25,
   },
 
   
@@ -1086,12 +1146,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 2,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 999,
+    backgroundColor: DARK_CHIP,
+    borderWidth: 1,
+    borderColor: DARK_BORDER,
   },
 
   
     styleRowSeeAllText: {
     fontFamily: FONT_PLUS_JAKARTA,
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
     color: DARK_MUTED,
   },
@@ -1099,7 +1165,6 @@ const styles = StyleSheet.create({
   
     styleRowList: {
     paddingHorizontal: 16,
-    paddingRight: 4,
     gap: 12,
   },
 
@@ -1196,13 +1261,48 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     paddingHorizontal: 16,
+    zIndex: 10,
   },
 
   
     uploadHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    width: '100%',
+  },
+
+  
+    uploadHeaderStyleChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginLeft: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+    flexShrink: 1,
+    maxWidth: '46%',
+  },
+
+  
+    uploadHeaderStyleChipText: {
+    flexShrink: 1,
+    minWidth: 0,
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    letterSpacing: -0.1,
+  },
+
+  
+    uploadHeaderSpacer: {
+    flexGrow: 1,
+    flexShrink: 1,
+    minWidth: 8,
   },
 
   
@@ -1215,6 +1315,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.12)',
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
   },
 
   
@@ -1230,6 +1331,8 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.12)',
     gap: 4,
     minWidth: 110,
+    flexShrink: 0,
+    marginLeft: 8,
   },
 
   
@@ -1277,7 +1380,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(15, 23, 42, 0.6)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.12)',
-    maxWidth: 220,
   },
 
   
@@ -1295,7 +1397,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFFFFF',
     letterSpacing: -0.1,
-    flexShrink: 1,
   },
 
   
@@ -1681,7 +1782,65 @@ const styles = StyleSheet.create({
     height: '100%',
   },
 
-  
+
+    tipsPlaceholder: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+  },
+
+
+    tipsPlaceholderLabel: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 11,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.45)',
+    letterSpacing: 0.2,
+    textTransform: 'uppercase',
+  },
+
+
+    tipsDontShowRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 12,
+    alignSelf: 'flex-start',
+  },
+
+
+    tipsCheckbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.35)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+  },
+
+
+    tipsCheckboxChecked: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#FFFFFF',
+  },
+
+
+    tipsDontShowText: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 14,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.82)',
+  },
+
+
     tipsConceptTitle: {
     fontFamily: FONT_PLUS_JAKARTA,
     fontSize: 14,
@@ -2279,7 +2438,7 @@ const styles = StyleSheet.create({
 
   
     discoveryCardCaption: {
-    marginTop: 8,
+    marginTop: 4,
     paddingHorizontal: 2,
     fontFamily: FONT_PLUS_JAKARTA,
     fontSize: 12,
@@ -2287,7 +2446,7 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.88)',
     lineHeight: 16,
     letterSpacing: -0.15,
-    minHeight: 48,
+    minHeight: 28,
   },
 
   
@@ -2316,8 +2475,8 @@ const styles = StyleSheet.create({
 
   
     styleRowSeeAllCaptionSpacer: {
-    marginTop: 8,
-    minHeight: 48,
+    marginTop: 4,
+    minHeight: 28,
   },
 
   
@@ -2405,39 +2564,6 @@ const styles = StyleSheet.create({
   
     resultChipDotLoading: {
     backgroundColor: '#F59E0B',
-  },
-
-  
-    resultCompareBadge: {
-    position: 'absolute',
-    top: 12,
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderRadius: 999,
-    backgroundColor: 'rgba(15, 23, 42, 0.72)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.14)',
-    zIndex: 3,
-  },
-
-  
-    resultCompareBadgeLeft: {
-    left: 12,
-  },
-
-  
-    resultCompareBadgeRight: {
-    right: 12,
-  },
-
-  
-    resultCompareBadgeText: {
-    fontFamily: FONT_PLUS_JAKARTA,
-    fontSize: 11,
-    fontWeight: '700',
-    color: PAPER,
-    letterSpacing: 0.4,
-    textTransform: 'uppercase',
   },
 
   

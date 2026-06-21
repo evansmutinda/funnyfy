@@ -12,8 +12,8 @@ This file is the canonical reference for the redesign — what changed, why, whe
 
 | # | Screen | Status | Notes |
 |---|--------|--------|-------|
-| 1 | Style Selection (`StyleScreen.js`) | **Done** | Netflix-style row layout + "See all" grid fallback + staggered entrance; **dark** header (`#0B0F19`), wordmark + chip burger button |
-| 2 | Upload + Review (`UploadScreen.js`, `PhotoReviewScreen.js`, `PhotoTipsSheet.js`) | **Done** | **Two-screen flow**: UploadScreen (comparison fade + Gallery/Camera cards) → OS pick + **native crop** (`react-native-image-crop-picker` in dev/APK; Expo Go uses `expo-image-picker`) → PhotoReviewScreen (confirm, Generate). No in-app `CropScreen`. In-tree photo tips on Upload + Review. |
+| 1 | Style Selection (`StyleScreen.js`) | **Done** | Netflix-style row layout + "See all" grid fallback + staggered entrance; **dark** header (`#0B0F19`), wordmark + icon-only burger (no chip background) |
+| 2 | Upload + Review (`UploadScreen.js`, `PhotoReviewScreen.js`, `PhotoTipsSheet.js`) | **Done** | **Two-screen flow**: UploadScreen (comparison fade + Gallery/Camera cards) → OS pick + crop via **`expo-image-picker`** (`allowsEditing: true`, all builds) → PhotoReviewScreen (confirm, Generate). Shared **`UploadFlowHeader`**: `[ ← back ] [ style pill ] ···· [ usage pill ]` on both screens — **no** floating Photo tips chip. Photo tips **auto-open** on Upload when a style is selected (per-style "Do not show again"). |
 | 3 | Wait / Perceived performance (`ResultScreen.js` loading state) | **Done** | 4-phase copy via `jobProgress.js`: submit → queue → **moderation** → generate; title **Creating your {style}**; NSFW fail → infringement dialog |
 | 4 | Result & Restyle (`ResultScreen.js` success state) | **Done** | Before/after slider, pinned save/share, try-another-style, local preview cache |
 | 5 | Subscription / Paywall (`SubscriptionScreen.js`) | **Done** | Full-bleed dark, compact marquee, slim tier cards, pinned CTA, canceling UI. `pwd*` style group (legacy `paywall*` pruned from `styles.js`) |
@@ -29,20 +29,23 @@ This file is the canonical reference for the redesign — what changed, why, whe
 |------|---------|---------|
 | `PressScale.js` | Currently a thin `TouchableOpacity` wrapper (kept Reanimated-free after an Android freezing incident — see §3). Same API as the original spring-scale version so future re-introduction of the animation is mechanical. | StyleScreen tiles & rows, UploadScreen & PhotoReviewScreen chips/buttons, PhotoTipsSheet chevron + Got it, SubscriptionScreen close + tier cards + actions |
 | `ComparisonFade.js` | Infinite crossfade between a `beforeSource` and `afterSource` Image. Used as the UploadScreen background so the user can preview what the selected style does to a face _before_ they pick their own photo. The follow-up PhotoReviewScreen does **not** use it (the user's own photo gets full attention there). | UploadScreen |
-| `PhotoTipsSheet.js` | **In-tree absolute overlay** (not a `<Modal>`) with a slide-up animation. Shows a 2×2 grid of color-coded concept cards + numbered rules including the NSFW ban warning. | UploadScreen & PhotoReviewScreen "Photo tips" chip |
+| `UploadFlowHeader.js` | Shared upload/review header: back button + **style pill** (left, truncates) + flex spacer + **usage pill** (right, always visible). | UploadScreen, PhotoReviewScreen |
+| `PhotoTipsSheet.js` | **In-tree absolute overlay** (not a `<Modal>`) with a slide-up animation. Pictorial placeholder grid + numbered rules + **Do not show this again** checkbox. | UploadScreen only — **auto-shown** on style entry (not a header chip) |
+| `OfflineBanner.js` | Global offline overlay (orange alert card) rendered from `NetworkProvider`; does not shift page layout. | All screens when offline |
 | `MenuModal.js` | Dark bottom sheet menu (`#0B0F19`) from StyleScreen burger. Native `slide` animation; dim backdrop; hardware back closes. | `App.js` when `screen === 'style'` |
 
 ### Hooks (`apps/mobile/hooks/`)
 
 | File | Exports | Notes |
 |------|---------|-------|
-| `useImagePicker.js` | `useImagePicker()` → `{ pickImage(useCamera), picking, pickingSource }` | **Dev/APK:** `react-native-image-crop-picker` (dark cropper UI, JPEG + base64). **Expo Go:** `expo-image-picker` fallback. Returns `{ uri, dataUrl } \| null`. Consumed in `App.js`; UploadScreen / PhotoReviewScreen use `onPickPhoto(useCamera)` → `review` on success. |
+| `useImagePicker.js` | `useImagePicker()` → `{ pickImage(useCamera), picking, pickingSource }` | **`expo-image-picker`** with `allowsEditing: true` (OS crop) in all builds. Returns `{ uri, dataUrl } \| null`. Consumed in `App.js`; UploadScreen / PhotoReviewScreen call `onPickPhoto(useCamera)` → `review` on success. |
 
 ### Data / helpers (`apps/mobile/data/`)
 
 | File | Exports | Notes |
 |------|---------|-------|
 | `comparisonPairs.js` | `getComparisonPair(style)`, `COMPARISON_OVERRIDES` map | Placeholder: returns `assets/realistic.jpeg` as a shared "before" and the style's existing thumbnail as the "after". Real curated pairs will be registered in `COMPARISON_OVERRIDES` once generated. |
+| `stylePhotoTips.js` | `getStylePhotoTips(styleId)`, `GENERIC_STYLE_PHOTO_TIPS` | Per-style photo tips for upload auto-sheet. Default = generic pictorial placeholders; set `STYLE_PHOTO_TIPS[id] = null` to skip tips for a style. |
 
 ### Scripts (`scripts/`)
 
@@ -96,6 +99,7 @@ Dark-first globals in `apps/mobile/styles.js`:
 - **Per-category view** (tap "See all" or a category header):
   - 2-column grid of style tiles (reuses pre-existing `discoveryCard` layout from the 1.0.4 picker)
   - Per-tile stagger via `FadeInDown.delay(index * 35)`.
+- **Category row spacing:** tight symmetric gaps (`styleHomeContainer` `gap: 4` between sections; `styleRowSection` `gap: 6` title→carousel). Do not re-inflate to large `marginBottom` stacks.
 - **Tile → screen mapping:** tap any tile (home row or per-category grid) → navigates straight to `UploadScreen` for that style. No detail page in between.
 
 ### Why this layout
@@ -130,7 +134,7 @@ The creation flow is **two screens**:
 1. **Upload** — browse the style and choose a photo source  
 2. **Review** — confirm the cropped photo and start generation  
 
-Crop happens in the **OS/native picker** (not a separate in-app screen). Dev and APK builds use `react-native-image-crop-picker` with dark toolbar `#0B0F19`; Expo Go uses `expo-image-picker` without native crop.
+Crop happens in the **OS picker** via **`expo-image-picker`** (`allowsEditing: true`) in all builds — same crop UX as Expo Go. Do not re-add `react-native-image-crop-picker` (caused squished crops in debug APK).
 
 ### Why two screens (not one)
 
@@ -139,13 +143,13 @@ Crop happens in the **OS/native picker** (not a separate in-app screen). Dev and
 
 ### Screen 1 — `UploadScreen` (pre-pick browse)
 
-Same layout as before: `ComparisonFade` background, floating header chips, Gallery/Camera action cards.
+`ComparisonFade` background, **`UploadFlowHeader`** (back + style pill + usage pill), Gallery/Camera action cards. **No** Photo tips chip in the header — tips sheet auto-opens once per style unless dismissed.
 
 **Outgoing:** `onPickPhoto(useCamera)` → `App.js` runs `useImagePicker` → on success sets `pickedImage` and navigates to `review`.
 
 ### Screen 2 — `PhotoReviewScreen` (post-pick confirm)
 
-Solid `#0B0F19`, flex-column (header → flex-1 preview → actions). Photo uses `resizeMode: 'contain'`. Remove / Choose another / white pill **Generate** CTA (style name in header chip only, not on button).
+Solid `#0B0F19`, flex-column (`UploadFlowHeader` → flex-1 preview → actions). Photo uses `resizeMode: 'contain'`. Remove / Choose another / white pill **Generate** CTA (style name in header **style pill** only, not on button). Same header pill layout as Upload — **no** Photo tips chip.
 
 **Outgoing:**
 - **Generate** → `result`
@@ -165,19 +169,32 @@ Solid `#0B0F19`, flex-column (header → flex-1 preview → actions). Photo uses
 
 ### Removed: in-app `CropScreen`
 
-A custom `CropScreen` (PanResponder + `expo-image-manipulator`) was implemented briefly but **removed**. Native crop via `react-native-image-crop-picker` replaced it for dev/APK builds. Do not re-add `CropScreen` unless explicitly requested.
+A custom `CropScreen` (PanResponder + `expo-image-manipulator`) was implemented briefly but **removed**. **`expo-image-picker`** OS crop is used in all builds. Do not re-add `CropScreen` or `react-native-image-crop-picker` unless explicitly requested.
 
-### Floating header (Upload + Review)
+### Upload / Review header (`UploadFlowHeader`)
 
-- Back, quota pill, style chip, photo tips chip — shared `upload*` styles, top scrim for legibility.
+Single row on both screens — **do not** revert to stacked chips or a center usage pill:
+
+```
+[ ← 40px ] [ style pill · truncates ] ········ [ usage pill ]
+```
+
+| Element | Position | Notes |
+|---------|----------|-------|
+| Back | Far left | `uploadCircleButton` (dark chip circle) |
+| Style pill | Left, after back | `uploadHeaderStyleChip` — tap → change style / back to picker |
+| Usage pill | **Far right** | `uploadHeaderPill` — always rendered (`Trial · x/y` while subscription loads); tap → Subscription |
+| Photo tips | **Not in header** | Auto sheet on Upload only; no manual chip |
+
+**Style keys:** `uploadHeaderRow`, `uploadHeaderStyleChip`, `uploadHeaderStyleChipText`, `uploadHeaderSpacer`, `uploadHeaderPill`, `uploadFloatingChipDot`, `uploadCircleButton`.
 
 ### Key style keys
 
-**UploadScreen:** `uploadRoot`, `uploadBackgroundFill`, `uploadScrimTop/Bottom`, `uploadTopLayer`, `uploadBottomLayer`, `uploadActionCard*`, `uploadHeaderRow`, `uploadCircleButton`, `uploadFloatingChip*`, …
+**UploadScreen:** `uploadRoot`, `uploadBackgroundFill`, `uploadScrimTop/Bottom`, `uploadTopLayer`, `uploadBottomLayer`, `uploadActionCard*`, …
 
-**PhotoReviewScreen:** `reviewRoot`, `reviewHeaderBand`, `reviewPreviewBand`, `reviewPreviewCard`, `reviewActionBand` + shared `upload*` chips/buttons.
+**PhotoReviewScreen:** `reviewRoot`, `reviewHeaderBand`, `reviewPreviewBand`, `reviewPreviewCard`, `reviewActionBand` + shared `upload*` header pills/buttons.
 
-**Menu (StyleScreen):** `menuBackdrop`, `menuDismissArea`, `menuSheet`, `menuHandle`, `menuItem*`, `menuButton` (header burger chip).
+**Menu (StyleScreen):** `menuBackdrop`, `menuDismissArea`, `menuSheet`, `menuHandle`, `menuItem*`, `menuButton` (header burger — icon only, 40×40 hit area, no chip/circle).
 
 ---
 
@@ -201,27 +218,20 @@ This pattern (in-tree overlay, not `Modal`) is the recommended approach for any 
 
 ### Content
 
-- **Top bar:** chevron-down close button (left) + "Photo Tips" title (center)
-- **Lead:** "Front-facing, well-lit portraits give the AI the most to work with."
-- **2×2 grid of concept cards:**
+- **Top bar:** chevron-down close (left) + `Photo tips · {style label}` title (center)
+- **Lead:** style-specific or generic copy from `data/stylePhotoTips.js`
+- **2×2 grid:** pictorial **placeholders** ("Example coming soon") by default; swap in real photos via `image:` on each example item. Per-style overrides via `STYLE_PHOTO_TIPS` in `stylePhotoTips.js`; set a style to `null` to skip tips entirely.
+- **Numbered rules block** (NSFW ban warning included)
+- **Footer:** **Do not show this again** checkbox (persisted per style in AsyncStorage via `utils/photoTipsPrefs.js`) + white `Got it` CTA
 
-  | Card | Icon | Tint | Badge | Title | Subtitle |
-  |------|------|------|-------|-------|----------|
-  | 1 | `user` | green | ✓ | Face forward | Looking at camera |
-  | 2 | `sun` | green | ✓ | Even lighting | No harsh shadows |
-  | 3 | `eye-off` | red | ✕ | No sunglasses | Eyes need to show |
-  | 4 | `refresh-cw` | red | ✕ | No side angles | Stay frontal |
+### Trigger (no header chip)
 
-  Each card is square, icon-driven (no photo needed), with a colored backdrop and a corner badge.
-- **Numbered rules block:**
-  1. One person per photo (Custom 2 and Neanderthal 3D handle groups)
-  2. Avoid hats, masks, or heavy shadows on the face
-  3. **No nudity or sexually suggestive content — repeated violations will suspend your account** (explicitly warns users about the 3-strike `infringements` ban)
-- **Footer:** pinned white `Got it` CTA
+- **Auto-open** on `UploadScreen` mount when user arrives from style selection, unless dismissed for that style.
+- **Not** shown from a header chip on Upload or Review (chip removed). User cannot manually reopen from Review; returning to Upload with a new style shows tips again unless dismissed for that style.
 
 ### Swapping in real photos later
 
-Each `TIP_EXAMPLES` item accepts an optional `image` field. If provided, it renders an `<Image>` instead of the icon card:
+Each example item in `stylePhotoTips.js` accepts an optional `image` field. If provided, it renders an `<Image>` instead of the placeholder:
 
 ```js
 { id: 'good-front', image: require('../assets/tips/tip-good-1.jpg'), good: true, title: 'Face forward', subtitle: 'Looking at camera' }
@@ -244,7 +254,9 @@ tipsConceptIconBg, tipsConceptIconBgGood, tipsConceptIconBgBad, tipsConceptImage
 tipsBadge, tipsBadgeGood, tipsBadgeBad,
 tipsConceptTitle, tipsConceptSubtitle,
 tipsRulesBlock, tipsRuleRow, tipsRuleBullet, tipsRuleBulletText, tipsRuleText,
-tipsFooter (absolute bottom), tipsContinueButton, tipsContinueButtonText
+tipsFooter (absolute bottom), tipsDontShowRow, tipsCheckbox, tipsDontShowText,
+tipsContinueButton, tipsContinueButtonText,
+tipsPlaceholder, tipsPlaceholderLabel
 ```
 
 ---
@@ -392,7 +404,7 @@ pwdManageLink, pwdManageLinkText
 ### Content
 
 - [ ] **Comparison pairs** — Run `npm run generate-comparisons` (requires `API_BASE` + `AUTH_TOKEN` env vars + 4–8 reference faces in `apps/mobile/assets/comparisons/before/`). Register results in `COMPARISON_OVERRIDES` in `data/comparisonPairs.js`.
-- [ ] **Photo tips real photos** — Source 4 photos (2 good, 2 bad), drop into `apps/mobile/assets/tips/`, set `image:` on each `TIP_EXAMPLES` item in `PhotoTipsSheet.js`.
+- [ ] **Photo tips real photos** — Source 4 photos (2 good, 2 bad), drop into `apps/mobile/assets/tips/`, register in `data/stylePhotoTips.js` (per-style overrides in `STYLE_PHOTO_TIPS`).
 
 ### Cleanup
 
@@ -421,9 +433,22 @@ Opened from StyleScreen burger (`onOpenMenu` → `menuOpen` in `App.js`).
 | Terms & Conditions | `terms` |
 | About | `about` |
 
-**UX:** `<Modal transparent animationType="slide">`, dim backdrop (`rgba(0,0,0,0.45)`), solid `#0B0F19` sheet flush to bottom (safe-area padding inside sheet). Tap backdrop or hardware back to close. Header burger uses `menuButton` (40×40 dark chip, matches `iconButton`).
+**UX:** `<Modal transparent animationType="slide">`, dim backdrop (`rgba(0,0,0,0.45)`), solid `#0B0F19` sheet flush to bottom (safe-area padding inside sheet). Tap backdrop or hardware back to close. Header burger uses `menuButton` (40×40 tap target, white icon, **no** background/border — do not re-add chip styling).
 
 **Style keys:** `menuBackdrop`, `menuDismissArea`, `menuSheet`, `menuHandle`, `menuItem`, `menuItemIcon`, `menuItemText`, `menuButton`, `styleScreenHeader`, `wordmark`, `headerBar`.
+
+---
+
+## 10b. Offline banner
+
+**Files:** `components/OfflineBanner.js`, `components/NetworkProvider.js`
+
+- Rendered as a **global absolute overlay** from `NetworkProvider` (not in document flow — does not push headers/pills).
+- **Orange alert** styling (`#EA580C` card, white text) — matches offline warning toasts.
+- Copy: "No connection — Generation and purchases need internet"
+- Warning toasts (`type: 'warning'`) use the same orange treatment when user tries generate/subscribe offline.
+
+**Do not** revert to full-width red in-flow banner or hide usage/style pills under layout shift.
 
 ---
 
@@ -439,10 +464,15 @@ apps/mobile/index.js                              [NEW — entry + polyfills fir
 apps/mobile/polyfills.js                          [NEW — URL + window.location for RC Expo Go]
 apps/mobile/components/PressScale.js              [NEW]
 apps/mobile/components/ComparisonFade.js          [NEW]
-apps/mobile/components/PhotoTipsSheet.js          [NEW]
+apps/mobile/components/PhotoTipsSheet.js          [UPDATED — auto-show, placeholders, don't-show-again]
+apps/mobile/components/UploadFlowHeader.js        [NEW — shared upload/review header pills]
+apps/mobile/components/OfflineBanner.js           [UPDATED — global orange overlay]
+apps/mobile/components/NetworkProvider.js         [UPDATED — mounts OfflineBanner]
 apps/mobile/components/MenuModal.js               [UPDATED — dark bottom sheet]
 apps/mobile/data/comparisonPairs.js               [NEW]
-apps/mobile/hooks/useImagePicker.js               [UPDATED — native crop picker]
+apps/mobile/data/stylePhotoTips.js                [NEW — per-style tips config]
+apps/mobile/utils/photoTipsPrefs.js               [NEW — AsyncStorage dismiss per style]
+apps/mobile/hooks/useImagePicker.js               [UPDATED — expo-image-picker only]
 apps/mobile/screens/StyleScreen.js                [REWRITTEN]
 apps/mobile/screens/UploadScreen.js               [REWRITTEN]
 apps/mobile/screens/PhotoReviewScreen.js          [NEW]
@@ -480,7 +510,7 @@ If you need to revert any single section without touching the others:
 
 1. **Revert Style screen** → `git checkout HEAD~N -- apps/mobile/screens/StyleScreen.js`.
 2. **Revert Upload screen** → `git checkout HEAD~N -- apps/mobile/screens/UploadScreen.js`.
-3. **Disable Photo Tips overlay** → set `<PhotoTipsSheet visible={false} ...>` permanently, or remove the chip in `UploadScreen.js`. No upstream coupling.
+3. **Disable Photo Tips overlay** → set auto-show logic off in `UploadScreen.js`, or hide `<PhotoTipsSheet>`. No header chip to remove.
 4. **Remove `ComparisonFade` background** → in `UploadScreen.js`, replace the `<ComparisonFade>` block with a static `<View style={{ backgroundColor: '#0B0F19' }} />`. The rest of the floating UI continues to work.
 5. **Revert Subscription screen** → `git checkout HEAD~N -- apps/mobile/screens/SubscriptionScreen.js`. Restore legacy `paywall*` keys from git if reverting to the old white-sheet layout (they were pruned from `styles.js` in June 2026).
 

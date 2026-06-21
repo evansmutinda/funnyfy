@@ -20,14 +20,15 @@ FunnyFy is a React Native mobile application that transforms user photos into AI
 - ✅ **Netflix-style style picker**: category rows + horizontal tiles + "See all" grid; dark `#0B0F19` shell
 - ✅ **Discovery tiles** (`MediaTile`): labels below image (3-line captions); `PressScale` on taps
 - ✅ **18 enabled caricature styles** (160 in catalog; placeholders disabled until prompts/thumbnails ready)
-- ✅ **Two-step upload flow**: UploadScreen (comparison fade + Gallery/Camera) → PhotoReviewScreen (confirm + Generate); native crop in dev/APK via `react-native-image-crop-picker`
-- ✅ **Photo tips sheet**: full-screen dark overlay (not Modal) on Upload + Review
+- ✅ **Two-step upload flow**: UploadScreen (comparison fade + Gallery/Camera) → PhotoReviewScreen (confirm + Generate); OS crop via `expo-image-picker`
+- ✅ **Upload/Review header** (`UploadFlowHeader.js`): back + **style pill** (left) + **usage pill** (right); no Photo tips chip
+- ✅ **Photo tips sheet**: auto-opens on Upload per style; "Do not show again" per style; pictorial placeholders
 - ✅ Before/after comparison slider on result + **4-phase job loading** (submit → queue → moderation → generate; title **Creating your {style}**)
 - ✅ **Try another style**: Regenerate same photo with a new style (restyle flow)
 - ✅ Save to device functionality (no system prompt)
 - ✅ Share functionality
 - ✅ Error handling and user feedback
-- ✅ **Offline UX**: NetInfo connectivity, non-blocking top banner, generate/purchase guards, auto-refresh on reconnect
+- ✅ **Offline UX**: NetInfo connectivity, **orange global overlay** banner (non-blocking), generate/purchase guards, auto-refresh on reconnect
 - ✅ **Content-policy dialog** for NSFW blocks: **Content not permitted** + **Understood** CTA; clears photo and returns to upload (Sightengine, pre-Replicate)
 - ✅ Safe area handling: Bottom insets prevent overlap with navigation bar
 - ✅ **Gallery screen**: Dark theme; grid of saved caricatures, full-screen viewer
@@ -117,7 +118,7 @@ FunnyFy is a React Native mobile application that transforms user photos into AI
 |--------|-------------|
 | **UI redesign (June 2026)** | Netflix-style StyleScreen, Upload→Review flow, dark theme app-wide, `pwd*` paywall — see `MD/UI_REDESIGN_2026_06.md` |
 | **Dead code cleanup** | Removed CropScreen, PhotoChooserScreen; pruned ~440 unused styles; `scripts/prune-unused-styles.js` |
-| **Menu + header polish** | Dark bottom sheet menu; style picker header + burger chip buttons |
+| **Menu + header polish** | Dark bottom sheet menu; style picker wordmark + icon-only burger; upload/review `UploadFlowHeader` pills |
 | **Result screen** | Three-band layout, real job progress, local preview cache, pinned actions |
 | **Style catalog expansion** | 16 categories, 160 styles; Netflix row navigation |
 | **Auto versioning** | `version.json`, `bump-version.js`, build script integration |
@@ -125,7 +126,9 @@ FunnyFy is a React Native mobile application that transforms user photos into AI
 | **Usage counter fix** | `job_usage_credits` + atomic queue claim |
 | **Subscription sync fix** | `Purchases.logIn`, post-purchase sync, auth gating |
 | **Local APK builds** | `build-apk-local.ps1` + Gradle (`assembleDebug`) |
-| **Offline UX** | NetInfo banner, upload guard, reconnect refresh |
+| **Offline UX** | Orange global overlay banner (`NetworkProvider`); upload/review generate guard; reconnect refresh |
+| **Upload header pills** | `UploadFlowHeader.js` — style pill left, usage pill right; photo tips auto-sheet (no header chip) |
+| **Crop picker** | `expo-image-picker` only (removed `react-native-image-crop-picker`) |
 | **Local APK testing** | Prefer `build-apk-local.ps1` over Expo Go (SDK lock, RevenueCat, NetInfo) |
 
 ---

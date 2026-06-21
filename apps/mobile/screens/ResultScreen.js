@@ -430,17 +430,6 @@ export default function ResultScreen({
               </View>
             ) : null}
 
-            {showCompare ? (
-              <>
-                <View style={[styles.resultCompareBadge, styles.resultCompareBadgeLeft]}>
-                  <Text style={styles.resultCompareBadgeText}>Before</Text>
-                </View>
-                <View style={[styles.resultCompareBadge, styles.resultCompareBadgeRight]}>
-                  <Text style={styles.resultCompareBadgeText}>After</Text>
-                </View>
-              </>
-            ) : null}
-
             {showCompare && canvasWidth > 0 ? (
               <View pointerEvents="none" style={styles.sliderHandleContainer}>
                 <View style={[styles.sliderLine, { left: canvasWidth * mix - 1 }]} />

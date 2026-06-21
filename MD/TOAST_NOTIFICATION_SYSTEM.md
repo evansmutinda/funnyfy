@@ -19,7 +19,7 @@ Android and iOS system alerts look different and feel out of place. The new syst
 
 A floating message that appears briefly and disappears automatically.
 
-**Types**: `success` (green), `error` (red), `info` (blue/neutral)
+**Types**: `success` (green), `error` (red), `warning` (orange — offline / trial alerts), `info` (neutral dark)
 
 **How to show a toast:**
 ```js
@@ -104,7 +104,8 @@ All `Alert.alert` calls were replaced across:
 ## Design
 
 - Toasts appear at the top of the screen (below status bar)
-- They auto-dismiss after ~3 seconds
+- **`warning`** toasts use orange card styling (matches `OfflineBanner`)
+- They auto-dismiss after ~3 seconds (5s if action button)
 - ConfirmDialogs use the app's dark theme (`#151B28` card on `#0B0F19` shell)
 - Primary action button is white pill; cancel is outlined
 

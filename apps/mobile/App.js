@@ -30,7 +30,6 @@ import {
 import { initAuth, resetAuthIfLocal, forceReAuth } from './services/auth.js';
 import NotificationProvider, { useNotifications } from './components/NotificationProvider';
 import NetworkProvider, { useNetwork } from './components/NetworkProvider';
-import OfflineBanner from './components/OfflineBanner';
 import MenuModal from './components/MenuModal';
 import GalleryScreen from './screens/GalleryScreen';
 import InfoScreen from './screens/InfoScreen';
@@ -73,10 +72,9 @@ export default function App() {
   );
 }
 
-function AppShell({ children, showOfflineBanner = true }) {
+function AppShell({ children }) {
   return (
     <View style={{ flex: 1, backgroundColor: '#0B0F19' }}>
-      {showOfflineBanner ? <OfflineBanner /> : null}
       {children}
     </View>
   );
@@ -1052,7 +1050,6 @@ function AppContent({ fontsLoaded }) {
       <AppShell>
         <UploadScreen
           style={style}
-          isOnline={isOnline}
           onPicked={(image) => { setPickedImage(image); setScreen('review'); }}
           canGenerateMore={
             subscriptionInfo

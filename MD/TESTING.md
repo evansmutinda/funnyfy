@@ -117,19 +117,20 @@ npm start
 
 1. **Auth flow**: `[AUTH_DEBUG] hasToken: true` in Metro logs; no `resetAuthIfLocal is not a function`
 2. **Style selection**:
-   - Home shows **16 category tiles** (wide/compact alternation), white background, wordmark + menu
-   - Tap **Cartoons** → **90s**, **Chibi**, and **Anime** in 2-column grid (taller white cards)
-   - Labels: Plus Jakarta Sans Regular, left-aligned, dark rounded backdrop behind text
-   - Back button / Android hardware back returns to categories
-   - **Restyle** (from result): flat list of enabled styles + banner
-   - **Offline**: ink banner at top; styles use local fallback catalog; Gallery/About still work
-   - **Upload offline**: Generate disabled + inline message; reconnect auto-refreshes styles/subscription
-3. **Image upload**: Style chip + "Change style"; pick from gallery (Android 13+: system picker)
-4. **Generation**: `POST /api/enqueue` then poll `/api/job` — pulsing squares loader; **usage counter +1 only on success**
-5. **Result**: Slider auto-demo, drag compare, save (silent), share, **Try another style** → restyle banner
+   - Home: **Netflix-style category rows** on dark `#0B0F19`, wordmark + icon-only burger (no chip circle)
+   - Tap **See all** → 2-column discovery grid for that category
+   - **Restyle** (from result): flat list + banner
+   - **Offline**: orange overlay banner at top; styles use local fallback; Gallery/About still work
+3. **Upload / Review**:
+   - Header: `UploadFlowHeader` — back + **style pill** (left) + **usage pill** (right); no Photo tips chip
+   - **Photo tips** auto-open on Upload when style selected; test "Do not show this again"
+   - Gallery/Camera → OS crop (`expo-image-picker`) → Review → **Generate**
+   - **Offline**: Generate disabled; orange toast if tapped; usage pill still visible
+4. **Generation**: `POST /api/enqueue` then poll `/api/job` — phased loading copy; **usage counter +1 only on success**
+5. **Result**: Drag compare (no Before/After labels), save (silent), share, **Try another style**
 6. **Gallery**: Tile grid; saved images in Funnyfy device album
-7. **Subscription**: Ink hero + style marquee; usage + plans in white sheet; purchase updates plan
-8. **Trial warning**: At 1 generation left, banner on upload + toast after generation
+7. **Subscription**: Full-bleed dark paywall; usage card + tier cards + pinned CTA
+8. **Trial warning**: Quota/trial banners on upload when applicable
 9. **About**: Version matches `version.json` / `expo-constants`
 
 ---
@@ -148,12 +149,12 @@ FunnyFy is **network-required** for generation and purchases. Offline behavior i
 **How to test**
 
 1. Open app with Wi‑Fi on — confirm no banner
-2. Enable airplane mode — ink banner: *“No connection — generation and purchases need internet”*
+2. Enable airplane mode — **orange overlay** card: *“No connection — Generation and purchases need internet”*
 3. Browse categories, open Gallery — should work
-4. Upload screen — **Generate** disabled; inline offline message
+4. Upload/Review — **Generate** disabled; orange warning toast if Generate tapped offline
 5. Turn Wi‑Fi back on — banner disappears; styles/subscription refresh (check Metro log: `[Network] Back online`)
 
-**Implementation**: `NetworkProvider.js`, `OfflineBanner.js`, `utils/network.js`
+**Implementation**: `NetworkProvider.js` (mounts banner), `OfflineBanner.js`, `utils/network.js`
 
 ---
 

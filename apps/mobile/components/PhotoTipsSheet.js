@@ -1,5 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { BackHandler, Dimensions, Image, ScrollView, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import {
+  BackHandler,
+  Dimensions,
+  Image,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
@@ -9,53 +17,10 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import PressScale from './PressScale';
+import { GENERIC_STYLE_PHOTO_TIPS } from '../data/stylePhotoTips';
 import styles from '../styles';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-
-// Each tip is rendered as a color-coded concept card so the grid is
-// meaningful even before real example photos are sourced.
-//
-// To swap an icon card for a real photo later:
-//   1. Drop the image into apps/mobile/assets/tips/ (e.g. tip-good-1.jpg)
-//   2. Add `image: require('../assets/tips/tip-good-1.jpg')` to that item
-//   3. The component automatically renders the photo instead of the icon.
-const TIP_EXAMPLES = [
-  {
-    id: 'good-front',
-    icon: 'user',
-    good: true,
-    title: 'Face forward',
-    subtitle: 'Looking at camera',
-  },
-  {
-    id: 'good-light',
-    icon: 'sun',
-    good: true,
-    title: 'Even lighting',
-    subtitle: 'No harsh shadows',
-  },
-  {
-    id: 'bad-sunglasses',
-    icon: 'eye-off',
-    good: false,
-    title: 'No sunglasses',
-    subtitle: 'Eyes need to show',
-  },
-  {
-    id: 'bad-profile',
-    icon: 'refresh-cw',
-    good: false,
-    title: 'No side angles',
-    subtitle: 'Stay frontal',
-  },
-];
-
-const RULES = [
-  'One person per photo (Custom 2 and Neanderthal 3D handle groups)',
-  'Avoid hats, masks, or heavy shadows on the face',
-  'No nudity or sexually suggestive content — repeated violations will suspend your account',
-];
 
 /**
  * In-tree slide-up sheet for photo guidelines. Renders as an absolutely
@@ -63,17 +28,21 @@ const RULES = [
  * spawns a separate window, which breaks SafeAreaProvider context, can
  * appear translucent when combined with statusBarTranslucent, and has
  * inconsistent onRequestClose behavior across SDKs.
- *
- * Animation: slide up on open, slide down on close. Android hardware
- * back is handled via BackHandler while visible.
  */
-export default function PhotoTipsSheet({ visible, onClose }) {
+export default function PhotoTipsSheet({
+  visible,
+  onClose,
+  styleLabel,
+  tips = GENERIC_STYLE_PHOTO_TIPS,
+}) {
   const insets = useSafeAreaInsets();
   const translateY = useSharedValue(SCREEN_HEIGHT);
   const [mounted, setMounted] = useState(false);
+  const [dontShowAgain, setDontShowAgain] = useState(false);
 
   useEffect(() => {
     if (visible) {
+      setDontShowAgain(false);
       setMounted(true);
       translateY.value = withTiming(0, { duration: 280 });
     } else if (mounted) {
@@ -85,20 +54,28 @@ export default function PhotoTipsSheet({ visible, onClose }) {
     }
   }, [visible, mounted, translateY]);
 
+  const handleClose = useCallback(() => {
+    if (onClose) {
+      onClose({ dontShowAgain });
+    }
+  }, [onClose, dontShowAgain]);
+
   useEffect(() => {
     if (!visible) return undefined;
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      if (onClose) onClose();
+      handleClose();
       return true;
     });
     return () => sub.remove();
-  }, [visible, onClose]);
+  }, [visible, handleClose]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
   }));
 
-  if (!mounted) return null;
+  if (!mounted || !tips) return null;
+
+  const title = styleLabel ? `Photo tips · ${styleLabel}` : 'Photo tips';
 
   return (
     <Animated.View
@@ -106,10 +83,12 @@ export default function PhotoTipsSheet({ visible, onClose }) {
       pointerEvents="auto"
     >
       <View style={[styles.tipsTopRow, { paddingTop: insets.top + 8 }]}>
-        <PressScale onPress={onClose} style={styles.tipsCloseCircle} hitSlop={8}>
+        <PressScale onPress={handleClose} style={styles.tipsCloseCircle} hitSlop={8}>
           <Feather name="chevron-down" size={22} color="#FFFFFF" />
         </PressScale>
-        <Text style={styles.tipsTopTitle}>Photo Tips</Text>
+        <Text style={styles.tipsTopTitle} numberOfLines={1}>
+          {title}
+        </Text>
         <View style={styles.tipsCloseCirclePlaceholder} />
       </View>
 
@@ -117,23 +96,17 @@ export default function PhotoTipsSheet({ visible, onClose }) {
         style={styles.tipsScroll}
         contentContainerStyle={[
           styles.tipsScrollContent,
-          { paddingBottom: Math.max(insets.bottom, 12) + 96 },
+          { paddingBottom: Math.max(insets.bottom, 12) + 120 },
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.tipsLead}>
-          Front-facing, well-lit portraits give the AI the most to work with.
-        </Text>
+        <Text style={styles.tipsLead}>{tips.lead}</Text>
 
         <View style={styles.tipsGrid}>
-          {TIP_EXAMPLES.map((item) => {
+          {tips.examples.map((item) => {
             const cardStyle = [
               styles.tipsConceptCard,
               item.good ? styles.tipsConceptCardGood : styles.tipsConceptCardBad,
-            ];
-            const iconBgStyle = [
-              styles.tipsConceptIconBg,
-              item.good ? styles.tipsConceptIconBgGood : styles.tipsConceptIconBgBad,
             ];
             const badgeStyle = [
               styles.tipsBadge,
@@ -149,8 +122,18 @@ export default function PhotoTipsSheet({ visible, onClose }) {
                       style={styles.tipsConceptImage}
                       resizeMode="cover"
                     />
+                  ) : item.placeholder ? (
+                    <View style={styles.tipsPlaceholder}>
+                      <Feather name="image" size={32} color="rgba(255,255,255,0.35)" />
+                      <Text style={styles.tipsPlaceholderLabel}>Example coming soon</Text>
+                    </View>
                   ) : (
-                    <View style={iconBgStyle}>
+                    <View
+                      style={[
+                        styles.tipsConceptIconBg,
+                        item.good ? styles.tipsConceptIconBgGood : styles.tipsConceptIconBgBad,
+                      ]}
+                    >
                       <Feather
                         name={item.icon}
                         size={42}
@@ -173,16 +156,18 @@ export default function PhotoTipsSheet({ visible, onClose }) {
           })}
         </View>
 
-        <View style={styles.tipsRulesBlock}>
-          {RULES.map((rule, i) => (
-            <View key={rule} style={styles.tipsRuleRow}>
-              <View style={styles.tipsRuleBullet}>
-                <Text style={styles.tipsRuleBulletText}>{i + 1}</Text>
+        {tips.rules?.length ? (
+          <View style={styles.tipsRulesBlock}>
+            {tips.rules.map((rule, i) => (
+              <View key={rule} style={styles.tipsRuleRow}>
+                <View style={styles.tipsRuleBullet}>
+                  <Text style={styles.tipsRuleBulletText}>{i + 1}</Text>
+                </View>
+                <Text style={styles.tipsRuleText}>{rule}</Text>
               </View>
-              <Text style={styles.tipsRuleText}>{rule}</Text>
-            </View>
-          ))}
-        </View>
+            ))}
+          </View>
+        ) : null}
       </ScrollView>
 
       <View
@@ -191,7 +176,22 @@ export default function PhotoTipsSheet({ visible, onClose }) {
           { paddingBottom: Math.max(insets.bottom, 16) + 8 },
         ]}
       >
-        <PressScale onPress={onClose} style={styles.tipsContinueButton}>
+        <TouchableOpacity
+          onPress={() => setDontShowAgain((v) => !v)}
+          style={styles.tipsDontShowRow}
+          activeOpacity={0.85}
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: dontShowAgain }}
+        >
+          <View style={[styles.tipsCheckbox, dontShowAgain && styles.tipsCheckboxChecked]}>
+            {dontShowAgain ? (
+              <Feather name="check" size={14} color="#0B0F19" />
+            ) : null}
+          </View>
+          <Text style={styles.tipsDontShowText}>Do not show this again</Text>
+        </TouchableOpacity>
+
+        <PressScale onPress={handleClose} style={styles.tipsContinueButton}>
           <Text style={styles.tipsContinueButtonText}>Got it</Text>
         </PressScale>
       </View>

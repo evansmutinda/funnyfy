@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Image,
   StatusBar,
@@ -10,7 +10,7 @@ import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNotifications } from '../components/NotificationProvider';
 import PressScale from '../components/PressScale';
-import PhotoTipsSheet from '../components/PhotoTipsSheet';
+import UploadFlowHeader, { getUploadQuotaInfo } from '../components/UploadFlowHeader';
 import useImagePicker from '../hooks/useImagePicker';
 import { isTrialUser, getTrialRemaining } from '../utils/trialWarnings';
 import styles from '../styles';
@@ -40,22 +40,8 @@ export default function PhotoReviewScreen({
   const insets = useSafeAreaInsets();
   const { showToast, showDialog, closeDialog } = useNotifications();
   const { pickImage, picking } = useImagePicker();
-  const [tipsVisible, setTipsVisible] = useState(false);
 
-  const getQuotaInfo = () => {
-    if (!subscriptionInfo || !subscriptionInfo.usage) {
-      return { current: 0, limit: 3, percentage: 0, isLow: false, isExceeded: false };
-    }
-    const { current, limit } = subscriptionInfo.usage;
-    const percentage = limit > 0 ? (current / limit) * 100 : 0;
-    return {
-      current,
-      limit,
-      percentage,
-      isLow: percentage >= 80 && percentage < 100,
-      isExceeded: percentage >= 100,
-    };
-  };
+  const getQuotaInfo = () => getUploadQuotaInfo(subscriptionInfo);
 
   const quotaInfo = getQuotaInfo();
   const trialRemaining = isTrialUser(subscriptionInfo) ? getTrialRemaining(subscriptionInfo) : null;
@@ -101,58 +87,13 @@ export default function PhotoReviewScreen({
 
       {/* Header band — natural flow at top */}
       <View style={[styles.reviewHeaderBand, { paddingTop: insets.top + 8 }]}>
-        <View style={styles.uploadHeaderRow}>
-          <PressScale onPress={onBack} style={styles.uploadCircleButton}>
-            <Feather name="chevron-left" size={22} color="#FFFFFF" />
-          </PressScale>
-
-          {subscriptionInfo ? (
-            <PressScale
-              onPress={onOpenSubscription}
-              style={styles.uploadHeaderPill}
-              disabled={!onOpenSubscription}
-            >
-              <View style={styles.uploadHeaderPillProgress}>
-                <View
-                  style={[
-                    styles.uploadHeaderPillProgressFill,
-                    { width: `${Math.min(quotaInfo.percentage, 100)}%` },
-                  ]}
-                />
-              </View>
-              <Text style={styles.uploadHeaderPillText}>
-                {subscriptionInfo.isTrial || !subscriptionInfo.subscription
-                  ? `Trial · ${quotaInfo.current}/${quotaInfo.limit}`
-                  : `${subscriptionInfo.subscription.tier.charAt(0).toUpperCase() + subscriptionInfo.subscription.tier.slice(1)} · ${quotaInfo.current}/${quotaInfo.limit}`}
-              </Text>
-            </PressScale>
-          ) : (
-            <View style={{ width: 40 }} />
-          )}
-
-          <View style={{ width: 40 }} />
-        </View>
-
-        <View style={styles.uploadFloatingChipRow}>
-          {style ? (
-            <PressScale onPress={onBack} style={styles.uploadFloatingChip}>
-              <View style={styles.uploadFloatingChipDot} />
-              <Text style={styles.uploadFloatingChipText} numberOfLines={1}>
-                {style.label}
-              </Text>
-              <Feather name="chevron-down" size={14} color="rgba(255,255,255,0.85)" />
-            </PressScale>
-          ) : null}
-
-          <PressScale
-            onPress={() => setTipsVisible(true)}
-            style={styles.uploadFloatingChip}
-            hitSlop={6}
-          >
-            <Feather name="info" size={14} color="#FFFFFF" />
-            <Text style={styles.uploadFloatingChipText}>Photo tips</Text>
-          </PressScale>
-        </View>
+        <UploadFlowHeader
+          onBack={onBack}
+          onStylePress={onBack}
+          style={style}
+          subscriptionInfo={subscriptionInfo}
+          onOpenSubscription={onOpenSubscription}
+        />
 
         {quotaInfo.isExceeded ? (
           <TouchableOpacity onPress={onSubscribe} style={styles.uploadInlineBanner}>
@@ -168,13 +109,6 @@ export default function PhotoReviewScreen({
               1 caricature left on your trial — tap to upgrade
             </Text>
           </TouchableOpacity>
-        ) : !isOnline ? (
-          <View style={styles.uploadInlineBanner}>
-            <Feather name="wifi-off" size={14} color="rgba(255,255,255,0.8)" />
-            <Text style={styles.uploadInlineBannerText}>
-              You&apos;re offline — connect to generate
-            </Text>
-          </View>
         ) : null}
       </View>
 
@@ -228,11 +162,6 @@ export default function PhotoReviewScreen({
           </Text>
         </PressScale>
       </View>
-
-      <PhotoTipsSheet
-        visible={tipsVisible}
-        onClose={() => setTipsVisible(false)}
-      />
     </View>
   );
 }

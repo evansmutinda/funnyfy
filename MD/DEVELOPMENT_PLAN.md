@@ -11,8 +11,9 @@ This document outlines the development plan and current status of FunnyFy — a 
 - **Mobile App**: React Native (Expo SDK 52) — Android & iOS compatible
 - **Backend**: Vercel serverless functions (Node.js/TypeScript)
 - **Styles**: 160 in catalog; **18 enabled** legacy styles with live prompts
-- **Style UX**: Two-level picker (categories → styles), `MediaTile` discovery layout — white cards, Plus Jakarta Sans labels, dark backdrop pill
+- **Style UX**: Netflix-style category rows on dark background, `MediaTile` discovery layout — labels below image on picker tiles
 - **Core Features**: Image upload, style selection, generation, save/share, gallery, restyle
+- **Upload header**: `UploadFlowHeader` — `[ ← back ] [ style pill ] ···· [ usage pill ]` on Upload + Review (see `MD/UI_REDESIGN_2026_06.md` §6)
 - **Security**: API keys and prompts protected server-side; JWT auth; NSFW moderation; image validation
 - **Subscriptions**: RevenueCat; split paywall UI (hero marquee + plans sheet)
 - **Versioning**: `version.json` + auto-bump on APK builds
@@ -78,15 +79,16 @@ Key tables:
 - expo-file-system for auth token persistence
 
 ### 2.2 Screens
-1. **Style Selection** — level 1: 16 category tiles; level 2: enabled styles per category (2-column grid)
-2. **Upload** — camera or gallery, selected-style chip, plan badge progress bar
-3. **Result** — before/after slider + auto-demo, save/share, try another style
-4. **Gallery** — saved caricature grid, full-screen viewer
-5. **Subscription** — ink hero + style marquee; usage, plans, restore/refresh in white sheet
+1. **Style Selection** — Netflix-style category rows on dark background; "See all" → 2-column grid
+2. **Upload** — `UploadFlowHeader`: back + style pill (left) + usage pill (right); Gallery/Camera; photo tips auto-sheet
+3. **Review / Generate** — same header pills; confirm photo; Generate CTA
+4. **Result** — before/after slider + auto-demo, save/share, try another style
+5. **Gallery** — saved caricature grid, full-screen viewer
+6. **Subscription** — full-bleed dark paywall (`#0B0F19`); usage card, tier cards, pinned CTA
 
 ### 2.3 Offline / connectivity
 - **`@react-native-community/netinfo`** via `NetworkProvider` — tracks online/offline
-- **`OfflineBanner`** — non-blocking top bar when disconnected
+- **`OfflineBanner`** — global **orange overlay** at top when disconnected (does not shift layout)
 - **Fallback styles** — `DEFAULT_ENABLED_STYLES` if `/api/styles` fails
 - **Blocked offline**: generate, subscribe, restore purchases
 - **Works offline**: gallery, about, legal pages, style browsing (cached/fallback catalog)

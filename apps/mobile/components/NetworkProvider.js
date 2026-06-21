@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import NetInfo from '@react-native-community/netinfo';
+import OfflineBanner from './OfflineBanner';
 import { isNetworkOnline } from '../utils/network';
 
 const NetworkContext = createContext({ isOnline: true });
@@ -25,6 +26,7 @@ export default function NetworkProvider({ children }) {
   return (
     <NetworkContext.Provider value={value}>
       {children}
+      <OfflineBanner />
     </NetworkContext.Provider>
   );
 }
