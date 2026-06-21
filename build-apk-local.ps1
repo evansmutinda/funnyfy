@@ -86,6 +86,13 @@ if (-not (Test-Path $androidDir)) {
     exit 1
 }
 
+# Gradle reads sdk.dir from local.properties (gitignored; expo prebuild does not create it).
+$env:ANDROID_HOME = $androidHome
+$env:ANDROID_SDK_ROOT = $androidHome
+$sdkDirProp = "sdk.dir=" + ($androidHome.Replace('\', '\\').Replace(':', '\:'))
+Set-Content -Path (Join-Path $androidDir "local.properties") -Value $sdkDirProp -Encoding ASCII -NoNewline
+Add-Content -Path (Join-Path $androidDir "local.properties") -Value "" -Encoding ASCII
+
 # Debug builds skip JS bundling by default — patch so APK works without Metro/USB.
 $buildGradle = Join-Path $androidDir "app\build.gradle"
 if (Test-Path $buildGradle) {
