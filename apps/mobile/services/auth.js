@@ -6,6 +6,10 @@ import * as FileSystem from 'expo-file-system';
 
 const AUTH_FILE = FileSystem.documentDirectory + '.funnyfyauth.json';
 
+const devLog = (...args) => {
+  if (__DEV__) console.log(...args);
+};
+
 // Read stored auth from device
 async function readStored() {
   try {
@@ -41,11 +45,11 @@ export async function initAuth(apiBase, revenuecatUserId = null) {
   //  failed to get a token e.g. while the backend DB was down.)
   const stored = await readStored();
   if (stored?.userId && stored?.token) {
-    console.log('[Auth] Using stored auth, userId:', stored.userId);
+    devLog('[Auth] Using stored auth, userId:', stored.userId);
     return stored;
   }
   if (stored?.userId && !stored?.token) {
-    console.log('[Auth] Stored auth has no token, clearing and re-authenticating...');
+    devLog('[Auth] Stored auth has no token, clearing and re-authenticating...');
     await FileSystem.deleteAsync(AUTH_FILE, { idempotent: true });
   }
 
@@ -53,7 +57,7 @@ export async function initAuth(apiBase, revenuecatUserId = null) {
   const maxAttempts = 3;
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     try {
-      console.log('[Auth] Requesting token from backend...', attempt > 0 ? `(retry ${attempt})` : '');
+      devLog('[Auth] Requesting token from backend...', attempt > 0 ? `(retry ${attempt})` : '');
       const res = await fetch(`${apiBase}/api/auth/token`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -67,7 +71,7 @@ export async function initAuth(apiBase, revenuecatUserId = null) {
         if (data.ok && data.token && data.userId) {
           const auth = { userId: data.userId, token: data.token, isLocal: false };
           await writeStored(auth);
-          console.log('[Auth] Got token from backend, userId:', data.userId);
+          devLog('[Auth] Got token from backend, userId:', data.userId);
           return auth;
         }
       }
@@ -90,7 +94,11 @@ export async function initAuth(apiBase, revenuecatUserId = null) {
   const localId = generateUUID();
   const fallback = { userId: localId, token: null, isLocal: true };
   await writeStored(fallback);
-  console.warn('[Auth] Using local fallback userId:', localId);
+  if (__DEV__) {
+    console.warn('[Auth] Using local fallback userId:', localId);
+  } else {
+    console.warn('[Auth] Using local fallback ID — backend unavailable');
+  }
   return fallback;
 }
 
@@ -112,7 +120,7 @@ export async function resetAuthIfLocal() {
   try {
     const stored = await readStored();
     if (stored?.isLocal) {
-      console.log('[Auth] Clearing local fallback ID to get real auth...');
+      devLog('[Auth] Clearing local fallback ID to get real auth...');
       await FileSystem.deleteAsync(AUTH_FILE, { idempotent: true });
     }
   } catch {}

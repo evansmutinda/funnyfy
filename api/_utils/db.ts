@@ -26,8 +26,13 @@ function getPool(): Pool {
 
   cachedPool = new Pool({
     connectionString,
-    ssl: { rejectUnauthorized: false },
-    max: 10,
+    // Serverless: one connection per warm instance (use Supabase pooler port 6543).
+    // Override with DATABASE_POOL_MAX if needed after load testing.
+    ssl:
+      process.env.DATABASE_SSL_REJECT_UNAUTHORIZED === 'false'
+        ? { rejectUnauthorized: false }
+        : { rejectUnauthorized: true },
+    max: Number(process.env.DATABASE_POOL_MAX || 1),
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 8000, // Supabase free tier can be slow to wake from pause
   });

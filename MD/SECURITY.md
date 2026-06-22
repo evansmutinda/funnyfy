@@ -70,11 +70,16 @@ Before a job is enqueued:
 - Development mode shows full details for debugging
 
 ### 9. Rate Limiting
-- Per-IP and per-user rate limiting
+- Per-IP and per-user rate limiting (Postgres-backed `rate_limits` table)
 - Burst protection by tier
 - Daily safety limits
+- **Fail-open policy:** if a rate-limit DB query errors, the request is **allowed** and `rate_limit_fail_open` is written to `security_logs` (availability over abuse protection during DB incidents). See `MD/DISASTER_RECOVERY.md`.
 
-### 10. Middleware Helpers (`api/_utils/middleware.ts`)
+### 10. Health & monitoring
+- **`GET /api/health`** — public liveness (no DB); use for uptime monitors
+- **`GET /api/db-test`** — requires `Authorization: Bearer <CRON_SECRET>` for DB connectivity
+
+### 11. Middleware Helpers (`api/_utils/middleware.ts`)
 - Combined CORS, security headers, and OPTIONS handling
 - Request body parsing with error handling
 - Request validation helpers
@@ -99,6 +104,10 @@ REVENUECAT_WEBHOOK_SECRET=your-webhook-secret
 
 # Database
 DATABASE_URL=your-supabase-url
+# Optional: pool size per serverless instance (default 1; use Supabase pooler port 6543)
+DATABASE_POOL_MAX=1
+# Set to false only if SSL verify fails against your Postgres provider (staging debug)
+DATABASE_SSL_REJECT_UNAUTHORIZED=false
 
 # Cost Protection
 DAILY_SPENDING_CAP=100

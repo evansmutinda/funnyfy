@@ -16,10 +16,11 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import jwt from 'jsonwebtoken';
 import { query } from '../_utils/db';
 import { applyMiddleware } from '../_utils/middleware';
-import { safeErrorResponse, verifyJWT } from '../_utils/security';
+import { safeErrorResponse, verifyJWT, getClientIp } from '../_utils/security';
 import { getQueueStats } from '../_utils/queue-stats';
 import { getTodaySpending, getSpendingStats, shouldPauseQueue } from '../_utils/cost-protection';
-import { getRecentSecurityEvents } from '../_utils/security-logging';
+import { getRecentSecurityEvents, logSecurityEvent } from '../_utils/security-logging';
+import { checkAdminLoginRateLimit } from '../_utils/ratelimit';
 
 const JWT_SECRET = process.env.JWT_SECRET || process.env.AUTH_SECRET;
 const ADMIN_USER_IDS = (process.env.ADMIN_USER_IDS || '').split(',').filter(Boolean);
@@ -42,6 +43,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // ── LOGIN (no auth required) ───────────────────────────────────────────────
   if (resource === 'login') {
+    const loginLimit = await checkAdminLoginRateLimit(req);
+    if (!loginLimit.allowed) {
+      await logSecurityEvent({
+        eventType: 'admin_login_rate_limited',
+        ip: getClientIp(req),
+        userAgent: req.headers['user-agent'] as string,
+        success: false,
+      });
+      return safeErrorResponse(res, 429, 'RATE_LIMITED', loginLimit.error);
+    }
+
     const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
     const { userId } = body as { userId?: string };
 
@@ -67,6 +79,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         finalUserId = userResult.rows[0].id;
         const isAdmin = ADMIN_USER_IDS.includes(userId) || ADMIN_USER_IDS.includes(finalUserId);
         if (!isAdmin) {
+          await logSecurityEvent({
+            eventType: 'admin_login_denied',
+            userId: finalUserId,
+            ip: getClientIp(req),
+            userAgent: req.headers['user-agent'] as string,
+            success: false,
+          });
           return safeErrorResponse(res, 403, 'ACCESS_DENIED', 'Admin access required.');
         }
       }
@@ -248,13 +267,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (tier) { conditions.push(`u.subscription_tier = $${p}`); params.push(tier); p++; }
       if (status) { conditions.push(`u.subscription_status = $${p}`); params.push(status); p++; }
       const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+      params.push(limit, offset);
 
       const [usersResult, countResult] = await Promise.all([
         query<any>(
           `SELECT u.id, u.email, u.revenuecat_user_id, u.subscription_tier, u.subscription_status,
                   u.trial_generations_used, u.banned_at, u.created_at, COALESCE(ut.count, 0) AS usage_this_month
            FROM users u LEFT JOIN usage_tracking ut ON ut.user_id = u.id AND ut.month = $1
-           ${where} ORDER BY u.created_at DESC LIMIT ${limit} OFFSET ${offset}`,
+           ${where} ORDER BY u.created_at DESC LIMIT $${p} OFFSET $${p + 1}`,
           params
         ),
         query<{ count: number }>(`SELECT COUNT(*)::int AS count FROM users u ${where}`, params),
@@ -298,13 +318,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (status) { conditions.push(`j.status = $${p}`); params.push(status); p++; }
       if (userId) { conditions.push(`j.user_id = $${p}`); params.push(userId); p++; }
       const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+      params.push(limit, offset);
 
       const [jobsResult, countResult] = await Promise.all([
         query<any>(
           `SELECT j.id, j.user_id, j.style_id, j.status, j.priority, j.output_image_url,
                   j.error_message, j.created_at, j.completed_at, u.subscription_tier
            FROM jobs j LEFT JOIN users u ON u.id = j.user_id
-           ${where} ORDER BY j.created_at DESC LIMIT ${limit} OFFSET ${offset}`,
+           ${where} ORDER BY j.created_at DESC LIMIT $${p} OFFSET $${p + 1}`,
           params
         ),
         query<{ count: number }>(`SELECT COUNT(*)::int AS count FROM jobs j ${where}`, params),

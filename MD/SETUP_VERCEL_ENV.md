@@ -75,10 +75,12 @@ Or simply push a new commit to trigger a deployment.
 Test your setup:
 
 ```bash
-# Test database connection
-curl https://funnyfyapp.vercel.app/api/db-test
+# Liveness (public)
+curl https://funnyfy-staging.vercel.app/api/health
 
-# Should return: {"ok":true,"now":"2025-01-XX..."}
+# Database (ops — CRON_SECRET header)
+curl -H "Authorization: Bearer $CRON_SECRET" https://funnyfy-staging.vercel.app/api/db-test
+# Should return: {"ok":true,"now":"..."}
 ```
 
 ### 7. Common Issues

@@ -45,7 +45,10 @@ FunnyFy is a React Native mobile app (Android & iOS) that transforms user photos
 | `ADDING_MORE_STYLES_GUIDE.md` | Enable catalog styles + thumbnails |
 | `BUILD_APK_GUIDE.md` | EAS and local APK builds (preferred over Expo Go) |
 | `DATABASE_SCHEMA.md` | Supabase schema |
+| `DISASTER_RECOVERY.md` | RTO/RPO, rollback, health checks, incident playbooks |
 | `REVENUECAT_SETUP.md` | RevenueCat SDK + webhook |
+| `SECURITY_AUDIT.md` | Security audit findings + checklist |
+| `SECURITY.md` | Security implementation reference |
 
 ## Current Status
 

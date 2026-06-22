@@ -58,6 +58,10 @@ if (API_BASE.startsWith('http://') && !API_BASE.includes('localhost') && !API_BA
   throw new Error('Insecure API URL: HTTPS required for production');
 }
 
+const devLog = (...args) => {
+  if (__DEV__) console.log(...args);
+};
+
 ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
 
 async function configureAndroidNavigationBar() {
@@ -159,7 +163,7 @@ function AppContent({ fontsLoaded }) {
     if (!hasRevenueCatKey() || !backendUserId) return null;
     try {
       const rcCustomerInfo = await loginUser(backendUserId);
-      console.log('[RevenueCat] Linked to backend user:', backendUserId);
+      devLog('[RevenueCat] Linked to backend user:', backendUserId);
       return rcCustomerInfo;
     } catch (loginErr) {
       console.warn('[RevenueCat] logIn error (non-fatal):', loginErr?.message || loginErr);
@@ -176,7 +180,7 @@ function AppContent({ fontsLoaded }) {
       try {
         await initRevenueCat(null);
         rcUserId = await getAppUserId();
-        console.log('[RevenueCat] Initialized, appUserId:', rcUserId);
+        devLog('[RevenueCat] Initialized, appUserId:', rcUserId);
       } catch (err) {
         console.error('[RevenueCat] init error:', err);
       }
@@ -190,10 +194,10 @@ function AppContent({ fontsLoaded }) {
     try {
       auth = await initAuth(API_BASE, rcUserId);
       applyAuthState(auth);
-      console.log('[AUTH_DEBUG] API_BASE:', API_BASE);
-      console.log('[AUTH_DEBUG] userId:', auth.userId);
-      console.log('[AUTH_DEBUG] hasToken:', !!auth.token);
-      console.log('[AUTH_DEBUG] isLocal:', !!auth.isLocal);
+      devLog('[AUTH_DEBUG] API_BASE:', API_BASE);
+      devLog('[AUTH_DEBUG] userId:', auth.userId);
+      devLog('[AUTH_DEBUG] hasToken:', !!auth.token);
+      devLog('[AUTH_DEBUG] isLocal:', !!auth.isLocal);
 
       if (auth.isLocal) {
         console.warn('[Auth] Running with local ID — backend unavailable. Check DATABASE_URL in Vercel.');
@@ -224,7 +228,7 @@ function AppContent({ fontsLoaded }) {
       return { userId: userIdRef.current, token: authTokenRef.current, isLocal: false };
     }
 
-    console.log('[Auth] Ensuring authentication...');
+    devLog('[Auth] Ensuring authentication...');
     const rcUserId = hasRevenueCatKey() ? await getAppUserId().catch(() => null) : null;
 
     // No JWT means stored auth is stale or startup raced — force a fresh token
@@ -279,7 +283,7 @@ function AppContent({ fontsLoaded }) {
       });
       const syncResult = await syncResponse.json();
       if (syncResult.ok) {
-        console.log('[subscription] Synced to backend:', syncResult.subscription);
+        devLog('[subscription] Synced to backend:', syncResult.subscription);
       } else {
         console.warn('[subscription] Sync failed:', syncResult.error);
       }
@@ -367,7 +371,7 @@ function AppContent({ fontsLoaded }) {
         headers: getApiHeaders(),
       });
       const text = await res.text();
-      console.log('[subscription] response:', text);
+      devLog('[subscription] response:', text);
       let json;
       try {
         json = JSON.parse(text);
@@ -449,7 +453,7 @@ function AppContent({ fontsLoaded }) {
 
   useEffect(() => {
     if (!wasOnlineRef.current && isOnline) {
-      console.log('[Network] Back online — refreshing styles and subscription');
+      devLog('[Network] Back online — refreshing styles and subscription');
       fetchStyles();
       refreshSubscription();
       ensureAuthenticated()
@@ -469,7 +473,7 @@ function AppContent({ fontsLoaded }) {
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextAppState) => {
       if (nextAppState === 'active' && authReady) {
-        console.log('[App] App came to foreground, refreshing subscription...');
+        devLog('[App] App came to foreground, refreshing subscription...');
         refreshSubscription();
       }
     });
@@ -570,7 +574,7 @@ function AppContent({ fontsLoaded }) {
           setPendingJobId(null);
 
           setTimeout(async () => {
-            console.log('[App] Auto-refreshing subscription after generation...');
+            devLog('[App] Auto-refreshing subscription after generation...');
             const sub = await refreshSubscription();
             if (sub) showTrialWarningIfNeeded(sub);
           }, 1500);
@@ -652,7 +656,7 @@ function AppContent({ fontsLoaded }) {
         }
       }
 
-      console.log('[RevenueCat] Fetching offerings...');
+      devLog('[RevenueCat] Fetching offerings...');
       const pkgs = await getOfferings();
 
       if (!pkgs || pkgs.length === 0) {
@@ -661,7 +665,7 @@ function AppContent({ fontsLoaded }) {
         return;
       }
 
-      console.log(`[RevenueCat] Found ${pkgs.length} package(s):`, pkgs.map(p => ({
+      devLog(`[RevenueCat] Found ${pkgs.length} package(s):`, pkgs.map(p => ({
         identifier: p.identifier,
         product: p.product?.identifier,
         price: p.product?.priceString
@@ -678,12 +682,12 @@ function AppContent({ fontsLoaded }) {
       const priceString = packageInfo?.priceString || 'N/A';
       const packageId = packageInfo?.identifier || selected.identifier;
 
-      console.log(`[RevenueCat] Purchasing package: ${packageId} (${priceString})`);
+      devLog(`[RevenueCat] Purchasing package: ${packageId} (${priceString})`);
 
       // Attempt purchase
       const purchaseResult = await purchasePackage(selected);
 
-      console.log('[RevenueCat] Purchase result:', {
+      devLog('[RevenueCat] Purchase result:', {
         productIdentifier: purchaseResult?.productIdentifier,
         hasCustomerInfo: !!purchaseResult?.customerInfo,
       });
@@ -698,7 +702,7 @@ function AppContent({ fontsLoaded }) {
 
       const subDetails = getActiveSubscriptionDetails(customerInfo);
       if (subDetails?.productIdentifier) {
-        console.log('[RevenueCat] Purchase successful:', subDetails.productIdentifier);
+        devLog('[RevenueCat] Purchase successful:', subDetails.productIdentifier);
 
         await ensureAuthenticated();
         await syncSubscriptionToBackend(customerInfo);

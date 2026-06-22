@@ -48,9 +48,11 @@ After adding variables, redeploy:
 ### Step 4: Verify
 
 ```bash
-# Test database connection
-curl https://funnyfyapp.vercel.app/api/db-test
+# Liveness (public — uptime monitors)
+curl https://funnyfy-staging.vercel.app/api/health
 
+# Database (requires CRON_SECRET from Vercel env)
+curl -H "Authorization: Bearer $CRON_SECRET" https://funnyfy-staging.vercel.app/api/db-test
 # Should return: {"ok":true,"now":"..."}
 ```
 

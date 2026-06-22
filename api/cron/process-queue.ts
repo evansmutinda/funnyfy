@@ -12,6 +12,7 @@ import { getStyleById } from '../_utils/styles-config';
 import { verifyJWT } from '../_utils/security';
 import { creditUsageForJob } from '../_utils/usage';
 import { recoverStaleProcessingJobs } from '../_utils/replicate-sync';
+import { purgeStaleRateLimits } from '../_utils/ratelimit';
 
 const MAX_CONCURRENT_JOBS = Number(process.env.MAX_CONCURRENT_JOBS || 10);
 
@@ -46,6 +47,15 @@ export default async function handler(
       }
     } catch (recoverErr) {
       console.warn('[process-queue] Stale job recovery failed:', recoverErr);
+    }
+
+    try {
+      const purged = await purgeStaleRateLimits();
+      if (purged > 0) {
+        console.log(`[process-queue] Purged ${purged} stale rate_limits row(s)`);
+      }
+    } catch (purgeErr) {
+      console.warn('[process-queue] rate_limits purge failed:', purgeErr);
     }
 
     // Check if queue should be paused due to cost protection

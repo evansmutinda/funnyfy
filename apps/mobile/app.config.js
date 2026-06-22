@@ -37,6 +37,7 @@ export default {
     android: {
       package: 'com.evansks.funnyfyapp',
       versionCode: versionInfo.androidVersionCode,
+      allowBackup: false,
       permissions: [
         'CAMERA',
         'READ_EXTERNAL_STORAGE',

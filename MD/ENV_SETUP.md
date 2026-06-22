@@ -216,9 +216,15 @@ This guide explains all environment variables needed for FunnyFy and how to conf
 
 ## 🔍 Verifying Setup
 
+### Test API liveness
+```bash
+curl https://funnyfy-staging.vercel.app/api/health
+# Should return: {"ok":true,"service":"funnyfy-api","ts":"..."}
+```
+
 ### Test Database Connection
 ```bash
-curl https://funnyfyapp.vercel.app/api/db-test
+curl -H "Authorization: Bearer $CRON_SECRET" https://funnyfy-staging.vercel.app/api/db-test
 # Should return: {"ok":true,"now":"..."}
 ```
 

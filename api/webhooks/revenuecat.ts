@@ -188,7 +188,7 @@ export default async function handler(
   });
 
   // Check for duplicate processing (idempotency)
-  const eventId = event.event?.id || event.id || `${eventType}_${Date.now()}`;
+  const eventId = event.event?.id || event.id || `rc_${crypto.randomUUID()}`;
   try {
     // Check if we've already processed this event
     const existingEvent = await query<{ id: string }>(

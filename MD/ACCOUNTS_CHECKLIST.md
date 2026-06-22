@@ -95,7 +95,7 @@ Version: see `MD/STATUS.md`
 | API base (production) | `https://funnyfyapp.vercel.app` | Verify env before release |
 | Error monitoring | — | ⬜ Add at launch (Vercel / Supabase alerts) |
 
-See also: `MD/ADMIN_DASHBOARD_COMPLETE.md`, `MD/START_HERE_ADMIN.md`
+See also: `MD/STATUS.md` (admin at `/admin/login`), `MD/JWT_AUTHENTICATION.md`, set `ADMIN_USER_IDS` in Vercel
 
 ---
 
