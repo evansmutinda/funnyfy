@@ -5,12 +5,10 @@
 
 ---
 
-## Error tracking — Sentry (next: guided setup)
+## Error tracking — Sentry
 
-- [ ] **Sentry** — follow `To do/SENTRY_INTEGRATION.md`; ask in chat for step-by-step setup when ready  
-  - Mobile project first (`@sentry/react-native`), optional API project  
-  - Use separate staging vs production Sentry projects or environments  
-  - Do **not** send photos/base64 in events
+- [x] **Mobile Sentry** — org `funnyfy`, project `react-native`; see `To do/SENTRY_INTEGRATION.md`
+- [ ] **API Sentry** (optional) — `@sentry/node` on Vercel for server-side errors
 
 ---
 
@@ -60,14 +58,13 @@
 - [x] Rate-limit fail-open → `security_logs` event `rate_limit_fail_open`
 - [x] Webhook idempotency fallback → `crypto.randomUUID()` (not `Date.now()`)
 - [x] Stale `rate_limits` purge on cron tick
-- [x] Sensitive mobile logs `__DEV__`-gated; admin rate limit; db-test CRON auth; `allowBackup: false`
+- [x] Mobile Sentry (`@sentry/react-native`, staging environment)
 
 ---
 
 ## Suggested order
 
-1. **Sentry** (guided setup when you’re ready)  
-2. Deploy + verify staging (`/api/health`, generate, admin)  
-3. Secure-store + production keystore  
-4. Cron scoping + admin fail-closed  
-5. RLS, Redis, CORS, Proguard as needed
+1. Deploy + verify staging (`/api/health`, generate, admin)  
+2. Secure-store + production keystore  
+3. Cron scoping + admin fail-closed  
+4. Optional API Sentry + RLS, Redis, CORS, Proguard as needed

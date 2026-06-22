@@ -170,7 +170,7 @@ A second pass organized by infra category, covering areas not fully broken out a
 - Queue worker processes jobs one at a time per cron tick despite `MAX_CONCURRENT_JOBS=10` being configured — throughput-limited. **Medium.** *Recommendation:* batch-process up to the concurrency limit per invocation.
 
 ### 11. Error Tracking & Logs
-- No Sentry/error-tracking integration found — failures are visible only in Vercel's function logs and the app's own `security_logs` table. **High.** *Recommendation:* integrate Sentry (or similar) for unhandled exceptions and release tracking before wider rollout.
+- **Mobile:** Sentry integrated (`@sentry/react-native`, org `funnyfy`, project `react-native`) — see `To do/SENTRY_INTEGRATION.md`. API backend Sentry still optional.
 - Logging is unstructured `console.log`/`console.error` calls rather than structured JSON — harder to query/alert on at scale. **Medium.**
 - Mobile `console.log` of sensitive data — already tracked as High #8 above (now `__DEV__`-gated per checklist).
 
@@ -186,7 +186,7 @@ A second pass organized by infra category, covering areas not fully broken out a
 - [x] Write disaster-recovery doc — `MD/DISASTER_RECOVERY.md`
 - [x] Postgres pool `max: 1` per serverless instance (`DATABASE_POOL_MAX` override); SSL verify on (`DATABASE_SSL_REJECT_UNAUTHORIZED=false` escape hatch)
 - [ ] Add baseline Supabase RLS policies as defense-in-depth
-- [ ] Integrate Sentry — see `To do/SENTRY_INTEGRATION.md` + `todo/security-deferred.md`
+- [ ] Optional API Sentry (`@sentry/node` on Vercel) — see `To do/SENTRY_INTEGRATION.md` + `todo/security-deferred.md`
 - [x] Scheduled cleanup of stale `rate_limits` rows (cron worker)
 - [ ] Add a circuit breaker around Replicate API failures
 - [x] Webhook idempotency fallback uses `crypto.randomUUID()` (not `Date.now()`)

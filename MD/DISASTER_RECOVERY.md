@@ -138,5 +138,5 @@ Fill in before launch:
 ## Related docs
 
 - `MD/SECURITY_AUDIT.md` — findings checklist
-- `todo/security-deferred.md` — remaining hardening (Sentry, RLS, etc.)
-- `To do/SENTRY_INTEGRATION.md` — error tracking setup (next step)
+- `todo/security-deferred.md` — remaining hardening (optional API Sentry, RLS, etc.)
+- `To do/SENTRY_INTEGRATION.md` — mobile Sentry reference (live)

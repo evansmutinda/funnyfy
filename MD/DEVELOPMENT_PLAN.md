@@ -20,10 +20,10 @@ This document outlines the development plan and current status of FunnyFy — a 
 - **Database**: Supabase (users, subscriptions, usage_tracking, jobs, infringements, etc.)
 - **UI/UX**: Toast system, ConfirmDialog, Privacy Policy & Terms, Gallery screen
 - **Auth**: JWT-based auth service (`services/auth.js`), local UUID fallback
+- **Error tracking**: Sentry mobile (`utils/sentry.js`, staging environment)
 
 ### 🚧 Deferred (Post-Launch)
 - Formal real authentication (Supabase Auth / Clerk) — current JWT system is functional but uses anonymous IDs
-- Error tracking (Sentry)
 - Analytics (Firebase/Mixpanel)
 - Subscription trial (time-based 3-day trial via Play Store)
 - E003 "generators busy" friendly error
@@ -144,7 +144,7 @@ Key tables:
 
 ### 📋 Phase 4: Post-Launch (Planned)
 - Analytics integration
-- Error tracking (Sentry)
+- Optional API Sentry (`@sentry/node` on Vercel)
 - User history / favorites
 - Subscription trial (3-day via Play Store)
 - Formal security audit

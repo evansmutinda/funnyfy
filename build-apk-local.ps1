@@ -15,7 +15,7 @@ $ErrorActionPreference = "Stop"
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "  FunnyFy — Local APK Build" -ForegroundColor Cyan
+Write-Host "  FunnyFy - Local APK Build" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -53,6 +53,28 @@ if (-not (Test-Path $androidHome)) {
 }
 Write-Host "Android SDK: $androidHome" -ForegroundColor Green
 
+# Gradle/React Native need JDK 17; default PATH may point at a newer JDK (e.g. 25).
+if (-not $env:JAVA_HOME -or -not (Test-Path (Join-Path $env:JAVA_HOME "bin\java.exe"))) {
+    $jdk17Candidates = @(
+        "C:\Program Files\Java\jdk-17",
+        "C:\Program Files\Eclipse Adoptium\jdk-17*",
+        "C:\Program Files\Microsoft\jdk-17*"
+    )
+    foreach ($pattern in $jdk17Candidates) {
+        $match = Get-Item $pattern -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($match -and (Test-Path (Join-Path $match.FullName "bin\java.exe"))) {
+            $env:JAVA_HOME = $match.FullName
+            break
+        }
+    }
+}
+if ($env:JAVA_HOME) {
+    $env:PATH = (Join-Path $env:JAVA_HOME "bin") + ";" + $env:PATH
+    Write-Host "JAVA_HOME: $env:JAVA_HOME" -ForegroundColor Green
+} else {
+    Write-Host "Warning: JDK 17 not found. Install JDK 17 and set JAVA_HOME before building." -ForegroundColor Yellow
+}
+
 Write-Host ""
 Write-Host "Installing npm dependencies..." -ForegroundColor Yellow
 npm install
@@ -86,6 +108,17 @@ if (-not (Test-Path $androidDir)) {
     exit 1
 }
 
+# Gradle wrapper defaults to 10s network timeout — too short for gradle-8.x zip on slow networks.
+$gradleWrapperProps = Join-Path $androidDir "gradle\wrapper\gradle-wrapper.properties"
+if (Test-Path $gradleWrapperProps) {
+    $gw = Get-Content $gradleWrapperProps -Raw
+    if ($gw -match 'networkTimeout=10000') {
+        $gw = $gw -replace 'networkTimeout=10000', 'networkTimeout=600000'
+        [System.IO.File]::WriteAllText($gradleWrapperProps, $gw)
+        Write-Host "Patched gradle-wrapper.properties: networkTimeout=600000 (10 min)" -ForegroundColor Green
+    }
+}
+
 # Gradle reads sdk.dir from local.properties (gitignored; expo prebuild does not create it).
 $env:ANDROID_HOME = $androidHome
 $env:ANDROID_SDK_ROOT = $androidHome
@@ -93,12 +126,14 @@ $sdkDirProp = "sdk.dir=" + ($androidHome.Replace('\', '\\').Replace(':', '\:'))
 Set-Content -Path (Join-Path $androidDir "local.properties") -Value $sdkDirProp -Encoding ASCII -NoNewline
 Add-Content -Path (Join-Path $androidDir "local.properties") -Value "" -Encoding ASCII
 
-# Debug builds skip JS bundling by default — patch so APK works without Metro/USB.
+# Debug builds skip JS bundling by default - patch so APK works without Metro/USB.
 $buildGradle = Join-Path $androidDir "app\build.gradle"
 if (Test-Path $buildGradle) {
     $g = Get-Content $buildGradle -Raw
     if ($g -notmatch 'debuggableVariants\s*=\s*\[\]') {
-        $g = $g -replace '(react \{\r?\n)', "`$1    debuggableVariants = []`r`n"
+        $nl = [Environment]::NewLine
+        $replacement = '$1    debuggableVariants = []' + $nl
+        $g = $g -replace '(react \{\r?\n)', $replacement
         [System.IO.File]::WriteAllText($buildGradle, $g)
         Write-Host "Patched build.gradle: debug APK bundles JS (standalone install)" -ForegroundColor Green
     }
@@ -111,7 +146,7 @@ $task = if ($Release) { "assembleRelease" } else { "assembleDebug" }
 
 Write-Host ""
 Write-Host "Building $variant APK (gradlew $task)..." -ForegroundColor Green
-Write-Host "First build can take 10–20 minutes." -ForegroundColor Gray
+Write-Host "First build can take 10-20 minutes." -ForegroundColor Gray
 Write-Host ""
 
 .\gradlew.bat $task
@@ -119,9 +154,9 @@ Write-Host ""
 if ($LASTEXITCODE -ne 0) {
     Write-Host ""
     Write-Host "Build failed. Common fixes:" -ForegroundColor Red
-    Write-Host "  • Install JDK 17 and set JAVA_HOME" -ForegroundColor Gray
-    Write-Host "  • Open Android Studio -> SDK Manager -> install SDK Platform + Build-Tools" -ForegroundColor Gray
-    Write-Host "  • Release builds need signing — use debug build (no -Release flag) for testing" -ForegroundColor Gray
+    Write-Host "  - Install JDK 17 and set JAVA_HOME" -ForegroundColor Gray
+    Write-Host "  - Open Android Studio -> SDK Manager -> install SDK Platform + Build-Tools" -ForegroundColor Gray
+    Write-Host "  - Release builds need signing; use debug build (no -Release flag) for testing" -ForegroundColor Gray
     exit 1
 }
 

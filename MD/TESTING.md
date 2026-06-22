@@ -250,6 +250,18 @@ Check Supabase `infringements` table to verify the record was created.
 
 ---
 
+## Sentry (error reporting)
+
+Mobile Sentry is live for staging. After installing a debug APK:
+
+1. Open [sentry.io](https://sentry.io) → org **funnyfy** → project **react-native** → **Issues**
+2. Filter environment **staging**
+3. Optional one-time ping: set `EXPO_PUBLIC_SENTRY_TEST=true` in `.env`, rebuild APK (see `To do/SENTRY_INTEGRATION.md`)
+
+Real errors (e.g. failed generation) appear via `captureAppError` in `App.js`.
+
+---
+
 ## Troubleshooting
 
 | Symptom | Fix |
@@ -265,7 +277,8 @@ Check Supabase `infringements` table to verify the record was created.
 | Usage counter skips a number | Run migration `004-job-usage-credits.sql`; redeploy API with atomic queue claim |
 | Expo Go SDK mismatch after update | Use local debug APK; or disable Expo Go auto-update (Android); see **Method 2** in `TESTING.md` |
 | Offline at launch | Top banner appears; default styles load; no blocking dialog |
-| Generate while offline | Button disabled on Upload; toast if triggered from restyle |
+| Gradle `com.facebook.react.settings` / Java `25` error | Set `JAVA_HOME` to JDK 17; use `build-apk-local.ps1` (auto-detects) |
+| Sentry Issues page empty | Confirm `EXPO_PUBLIC_SENTRY_ENABLED=true` in `.env`, rebuild APK; check **react-native** project (not web) |
 
 ---
 
@@ -287,6 +300,7 @@ Check Supabase `infringements` table to verify the record was created.
 - [ ] Subscription purchase updates plan (not stuck on trial)
 - [ ] Offline banner shows in airplane mode; Generate disabled on Upload
 - [ ] Back online: banner clears; styles/subscription refresh
+- [ ] Sentry receives events (staging) — see **Sentry** section above
 
 ---
 

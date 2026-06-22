@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased] - 2026-06-21
 
 ### Added
+- **Sentry (mobile)** — `@sentry/react-native`, `utils/sentry.js`, staging environment; see `To do/SENTRY_INTEGRATION.md`
 - **`UsageScreen`** (`screens/UsageScreen.js`): usage card, refresh, link to subscription — split from paywall.
 - **`PaywallStyleFade`** (`components/PaywallStyleFade.js`): subscription hero cycles style previews via the same two-layer crossfade technique as `ComparisonFade`.
 - **`utils/usageQuota.js`**: shared low-quota threshold (≤10% remaining) for header pill + usage card amber styling.
@@ -83,7 +84,6 @@ All notable changes to this project will be documented in this file.
 - (Optional) Replace Photo Tips placeholders with real example photos in `data/stylePhotoTips.js` — drop assets into `apps/mobile/assets/tips/` and set `image:` on each example item.
 - Set Android navigation bar color at runtime in Expo Go if needed (`expo-navigation-bar` installed; `app.config.js` already uses `#0B0F19` for native builds).
 - Branded splash PNG — see `To do/SPLASH_ASSET.md` (native `#0B0F19` splash works today).
-- **Sentry error reporting** — see `To do/SENTRY_INTEGRATION.md` (mobile + optional API).
 - Design Section 3 (Wait / Perceived Performance) — optional further narrative polish beyond moderation + generate steps (see `MD/UI_REDESIGN_2026_06.md` §9).
 
 ---

@@ -1,150 +1,82 @@
 # Sentry integration (error reporting)
 
-**Status:** Not started — planned for mobile app + optional API backend.
+**Status:** ✅ Mobile live (org `funnyfy`, project `react-native`, environment `staging`)  
+**Verified:** June 2026 — events visible in Sentry Issues  
+**Optional:** API backend (`@sentry/node`) not started
 
 ---
 
-## Goals
+## What’s wired
 
-- Capture **JS crashes** and unhandled promise rejections in the React Native app
-- Report **API / generation failures** with useful context (user id, job id, screen — no photo data)
-- Separate **dev** vs **production** environments in Sentry
-- Free tier is sufficient to start ([sentry.io](https://sentry.io) — 5k errors/month on Developer plan)
+| Piece | Location |
+|-------|----------|
+| Init + scrubbing | `apps/mobile/utils/sentry.js` |
+| Boot | `apps/mobile/index.js` — `initSentry()` + `Sentry.wrap(App)` |
+| Expo plugin | `apps/mobile/app.config.js` — `@sentry/react-native/expo` |
+| Metro | `apps/mobile/metro.config.js` — `getSentryExpoConfig` |
+| User context | `App.js` — `setSentryUser(auth.userId)` after auth |
+| Generation errors | `App.js` — `captureAppError(err, { flow: 'generate', styleId })` (NSFW blocks excluded) |
 
 ---
 
-## Mobile app (`apps/mobile`)
-
-### 1. Create Sentry project
-
-1. Sign up / log in at [sentry.io](https://sentry.io)
-2. Create project → **React Native**
-3. Copy the **DSN** (public — safe in app, but use env vars anyway)
-
-### 2. Install (Expo SDK 52)
-
-```powershell
-cd apps/mobile
-npx expo install @sentry/react-native
-```
-
-Follow [Expo + Sentry wizard](https://docs.expo.dev/guides/using-sentry/) or manual setup below.
-
-### 3. Env vars
-
-Add to `apps/mobile/.env` (and EAS secrets for release builds):
+## Env vars (`apps/mobile/.env`)
 
 ```env
-EXPO_PUBLIC_SENTRY_DSN=https://xxxx@xxxx.ingest.sentry.io/xxxx
+EXPO_PUBLIC_SENTRY_DSN=https://YOUR_KEY@oXXXX.ingest.us.sentry.io/PROJECT_ID
+EXPO_PUBLIC_SENTRY_ENV=staging
+EXPO_PUBLIC_SENTRY_ENABLED=true
 ```
 
-Optional:
+| Variable | Purpose |
+|----------|---------|
+| `EXPO_PUBLIC_SENTRY_DSN` | Required — React Native project DSN (not `@sentry/react` web) |
+| `EXPO_PUBLIC_SENTRY_ENV` | `staging` / `production` — filter in Sentry dashboard |
+| `EXPO_PUBLIC_SENTRY_ENABLED` | Set `true` for debug APKs (`__DEV__` builds otherwise skip sending) |
+| `EXPO_PUBLIC_SENTRY_TEST` | Optional — one startup test message; comment out after verifying |
 
-```env
-EXPO_PUBLIC_SENTRY_ENV=development   # or staging / production
-```
+`EXPO_PUBLIC_*` values are **baked in at build time**. After changing `.env`, rebuild the APK.
 
-Add placeholders to `env.example` at repo root / mobile README — **never commit real DSN to public repos** if the project is public (DSN is low-risk but still prefer env).
+---
 
-### 4. Wire init (early in boot)
+## Test
 
-Init in `apps/mobile/index.js` **after** `./polyfills` and **before** `App`:
+1. Sentry → **funnyfy** → **react-native** → **Issues** (filter environment `staging`)
+2. Optional: set `EXPO_PUBLIC_SENTRY_TEST=true`, rebuild, open app → `FunnyFy Sentry connection test`
+3. Or trigger a real failure (e.g. generate with network off)
 
-```javascript
-import * as Sentry from '@sentry/react-native';
-
-if (process.env.EXPO_PUBLIC_SENTRY_DSN) {
-  Sentry.init({
-    dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
-    environment: process.env.EXPO_PUBLIC_SENTRY_ENV ?? __DEV__ ? 'development' : 'production',
-    enabled: !__DEV__, // or true in dev with a separate Sentry project
-    tracesSampleRate: 0.2,
-  });
-}
-```
-
-Wrap root export if using Sentry’s recommended pattern:
-
-```javascript
-export default Sentry.wrap(App);
-```
-
-### 5. `app.config.js` plugin
-
-```javascript
-plugins: [
-  [
-    '@sentry/react-native/expo',
-    {
-      organization: 'YOUR_ORG_SLUG',
-      project: 'funnyfy-mobile',
-      // url: 'https://sentry.io/'  // self-hosted only
-    },
-  ],
-  // ...existing plugins
-],
-```
-
-Requires `SENTRY_AUTH_TOKEN` locally / in EAS for source map upload on release builds.
-
-### 6. What to capture manually (optional polish)
-
-| Area | Suggestion |
-|------|------------|
-| `App.js` `callApi` catch | `Sentry.captureException(err, { tags: { flow: 'generate' } })` — skip NSFW/content-policy (expected user errors) |
-| Auth init failure | `captureException` if `performAuthInit` fails after retries |
-| RevenueCat | Log purchase errors; don’t send PII |
-| User context | `Sentry.setUser({ id: userId })` after auth — **no email unless user opts in** |
-
-Use `utils/contentErrors.js` → `isNsfwContentError()` to **avoid** sending moderation blocks as errors.
-
-### 7. Native rebuild
-
-Sentry adds native modules → after install:
+Local debug APK:
 
 ```powershell
-cd apps/mobile
-npx expo prebuild --platform android
-cd android
-.\gradlew.bat assembleDebug
+cd D:\Claude\funnyfyapp
+.\build-apk-local.ps1 -SkipPrebuild -NoVersionBump
 ```
 
-See also: `To do/ENTRY_INTEGRATION.md` for entry / prebuild checklist.
+If Gradle reuses an old JS bundle after `.env` changes, force rebundle:
 
----
-
-## API backend (optional, Vercel)
-
-For server-side errors in `api/process-job.ts`, `api/enqueue.ts`, etc.:
-
-```bash
-npm install @sentry/node --workspace-root   # or in api package if split
+```powershell
+cd apps/mobile/android
+$env:JAVA_HOME = "C:\Program Files\Java\jdk-17"
+.\gradlew.bat :app:createBundleDebugJsAndAssets --rerun-tasks
+.\gradlew.bat :app:packageDebug :app:assembleDebug
 ```
 
-Init once in a shared util; `Sentry.captureException(err)` in catch blocks. Use same Sentry org, **separate project** (e.g. `funnyfy-api`).
+---
 
-Set `SENTRY_DSN` in Vercel env vars (not `EXPO_PUBLIC_`).
+## Release builds (later)
+
+- Set `SENTRY_AUTH_TOKEN` in EAS / CI for source map upload
+- Use separate Sentry environments or projects for staging vs production
+- Do **not** attach photos, base64, or JWTs (`beforeSend` scrubs sensitive headers)
 
 ---
 
-## Privacy / compliance
+## Optional: API backend
 
-- Do **not** attach uploaded images, base64, or Sightengine scores to Sentry events
-- Scrub `Authorization` headers and JWTs in `beforeSend` if logging request context
-- Mention third-party error reporting in Privacy Policy when enabled (`InfoScreen` / `constants.js`)
+For Vercel server errors (`api/process-job.ts`, etc.):
 
----
-
-## Checklist
-
-- [ ] Sentry org + projects created (mobile; optional API)
-- [ ] `@sentry/react-native` installed + Expo plugin in `app.config.js`
-- [ ] DSN via `EXPO_PUBLIC_SENTRY_DSN` (+ EAS secret for production)
-- [ ] Init in `index.js`; `Sentry.wrap(App)` or error boundary
-- [ ] Filter NSFW / expected user errors from reports
-- [ ] Source maps uploaded on release build (`SENTRY_AUTH_TOKEN` in EAS)
-- [ ] Test: throw test error in dev build → appears in Sentry dashboard
-- [ ] Update Privacy Policy + `MD/STATUS.md` when live
+- Separate Sentry project (e.g. `funnyfy-api`)
+- `SENTRY_DSN` in Vercel env (not `EXPO_PUBLIC_`)
+- `@sentry/node` — see [Sentry Node docs](https://docs.sentry.io/platforms/node/)
 
 ---
 
@@ -152,4 +84,4 @@ Set `SENTRY_DSN` in Vercel env vars (not `EXPO_PUBLIC_`).
 
 - [Expo: Using Sentry](https://docs.expo.dev/guides/using-sentry/)
 - [@sentry/react-native docs](https://docs.sentry.io/platforms/react-native/)
-- Existing mentions: `MD/STATUS.md`, `MD/DEVELOPMENT_PLAN.md`, `MD/SERVER_ARCHITECTURE_EXPLANATION.md`
+- `apps/mobile/README-ENV.md`, `MD/BUILD_APK_GUIDE.md`

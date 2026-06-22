@@ -2,7 +2,7 @@
 
 **Source:** `MD/SECURITY_AUDIT.md` (2026-06-22)  
 **Status:** Mostly complete — see [security-deferred.md](./security-deferred.md) for remaining work  
-**Priority:** Sentry + launch blockers before Play Store
+**Priority:** Launch blockers before Play Store (secure-store, keystore, cron hardening)
 
 ---
 
@@ -23,6 +23,7 @@
 - [x] Rate-limit fail-open → `security_logs` (`rate_limit_fail_open`)
 - [x] Webhook idempotency fallback → `crypto.randomUUID()`
 - [x] Purge stale `rate_limits` rows on cron tick
+- [x] Mobile Sentry — `@sentry/react-native`, org `funnyfy` / project `react-native` (June 2026)
 
 **Health checks:**
 ```bash
@@ -34,6 +35,6 @@ curl -H "Authorization: Bearer $CRON_SECRET" https://funnyfy-staging.vercel.app/
 
 ## Still deferred
 
-See **[security-deferred.md](./security-deferred.md)** — Sentry (guided setup next), RLS, Redis rate limits, secure-store, release keystore, cron hardening, branch protection, etc.
+See **[security-deferred.md](./security-deferred.md)** — optional API Sentry, RLS, Redis rate limits, secure-store, release keystore, cron hardening, branch protection, etc.
 
 **Short checklist:** [security-deferred.md](./security-deferred.md)

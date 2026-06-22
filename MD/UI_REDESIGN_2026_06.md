@@ -284,7 +284,7 @@ apps/mobile/utils/funnyfyAlbum.js
 - [ ] Comparison pairs — `npm run generate-comparisons` + `COMPARISON_OVERRIDES`
 - [ ] Photo tips real photos in `assets/tips/`
 - [ ] Branded splash PNG — `To do/SPLASH_ASSET.md`
-- [ ] Sentry — `To do/SENTRY_INTEGRATION.md`
+- [x] Sentry mobile — `To do/SENTRY_INTEGRATION.md` (staging verified June 2026)
 
 ---
 

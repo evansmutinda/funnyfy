@@ -51,6 +51,7 @@ import { DEFAULT_ENABLED_STYLES } from './data/styleCatalog';
 import { getTrialRemaining, getTrialWarningMessage, isTrialUser } from './utils/trialWarnings';
 import { isNsfwContentError, humanizeApiError, NSFW_REJECT_DIALOG } from './utils/contentErrors';
 import { pollJobUntilDone } from './utils/jobClient';
+import { setSentryUser, captureAppError } from './utils/sentry';
 
 // Enforce HTTPS for security — prevent accidental HTTP misconfiguration
 if (API_BASE.startsWith('http://') && !API_BASE.includes('localhost') && !API_BASE.includes('127.0.0.1')) {
@@ -156,6 +157,7 @@ function AppContent({ fontsLoaded }) {
     setAuthToken(auth.token || null);
     userIdRef.current = auth.userId;
     authTokenRef.current = auth.token || null;
+    setSentryUser(auth.userId);
     return auth;
   };
 
@@ -194,10 +196,10 @@ function AppContent({ fontsLoaded }) {
     try {
       auth = await initAuth(API_BASE, rcUserId);
       applyAuthState(auth);
-      devLog('[AUTH_DEBUG] API_BASE:', API_BASE);
-      devLog('[AUTH_DEBUG] userId:', auth.userId);
-      devLog('[AUTH_DEBUG] hasToken:', !!auth.token);
-      devLog('[AUTH_DEBUG] isLocal:', !!auth.isLocal);
+      devLog('[Auth] API_BASE:', API_BASE);
+      devLog('[Auth] userId:', auth.userId);
+      devLog('[Auth] hasToken:', !!auth.token);
+      devLog('[Auth] isLocal:', !!auth.isLocal);
 
       if (auth.isLocal) {
         console.warn('[Auth] Running with local ID — backend unavailable. Check DATABASE_URL in Vercel.');
@@ -598,6 +600,7 @@ function AppContent({ fontsLoaded }) {
           }
 
           console.error('API error:', err);
+          captureAppError(err, { flow: 'generate', styleId });
           setError(humanizeApiError(errorMessage));
           setFailedAttempts((prev) => prev + 1);
         } finally {

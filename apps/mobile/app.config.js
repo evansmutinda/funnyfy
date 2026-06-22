@@ -51,6 +51,13 @@ export default {
     },
     web: { bundler: 'metro' },
     plugins: [
+      [
+        '@sentry/react-native/expo',
+        {
+          organization: 'funnyfy',
+          project: 'react-native',
+        },
+      ],
       'expo-font',
       [
         'expo-navigation-bar',

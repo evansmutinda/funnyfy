@@ -11,7 +11,7 @@ Two options: **local Gradle build** (free, no EAS quota) or **EAS cloud build**.
 ### Prerequisites
 
 1. **Android Studio** installed with Android SDK Platform 34 or 35
-2. **JDK 17** (bundled with Android Studio)
+2. **JDK 17** — `build-apk-local.ps1` auto-detects `C:\Program Files\Java\jdk-17`; avoid Java 21+ on PATH (Gradle/React Native break)
 3. Set environment variable:
    ```powershell
    $env:ANDROID_HOME = "$env:LOCALAPPDATA\Android\Sdk"
@@ -24,6 +24,9 @@ Two options: **local Gradle build** (free, no EAS quota) or **EAS cloud build**.
    EXPO_PUBLIC_API_URL=https://funnyfy-staging.vercel.app
    EXPO_PUBLIC_REVENUECAT_ANDROID_KEY=test_kXXXX...
    EXPO_PUBLIC_REVENUECAT_IOS_KEY=test_kXXXX...
+   EXPO_PUBLIC_SENTRY_DSN=https://xxxx@xxxx.ingest.us.sentry.io/xxxx
+   EXPO_PUBLIC_SENTRY_ENV=staging
+   EXPO_PUBLIC_SENTRY_ENABLED=true
    ```
 
 2. **One-command build** (recommended — auto-bumps version, prebuilds, assembles APK):
@@ -58,6 +61,23 @@ cd apps/mobile/android
 Release builds require signing configuration. Use debug builds for sideload testing.
 
 ### Rebuild after `.env` changes
+
+Gradle may reuse a cached JS bundle. From project root:
+
+```powershell
+.\build-apk-local.ps1 -SkipPrebuild -NoVersionBump
+```
+
+If Sentry/API URL changes still don’t appear in the APK, force rebundle:
+
+```powershell
+cd apps/mobile/android
+$env:JAVA_HOME = "C:\Program Files\Java\jdk-17"
+.\gradlew.bat :app:createBundleDebugJsAndAssets --rerun-tasks
+.\gradlew.bat :app:packageDebug :app:assembleDebug
+```
+
+Full clean prebuild (only when native plugins change):
 
 ```powershell
 cd apps/mobile

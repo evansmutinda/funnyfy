@@ -13,6 +13,11 @@ The app uses environment variables from `.env` file in this directory (`apps/mob
   - **Production**: `https://funnyfyapp.vercel.app` (when ready)
 - `EXPO_PUBLIC_REVENUECAT_ANDROID_KEY` - RevenueCat Android SDK key
 - `EXPO_PUBLIC_REVENUECAT_IOS_KEY` - RevenueCat iOS SDK key
+- `EXPO_PUBLIC_SENTRY_DSN` - Sentry React Native DSN (org `funnyfy`, project `react-native`)
+- `EXPO_PUBLIC_SENTRY_ENV` - Sentry environment label (`staging` or `production`)
+- `EXPO_PUBLIC_SENTRY_ENABLED` - Set `true` so debug APKs send events (`__DEV__` builds skip Sentry otherwise)
+
+See `To do/SENTRY_INTEGRATION.md` for testing and optional `EXPO_PUBLIC_SENTRY_TEST`.
 
 ### Setup Steps
 
