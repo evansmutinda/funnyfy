@@ -3,6 +3,13 @@ import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
+import {
+  resolveFunnyfyAlbum,
+  FUNNYFY_ALBUM_ID_KEY,
+  FUNNYFY_FOLDER_NAME,
+} from './utils/funnyfyAlbum';
+
+export { FUNNYFY_FOLDER_NAME } from './utils/funnyfyAlbum';
 
 export const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'https://funnyfyapp.vercel.app';
 
@@ -185,26 +192,9 @@ Contact: ${SUPPORT_EMAIL}`;
 export const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 export const BOTTOM_INSET_MIN = Platform.OS === 'android' ? 48 : 34;
 
-export const FUNNYFY_FOLDER_NAME = 'Funnyfy';
-export const FUNNYFY_ANDROID_FOLDER_PATH = `file:///storage/emulated/0/DCIM/${FUNNYFY_FOLDER_NAME}/`;
-const FUNNYFY_ALBUM_ID_KEY = '@funnyfy_media_album_id';
-
-export async function ensureFunnyfyFolder() {
-  if (Platform.OS !== 'android') return;
-  try {
-    const info = await FileSystem.getInfoAsync(FUNNYFY_ANDROID_FOLDER_PATH);
-    if (!info.exists) {
-      await FileSystem.makeDirectoryAsync(FUNNYFY_ANDROID_FOLDER_PATH, { intermediates: true });
-      console.log('[Save] Created FunnyFy folder');
-    }
-  } catch (err) {
-    console.warn('[Save] ensureFunnyfyFolder error (non-fatal):', err);
-  }
-}
-
 export async function saveToFunnyfyAlbum(localFileUri) {
   try {
-    // Write-only — one Android permission prompt; add photos, never modify existing.
+    // Write-only — add photos without read/modify prompts on existing files.
     let writePerm = await MediaLibrary.getPermissionsAsync(true);
     if (writePerm.status !== 'granted') {
       writePerm = await MediaLibrary.requestPermissionsAsync(true);
@@ -214,26 +204,14 @@ export async function saveToFunnyfyAlbum(localFileUri) {
       return false;
     }
 
-    const cachedAlbumId = await AsyncStorage.getItem(FUNNYFY_ALBUM_ID_KEY);
-
-    if (cachedAlbumId) {
-      try {
-        await MediaLibrary.createAssetAsync(localFileUri, {
-          id: cachedAlbumId,
-          title: FUNNYFY_FOLDER_NAME,
-        });
-        return true;
-      } catch (albumErr) {
-        // Album may have been deleted — fall through and recreate.
-        console.warn('[Save] cached album save failed, recreating album:', albumErr);
-        await AsyncStorage.removeItem(FUNNYFY_ALBUM_ID_KEY);
-      }
+    let album = await resolveFunnyfyAlbum();
+    if (album) {
+      await MediaLibrary.createAssetAsync(localFileUri, album);
+      return true;
     }
 
-    // Save directly into album in one step — never create-then-move (that
-    // triggers Android's "Allow … to modify this photo?" dialog).
     try {
-      const album = await MediaLibrary.createAlbumAsync(
+      album = await MediaLibrary.createAlbumAsync(
         FUNNYFY_FOLDER_NAME,
         localFileUri,
         false,
@@ -243,10 +221,14 @@ export async function saveToFunnyfyAlbum(localFileUri) {
       }
       return true;
     } catch (createErr) {
-      // Album may already exist (e.g. before we cached its id) — save without moving.
-      console.warn('[Save] createAlbumAsync failed, saving to library root:', createErr);
-      await MediaLibrary.createAssetAsync(localFileUri);
-      return true;
+      console.warn('[Save] createAlbumAsync failed, rescanning albums:', createErr);
+      album = await resolveFunnyfyAlbum({ rescan: true });
+      if (album) {
+        await MediaLibrary.createAssetAsync(localFileUri, album);
+        return true;
+      }
+      console.error('[Save] Could not save to Funnyfy album');
+      return false;
     }
   } catch (err) {
     console.error('[Save] saveToFunnyfyAlbum error:', err);

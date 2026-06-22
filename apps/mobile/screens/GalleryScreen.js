@@ -1,24 +1,26 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  FlatList,
   Image,
   Modal,
   Pressable,
   ScrollView,
   StatusBar,
   Text,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
-import * as MediaLibrary from 'expo-media-library';
 import * as Sharing from 'expo-sharing';
 import { useNotifications } from '../components/NotificationProvider';
 import MediaTile from '../components/MediaTile';
 import PressScale from '../components/PressScale';
-import { BOTTOM_INSET_MIN, FUNNYFY_FOLDER_NAME, getSavedImageFileName } from '../constants';
+import { BOTTOM_INSET_MIN, getSavedImageFileName } from '../constants';
+import { getFunnyfyAlbumAssets, mergeGalleryItems } from '../utils/funnyfyAlbum';
 import styles from '../styles';
 
 const GALLERY_STORAGE_KEY = '@funnyfy_gallery';
@@ -30,7 +32,6 @@ async function ensureGalleryFolder() {
     const info = await FileSystem.getInfoAsync(GALLERY_FOLDER);
     if (!info.exists) {
       await FileSystem.makeDirectoryAsync(GALLERY_FOLDER, { intermediates: true });
-      console.log('[Gallery] Created gallery folder');
     }
   } catch (err) {
     console.warn('[Gallery] ensureGalleryFolder error:', err);
@@ -49,7 +50,6 @@ async function saveToGallery(item) {
       const dl = await FileSystem.downloadAsync(item.imageUrl, localPath);
       if (dl.status === 200) {
         savedLocalUri = dl.uri;
-        console.log('[Gallery] Downloaded image to:', savedLocalUri);
       }
     } catch (dlErr) {
       console.warn('[Gallery] Could not download to local (will use remote URL):', dlErr);
@@ -69,10 +69,10 @@ async function saveToGallery(item) {
 
     const updated = [newItem, ...items].slice(0, GALLERY_MAX_ITEMS);
     const dropped = items.slice(GALLERY_MAX_ITEMS - 1);
-    for (const dropped_item of dropped) {
-      if (dropped_item.isLocal && dropped_item.imageUrl?.startsWith('file://')) {
+    for (const droppedItem of dropped) {
+      if (droppedItem.isLocal && droppedItem.imageUrl?.startsWith('file://')) {
         try {
-          await FileSystem.deleteAsync(dropped_item.imageUrl, { idempotent: true });
+          await FileSystem.deleteAsync(droppedItem.imageUrl, { idempotent: true });
         } catch {}
       }
     }
@@ -85,88 +85,38 @@ async function saveToGallery(item) {
   }
 }
 
-async function scanFunnyfyAlbumAssets() {
-  try {
-    let permResult = await MediaLibrary.getPermissionsAsync();
-    if (permResult.status !== 'granted') {
-      // Read access for gallery scan (writeOnly=true is only for saving photos)
-      permResult = await MediaLibrary.requestPermissionsAsync(false);
+async function verifyStoredItems(storedItems) {
+  const verified = [];
+  for (const item of storedItems) {
+    if (item.isLocal && item.imageUrl?.startsWith('file://')) {
+      try {
+        const info = await FileSystem.getInfoAsync(item.imageUrl);
+        if (info.exists) {
+          verified.push(item);
+        }
+      } catch {
+        // File missing, skip it
+      }
+    } else {
+      verified.push(item);
     }
-    if (permResult.status !== 'granted') {
-      return [];
-    }
-
-    const album = await MediaLibrary.getAlbumAsync(FUNNYFY_FOLDER_NAME);
-    if (!album) {
-      console.log('[Gallery] No', FUNNYFY_FOLDER_NAME, 'album found');
-      return [];
-    }
-
-    const result = await MediaLibrary.getAssetsAsync({
-      album: album.id,
-      mediaType: MediaLibrary.MediaType.photo,
-      first: GALLERY_MAX_ITEMS,
-      sortBy: MediaLibrary.SortBy.creationTime,
-    });
-
-    console.log('[Gallery] album scan found', result.assets.length, 'asset(s) in', FUNNYFY_FOLDER_NAME);
-
-    return result.assets.map((asset) => ({
-      id: `media_${asset.id}`,
-      imageUrl: asset.uri,
-      remoteUrl: null,
-      isLocal: true,
-      styleLabel: 'FunnyFy',
-      styleId: null,
-      createdAt: asset.creationTime,
-    }));
-  } catch (err) {
-    console.warn('[Gallery] scanFunnyfyAlbumAssets error:', err.message || err);
-    return [];
   }
-}
-
-async function rebuildGalleryFromMediaLibrary() {
-  console.log('[Gallery] Starting rebuild from MediaLibrary...');
-  const rebuilt = await scanFunnyfyAlbumAssets();
-  if (rebuilt.length > 0) {
-    await AsyncStorage.setItem(GALLERY_STORAGE_KEY, JSON.stringify(rebuilt));
-    console.log('[Gallery] Rebuilt and saved', rebuilt.length, 'items');
-  }
-  return rebuilt;
+  return verified;
 }
 
 async function loadGallery() {
   try {
     const data = await AsyncStorage.getItem(GALLERY_STORAGE_KEY);
     const storedItems = data ? JSON.parse(data) : [];
+    const verifiedStored = await verifyStoredItems(storedItems);
+    const albumItems = await getFunnyfyAlbumAssets({ first: GALLERY_MAX_ITEMS });
+    const merged = mergeGalleryItems(verifiedStored, albumItems).slice(0, GALLERY_MAX_ITEMS);
 
-    if (storedItems.length === 0) {
-      const rebuilt = await rebuildGalleryFromMediaLibrary();
-      return rebuilt;
+    if (JSON.stringify(merged) !== JSON.stringify(storedItems)) {
+      await AsyncStorage.setItem(GALLERY_STORAGE_KEY, JSON.stringify(merged));
     }
 
-    const verified = [];
-    for (const item of storedItems) {
-      if (item.isLocal && item.imageUrl?.startsWith('file://')) {
-        try {
-          const info = await FileSystem.getInfoAsync(item.imageUrl);
-          if (info.exists) {
-            verified.push(item);
-          }
-        } catch {
-          // File missing, skip it
-        }
-      } else {
-        verified.push(item);
-      }
-    }
-
-    if (verified.length !== storedItems.length) {
-      await AsyncStorage.setItem(GALLERY_STORAGE_KEY, JSON.stringify(verified));
-    }
-
-    return verified;
+    return merged;
   } catch (err) {
     console.error('[Gallery] load error:', err);
     return [];
@@ -180,7 +130,7 @@ async function deleteFromGallery(id) {
     const target = items.find((item) => item.id === id);
     const updated = items.filter((item) => item.id !== id);
 
-    if (target?.isLocal && target?.imageUrl?.startsWith('file://')) {
+    if (target?.isLocal && target?.imageUrl?.startsWith('file://') && !target?.isDeviceAlbum) {
       try {
         await FileSystem.deleteAsync(target.imageUrl, { idempotent: true });
       } catch {}
@@ -199,7 +149,7 @@ async function clearGallery() {
     const existing = await AsyncStorage.getItem(GALLERY_STORAGE_KEY);
     const items = existing ? JSON.parse(existing) : [];
     for (const item of items) {
-      if (item.isLocal && item.imageUrl?.startsWith('file://')) {
+      if (item.isLocal && item.imageUrl?.startsWith('file://') && !item.isDeviceAlbum) {
         try {
           await FileSystem.deleteAsync(item.imageUrl, { idempotent: true });
         } catch {}
@@ -217,11 +167,13 @@ export { saveToGallery };
 
 export default function GalleryScreen({ onBack }) {
   const insets = useSafeAreaInsets();
+  const { width: windowWidth } = useWindowDimensions();
   const { showToast, showDialog, closeDialog } = useNotifications();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [viewerVisible, setViewerVisible] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(0);
+  const viewerListRef = useRef(null);
 
   const refresh = async () => {
     setLoading(true);
@@ -236,30 +188,32 @@ export default function GalleryScreen({ onBack }) {
 
   const handleDelete = (item) => {
     showDialog({
-      title: 'Delete caricature?',
-      message: 'This only removes it from your in-app gallery. Photos already saved to your phone are not affected.',
-      confirmLabel: 'Delete',
+      title: 'Remove from My Gallery?',
+      message: item.isDeviceAlbum
+        ? 'This removes it from the in-app list only. The photo stays in your phone\'s Funnyfy album unless you delete it in the Gallery app.'
+        : 'This removes it from your in-app gallery. Photos already saved to your phone are not affected.',
+      confirmLabel: 'Remove',
       destructive: true,
       onConfirm: async () => {
         closeDialog();
         await deleteFromGallery(item.id);
         refresh();
-        showToast('Removed', 'Caricature removed from gallery', 'success');
+        showToast('Removed', 'Caricature removed from My Gallery', 'success');
       },
     });
   };
 
   const handleClearAll = () => {
     showDialog({
-      title: 'Clear all caricatures?',
-      message: 'This removes all items from your in-app gallery. Photos saved to your phone are not affected.',
-      confirmLabel: 'Clear All',
+      title: 'Clear My Gallery?',
+      message: 'This clears the in-app list only. Photos in your phone\'s Funnyfy album are not deleted.',
+      confirmLabel: 'Clear all',
       destructive: true,
       onConfirm: async () => {
         closeDialog();
         await clearGallery();
         refresh();
-        showToast('Gallery cleared', 'All caricatures removed', 'success');
+        showToast('Gallery cleared', 'In-app list cleared', 'success');
       },
     });
   };
@@ -280,123 +234,172 @@ export default function GalleryScreen({ onBack }) {
     }
   }, [items, viewerIndex]);
 
-  const renderViewerHeader = useCallback(() => {
-    return (
-      <View style={[styles.viewerHeader, { paddingTop: Math.max(insets.top, 12) }]}>
-        <PressScale
-          style={styles.viewerCloseButton}
-          onPress={() => setViewerVisible(false)}
-          hitSlop={{ top: 12, right: 12, bottom: 12, left: 12 }}
-        >
-          <Feather name="x" size={22} color="#FFFFFF" />
-        </PressScale>
-      </View>
-    );
-  }, [insets.top]);
+  const scrollViewerToIndex = useCallback((index, animated = false) => {
+    if (!viewerListRef.current || index < 0 || index >= items.length) return;
+    viewerListRef.current.scrollToIndex({ index, animated });
+  }, [items.length]);
 
-  const renderViewerFooter = useCallback(() => {
-    const item = items[viewerIndex];
-    if (!item) return null;
-    return (
-      <View style={[styles.viewerFooter, { paddingBottom: Math.max(insets.bottom, 16) + 8 }]}>
-        <Text style={styles.viewerFooterLabel} numberOfLines={1}>
-          {item.styleLabel || 'Caricature'}
-        </Text>
-        <View style={styles.viewerActionsRow}>
-          <PressScale style={styles.viewerActionButton} onPress={handleViewerShare}>
-            <Text style={styles.viewerActionButtonText}>Share</Text>
-          </PressScale>
-        </View>
-      </View>
-    );
-  }, [items, viewerIndex, handleViewerShare, insets.bottom]);
+  useEffect(() => {
+    if (!viewerVisible) return undefined;
+    const indexToShow = viewerIndex;
+    const timer = setTimeout(() => scrollViewerToIndex(indexToShow, false), 0);
+    return () => clearTimeout(timer);
+  }, [viewerVisible, scrollViewerToIndex]);
+
+  const handleViewerScrollEnd = useCallback((event) => {
+    const nextIndex = Math.round(event.nativeEvent.contentOffset.x / windowWidth);
+    if (nextIndex >= 0 && nextIndex < items.length && nextIndex !== viewerIndex) {
+      setViewerIndex(nextIndex);
+    }
+  }, [items.length, viewerIndex, windowWidth]);
+
+  const activeViewerItem = items[viewerIndex];
 
   return (
-    <View style={styles.safe}>
+    <View style={styles.galleryRoot}>
       <StatusBar barStyle="light-content" backgroundColor="#0B0F19" />
-      <View style={[styles.galleryContainer, { paddingTop: Math.max(insets.top, 8) }]}>
-        <View style={styles.headerBar}>
-          <PressScale onPress={onBack} style={styles.iconButton}>
-            <Feather name="chevron-left" size={22} color="#FFFFFF" />
-          </PressScale>
-          <Text style={styles.wordmark}>My Gallery</Text>
-          <View style={styles.galleryHeaderActions}>
-            {items.length > 0 && (
-              <PressScale onPress={handleClearAll} style={styles.iconButton}>
-                <Feather name="trash-2" size={18} color="#FFFFFF" />
-              </PressScale>
-            )}
-            <PressScale onPress={onBack} style={styles.iconButton}>
-              <Feather name="x" size={20} color="#FFFFFF" />
-            </PressScale>
-          </View>
-        </View>
 
-        {loading ? (
-          <View style={styles.galleryLoadingContainer}>
-            <ActivityIndicator size="large" color="#FFFFFF" />
-          </View>
-        ) : items.length === 0 ? (
-          <View style={styles.galleryEmptyContainer}>
-            <View style={styles.galleryEmptyIcon}>
-              <Feather name="image" size={26} color="#FFFFFF" />
-            </View>
-            <Text style={styles.galleryEmptyTitle}>No caricatures yet</Text>
-            <Text style={styles.galleryEmptyText}>
-              Your generated caricatures will show up here.
-            </Text>
-          </View>
-        ) : (
-          <ScrollView
-            style={{ flex: 1 }}
-            contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, BOTTOM_INSET_MIN) + 16 }}
-            showsVerticalScrollIndicator={false}
-            overScrollMode="never"
-          >
-            <View style={styles.galleryGrid}>
-              {items.map((item, index) => (
-                <Pressable
-                  key={item.id}
-                  style={styles.galleryItem}
-                  onPress={() => {
-                    setViewerIndex(index);
-                    setViewerVisible(true);
-                  }}
-                  onLongPress={() => handleDelete(item)}
-                  android_ripple={null}
-                >
-                  <MediaTile
-                    imageSource={{ uri: item.imageUrl }}
-                    label={item.styleLabel || 'Caricature'}
-                  />
-                </Pressable>
-              ))}
-            </View>
-            <Text style={styles.galleryHint}>Long-press an item to delete</Text>
-          </ScrollView>
-        )}
+      <View style={[styles.pwdFloatingCloseWrap, { top: insets.top + 4, right: 8 }]}>
+        <PressScale onPress={onBack} style={styles.pwdCloseCircle} hitSlop={8}>
+          <Feather name="x" size={20} color="#FFFFFF" />
+        </PressScale>
       </View>
+
+      <View style={[styles.galleryHeaderBand, { paddingTop: insets.top + 8, paddingRight: 52 }]}>
+        <View style={styles.galleryHeaderRow}>
+          {items.length > 0 ? (
+            <PressScale onPress={handleClearAll} style={styles.uploadCircleButton}>
+              <Feather name="trash-2" size={18} color="#FFFFFF" />
+            </PressScale>
+          ) : (
+            <View style={styles.galleryHeaderSpacer} />
+          )}
+          <Text style={styles.galleryHeaderTitle}>My Gallery</Text>
+          <View style={styles.galleryHeaderSpacer} />
+        </View>
+        {!loading && items.length > 0 ? (
+          <Text style={styles.galleryHeaderSubtitle}>
+            {items.length} saved · tap to view · long-press to remove
+          </Text>
+        ) : null}
+      </View>
+
+      {loading ? (
+        <View style={styles.galleryLoadingContainer}>
+          <ActivityIndicator size="large" color="#FFFFFF" />
+          <Text style={styles.galleryLoadingText}>Loading your caricatures…</Text>
+        </View>
+      ) : items.length === 0 ? (
+        <View style={styles.galleryEmptyContainer}>
+          <View style={styles.galleryEmptyIcon}>
+            <Feather name="image" size={26} color="#FFFFFF" />
+          </View>
+          <Text style={styles.galleryEmptyTitle}>No caricatures yet</Text>
+          <Text style={styles.galleryEmptyText}>
+            Save a result from the generation screen and it will appear here and in your phone&apos;s Funnyfy album.
+          </Text>
+        </View>
+      ) : (
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{
+            paddingHorizontal: 16,
+            paddingBottom: Math.max(insets.bottom, BOTTOM_INSET_MIN) + 16,
+          }}
+          showsVerticalScrollIndicator={false}
+          overScrollMode="never"
+        >
+          <View style={styles.galleryGrid}>
+            {items.map((item, index) => (
+              <Pressable
+                key={item.id}
+                style={styles.galleryItem}
+                onPress={() => {
+                  setViewerIndex(index);
+                  setViewerVisible(true);
+                }}
+                onLongPress={() => handleDelete(item)}
+                android_ripple={null}
+              >
+                <MediaTile
+                  imageSource={{ uri: item.imageUrl }}
+                  label={item.styleLabel || 'Caricature'}
+                />
+              </Pressable>
+            ))}
+          </View>
+        </ScrollView>
+      )}
 
       <Modal
         visible={viewerVisible}
         transparent={false}
-        animationType="none"
+        animationType="fade"
         onRequestClose={() => setViewerVisible(false)}
         statusBarTranslucent
       >
-        <View style={{ flex: 1, backgroundColor: '#000' }}>
-          {renderViewerHeader()}
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            {items[viewerIndex] && (
-              <Image
-                source={{ uri: items[viewerIndex].imageUrl }}
-                style={{ width: '100%', height: '100%' }}
-                resizeMode="contain"
-                fadeDuration={0}
-              />
-            )}
+        <View style={styles.galleryViewerRoot}>
+          <View style={[styles.pwdFloatingCloseWrap, { top: insets.top + 4, right: 8 }]}>
+            <PressScale
+              onPress={() => setViewerVisible(false)}
+              style={styles.pwdCloseCircle}
+              hitSlop={8}
+            >
+              <Feather name="x" size={20} color="#FFFFFF" />
+            </PressScale>
           </View>
-          {renderViewerFooter()}
+
+          <FlatList
+            ref={viewerListRef}
+            data={items}
+            keyExtractor={(item) => item.id}
+            horizontal
+            pagingEnabled
+            bounces={items.length > 1}
+            showsHorizontalScrollIndicator={false}
+            initialScrollIndex={viewerIndex}
+            style={styles.galleryViewerPager}
+            getItemLayout={(_, index) => ({
+              length: windowWidth,
+              offset: windowWidth * index,
+              index,
+            })}
+            onMomentumScrollEnd={handleViewerScrollEnd}
+            onScrollToIndexFailed={({ index }) => {
+              viewerListRef.current?.scrollToOffset({
+                offset: index * windowWidth,
+                animated: false,
+              });
+            }}
+            renderItem={({ item }) => (
+              <View style={[styles.galleryViewerPage, { width: windowWidth }]}>
+                <Image
+                  source={{ uri: item.imageUrl }}
+                  style={styles.galleryViewerImage}
+                  resizeMode="contain"
+                  fadeDuration={0}
+                />
+              </View>
+            )}
+          />
+
+          {activeViewerItem ? (
+            <View style={[styles.galleryViewerFooter, { paddingBottom: Math.max(insets.bottom, 16) + 8 }]}>
+              <View style={styles.galleryViewerFooterMeta}>
+                <Text style={styles.galleryViewerLabel} numberOfLines={1}>
+                  {activeViewerItem.styleLabel || 'Caricature'}
+                </Text>
+                {items.length > 1 ? (
+                  <Text style={styles.galleryViewerCounter}>
+                    {viewerIndex + 1} / {items.length}
+                  </Text>
+                ) : null}
+              </View>
+              <PressScale style={styles.uploadGenerateButton} onPress={handleViewerShare}>
+                <Text style={styles.uploadGenerateButtonText}>Share</Text>
+              </PressScale>
+            </View>
+          ) : null}
         </View>
       </Modal>
     </View>

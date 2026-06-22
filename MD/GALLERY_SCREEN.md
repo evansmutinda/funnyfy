@@ -1,110 +1,97 @@
 # Gallery Screen
 
-**Status**: Implemented  
-**Implementation**: `apps/mobile/screens/GalleryScreen.js`  
-**Last Updated**: June 2026
+**Status:** Implemented  
+**Implementation:** `apps/mobile/screens/GalleryScreen.js`  
+**Album utilities:** `apps/mobile/utils/funnyfyAlbum.js`  
+**UI reference:** `MD/UI_REDESIGN_2026_06.md` § Gallery
 
 ---
 
 ## Overview
 
-The Gallery screen shows caricatures the user has saved. It uses **MediaTile** (`variant="grid"`) — full-bleed image, bottom gradient, white label. The **style picker** uses discovery variants with Plus Jakarta Sans labels and a dark backdrop pill for contrast.
+**My Gallery** merges:
+
+1. **In-app list** — `AsyncStorage` + optional copies in `documentDirectory/gallery/`
+2. **Device album** — `expo-media-library` **Funnyfy** album
+
+On every open, the app **merges** the device album into the in-app list (reinstall / legacy path recovery).
 
 ---
 
-## How It Works
+## UI (current)
 
-1. User opens **Gallery** from the menu
-2. **2-column tile grid** on gray background (`#F3F4F6`), newest first
-3. Tap a tile for full-screen view (`react-native-image-viewing`)
-4. Tap **✕** to close full-screen
-5. Long-press a tile to delete one item; tap **🗑** to clear all (ConfirmDialog first)
+| Element | Pattern |
+|---------|---------|
+| Background | `#0B0F19` (`galleryRoot`) |
+| Close | Floating **`pwdCloseCircle`** top-right (X) — same as Subscription |
+| Header | Centered **My Gallery** title; **trash** left when items exist (clear in-app list) |
+| Subtitle | `{n} saved · tap to view · long-press to remove` |
+| Grid | `MediaTile` in 2-column grid |
+| Viewer | Full-screen modal; **horizontal swipe** between photos (`FlatList` paging) |
+| Viewer footer | Style label + **{i} / {n}** counter + white **Share** pill |
 
----
-
-## Tile Design
-
-Gallery tiles reuse `components/MediaTile.js` (grid variant):
-
-- Full-bleed image with `cover` crop
-- Bottom gradient + white style label on image (no backdrop pill — picker discovery tiles use the pill)
-- Gallery background: `#F3F4F6` (style picker home uses white `#FFFFFF`)
+**Navigation:** Close → style home (`App.js` `setScreen('style')`). Also reachable from Result screen.
 
 ---
 
-## Storage (Dual Layer)
+## Viewer UX
 
-| Layer | Purpose | Technology |
-|-------|---------|------------|
-| **Device album** | Photos visible in phone Gallery app | `expo-media-library` → **Funnyfy** album in DCIM/Pictures |
-| **In-app list** | Fast grid, style labels, survives partial reinstall | `AsyncStorage` + copies in app `documentDirectory/gallery/` |
-
-Saving from the Result screen calls both:
-1. `saveToFunnyfyAlbum()` in `constants.js` — device album
-2. `saveToGallery()` in `GalleryScreen.js` — in-app list
-
-After save, a toast offers **View in Gallery** to open this screen.
+| Action | Behavior |
+|--------|----------|
+| Tap tile | Opens viewer at that index |
+| Swipe left/right | Previous / next caricature |
+| X (top-right) | Close viewer |
+| Share | Shares current image |
+| Long-press tile | Remove from in-app list (device album unchanged) |
+| Trash (header) | Clear in-app list only |
 
 ---
 
-## Silent Save (Android)
+## Device album path (canonical)
 
-Photos must **not** trigger "Allow gallery to modify this photo?" on every save.
+| What | Value |
+|------|--------|
+| **Album title** | `Funnyfy` (`FUNNYFY_FOLDER_NAME` in `constants.js`) |
+| **Typical Android folder** | `DCIM/Funnyfy/` |
+| **Legacy titles detected** | `FunnyFy`, `funnyfy`, `FUNNYFY` |
 
-**Wrong (causes prompt):** create asset → move to album with `addAssetsToAlbumAsync`
-
-**Correct:** save directly into album:
-```js
-// Existing album
-await MediaLibrary.createAssetAsync(localUri, existingAlbum);
-// First photo — create album with asset in one step
-await MediaLibrary.createAlbumAsync('Funnyfy', localUri, false);
-```
-
-Uses **write-only** permission (`requestPermissionsAsync(true)`) — add photos only.
+Always use `saveToFunnyfyAlbum()` → `MediaLibrary.createAssetAsync(uri, album)`. Do not write directly to DCIM paths.
 
 ---
 
-## Rebuild from Device Album
+## Why paths changed (historical)
 
-If the in-app list is empty (e.g. after reinstall), `GalleryScreen` can scan the **Funnyfy** MediaLibrary album and rebuild `AsyncStorage`.
-
-Gallery **read** uses read permission (`requestPermissionsAsync(false)`), not write-only.
-
----
-
-## Photo Picking (Upload Screen)
-
-On **Android 13+**, the system photo picker is used — no `READ_MEDIA_IMAGES` permission prompt before picking.
+| Cause | Fix (June 2026) |
+|--------|------------------|
+| Root DCIM fallback on album failure | Removed; rescan albums |
+| Stale cached album id | `resolveFunnyfyAlbum()` validates id |
+| Inconsistent album naming | Legacy title scan |
+| Gallery only scanned when AsyncStorage empty | **Always merge** on load |
+| Old root saves | Scan 200 recent photos for `Funnyfy-*` / `/Funnyfy/` paths |
 
 ---
 
-## UX Decisions
+## Saving from Result
 
-| Decision | Reason |
-|----------|--------|
-| Same tiles as style picker | Visual consistency across app |
-| ✕ closes full-screen viewer | Distinct from delete |
-| 🗑 clears in-app list only | Device album photos remain unless user deletes in Gallery app |
-| ConfirmDialog before clear | Prevents accidental loss |
-| Toast on save with gallery action | Quick path from result → gallery |
+1. `saveToFunnyfyAlbum()` — device album (write permission)
+2. `saveToGallery()` — in-app list + local copy
+
+Toast offers **View in Gallery** after save.
 
 ---
 
-## Dependencies
+## Key files
 
-```json
-"expo-linear-gradient": "~14.0.2",
-"react-native-image-viewing": "^0.2.2",
-"expo-media-library": "~17.0.6",
-"@react-native-async-storage/async-storage": "^1.23.1"
-```
+- `apps/mobile/utils/funnyfyAlbum.js`
+- `apps/mobile/screens/GalleryScreen.js`
+- `apps/mobile/screens/ResultScreen.js`
+- `apps/mobile/constants.js`
 
 ---
 
-## Key Files
+## QA checklist
 
-- `apps/mobile/components/MediaTile.js` — shared tile component
-- `apps/mobile/screens/GalleryScreen.js` — UI + in-app storage
-- `apps/mobile/screens/ResultScreen.js` — save on download
-- `apps/mobile/constants.js` — `saveToFunnyfyAlbum()`, `FUNNYFY_FOLDER_NAME`
+- [ ] Save from result → appears in My Gallery + phone Funnyfy album
+- [ ] Reinstall → existing album photos appear after merge
+- [ ] Viewer swipe through multiple items; counter updates
+- [ ] Clear in-app list does not delete device album files

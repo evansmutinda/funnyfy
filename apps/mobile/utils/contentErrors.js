@@ -38,6 +38,22 @@ export function humanizeApiError(message) {
     return 'That took too long. Please try again.';
   }
 
+  const lower = raw.toLowerCase();
+  if (
+    lower.includes('replicate did not return an image') ||
+    lower.includes('replicate generation failed') ||
+    lower.includes('replicate api error') ||
+    lower.startsWith('replicate failed') ||
+    lower.startsWith('replicate canceled') ||
+    lower.startsWith('replicate cancelled')
+  ) {
+    return "We couldn't create your caricature this time. Please try again.";
+  }
+
+  if (lower.includes('image generation failed')) {
+    return 'Something went wrong while creating your caricature. Please try again.';
+  }
+
   // Drop technical ERROR_CODE: prefixes if the remainder is still jargon
   if (/^[A-Z][A-Z0-9_]*:/.test(raw)) {
     const remainder = raw.replace(/^[A-Z][A-Z0-9_]*:\s*/, '').trim();

@@ -15,6 +15,7 @@ import * as Sharing from 'expo-sharing';
 import { Feather } from '@expo/vector-icons';
 import { useNotifications } from '../components/NotificationProvider';
 import PressScale from '../components/PressScale';
+import UploadFlowHeader from '../components/UploadFlowHeader';
 import { saveToGallery } from './GalleryScreen';
 import {
   FUNNYFY_FOLDER_NAME,
@@ -52,6 +53,7 @@ export default function ResultScreen({
   onOpenGallery,
   onTryAnotherStyle,
   subscriptionInfo,
+  onOpenUsage,
   backHandlerRef,
   style,
 }) {
@@ -86,12 +88,6 @@ export default function ResultScreen({
     const id = setInterval(() => setProgressTick((t) => t + 1), 1000);
     return () => clearInterval(id);
   }, [loading, hasResult, job?.status]);
-  const resultQuotaCurrent = subscriptionInfo?.usage?.current ?? 0;
-  const resultQuotaLimit = subscriptionInfo?.usage?.limit ?? 3;
-  const resultQuotaPct = resultQuotaLimit > 0
-    ? Math.min(100, (resultQuotaCurrent / resultQuotaLimit) * 100)
-    : 0;
-
   useEffect(() => {
     if (hasResult) {
       setMix(0);
@@ -278,6 +274,19 @@ export default function ResultScreen({
   };
 
   const confirmNavigate = useCallback((navigate) => {
+    const generationInProgress = loading && !hasResult;
+
+    if (generationInProgress) {
+      showDialog({
+        title: 'Generation in progress',
+        message: 'Your caricature is still being created. Please wait for it to finish.',
+        hideCancel: true,
+        confirmLabel: 'OK',
+        onConfirm: closeDialog,
+      });
+      return;
+    }
+
     if (hasResult && !hasBeenSaved) {
       showDialog({
         title: 'Save before leaving?',
@@ -306,7 +315,15 @@ export default function ResultScreen({
     } else {
       navigate();
     }
-  }, [hasResult, hasBeenSaved, closeDialog, showDialog, showToast, showSavedToast]);
+  }, [
+    loading,
+    hasResult,
+    hasBeenSaved,
+    closeDialog,
+    showDialog,
+    showToast,
+    showSavedToast,
+  ]);
 
   useEffect(() => {
     if (!backHandlerRef) return;
@@ -343,57 +360,17 @@ export default function ResultScreen({
       <StatusBar barStyle="light-content" backgroundColor="#0B0F19" />
 
       <View style={[styles.resultHeaderBand, { paddingTop: insets.top + 8 }]}>
-        <View style={styles.uploadHeaderRow}>
-          <PressScale onPress={() => confirmNavigate(onBack)} style={styles.uploadCircleButton}>
-            <Feather name="chevron-left" size={22} color="#FFFFFF" />
-          </PressScale>
-
-          {subscriptionInfo ? (
-            <View style={styles.uploadHeaderPill}>
-              <View style={styles.uploadHeaderPillProgress}>
-                <View
-                  style={[
-                    styles.uploadHeaderPillProgressFill,
-                    { width: `${resultQuotaPct}%` },
-                  ]}
-                />
-              </View>
-              <Text style={styles.uploadHeaderPillText}>
-                {subscriptionInfo.isTrial || !subscriptionInfo.subscription
-                  ? `Trial · ${resultQuotaCurrent}/${resultQuotaLimit}`
-                  : `${subscriptionInfo.subscription.tier.charAt(0).toUpperCase() + subscriptionInfo.subscription.tier.slice(1)} · ${resultQuotaCurrent}/${resultQuotaLimit}`}
-              </Text>
-            </View>
-          ) : (
-            <View style={{ width: 40 }} />
-          )}
-
-          <PressScale onPress={() => confirmNavigate(onHome)} style={styles.uploadCircleButton}>
-            <Feather name="home" size={20} color="#FFFFFF" />
-          </PressScale>
-        </View>
-
-        {style ? (
-          <View style={[styles.uploadFloatingChipRow, { marginTop: 8 }]}>
-            <View style={styles.uploadFloatingChip}>
-              <View
-                style={[
-                  styles.uploadFloatingChipDot,
-                  loading && styles.resultChipDotLoading,
-                ]}
-              />
-              <Text style={styles.uploadFloatingChipText} numberOfLines={1}>
-                {loading ? 'Generating…' : style.label}
-              </Text>
-            </View>
-            {hasResult && !loading ? (
-              <View style={styles.uploadFloatingChip}>
-                <Feather name="check-circle" size={14} color="#10B981" />
-                <Text style={styles.uploadFloatingChipText}>Ready</Text>
-              </View>
-            ) : null}
-          </View>
-        ) : null}
+        <UploadFlowHeader
+          onBack={() => confirmNavigate(onBack)}
+          onStylePress={() => confirmNavigate(onBack)}
+          style={style}
+          subscriptionInfo={subscriptionInfo}
+          onOpenUsage={onOpenUsage}
+          trailingAction={{
+            icon: 'home',
+            onPress: () => confirmNavigate(onHome),
+          }}
+        />
       </View>
 
       <View style={styles.resultPreviewBand}>
@@ -520,14 +497,16 @@ export default function ResultScreen({
         ) : null}
 
         {hasResult && onTryAnotherStyle ? (
-          <PressScale
-            style={[styles.resultGhostButton, loading && styles.buttonDisabled]}
-            onPress={() => confirmNavigate(onTryAnotherStyle)}
-            disabled={loading}
-          >
-            <Feather name="refresh-cw" size={16} color="#FFFFFF" />
-            <Text style={styles.resultGhostButtonText}>Try another style</Text>
-          </PressScale>
+          <View style={styles.uploadInlineActionsRow}>
+            <PressScale
+              style={[styles.uploadSmallGhostButton, loading && styles.buttonDisabled]}
+              onPress={() => confirmNavigate(onTryAnotherStyle)}
+              disabled={loading}
+            >
+              <Feather name="refresh-ccw" size={14} color="#FFFFFF" />
+              <Text style={styles.uploadSmallGhostButtonText}>Try another style</Text>
+            </PressScale>
+          </View>
         ) : null}
 
         <View style={styles.resultActionRow}>

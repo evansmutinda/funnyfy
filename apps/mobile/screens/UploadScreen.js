@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   StatusBar,
   Text,
   TouchableOpacity,
@@ -34,7 +35,7 @@ export default function UploadScreen({
   canGenerateMore,
   subscriptionInfo,
   onSubscribe,
-  onOpenSubscription,
+  onOpenUsage,
 }) {
   const insets = useSafeAreaInsets();
   const { showToast } = useNotifications();
@@ -127,7 +128,7 @@ export default function UploadScreen({
           onStylePress={onBackToStyle}
           style={style}
           subscriptionInfo={subscriptionInfo}
-          onOpenSubscription={onOpenSubscription}
+          onOpenUsage={onOpenUsage}
         />
 
         {quotaInfo.isExceeded ? (
@@ -147,31 +148,25 @@ export default function UploadScreen({
         ) : null}
       </View>
 
-      {/* Bottom action cards */}
+      {/* Bottom photo source options */}
       <View style={[styles.uploadBottomLayer, { paddingBottom: Math.max(insets.bottom, 16) + 8 }]}>
-        <View style={styles.uploadActionStack}>
-          <View style={styles.uploadActionCardRow}>
-            <ActionCard
-              icon="image"
-              title="Gallery"
-              description="Pick and crop from your library"
-              ctaLabel={
-                picking && pickingSource === 'gallery' ? 'Opening…' : 'Select Photo'
-              }
-              onPress={() => handlePick(false)}
-              disabled={picking}
-            />
-            <ActionCard
-              icon="camera"
-              title="Camera"
-              description="Take a photo, then crop it"
-              ctaLabel={
-                picking && pickingSource === 'camera' ? 'Opening…' : 'Take Photo'
-              }
-              onPress={() => handlePick(true)}
-              disabled={picking}
-            />
-          </View>
+        <View style={styles.uploadSourceBlock}>
+          <UploadSourceOption
+            icon="folder"
+            title="Photo library"
+            subtitle="Pick and crop from your albums"
+            loading={picking && pickingSource === 'gallery'}
+            onPress={() => handlePick(false)}
+            disabled={picking}
+          />
+          <UploadSourceOption
+            icon="camera"
+            title="Camera"
+            subtitle="Take a shot, then crop"
+            loading={picking && pickingSource === 'camera'}
+            onPress={() => handlePick(true)}
+            disabled={picking}
+          />
         </View>
       </View>
 
@@ -185,26 +180,37 @@ export default function UploadScreen({
   );
 }
 
-function ActionCard({ icon, title, description, ctaLabel, onPress, disabled }) {
+function UploadSourceOption({
+  icon,
+  title,
+  subtitle,
+  loading = false,
+  onPress,
+  disabled,
+}) {
   return (
-    <View style={styles.uploadActionCard}>
-      <View style={styles.uploadActionCardIcon}>
-        <Feather name={icon} size={22} color="#FFFFFF" />
+    <PressScale
+      onPress={onPress}
+      disabled={disabled}
+      style={[
+        styles.uploadSourceOption,
+        disabled && styles.uploadSourceOptionDisabled,
+      ]}
+    >
+      <View style={styles.uploadCircleButton}>
+        {loading ? (
+          <ActivityIndicator size="small" color="#FFFFFF" />
+        ) : (
+          <Feather name={icon} size={20} color="#FFFFFF" />
+        )}
       </View>
-      <Text style={styles.uploadActionCardTitle}>{title}</Text>
-      <Text style={styles.uploadActionCardDescription} numberOfLines={2}>
-        {description}
-      </Text>
-      <PressScale
-        onPress={onPress}
-        disabled={disabled}
-        style={[
-          styles.uploadActionCardCta,
-          disabled && styles.uploadActionCardCtaDisabled,
-        ]}
-      >
-        <Text style={styles.uploadActionCardCtaText}>{ctaLabel}</Text>
-      </PressScale>
-    </View>
+      <View style={styles.uploadSourceOptionText}>
+        <Text style={styles.uploadSourceOptionTitle}>{title}</Text>
+        <Text style={styles.uploadSourceOptionSubtitle} numberOfLines={1}>
+          {loading ? 'Opening…' : subtitle}
+        </Text>
+      </View>
+      <Feather name="chevron-right" size={18} color="rgba(255,255,255,0.45)" />
+    </PressScale>
   );
 }

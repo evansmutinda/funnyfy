@@ -2,21 +2,11 @@ import React from 'react';
 import { Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import PressScale from './PressScale';
+import { getUsageQuotaInfo } from '../utils/usageQuota';
 import styles from '../styles';
 
 export function getUploadQuotaInfo(subscriptionInfo) {
-  if (!subscriptionInfo || !subscriptionInfo.usage) {
-    return { current: 0, limit: 3, percentage: 0, isLow: false, isExceeded: false };
-  }
-  const { current, limit } = subscriptionInfo.usage;
-  const percentage = limit > 0 ? (current / limit) * 100 : 0;
-  return {
-    current,
-    limit,
-    percentage,
-    isLow: percentage >= 80 && percentage < 100,
-    isExceeded: percentage >= 100,
-  };
+  return getUsageQuotaInfo(subscriptionInfo);
 }
 
 function getUsagePillLabel(subscriptionInfo, quotaInfo) {
@@ -28,16 +18,20 @@ function getUsagePillLabel(subscriptionInfo, quotaInfo) {
 }
 
 /**
- * Upload + review header: [back] [style pill] …… [usage pill]
+ * Upload + review + result header: [back] [style pill] …… [usage pill] [optional trailing]
  */
 export default function UploadFlowHeader({
   onBack,
   onStylePress,
   style,
+  styleLabel,
+  loading = false,
   subscriptionInfo,
-  onOpenSubscription,
+  onOpenUsage,
+  trailingAction,
 }) {
   const quotaInfo = getUploadQuotaInfo(subscriptionInfo);
+  const chipLabel = loading ? 'Generating…' : (styleLabel ?? style?.label);
 
   return (
     <View style={styles.uploadHeaderRow}>
@@ -49,38 +43,69 @@ export default function UploadFlowHeader({
         <PressScale
           onPress={onStylePress || onBack}
           style={styles.uploadHeaderStyleChip}
+          disabled={loading}
         >
-          <View style={styles.uploadFloatingChipDot} />
+          <View
+            style={[
+              styles.uploadFloatingChipDot,
+              loading && styles.resultChipDotLoading,
+            ]}
+          />
           <Text
             style={styles.uploadHeaderStyleChipText}
             numberOfLines={1}
             ellipsizeMode="tail"
           >
-            {style.label}
+            {chipLabel}
           </Text>
-          <Feather name="chevron-down" size={14} color="rgba(255,255,255,0.85)" />
+          {!loading ? (
+            <Feather name="chevron-down" size={14} color="rgba(255,255,255,0.85)" />
+          ) : null}
         </PressScale>
       ) : null}
 
       <View style={styles.uploadHeaderSpacer} />
 
       <PressScale
-        onPress={onOpenSubscription}
-        style={styles.uploadHeaderPill}
-        disabled={!onOpenSubscription}
+        onPress={onOpenUsage}
+        style={[
+          styles.uploadHeaderPill,
+          quotaInfo.isLow && styles.uploadHeaderPillLow,
+        ]}
+        disabled={!onOpenUsage}
       >
-        <View style={styles.uploadHeaderPillProgress}>
+        <View
+          style={[
+            styles.uploadHeaderPillProgress,
+            quotaInfo.isLow && styles.uploadHeaderPillProgressLow,
+          ]}
+        >
           <View
             style={[
               styles.uploadHeaderPillProgressFill,
+              quotaInfo.isLow && styles.uploadHeaderPillProgressFillLow,
               { width: `${Math.min(quotaInfo.percentage, 100)}%` },
             ]}
           />
         </View>
-        <Text style={styles.uploadHeaderPillText}>
+        <Text
+          style={[
+            styles.uploadHeaderPillText,
+            quotaInfo.isLow && styles.uploadHeaderPillTextLow,
+          ]}
+        >
           {getUsagePillLabel(subscriptionInfo, quotaInfo)}
         </Text>
       </PressScale>
+
+      {trailingAction ? (
+        <PressScale
+          onPress={trailingAction.onPress}
+          style={styles.uploadHeaderTrailingButton}
+        >
+          <Feather name={trailingAction.icon} size={20} color="#FFFFFF" />
+        </PressScale>
+      ) : null}
     </View>
   );
 }

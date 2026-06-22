@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [Unreleased] - 2026-06-21
+
+### Added
+- **`UsageScreen`** (`screens/UsageScreen.js`): usage card, refresh, link to subscription — split from paywall.
+- **`PaywallStyleFade`** (`components/PaywallStyleFade.js`): subscription hero cycles style previews via the same two-layer crossfade technique as `ComparisonFade`.
+- **`utils/usageQuota.js`**: shared low-quota threshold (≤10% remaining) for header pill + usage card amber styling.
+- **`utils/funnyfyAlbum.js`**: FunnyFy album helpers for gallery save/list/delete.
+- Menu → **Usage**; header usage pill opens Usage (not Subscription).
+
+### Changed
+- **Subscription paywall** (`SubscriptionScreen.js`): top-half style fade hero (replaces marquee); compact plan cards + pinned bottom bar; dynamic CTA (**Select a plan** / **Continue with {tier}**); **Cancel anytime.** vs **Manage or cancel** by subscription state; symmetric footer links (Privacy · Terms · Restore).
+- **Upload** (`UploadScreen.js`): stacked source rows (Photo library / Camera) instead of twin cards.
+- **Gallery** (`GalleryScreen.js`): floating X close, paged swipe viewer with counter, trash in header.
+- **Android nav bar** (`app.config.js`, `App.js`): `enforceContrast: false`, translucent `#0B0F19CC`.
+- **Docs** (`MD/UI_REDESIGN_2026_06.md`, `MD/SUBSCRIPTION_UI_THEME_SNAPSHOT.md`, `MD/GALLERY_SCREEN.md`, `MD/TOAST_NOTIFICATION_SYSTEM.md`): aligned with current UI.
+
+### Removed
+- **`PaywallStyleMarquee`** and unused `paywallMarquee*` / legacy scroll-sheet `pwd*` styles from `styles.js`.
+
+---
+
 ## [Unreleased] - 2026-06-20
 
 ### Added

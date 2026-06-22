@@ -1,115 +1,88 @@
 # Toast Notification & ConfirmDialog System
 
-This document explains the in-app notification system that replaced all system `Alert.alert` calls in FunnyFy.
+**Last updated:** June 2026  
+**UI reference:** `MD/UI_REDESIGN_2026_06.md` §11
 
----
-
-## Why We Changed from Alert.alert
-
-Android and iOS system alerts look different and feel out of place. The new system gives FunnyFy:
-- A consistent look on all devices
-- Beautiful styled toasts that match the app design
-- More control (e.g. 3-button confirm dialogs)
+Replaces all system `Alert.alert` calls with in-app components that match the dark UI.
 
 ---
 
 ## Components
 
-### 1. ToastNotification
+### ToastNotification
 
-A floating message that appears briefly and disappears automatically.
+Floating message, auto-dismiss (~3s, ~5s with action).
 
-**Types**: `success` (green), `error` (red), `warning` (orange — offline / trial alerts), `info` (neutral dark)
+| Type | Styling | Use |
+|------|---------|-----|
+| `success` | Green accent | Save, remove, purchase OK |
+| `error` | Red accent | Failures |
+| `warning` | **Orange** `#EA580C` | Offline, trial warnings |
+| `info` | Neutral dark | General info |
 
-**How to show a toast:**
 ```js
-// From any screen using the NotificationContext:
 const { showToast } = useNotifications();
-
-showToast('Image saved!', 'success');
-showToast('Something went wrong. Please try again.', 'error');
-showToast('Generating your caricature...', 'info');
+showToast('Title', 'Message', 'success');
+showToast('No connection', 'Connect to generate.', 'warning', {
+  actionLabel: 'Upgrade',
+  onAction: () => setScreen('subscription'),
+});
 ```
 
-### 2. ConfirmDialog
+### ConfirmDialog
 
-A modal dialog that asks the user to make a choice. Supports 2 or 3 buttons.
+Dark modal for choices. Supports single-action (OK only), two-button, or three-button layouts.
 
-**Example — 2 buttons (Confirm / Cancel):**
 ```js
-const { showConfirm } = useNotifications();
-
-showConfirm(
-  'Delete Image',
-  'Are you sure you want to delete this image?',
-  () => handleDelete(),   // confirm action
-  () => {},               // cancel action
-  'Delete',               // confirm button label
-  'Cancel'                // cancel button label
-);
+const { showDialog, closeDialog } = useNotifications();
+showDialog({
+  title: 'Generation in progress',
+  message: 'Your caricature is still being created. Please wait for it to finish.',
+  confirmLabel: 'OK',
+  onConfirm: closeDialog,
+});
 ```
 
-**Example — 3 buttons (Save / Discard / Cancel):**
+**Design:** card `#151B28` on `#0B0F19` shell; white primary pill; outlined cancel/destructive variants.
+
+### NotificationProvider
+
+Wraps the app in `App.js`. Export hook:
+
 ```js
-showConfirm(
-  'Unsaved Image',
-  'You have an unsaved caricature. What would you like to do?',
-  () => handleSave(),     // primary action (Save)
-  () => handleDiscard(),  // secondary action (Discard)
-  'Save',
-  'Discard',
-  'Cancel',               // neutral button label (3rd button)
-  () => {}                // neutral action (Cancel)
-);
-```
-
-### 3. NotificationContext
-
-A React Context that makes toasts and dialogs available everywhere in the app without passing functions through every screen.
-
-**Setup (already done in App.js):**
-```js
-// App.js wraps the whole app:
-<NotificationContext.Provider value={notificationValue}>
-  {/* all screens */}
-  <ToastNotification ... />
-  <ConfirmDialog ... />
-</NotificationContext.Provider>
-```
-
-**Using the context in any screen:**
-```js
-import { useNotifications } from '../context/NotificationContext';
-
-function MyScreen() {
-  const { showToast, showConfirm } = useNotifications();
-  // ...
-}
+import { useNotifications } from '../components/NotificationProvider';
 ```
 
 ---
 
-## Screens Updated
+## Offline UX
 
-All `Alert.alert` calls were replaced across:
-- **Gallery screen**: Clear-all confirmation
-- **Upload / Review screens**: Errors and confirmations
-- **Result screen**: Save-before-leave (3-button), save success, share errors
-- **Subscribe / Subscription screen**: Purchase errors, restore errors, success messages
+| Surface | Behavior |
+|---------|----------|
+| `OfflineBanner` | Global orange top overlay (most screens) |
+| Upload / Review | Banner **hidden**; inline offline chip in flow |
+| Generate / subscribe offline | Orange **warning** toast |
 
-(Permission errors surface via toast from `useImagePicker` / upload flow — there is no separate PhotoChooser screen.)
-
----
-
-## Design
-
-- Toasts appear at the top of the screen (below status bar)
-- **`warning`** toasts use orange card styling (matches `OfflineBanner`)
-- They auto-dismiss after ~3 seconds (5s if action button)
-- ConfirmDialogs use the app's dark theme (`#151B28` card on `#0B0F19` shell)
-- Primary action button is white pill; cancel is outlined
+Do not use full-width in-flow red bars — they shift header/pill layout.
 
 ---
 
-**Last Updated**: June 2026
-**Implementation**: `App.js` (NotificationContext, ToastNotification, ConfirmDialog components)
+## Screens using dialogs / toasts
+
+- **Gallery** — clear-all, delete confirm
+- **Upload / Review** — picker errors, quota dialogs
+- **Result** — save-before-leave, generation-back block, share errors
+- **Subscription** — purchase / restore feedback
+- **Usage** — (via shared refresh errors in `App.js`)
+
+---
+
+## Implementation files
+
+```
+apps/mobile/components/NotificationProvider.js
+apps/mobile/components/NetworkProvider.js      ← mounts OfflineBanner
+apps/mobile/components/OfflineBanner.js
+```
+
+Toast/Dialog UI styles live in `apps/mobile/styles.js` (dark theme tokens from §1 of UI redesign doc).

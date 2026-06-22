@@ -3,6 +3,7 @@ import {
   PlusJakartaSans_400Regular,
 } from '@expo-google-fonts/plus-jakarta-sans';
 import * as ExpoSplashScreen from 'expo-splash-screen';
+import * as NavigationBar from 'expo-navigation-bar';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AppState,
@@ -32,6 +33,7 @@ import NotificationProvider, { useNotifications } from './components/Notificatio
 import NetworkProvider, { useNetwork } from './components/NetworkProvider';
 import MenuModal from './components/MenuModal';
 import GalleryScreen from './screens/GalleryScreen';
+import UsageScreen from './screens/UsageScreen';
 import InfoScreen from './screens/InfoScreen';
 import StyleScreen from './screens/StyleScreen';
 import UploadScreen from './screens/UploadScreen';
@@ -55,6 +57,25 @@ if (API_BASE.startsWith('http://') && !API_BASE.includes('localhost') && !API_BA
 }
 
 ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
+
+const NAV_BAR_COLOR = '#0B0F19CC';
+
+async function configureAndroidNavigationBar() {
+  if (Platform.OS !== 'android') return;
+  try {
+    if (NavigationBar.setNavigationBarContrastEnforcedAsync) {
+      await NavigationBar.setNavigationBarContrastEnforcedAsync(false);
+    }
+    if (NavigationBar.setPositionAsync) {
+      await NavigationBar.setPositionAsync('absolute');
+    }
+    await NavigationBar.setBackgroundColorAsync(NAV_BAR_COLOR);
+    await NavigationBar.setButtonStyleAsync('light');
+    await NavigationBar.setVisibilityAsync('visible');
+  } catch (err) {
+    console.warn('[NavBar] configure failed:', err?.message || err);
+  }
+}
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -286,6 +307,20 @@ function AppContent({ fontsLoaded }) {
       .finally(() => setSplashHidden(true));
   }, [fontsLoaded, authReady]);
 
+  useEffect(() => {
+    configureAndroidNavigationBar();
+
+    if (Platform.OS !== 'android') return undefined;
+
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'active') {
+        configureAndroidNavigationBar();
+      }
+    });
+
+    return () => { subscription.remove(); };
+  }, []);
+
   const showTrialWarningIfNeeded = (subInfo) => {
     if (!isTrialUser(subInfo)) return;
     const remaining = getTrialRemaining(subInfo);
@@ -448,7 +483,12 @@ function AppContent({ fontsLoaded }) {
 
   const callApi = useMemo(
     () =>
-      async ({ imageDataUrl }) => {
+      async ({ imageDataUrl, styleId }) => {
+        if (!styleId) {
+          setError('No style selected. Please choose a style and try again.');
+          return;
+        }
+
         setLoading(true);
         setError('');
         setJob(null);
@@ -469,7 +509,7 @@ function AppContent({ fontsLoaded }) {
             body: JSON.stringify({
               userId: userIdRef.current,
               payload: {
-                styleId: style.id,
+                styleId,
                 imageUrl: imageDataUrl || null,
               },
             }),
@@ -624,7 +664,7 @@ function AppContent({ fontsLoaded }) {
           setJob(null);
         }
       },
-    [style]
+    [showDialog, closeDialog]
   );
 
   const handleSubscribe = async (selectedTier = null) => {
@@ -824,13 +864,21 @@ function AppContent({ fontsLoaded }) {
       );
       return;
     }
+    if (loading) {
+      showToast(
+        'Generation in progress',
+        'Wait for the current caricature to finish, or cancel it first.',
+        'warning',
+      );
+      return;
+    }
     setOriginal({ imageUri, imageDataUrl, prompt: style?.prompt });
     setPendingJobId(null);
     setFailedAttempts(0);
     setError('');
     setRestyleMode(false);
     setScreen('result');
-    await callApi({ imageDataUrl });
+    await callApi({ imageDataUrl, styleId: style?.id });
   };
 
   const handleCancelRestyle = () => {
@@ -912,7 +960,7 @@ function AppContent({ fontsLoaded }) {
         setScreen('style');
         return true;
       }
-      if (screen === 'subscription' || screen === 'privacy' || screen === 'terms' || screen === 'about' || screen === 'gallery') {
+      if (screen === 'subscription' || screen === 'usage' || screen === 'privacy' || screen === 'terms' || screen === 'about' || screen === 'gallery') {
         setScreen('style');
         return true;
       }
@@ -959,8 +1007,9 @@ function AppContent({ fontsLoaded }) {
               setError('');
               setFailedAttempts(0);
               setPendingJobId(null);
+              setOriginal((prev) => (prev ? { ...prev, prompt: s.prompt } : prev));
               setScreen('result');
-              callApi({ imageDataUrl: original.imageDataUrl });
+              callApi({ imageDataUrl: original.imageDataUrl, styleId: s.id });
               return;
             }
             setRestyleMode(false);
@@ -1027,18 +1076,33 @@ function AppContent({ fontsLoaded }) {
     );
   }
 
+  if (screen === 'usage') {
+    return (
+      <AppShell>
+        <UsageScreen
+          subscriptionInfo={subscriptionInfo}
+          subscriptionLoading={subscriptionLoading}
+          onRefreshSubscription={refreshSubscription}
+          onOpenSubscription={() => setScreen('subscription')}
+          onBack={() => setScreen('style')}
+        />
+      </AppShell>
+    );
+  }
+
   if (screen === 'subscription') {
     return (
       <AppShell>
         <SubscriptionScreen
           subscriptionInfo={subscriptionInfo}
           subscriptionLoading={subscriptionLoading}
-          onRefreshSubscription={refreshSubscription}
           onSubscribe={handleSubscribe}
           subscribeLoading={subscribeLoading}
           onManageSubscription={handleManageSubscription}
           storeSubscriptionLabel={getStoreSubscriptionLabel()}
           onRestorePurchases={handleRestorePurchases}
+          onOpenPrivacy={() => setScreen('privacy')}
+          onOpenTerms={() => setScreen('terms')}
           onClose={() => setScreen('style')}
         />
       </AppShell>
@@ -1063,7 +1127,7 @@ function AppContent({ fontsLoaded }) {
           }
           subscriptionInfo={subscriptionInfo}
           onSubscribe={handleSubscribe}
-          onOpenSubscription={() => setScreen('subscription')}
+          onOpenUsage={() => setScreen('usage')}
           onBackToStyle={() => { setRestyleMode(false); setScreen('style'); }}
         />
       </AppShell>
@@ -1078,6 +1142,7 @@ function AppContent({ fontsLoaded }) {
           imageUri={pickedImage?.uri}
           imageDataUrl={pickedImage?.dataUrl}
           isOnline={isOnline}
+          isGenerating={loading}
           subscriptionInfo={subscriptionInfo}
           canGenerateMore={
             subscriptionInfo
@@ -1091,7 +1156,7 @@ function AppContent({ fontsLoaded }) {
           }
           onStart={handleUploadStart}
           onSubscribe={handleSubscribe}
-          onOpenSubscription={() => setScreen('subscription')}
+          onOpenUsage={() => setScreen('usage')}
           onReplacePhoto={(image) => setPickedImage(image)}
           onBack={() => { setPickedImage(null); setScreen('upload'); }}
         />
@@ -1123,6 +1188,7 @@ function AppContent({ fontsLoaded }) {
           setFailedAttempts(0);
         }}
         onHome={() => { setRestyleMode(false); setScreen('style'); }}
+        onOpenUsage={() => setScreen('usage')}
         onOpenGallery={() => setScreen('gallery')}
         onTryAnotherStyle={handleTryAnotherStyle}
         />

@@ -676,6 +676,138 @@ const styles = StyleSheet.create({
   },
 
   
+    galleryRoot: {
+    flex: 1,
+    backgroundColor: DARK_BG,
+  },
+
+  
+    galleryHeaderBand: {
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+    gap: 6,
+  },
+
+  
+    galleryHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+
+  
+    galleryHeaderTitle: {
+    flex: 1,
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 18,
+    fontWeight: '700',
+    color: PAPER,
+    letterSpacing: -0.3,
+    textAlign: 'center',
+  },
+
+  
+    galleryHeaderSpacer: {
+    width: 40,
+    height: 40,
+    flexShrink: 0,
+  },
+
+  
+    galleryHeaderSubtitle: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 12,
+    fontWeight: '500',
+    color: DARK_MUTED,
+    textAlign: 'center',
+  },
+
+  
+    galleryLoadingText: {
+    marginTop: 12,
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 13,
+    fontWeight: '500',
+    color: DARK_MUTED,
+  },
+
+  
+    galleryViewerRoot: {
+    flex: 1,
+    backgroundColor: DARK_BG,
+  },
+
+  
+    galleryViewerHeader: {
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+  },
+
+  
+    galleryViewerBody: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+  },
+
+  
+    galleryViewerPager: {
+    flex: 1,
+  },
+
+  
+    galleryViewerPage: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+  },
+
+  
+    galleryViewerImage: {
+    width: '100%',
+    height: '100%',
+  },
+
+  
+    galleryViewerFooter: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    gap: 10,
+  },
+
+  
+    galleryViewerFooterMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+
+  
+    galleryViewerCounter: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 12,
+    fontWeight: '600',
+    color: DARK_MUTED,
+    letterSpacing: -0.1,
+    flexShrink: 0,
+  },
+
+  
+    galleryViewerLabel: {
+    flex: 1,
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 14,
+    fontWeight: '600',
+    color: PAPER,
+    textAlign: 'left',
+  },
+
+  
   galleryHeaderActions: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -829,44 +961,7 @@ const styles = StyleSheet.create({
   },
 
   
-  paywallMarqueeWrap: {
-    height: 132,
-    marginTop: 4,
-    overflow: 'hidden',
-  },
-
-  
-  paywallMarqueeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    gap: 12,
-  },
-
-  
-  paywallMarqueeTile: {
-    width: 96,
-    height: 120,
-    borderRadius: 14,
-    overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.55)',
-    backgroundColor: '#1E293B',
-  },
-
-  
-  paywallMarqueeImage: {
-    width: '100%',
-    height: '100%',
-  },
-
-  
-  paywallMarqueeGradient: {
-    ...StyleSheet.absoluteFillObject,
-  },
-
-  
-  menuButton: {
+    menuButton: {
     width: 40,
     height: 40,
     alignItems: 'center',
@@ -1280,7 +1375,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 8,
     borderRadius: 999,
-    backgroundColor: 'rgba(15, 23, 42, 0.6)',
+    backgroundColor: 'rgba(15, 23, 42, 0.8)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.12)',
     flexShrink: 1,
@@ -1310,7 +1405,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(15, 23, 42, 0.6)',
+    backgroundColor: 'rgba(15, 23, 42, 0.8)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.12)',
     alignItems: 'center',
@@ -1326,7 +1421,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 7,
     borderRadius: 999,
-    backgroundColor: 'rgba(15, 23, 42, 0.6)',
+    backgroundColor: 'rgba(15, 23, 42, 0.8)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.12)',
     gap: 4,
@@ -1361,6 +1456,41 @@ const styles = StyleSheet.create({
   },
 
   
+    uploadHeaderPillLow: {
+    backgroundColor: 'rgba(245,158,11,0.18)',
+    borderColor: 'rgba(245,158,11,0.55)',
+  },
+
+  
+    uploadHeaderPillProgressLow: {
+    backgroundColor: 'rgba(245,158,11,0.28)',
+  },
+
+  
+    uploadHeaderPillProgressFillLow: {
+    backgroundColor: '#F59E0B',
+  },
+
+  
+    uploadHeaderPillTextLow: {
+    color: '#FDE68A',
+  },
+
+  
+    uploadHeaderTrailingButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(15, 23, 42, 0.8)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    marginLeft: 8,
+  },
+
+  
     uploadFloatingChipRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -1377,7 +1507,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 999,
-    backgroundColor: 'rgba(15, 23, 42, 0.6)',
+    backgroundColor: 'rgba(15, 23, 42, 0.8)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.12)',
   },
@@ -1434,81 +1564,50 @@ const styles = StyleSheet.create({
   },
 
   
-    uploadActionStack: {
-    gap: 14,
+    uploadSourceBlock: {
+    gap: 10,
   },
 
   
-    uploadActionCardRow: {
+    uploadSourceOption: {
     flexDirection: 'row',
-    gap: 12,
-  },
-
-  
-    uploadActionCard: {
-    flex: 1,
-    padding: 16,
-    borderRadius: 22,
-    backgroundColor: 'rgba(15, 23, 42, 0.78)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-    gap: 8,
-    minHeight: 180,
-  },
-
-  
-    uploadActionCardIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.1)',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 2,
+    gap: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    borderRadius: 16,
+    backgroundColor: 'rgba(15, 23, 42, 0.8)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
   },
 
   
-    uploadActionCardTitle: {
+    uploadSourceOptionDisabled: {
+    opacity: 0.55,
+  },
+
+  
+    uploadSourceOptionText: {
+    flex: 1,
+    gap: 2,
+  },
+
+  
+    uploadSourceOptionTitle: {
     fontFamily: FONT_PLUS_JAKARTA,
-    fontSize: 17,
+    fontSize: 15,
     fontWeight: '700',
     color: '#FFFFFF',
     letterSpacing: -0.2,
   },
 
   
-    uploadActionCardDescription: {
+    uploadSourceOptionSubtitle: {
     fontFamily: FONT_PLUS_JAKARTA,
     fontSize: 12,
     fontWeight: '500',
-    color: 'rgba(255,255,255,0.7)',
-    lineHeight: 17,
+    color: 'rgba(255,255,255,0.55)',
     letterSpacing: -0.05,
-    marginBottom: 6,
-    flex: 1,
-  },
-
-  
-    uploadActionCardCta: {
-    paddingVertical: 11,
-    borderRadius: 999,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  
-    uploadActionCardCtaDisabled: {
-    opacity: 0.55,
-  },
-
-  
-    uploadActionCardCtaText: {
-    fontFamily: FONT_PLUS_JAKARTA,
-    fontSize: 13,
-    fontWeight: '700',
-    color: INK,
-    letterSpacing: -0.1,
   },
 
   
@@ -1528,7 +1627,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 999,
-    backgroundColor: 'rgba(15, 23, 42, 0.65)',
+    backgroundColor: 'rgba(15, 23, 42, 0.8)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.12)',
   },
@@ -1868,8 +1967,83 @@ const styles = StyleSheet.create({
   },
 
   
-    pwdHeroWrap: {
-    position: 'relative',
+    pwdBody: {
+    flex: 1,
+  },
+
+  
+    pwdHeroFadeZone: {
+    flex: 1,
+    overflow: 'hidden',
+    backgroundColor: '#0B0F19',
+  },
+
+  
+    pwdHeroFadeContent: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    gap: 4,
+  },
+
+  
+    pwdPlansBottom: {
+    marginBottom: 10,
+  },
+
+  
+    pwdBrandMarkCompact: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: -0.6,
+  },
+
+  
+    pwdBrandTierCompact: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 11,
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.65)',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+
+  
+    pwdBenefitsInline: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 11,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.55)',
+    textAlign: 'center',
+    letterSpacing: -0.05,
+    paddingHorizontal: 8,
+  },
+
+  
+    pwdTierCardCompact: {
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginBottom: 6,
+  },
+
+  
+    pwdTierMetaCompact: {
+    marginTop: 2,
+    fontSize: 10.5,
+  },
+
+  
+    pwdBottomBarCompact: {
+    paddingTop: 6,
+  },
+
+  
+    pwdPrimaryButtonCompact: {
+    paddingVertical: 12,
   },
 
   
@@ -1878,7 +2052,16 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    height: 70,
+    height: 120,
+  },
+
+  
+    pwdHeroTopScrim: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    height: 88,
   },
 
   
@@ -1888,6 +2071,12 @@ const styles = StyleSheet.create({
     right: 0,
     zIndex: 10,
     padding: 12,
+  },
+
+  
+    pwdFloatingCloseLeft: {
+    right: undefined,
+    left: 0,
   },
 
   
@@ -1908,44 +2097,6 @@ const styles = StyleSheet.create({
   },
 
   
-    pwdScroll: {
-    flex: 1,
-  },
-
-  
-    pwdScrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-  },
-
-  
-    pwdHeadlineBlock: {
-    marginTop: 2,
-    marginBottom: 14,
-    gap: 3,
-  },
-
-  
-    pwdHeadline: {
-    fontFamily: FONT_PLUS_JAKARTA,
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    letterSpacing: -0.5,
-    lineHeight: 27,
-  },
-
-  
-    pwdSubhead: {
-    fontFamily: FONT_PLUS_JAKARTA,
-    fontSize: 12.5,
-    fontWeight: '500',
-    color: 'rgba(255,255,255,0.6)',
-    lineHeight: 17,
-    letterSpacing: -0.1,
-  },
-
-  
     pwdUsageCard: {
     backgroundColor: 'rgba(255,255,255,0.06)',
     borderWidth: 1,
@@ -1954,6 +2105,12 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 16,
     gap: 8,
+  },
+
+  
+    pwdUsageCardLow: {
+    backgroundColor: 'rgba(245,158,11,0.12)',
+    borderColor: 'rgba(245,158,11,0.45)',
   },
 
   
@@ -1986,6 +2143,16 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: 'rgba(255,255,255,0.6)',
     letterSpacing: -0.1,
+  },
+
+  
+    pwdUsagePlanNameLow: {
+    color: '#FDE68A',
+  },
+
+  
+    pwdUsageLineLow: {
+    color: '#FBBF24',
   },
 
   
@@ -2054,10 +2221,20 @@ const styles = StyleSheet.create({
   },
 
   
+    pwdProgressTrackLow: {
+    backgroundColor: 'rgba(245,158,11,0.22)',
+  },
+
+  
     pwdProgressFill: {
     height: '100%',
     backgroundColor: '#FFFFFF',
     borderRadius: 3,
+  },
+
+  
+    pwdProgressFillLow: {
+    backgroundColor: '#F59E0B',
   },
 
   
@@ -2067,6 +2244,11 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: 'rgba(255,255,255,0.85)',
     letterSpacing: -0.1,
+  },
+
+  
+    pwdProgressNumbersLow: {
+    color: '#FBBF24',
   },
 
   
@@ -2095,6 +2277,35 @@ const styles = StyleSheet.create({
   },
 
   
+    usageActionsRow: {
+    flexDirection: 'row',
+    marginTop: 4,
+    marginBottom: 12,
+  },
+
+  
+    usageManageLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+    backgroundColor: 'rgba(15, 23, 42, 0.8)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+  },
+
+  
+    usageManageLinkText: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    letterSpacing: -0.1,
+  },
+
+  
     pwdSectionTitle: {
     fontFamily: FONT_PLUS_JAKARTA,
     fontSize: 11,
@@ -2110,9 +2321,72 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.06)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.10)',
-    borderRadius: 20,
-    padding: 16,
-    marginBottom: 12,
+    borderRadius: 14,
+    padding: 12,
+    marginBottom: 8,
+  },
+
+  
+    pwdTierCardInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+
+  
+    pwdTierCopy: {
+    flex: 1,
+    gap: 2,
+  },
+
+  
+    pwdTierLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexWrap: 'wrap',
+  },
+
+  
+    pwdTierPlanLabel: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 12,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.65)',
+    letterSpacing: -0.05,
+  },
+
+  
+    pwdTierPlanLabelDark: {
+    color: 'rgba(15,23,42,0.65)',
+  },
+
+  
+    pwdTierPriceLarge: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: -0.4,
+  },
+
+  
+    pwdTierPriceUnitLarge: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 13,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.55)',
+    letterSpacing: -0.1,
+  },
+
+  
+    pwdTierQuotaHint: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 11,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.45)',
+    letterSpacing: -0.05,
+    marginTop: 2,
   },
 
   
@@ -2248,7 +2522,7 @@ const styles = StyleSheet.create({
   },
 
   
-    pwdTierRadioSelected: {
+    pwdTierRadioSelectedOnWhite: {
     borderColor: '#0F172A',
     backgroundColor: '#0F172A',
   },
@@ -2283,38 +2557,11 @@ const styles = StyleSheet.create({
   },
 
   
-    pwdLegalText: {
-    fontFamily: FONT_PLUS_JAKARTA,
-    fontSize: 10,
-    fontWeight: '500',
-    color: 'rgba(255,255,255,0.40)',
-    textAlign: 'center',
-    marginTop: 10,
-    lineHeight: 14,
-    letterSpacing: -0.1,
-  },
-
-  
     pwdBottomBar: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
     paddingHorizontal: 20,
-    paddingTop: 10,
+    paddingTop: 6,
     backgroundColor: '#0B0F19',
-    gap: 8,
-    zIndex: 20,
-    elevation: 20,
-  },
-
-  
-    pwdBottomScrim: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: -32,
-    height: 32,
+    gap: 6,
   },
 
   
@@ -2341,14 +2588,57 @@ const styles = StyleSheet.create({
   },
 
   
-    pwdGhostRow: {
+    pwdFooterHint: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 11,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.5)',
+    textAlign: 'center',
+    marginBottom: 8,
+    letterSpacing: -0.05,
+  },
+
+  
+    pwdFooterLinksRow: {
     flexDirection: 'row',
-    gap: 8,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+
+  
+    pwdFooterLinksSlot: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+
+  
+    pwdFooterLinkPress: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  
+    pwdFooterLink: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 11.5,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.55)',
+    letterSpacing: -0.05,
+    textAlign: 'center',
+  },
+
+  
+    pwdFooterLinkRestore: {
+    fontSize: 10.5,
+    lineHeight: 14,
   },
 
   
     pwdGhostButton: {
     flex: 1,
+    flexDirection: 'row',
     paddingVertical: 9,
     borderRadius: 12,
     backgroundColor: 'rgba(255,255,255,0.06)',
@@ -2370,10 +2660,11 @@ const styles = StyleSheet.create({
   
     pwdManageLink: {
     alignSelf: 'center',
-    paddingVertical: 10,
+    paddingVertical: 4,
     paddingHorizontal: 8,
-    minHeight: 44,
+    minHeight: 32,
     justifyContent: 'center',
+    marginBottom: 8,
   },
 
   

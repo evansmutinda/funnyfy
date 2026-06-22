@@ -29,11 +29,12 @@ export default function PhotoReviewScreen({
   imageUri,
   imageDataUrl,
   isOnline = true,
+  isGenerating = false,
   subscriptionInfo,
   canGenerateMore,
   onStart,
   onSubscribe,
-  onOpenSubscription,
+  onOpenUsage,
   onReplacePhoto,
   onBack,
 }) {
@@ -46,7 +47,7 @@ export default function PhotoReviewScreen({
   const quotaInfo = getQuotaInfo();
   const trialRemaining = isTrialUser(subscriptionInfo) ? getTrialRemaining(subscriptionInfo) : null;
   const quotaOk = canGenerateMore !== false;
-  const canGenerate = !!imageUri && !picking && quotaOk && isOnline;
+  const canGenerate = !!imageUri && !picking && !isGenerating && quotaOk && isOnline;
 
   const handleChooseAnother = async () => {
     const next = await pickImage(false);
@@ -92,7 +93,7 @@ export default function PhotoReviewScreen({
           onStylePress={onBack}
           style={style}
           subscriptionInfo={subscriptionInfo}
-          onOpenSubscription={onOpenSubscription}
+          onOpenUsage={onOpenUsage}
         />
 
         {quotaInfo.isExceeded ? (
@@ -128,14 +129,6 @@ export default function PhotoReviewScreen({
       <View style={[styles.reviewActionBand, { paddingBottom: Math.max(insets.bottom, 16) + 8 }]}>
         <View style={styles.uploadInlineActionsRow}>
           <PressScale
-            onPress={onBack}
-            style={styles.uploadSmallGhostButton}
-            disabled={picking}
-          >
-            <Feather name="x" size={14} color="#FFFFFF" />
-            <Text style={styles.uploadSmallGhostButtonText}>Remove</Text>
-          </PressScale>
-          <PressScale
             onPress={handleChooseAnother}
             style={styles.uploadSmallGhostButton}
             disabled={picking}
@@ -156,6 +149,8 @@ export default function PhotoReviewScreen({
           <Text style={styles.uploadGenerateButtonText}>
             {!isOnline
               ? 'No internet connection'
+              : isGenerating
+                ? 'Generation in progress…'
               : quotaOk
                 ? 'Generate'
                 : 'Upgrade to continue'}

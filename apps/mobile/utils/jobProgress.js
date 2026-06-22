@@ -43,28 +43,16 @@ export function getJobProgressCopy(job, { styleLabel, loading, now = Date.now() 
     };
   }
 
-  const wait = formatEstimatedWait(job.estimatedWaitTime);
   const status = job.status;
 
   if (status === 'pending') {
     const ahead = job.queuePosition ?? 0;
-    let subtitle = 'Queued — waiting to start…';
-    if (ahead <= 0) {
-      subtitle = "You're up next…";
-    } else if (ahead === 1) {
-      subtitle = wait ? `1 job ahead · ${wait} wait` : '1 job ahead of you…';
-    } else {
-      subtitle = wait
-        ? `${ahead} jobs ahead · ${wait} wait`
-        : `${ahead} jobs ahead of you…`;
-    }
+    const subtitle = ahead <= 0 ? "You're up next…" : 'Queued — waiting to start…';
     return {
       title,
       subtitle,
       phaseIndex: 1,
-      statusHint: wait
-        ? `Estimated wait before processing: ${wait.replace('~', '')}`
-        : 'Waiting for the next available slot…',
+      statusHint: 'Hang tight while we get things ready…',
     };
   }
 
@@ -81,7 +69,7 @@ export function getJobProgressCopy(job, { styleLabel, loading, now = Date.now() 
       title,
       subtitle: 'Generating your caricature…',
       phaseIndex: 3,
-      statusHint: 'Usually takes 15–30 seconds.',
+      statusHint: 'This may take a little while…',
     };
   }
 

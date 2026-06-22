@@ -43,13 +43,20 @@ export default {
         'READ_MEDIA_IMAGES',
       ],
       navigationBar: {
-        backgroundColor: '#0B0F19',
+        backgroundColor: '#0B0F19CC',
         barStyle: 'light-content',
       },
     },
     web: { bundler: 'metro' },
     plugins: [
       'expo-font',
+      [
+        'expo-navigation-bar',
+        {
+          enforceContrast: false,
+          style: 'light',
+        },
+      ],
       [
         'expo-splash-screen',
         {

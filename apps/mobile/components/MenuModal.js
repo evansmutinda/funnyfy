@@ -7,6 +7,7 @@ import styles from '../styles';
 
 const ITEMS = [
   { id: 'gallery', label: 'My Gallery', icon: 'image' },
+  { id: 'usage', label: 'Usage', icon: 'bar-chart-2' },
   { id: 'subscription', label: 'Subscription', icon: 'credit-card' },
   { id: 'privacy', label: 'Privacy Policy', icon: 'shield' },
   { id: 'terms', label: 'Terms & Conditions', icon: 'file-text' },

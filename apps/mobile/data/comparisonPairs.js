@@ -1,15 +1,16 @@
-// Comparison pairs (before → styled after) for the UploadScreen background
-// and any future before/after hero cards.
+// Comparison pairs (before → styled after) for the UploadScreen background.
+// Asset spec + generation checklist: To do/COMPARISON_ASSETS.md
 //
-// PLACEHOLDER PHASE: until real generated assets exist, every style reuses
-// the same `realistic.jpeg` portrait as the "before" image, and the
-// style's existing thumbnail as the "after". Visually this lets the UI
-// pattern be validated. Replace with real generated pairs when ready:
-//   1. Run scripts/generate-comparison-set.js (TBD)
-//   2. Drop into apps/mobile/assets/comparisons/<styleId>/...
-//   3. Map the per-style overrides in COMPARISON_OVERRIDES below.
+// Placeholder: shared realistic.jpeg "before" + style picker thumbnail "after".
+// Replace via COMPARISON_OVERRIDES once curated pairs exist.
 
 import { getStyleImage } from '../constants';
+
+/** Canonical upload comparison aspect (width / height). */
+export const COMPARISON_ASPECT_RATIO = 2 / 3;
+
+/** Recommended export size for curated before/after pairs. */
+export const COMPARISON_IMAGE_SIZE = { width: 832, height: 1248 };
 
 const DEFAULT_BEFORE = require('../assets/realistic.jpeg');
 

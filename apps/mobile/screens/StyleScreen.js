@@ -214,6 +214,7 @@ export default function StyleScreen({
 function CategoryRow({ category, styleList, selectedStyle, onSelect, onSeeAll, rowIndex }) {
   const hasOverflow = styleList.length > ROW_PREVIEW_COUNT;
   const visibleStyles = hasOverflow ? styleList.slice(0, ROW_PREVIEW_COUNT) : styleList;
+  const showSeeAll = styleList.length > 0;
 
   return (
     <Animated.View
@@ -222,7 +223,7 @@ function CategoryRow({ category, styleList, selectedStyle, onSelect, onSeeAll, r
     >
       <View style={styles.styleRowHeader}>
         <Text style={styles.styleRowTitle}>{category.label}</Text>
-        {hasOverflow ? (
+        {showSeeAll ? (
           <PressScale onPress={onSeeAll} hitSlop={8}>
             <View style={styles.styleRowSeeAll}>
               <Text style={styles.styleRowSeeAllText}>See all</Text>
