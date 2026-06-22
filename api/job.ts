@@ -1,45 +1,42 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { query } from './_utils/db';
 import { applyMiddleware } from './_utils/middleware';
+import { requireAuth } from './_utils/auth';
 import { safeErrorResponse } from './_utils/security';
 import { getEstimatedWaitTime } from './_utils/queue-stats';
+import { humanizeJobError } from './_utils/job-messages';
+import { syncJobWithReplicate, type JobSyncRow } from './_utils/replicate-sync';
 
 export default async function handler(
   req: VercelRequest,
   res: VercelResponse
 ) {
-  // Apply security middleware
   if (!applyMiddleware(req, res, ['GET', 'OPTIONS'])) return;
+
+  const userId = requireAuth(req, res);
+  if (!userId) return;
 
   const jobId = (req.query.id || req.query.jobId) as string | undefined;
 
   if (!jobId || typeof jobId !== 'string') {
     return res.status(400).json({
       ok: false,
-      error: 'jobId (or id) query parameter is required'
+      error: 'jobId (or id) query parameter is required',
     });
   }
 
   try {
-    // Fetch job details
-    const jobResult = await query<{
-      id: string;
-      style_id: string;
-      status: string;
-      priority: number;
-      input_image_url: string | null;
-      output_image_url: string | null;
-      error_message: string | null;
-      created_at: string;
-      started_at: string | null;
-      completed_at: string | null;
-    }>(
+    const jobResult = await query<
+      JobSyncRow & { priority: number; style_id: string; input_image_url: string | null }
+    >(
       `
         SELECT
           id,
+          user_id,
           style_id,
           status,
           priority,
+          replicate_prediction_id,
           input_image_url,
           output_image_url,
           error_message,
@@ -56,9 +53,28 @@ export default async function handler(
       return res.status(404).json({ ok: false, error: 'Job not found' });
     }
 
-    const job = jobResult.rows[0];
+    let job = jobResult.rows[0];
 
-    // Calculate queue position and estimated wait time
+    if (job.user_id && job.user_id !== userId) {
+      return res.status(403).json({ ok: false, error: 'Forbidden' });
+    }
+
+    if (
+      job.status === 'processing' ||
+      job.status === 'pending' ||
+      (job.status === 'failed' &&
+        job.replicate_prediction_id &&
+        !job.output_image_url &&
+        job.error_message &&
+        (job.error_message.includes('JOB_STUCK') ||
+          job.error_message.includes('Worker interrupted')))
+    ) {
+      const synced = await syncJobWithReplicate(job);
+      if (synced) {
+        job = { ...job, ...synced };
+      }
+    }
+
     let queuePosition: number | null = null;
     let estimatedWaitTime: number | null = null;
 
@@ -77,8 +93,6 @@ export default async function handler(
           [job.priority, job.created_at]
         );
         queuePosition = queueResult.rows[0]?.count ?? 0;
-
-        // Use improved wait time estimation based on historical data
         estimatedWaitTime = await getEstimatedWaitTime(queuePosition ?? 0);
       } catch (queueErr) {
         console.error('[job] Failed to compute queue position:', queueErr);
@@ -86,6 +100,17 @@ export default async function handler(
         estimatedWaitTime = null;
       }
     }
+
+    const userMessage = humanizeJobError(job.error_message);
+    const recoverable =
+      job.status === 'processing' ||
+      job.status === 'pending' ||
+      (job.status === 'failed' &&
+        Boolean(
+          job.error_message &&
+            (job.error_message.includes('JOB_STUCK') ||
+              job.error_message.includes('Worker interrupted'))
+        ));
 
     return res.status(200).json({
       ok: true,
@@ -97,16 +122,17 @@ export default async function handler(
         inputImageUrl: job.input_image_url,
         outputImageUrl: job.output_image_url,
         errorMessage: job.error_message,
+        userMessage,
+        recoverable,
         createdAt: job.created_at,
         startedAt: job.started_at,
         completedAt: job.completed_at,
         queuePosition,
-        estimatedWaitTime
-      }
+        estimatedWaitTime,
+      },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('[job] Failed to fetch job status:', err);
     return safeErrorResponse(res, 500, 'JOB_FETCH_FAILED', 'Failed to fetch job status');
   }
 }
-

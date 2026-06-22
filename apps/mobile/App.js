@@ -40,6 +40,7 @@ import UploadScreen from './screens/UploadScreen';
 import PhotoReviewScreen from './screens/PhotoReviewScreen';
 import SubscriptionScreen from './screens/SubscriptionScreen';
 import ResultScreen from './screens/ResultScreen';
+import { DARK_BG, navBarColorRuntime } from './constants/theme';
 import {
   API_BASE,
   PRIVACY_POLICY_TEXT,
@@ -49,6 +50,7 @@ import {
 import { DEFAULT_ENABLED_STYLES } from './data/styleCatalog';
 import { getTrialRemaining, getTrialWarningMessage, isTrialUser } from './utils/trialWarnings';
 import { isNsfwContentError, humanizeApiError, NSFW_REJECT_DIALOG } from './utils/contentErrors';
+import { pollJobUntilDone } from './utils/jobClient';
 
 // Enforce HTTPS for security — prevent accidental HTTP misconfiguration
 if (API_BASE.startsWith('http://') && !API_BASE.includes('localhost') && !API_BASE.includes('127.0.0.1')) {
@@ -58,16 +60,15 @@ if (API_BASE.startsWith('http://') && !API_BASE.includes('localhost') && !API_BA
 
 ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
 
-const NAV_BAR_COLOR = '#0B0F19';
-
 async function configureAndroidNavigationBar() {
   if (Platform.OS !== 'android') return;
+  const navBarColor = navBarColorRuntime();
   try {
     if (NavigationBar.setPositionAsync) {
       await NavigationBar.setPositionAsync('absolute');
     }
-    await NavigationBar.setBackgroundColorAsync(NAV_BAR_COLOR);
-    await NavigationBar.setBorderColorAsync(NAV_BAR_COLOR);
+    await NavigationBar.setBackgroundColorAsync(navBarColor);
+    await NavigationBar.setBorderColorAsync(navBarColor);
     await NavigationBar.setButtonStyleAsync('light');
     await NavigationBar.setVisibilityAsync('visible');
   } catch (err) {
@@ -93,7 +94,7 @@ export default function App() {
 
 function AppShell({ children }) {
   return (
-    <View style={{ flex: 1, backgroundColor: '#0B0F19' }}>
+    <View style={{ flex: 1, backgroundColor: DARK_BG }}>
       {children}
     </View>
   );
@@ -492,12 +493,12 @@ function AppContent({ fontsLoaded }) {
         setJob(null);
         setResult(null);
 
-        // Failsafe: stop loading after 90 seconds no matter what
+        // Failsafe: stop loading after 3 minutes (poll loop is up to ~180s)
         const failsafeTimer = setTimeout(() => {
           console.warn('[callApi] Failsafe timeout reached - forcing loading off');
           setLoading(false);
-          setError('Request timed out. Please try again.');
-        }, 90000);
+          setError('This is taking longer than usual. Tap Try again — we may still be finishing your caricature.');
+        }, 200000);
 
         try {
           // Step 1: Enqueue the job
@@ -518,8 +519,10 @@ function AppContent({ fontsLoaded }) {
           try {
             enqueueJson = JSON.parse(enqueueText);
           } catch (parseErr) {
-            console.error('Enqueue - JSON parse error:', parseErr);
-            setError('Server returned invalid response. Please try again.');
+            console.error('Enqueue - JSON parse error:', parseErr, enqueueText?.slice?.(0, 200));
+            setError(
+              'We had trouble talking to the server. Tap Try again — your caricature may still be processing.'
+            );
             setFailedAttempts((prev) => prev + 1);
             return;
           }
@@ -536,19 +539,15 @@ function AppContent({ fontsLoaded }) {
 
           const jobId = enqueueJson.jobId;
           if (!jobId) {
-            throw new Error('No job ID returned from server');
+            throw new Error('NO_JOB_ID: We could not start your caricature');
           }
-          setPendingJobId(jobId); // store so retry can resume polling
+          setPendingJobId(jobId);
           setJob({
             status: enqueueJson.status || 'pending',
             queuePosition: enqueueJson.queuePosition ?? null,
             estimatedWaitTime: enqueueJson.estimatedWaitTime ?? null,
           });
 
-          // Kick the queue worker immediately so the job starts processing now,
-          // instead of waiting for the next cron-job.org tick.
-          // Uses the user's JWT (already in headers) — no secret embedded in the app.
-          // Fire-and-forget: we don't await it, polling below picks up the result.
           fetch(`${API_BASE}/api/cron/process-queue`, {
             method: 'GET',
             headers: getApiHeaders(),
@@ -556,57 +555,27 @@ function AppContent({ fontsLoaded }) {
             console.warn('[callApi] queue kick failed (non-fatal, cron-job.org will pick up):', kickErr?.message || kickErr);
           });
 
-          // Step 2: Poll for job completion
-          const terminalStatuses = new Set(['completed', 'failed']);
-          const maxAttempts = 40; // 40 * 2s = 80s
+          const pollResult = await pollJobUntilDone({
+            apiBase: API_BASE,
+            jobId,
+            getApiHeaders,
+            onUpdate: setJob,
+          });
 
-          for (let attempt = 0; attempt < maxAttempts; attempt++) {
-            const jobRes = await fetch(`${API_BASE}/api/job?id=${encodeURIComponent(jobId)}`, {
-              method: 'GET',
-              headers: getApiHeaders(),
-            });
+          setResult({
+            status: 'succeeded',
+            output: pollResult.output,
+          });
+          setFailedAttempts(0);
+          setPendingJobId(null);
 
-            if (!jobRes.ok) {
-              throw new Error(`Failed to check job status: HTTP ${jobRes.status}`);
-            }
+          setTimeout(async () => {
+            console.log('[App] Auto-refreshing subscription after generation...');
+            const sub = await refreshSubscription();
+            if (sub) showTrialWarningIfNeeded(sub);
+          }, 1500);
 
-            const jobData = await jobRes.json();
-            if (!jobData.ok) {
-              throw new Error(jobData.error || 'Failed to check job status');
-            }
-
-            const jobInfo = jobData.job;
-            setJob(jobInfo);
-
-            if (terminalStatuses.has(jobInfo.status)) {
-              if (jobInfo.status === 'completed' && jobInfo.outputImageUrl) {
-                // Success — format as Replicate-style output for result screen
-                setResult({
-                  status: 'succeeded',
-                  output: jobInfo.outputImageUrl,
-                });
-                setFailedAttempts(0);
-
-                // NOTE: Gallery save is intentionally NOT done here.
-                // The user must tap Save on the result screen to add to My Caricatures.
-
-                // Auto-refresh subscription after successful generation
-                setTimeout(async () => {
-                  console.log('[App] Auto-refreshing subscription after generation...');
-                  const sub = await refreshSubscription();
-                  if (sub) showTrialWarningIfNeeded(sub);
-                }, 1500);
-
-                return; // Done
-              } else {
-                throw new Error(jobInfo.errorMessage || 'Image generation failed');
-              }
-            }
-
-            await new Promise((resolve) => setTimeout(resolve, 2000));
-          }
-
-          throw new Error('Image generation timed out. Please check My Gallery later.');
+          return;
         } catch (err) {
           const errorMessage = err.message || String(err);
 
@@ -625,36 +594,7 @@ function AppContent({ fontsLoaded }) {
           }
 
           console.error('API error:', err);
-          let userMessage = 'Network or server error';
-
-          if (
-            errorMessage.includes('Network request failed') ||
-            errorMessage.includes('Failed to fetch') ||
-            errorMessage.includes('NetworkError') ||
-            errorMessage.includes('network') ||
-            (err.name === 'TypeError' && errorMessage.includes('fetch'))
-          ) {
-            userMessage =
-              'Network connection failed. Please check your internet connection and try again.';
-          } else if (errorMessage.toLowerCase().includes('timeout')) {
-            userMessage = 'Request timed out. Please try again.';
-          } else if (
-            errorMessage.includes('ECONNREFUSED') ||
-            errorMessage.toLowerCase().includes('connection refused')
-          ) {
-            userMessage = 'Cannot connect to server. Please try again later.';
-          } else if (errorMessage.includes('404') || errorMessage.includes('Not Found')) {
-            userMessage = 'Service not found. Please try again later.';
-          } else if (
-            errorMessage.includes('500') ||
-            errorMessage.toLowerCase().includes('internal server error')
-          ) {
-            userMessage = 'Server error. Please try again later.';
-          } else if (errorMessage && !errorMessage.includes('Network')) {
-            userMessage = humanizeApiError(errorMessage);
-          }
-
-          setError(userMessage);
+          setError(humanizeApiError(errorMessage));
           setFailedAttempts((prev) => prev + 1);
         } finally {
           clearTimeout(failsafeTimer);
@@ -893,59 +833,55 @@ function AppContent({ fontsLoaded }) {
   };
 
   const handleRetry = async () => {
-    // If there's a pending job still in the queue, poll it instead of creating a new one
-    if (pendingJobId) {
-      setError('');
-      setLoading(true);
-      setJob(null);
-      const terminalStatuses = new Set(['completed', 'failed']);
-      const maxAttempts = 40;
-      try {
-        for (let attempt = 0; attempt < maxAttempts; attempt++) {
-          const jobRes = await fetch(`${API_BASE}/api/job?id=${encodeURIComponent(pendingJobId)}`, {
-            method: 'GET',
-            headers: getApiHeaders(),
-          });
-          const jobData = await jobRes.json();
-          const jobInfo = jobData.job;
-          setJob(jobInfo);
-          if (terminalStatuses.has(jobInfo.status)) {
-            if (jobInfo.status === 'completed' && jobInfo.outputImageUrl) {
-              setResult({ status: 'succeeded', output: jobInfo.outputImageUrl });
-              setFailedAttempts(0);
-              // NOTE: Gallery save is manual only — not triggered on retry completion.
-              setTimeout(() => refreshSubscription(), 500);
-              return;
-            } else {
-              throw new Error(jobInfo.errorMessage || 'Image generation failed');
-            }
-          }
-          await new Promise((resolve) => setTimeout(resolve, 2000));
-        }
-        throw new Error('Image generation timed out. Please check My Gallery later.');
-      } catch (err) {
-        const errorMessage = err.message || String(err);
-        if (isNsfwContentError(errorMessage)) {
-          showDialog({
-            ...NSFW_REJECT_DIALOG,
-            onConfirm: () => {
-              closeDialog();
-              setPickedImage(null);
-              setScreen('upload');
-              setError('');
-              setFailedAttempts(0);
-            },
-          });
-          return;
-        }
-        setError(humanizeApiError(errorMessage) || 'Generation failed. Please try again.');
-        setFailedAttempts((prev) => prev + 1);
-      } finally {
-        setLoading(false);
-        setJob(null);
-      }
+    if (!pendingJobId) {
+      setError('Tap Generate to start again, or go back and choose another photo.');
+      return;
     }
-    // No pending job — user must go back and start fresh
+
+    setError('');
+    setLoading(true);
+    setJob(null);
+
+    fetch(`${API_BASE}/api/cron/process-queue`, {
+      method: 'GET',
+      headers: getApiHeaders(),
+    }).catch(() => {});
+
+    try {
+      const pollResult = await pollJobUntilDone({
+        apiBase: API_BASE,
+        jobId: pendingJobId,
+        getApiHeaders,
+        onUpdate: setJob,
+      });
+
+      setResult({ status: 'succeeded', output: pollResult.output });
+      setFailedAttempts(0);
+      setPendingJobId(null);
+      setTimeout(() => refreshSubscription(), 500);
+    } catch (err) {
+      const errorMessage = err.message || String(err);
+
+      if (isNsfwContentError(errorMessage)) {
+        showDialog({
+          ...NSFW_REJECT_DIALOG,
+          onConfirm: () => {
+            closeDialog();
+            setPickedImage(null);
+            setScreen('upload');
+            setError('');
+            setFailedAttempts(0);
+          },
+        });
+        return;
+      }
+
+      setError(humanizeApiError(errorMessage));
+      setFailedAttempts((prev) => prev + 1);
+    } finally {
+      setLoading(false);
+      setJob(null);
+    }
   };
 
   useEffect(() => {

@@ -11,6 +11,7 @@ import { checkDailySpendingCap, shouldPauseQueue, recordJobCost, getEstimatedCos
 import { getStyleById } from '../_utils/styles-config';
 import { verifyJWT } from '../_utils/security';
 import { creditUsageForJob } from '../_utils/usage';
+import { recoverStaleProcessingJobs } from '../_utils/replicate-sync';
 
 const MAX_CONCURRENT_JOBS = Number(process.env.MAX_CONCURRENT_JOBS || 10);
 
@@ -37,6 +38,16 @@ export default async function handler(
   }
 
   try {
+    // Finish jobs whose worker timed out but Replicate completed (predictions expire ~1h)
+    try {
+      const recovered = await recoverStaleProcessingJobs(2);
+      if (recovered > 0) {
+        console.log(`[process-queue] Recovered ${recovered} stale job(s) from Replicate`);
+      }
+    } catch (recoverErr) {
+      console.warn('[process-queue] Stale job recovery failed:', recoverErr);
+    }
+
     // Check if queue should be paused due to cost protection
     const pauseCheck = await shouldPauseQueue();
     if (pauseCheck.paused) {
@@ -138,11 +149,19 @@ export default async function handler(
         jobId: job.id
       });
     } catch (processErr: any) {
-      // Job processing failed - mark as failed if not already marked
       const errorMessage = String(processErr?.message || processErr);
       console.error(`[process-queue] Job ${job.id} failed:`, errorMessage);
 
-      // Update job status to failed if not already updated by processJob
+      // Worker timeout while Replicate still running — leave as processing for sync/recovery
+      if (errorMessage.includes('JOB_STUCK') || errorMessage.includes('Worker interrupted')) {
+        return res.status(200).json({
+          ok: true,
+          message: 'Job still processing on Replicate',
+          jobId: job.id,
+          recoverable: true,
+        });
+      }
+
       try {
         await query(
           `
@@ -152,7 +171,7 @@ export default async function handler(
                 completed_at = NOW()
             WHERE id = $2 AND status = 'processing'
           `,
-          [errorMessage.slice(0, 1000), job.id] // Limit error message length
+          [errorMessage.slice(0, 1000), job.id]
         );
       } catch (updateErr) {
         console.error(`[process-queue] Failed to update job ${job.id} status:`, updateErr);
@@ -162,7 +181,7 @@ export default async function handler(
         ok: true,
         message: 'Job failed',
         jobId: job.id,
-        error: errorMessage
+        error: errorMessage,
       });
     }
   } catch (err: any) {

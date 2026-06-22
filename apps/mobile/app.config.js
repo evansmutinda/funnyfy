@@ -7,6 +7,7 @@
 // 3. System environment variables
 
 const versionInfo = require('./version.json');
+const { DARK_BG, navBarColorNative } = require('./constants/theme');
 
 export default {
   expo: {
@@ -20,7 +21,7 @@ export default {
       // Android 12+ needs a splash image drawable; transparent pixel = solid color only.
       image: './assets/splash-transparent.png',
       resizeMode: 'contain',
-      backgroundColor: '#0B0F19',
+      backgroundColor: DARK_BG,
     },
     updates: { fallbackToCacheTimeout: 0 },
     assetBundlePatterns: ['**/*'],
@@ -44,7 +45,7 @@ export default {
       ],
     },
     androidNavigationBar: {
-      backgroundColor: '#0B0F19',
+      backgroundColor: navBarColorNative(),
       barStyle: 'light-content',
     },
     web: { bundler: 'metro' },
@@ -53,7 +54,7 @@ export default {
       [
         'expo-navigation-bar',
         {
-          backgroundColor: '#0B0F19',
+          backgroundColor: navBarColorNative(),
           barStyle: 'light',
           position: 'absolute',
         },
@@ -62,7 +63,7 @@ export default {
       [
         'expo-splash-screen',
         {
-          backgroundColor: '#0B0F19',
+          backgroundColor: DARK_BG,
           image: './assets/splash-transparent.png',
           resizeMode: 'contain',
         },

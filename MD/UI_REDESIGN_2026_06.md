@@ -61,12 +61,22 @@ Does **not** apply when quota is fully exceeded (separate exceeded banner / dial
 
 | Setting | Value |
 |---------|--------|
-| Native (`app.config.js`) | `#0B0F19` via `androidNavigationBar` + plugin |
-| Plugin | `expo-navigation-bar` — `backgroundColor`, `position: absolute` |
-| Custom plugin | `plugins/withAndroidNavBarContrast.js` → `enforceNavigationBarContrast=false` |
-| Runtime (`App.js`) | `setPositionAsync('absolute')`, `#0B0F19`, re-applies on screen change |
+| Theme color | `DARK_BG` `#0B0F19` at **15% transparent** (85% opaque) |
+| Single source | `apps/mobile/constants/theme.js` — `navBarColorRuntime()` (JS) / `navBarColorNative()` (prebuild) |
+| Native (`app.config.js`) | `navBarColorNative()` → `#D90B0F19` in `colors.xml` (**#AARRGGBB**) |
+| Runtime (`App.js`) | `navBarColorRuntime()` → `rgba(11, 15, 25, 0.85)` via `processColor` |
+| Plugin | `expo-navigation-bar` — `position: absolute` |
+| Custom plugin | `plugins/withAndroidNavBarContrast.js` — `enforceNavigationBarContrast=false`, `windowDrawsSystemBarBackgrounds=true`, **MainActivity edge-to-edge** (`WindowCompat.setDecorFitsSystemWindows(window, false)` before `onCreate`) |
+| Runtime (`App.js`) | Re-applies color + position on screen change and app resume |
 
-**Grey bar cause:** Android default `enforceNavigationBarContrast=true` adds a grey scrim on 3-button navigation. SDK 52’s expo-navigation-bar plugin does not read `enforceContrast` from config — use the custom plugin and **rebuild the APK** (`.\build-apk-local.ps1`). JS reload is not enough.
+**Why transparency looked unchanged or pink**
+
+1. **Wrong hex order in JS** — `#CC0B0F19` / `#D90B0F19` in `setBackgroundColorAsync` is read as `#RRGGBBAA` (red channel `CC`/`D9` → pink). Use `rgba()` or `#0B0F19D9` at runtime only.
+2. **No edge-to-edge until JS** — without MainActivity `setDecorFitsSystemWindows(false)`, the bar sits below content; alpha has no visible effect.
+3. **JS reload is not enough** — custom plugin + `colors.xml` require **prebuild + APK rebuild** (`.\build-apk-local.ps1`). See `To do/ENTRY_INTEGRATION.md`.
+4. **Same color behind bar** — on static `#0B0F19` screens, 15% transparency is subtle; scroll style tiles on home to see content through the bar.
+
+**Grey bar cause:** Android default `enforceNavigationBarContrast=true` adds a grey scrim on 3-button navigation. SDK 52’s expo-navigation-bar plugin does not read `enforceContrast` from config — use the custom plugin and **rebuild the APK** (`.\build-apk-local.ps1`).
 
 ---
 
