@@ -42,10 +42,10 @@ export default {
         'WRITE_EXTERNAL_STORAGE',
         'READ_MEDIA_IMAGES',
       ],
-      navigationBar: {
-        backgroundColor: '#0B0F19CC',
-        barStyle: 'light-content',
-      },
+    },
+    androidNavigationBar: {
+      backgroundColor: '#0B0F19',
+      barStyle: 'light-content',
     },
     web: { bundler: 'metro' },
     plugins: [
@@ -53,10 +53,12 @@ export default {
       [
         'expo-navigation-bar',
         {
-          enforceContrast: false,
-          style: 'light',
+          backgroundColor: '#0B0F19',
+          barStyle: 'light',
+          position: 'absolute',
         },
       ],
+      './plugins/withAndroidNavBarContrast.js',
       [
         'expo-splash-screen',
         {

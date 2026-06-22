@@ -58,18 +58,16 @@ if (API_BASE.startsWith('http://') && !API_BASE.includes('localhost') && !API_BA
 
 ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
 
-const NAV_BAR_COLOR = '#0B0F19CC';
+const NAV_BAR_COLOR = '#0B0F19';
 
 async function configureAndroidNavigationBar() {
   if (Platform.OS !== 'android') return;
   try {
-    if (NavigationBar.setNavigationBarContrastEnforcedAsync) {
-      await NavigationBar.setNavigationBarContrastEnforcedAsync(false);
-    }
     if (NavigationBar.setPositionAsync) {
       await NavigationBar.setPositionAsync('absolute');
     }
     await NavigationBar.setBackgroundColorAsync(NAV_BAR_COLOR);
+    await NavigationBar.setBorderColorAsync(NAV_BAR_COLOR);
     await NavigationBar.setButtonStyleAsync('light');
     await NavigationBar.setVisibilityAsync('visible');
   } catch (err) {
@@ -319,7 +317,7 @@ function AppContent({ fontsLoaded }) {
     });
 
     return () => { subscription.remove(); };
-  }, []);
+  }, [screen]);
 
   const showTrialWarningIfNeeded = (subInfo) => {
     if (!isTrialUser(subInfo)) return;

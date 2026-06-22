@@ -61,11 +61,12 @@ Does **not** apply when quota is fully exceeded (separate exceeded banner / dial
 
 | Setting | Value |
 |---------|--------|
-| Native (`app.config.js`) | `#0B0F19CC` (80% opacity dark) |
-| Plugin | `expo-navigation-bar` with **`enforceContrast: false`** |
-| Runtime (`App.js`) | `setPositionAsync('absolute')`, contrast off, `#0B0F19CC` |
+| Native (`app.config.js`) | `#0B0F19` via `androidNavigationBar` + plugin |
+| Plugin | `expo-navigation-bar` — `backgroundColor`, `position: absolute` |
+| Custom plugin | `plugins/withAndroidNavBarContrast.js` → `enforceNavigationBarContrast=false` |
+| Runtime (`App.js`) | `setPositionAsync('absolute')`, `#0B0F19`, re-applies on screen change |
 
-**Grey bar cause:** Android default `enforceContrast: true` adds an opaque grey scrim on 3-button navigation. Disabling contrast + rebuild fixes it. See plugin config in `app.config.js`.
+**Grey bar cause:** Android default `enforceNavigationBarContrast=true` adds a grey scrim on 3-button navigation. SDK 52’s expo-navigation-bar plugin does not read `enforceContrast` from config — use the custom plugin and **rebuild the APK** (`.\build-apk-local.ps1`). JS reload is not enough.
 
 ---
 
