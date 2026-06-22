@@ -1,68 +1,124 @@
-# FunnyFy App
+# FunnyFy
 
-A mobile application for generating caricatures using AI/ML technology via the Replicate API.
+AI caricature mobile app — React Native (Expo SDK 52) + Vercel serverless backend + Replicate.
 
-## Project Overview
+Transform photos into caricatures across **160 catalog styles** (18 enabled live), with RevenueCat subscriptions, usage quotas, NSFW moderation, and JWT auth.
 
-FunnyFy is a React Native mobile app (Android & iOS) that transforms user photos into caricatures using AI. The app uses a serverless backend on Vercel to securely handle API calls to Replicate.
-
-## Project Structure
-
-- `apps/mobile/` - React Native mobile app (Expo)
-- `api/` - Vercel serverless functions (backend API)
-- `MD/` - Development documentation and planning files
-  - `STATUS.md` - **Current app status and launch checklist** ⭐
-  - `DEVELOPMENT_PLAN.md` - Complete development plan and architecture
-  - `PRICING_STRATEGY.md` - Pricing tiers and revenue projections
-  - `SERVER_ARCHITECTURE_EXPLANATION.md` - Server setup and cost breakdown
-  - `REPLICATE_VERCEL_BENEFITS.md` - **Benefits of Replicate + Vercel connection** 🔗
-  - `GITHUB_SETUP_GUIDE.md` - Git and GitHub setup instructions
-  - `USER_GUIDELINES.md` - Development guidelines
-
-## Current Status
-
-**✅ MVP Complete - Ready for Launch**
-
-### Implemented Features
-- ✅ React Native mobile app (Android & iOS via Expo)
-- ✅ 21 caricature styles available
-- ✅ Image upload (camera & gallery)
-- ✅ Style selection with preview images
-- ✅ Real-time generation with progress tracking
-- ✅ Before/after comparison slider
-- ✅ Save and share functionality
-- ✅ Vercel serverless backend
-- ✅ Protected API keys (server-side only)
-- ✅ Style configuration (server-side, no app updates needed)
-
-### Backend Infrastructure
-- **Hosting**: Vercel (serverless functions)
-- **API**: Node.js/TypeScript serverless functions
-- **Styles**: 21 styles configured (mix of flux-kontext-pro and nano-banana models)
-- **Security**: API keys protected on server, prompts server-side only
-
-### Pricing Tiers (Finalized)
-- **Starter**: $5/month = 50 images/month
-- **Popular**: $10/month = 100 images/month  
-- **Pro**: $25/month = 250 images/month
-- No yearly plans (monitoring API usage first)
-
-### Next Steps for Launch
-1. ✅ Implement subscription management (RevenueCat/Stripe)
-2. ✅ Add database for usage tracking and queue management
-3. ✅ Implement quota/throttle system on Vercel
-4. ✅ Add user authentication
-5. ✅ Deploy to app stores (Google Play & App Store)
-
-## Resources
-
-- **Replicate API**: For caricature generation
-- **Backend**: Vercel serverless functions (Node.js/TypeScript)
-- **Mobile**: React Native (Expo) - Android & iOS
-- **Database**: TBD (Vercel Postgres or Supabase recommended)
+**Status:** Feature-complete — awaiting app store submission (June 2026)  
+**Version:** 1.0.3 (`apps/mobile/version.json`)
 
 ---
 
-**Last Updated**: January 2025  
-**Status**: MVP Complete, Pre-Launch
+## Quick links
 
+| Resource | URL |
+|----------|-----|
+| Staging API | https://funnyfy-staging.vercel.app |
+| Production API | https://funnyfyapp.vercel.app |
+| Health check | `GET /api/health` |
+| Current status | [`MD/STATUS.md`](MD/STATUS.md) |
+| Testing guide | [`MD/TESTING.md`](MD/TESTING.md) |
+| Local APK build | [`MD/BUILD_APK_GUIDE.md`](MD/BUILD_APK_GUIDE.md) |
+
+---
+
+## Repo layout
+
+```
+apps/mobile/     React Native app (Expo SDK 52)
+api/             Vercel serverless functions (TypeScript)
+MD/              Documentation
+ToDo/            Backlog & deferred security items
+build-apk-local.ps1   Local debug APK (no EAS quota)
+```
+
+---
+
+## Tech stack
+
+| Layer | Technology |
+|-------|------------|
+| Mobile | React Native, Expo SDK 52 |
+| Backend | Vercel serverless (TypeScript) |
+| Database | Supabase (Postgres) |
+| AI | Replicate API |
+| Subscriptions | RevenueCat |
+| Auth | Custom JWT |
+| Error tracking | Sentry (`react-native` project, staging) |
+
+---
+
+## Local development
+
+### Mobile env
+
+```bash
+cd apps/mobile
+cp env.example .env
+# Set EXPO_PUBLIC_API_URL, RevenueCat keys, Sentry DSN — see apps/mobile/README-ENV.md
+npm install
+npx expo start
+```
+
+### Android debug APK (recommended over Expo Go)
+
+```powershell
+# From repo root — requires Android SDK + JDK 17
+.\build-apk-local.ps1
+```
+
+Skip prebuild on repeat builds: `.\build-apk-local.ps1 -SkipPrebuild -NoVersionBump`
+
+### API
+
+Deploy via Vercel. See `MD/ENV_SETUP.md` and `MD/SETUP_VERCEL_ENV.md` for environment variables.
+
+---
+
+## Key features
+
+- Netflix-style style picker (16 categories, dark UI)
+- Upload → review → generate flow with OS crop (`expo-image-picker`)
+- Gallery, save/share, restyle from result
+- RevenueCat paywall + backend subscription sync
+- Offline banner + generate guards
+- Admin dashboard, cron queue worker, webhook idempotency
+- Infra: `/api/health`, CI typecheck, disaster recovery runbook
+
+---
+
+## Documentation
+
+| Doc | Purpose |
+|-----|---------|
+| [`MD/STATUS.md`](MD/STATUS.md) | Launch checklist & current state |
+| [`MD/CHANGELOG.md`](MD/CHANGELOG.md) | Version history |
+| [`MD/DEVELOPMENT_PLAN.md`](MD/DEVELOPMENT_PLAN.md) | Architecture & phases |
+| [`MD/SECURITY_AUDIT.md`](MD/SECURITY_AUDIT.md) | Security findings |
+| [`MD/DISASTER_RECOVERY.md`](MD/DISASTER_RECOVERY.md) | RTO/RPO & runbooks |
+| [`To do/SENTRY_INTEGRATION.md`](To%20do/SENTRY_INTEGRATION.md) | Mobile Sentry setup (live) |
+| [`ToDo/security-deferred.md`](ToDo/security-deferred.md) | Remaining hardening backlog |
+
+Full doc index: [`MD/README.md`](MD/README.md)
+
+---
+
+## Pricing
+
+| Tier | Price | Images/month |
+|------|-------|----------------|
+| Starter | $5 | 50 |
+| Popular | $10 | 100 |
+| Pro | $25 | 250 |
+
+---
+
+## App identifiers
+
+- **Name:** FunnyFy
+- **Android package:** `com.evansks.funnyfyapp`
+- **GitHub:** [evansmutinda/funnyfy](https://github.com/evansmutinda/funnyfy)
+
+---
+
+**Last updated:** June 2026

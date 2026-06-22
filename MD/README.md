@@ -18,7 +18,7 @@ FunnyFy is a React Native mobile app (Android & iOS) that transforms user photos
 - `apps/mobile/data/stylePhotoTips.js` - Per-style photo tips config for auto-show sheet
 - `apps/mobile/utils/photoTipsPrefs.js` - AsyncStorage "don't show tips again" per style
 - `apps/mobile/constants/fonts.js` - Plus Jakarta Sans (`@expo-google-fonts/plus-jakarta-sans`)
-- `apps/mobile/components/PaywallStyleMarquee.js` - Scrolling style strip on subscription hero
+- `apps/mobile/components/PaywallStyleFade.js` - Subscription hero style crossfade
 - `apps/mobile/components/MenuModal.js` - Dark bottom sheet app menu
 - `apps/mobile/components/ComparisonFade.js`, `PhotoTipsSheet.js`, `PressScale.js` - Upload flow UI
 - `apps/mobile/hooks/useImagePicker.js` - Gallery/camera pick + OS crop (`expo-image-picker`)
@@ -67,8 +67,9 @@ FunnyFy is a React Native mobile app (Android & iOS) that transforms user photos
 - ✅ RevenueCat subscriptions + backend sync
 - ✅ Usage quota, NSFW moderation, JWT auth, admin dashboard
 - ✅ **Auto versioning** on local/EAS builds
+- ✅ **Sentry** mobile error tracking (staging)
 - ✅ **Offline UX**: orange global overlay banner; gallery/styles browse offline; generation blocked until online
-- ✅ Subscription screen: full-bleed dark paywall (`#0B0F19`) + marquee + pinned CTA
+- ✅ Subscription screen: full-bleed dark paywall (`#0B0F19`) + style fade hero + pinned CTA
 
 ### Recommended testing (Android)
 Use a **local debug APK** (`.\build-apk-local.ps1`) instead of **Expo Go** when possible — Expo Go auto-updates from the store and may break SDK 52 compatibility. See `MD/TESTING.md` and `MD/BUILD_APK_GUIDE.md`.
@@ -105,6 +106,7 @@ Use a **local debug APK** (`.\build-apk-local.ps1`) instead of **Expo Go** when 
 | AI | Replicate API |
 | Subscriptions | RevenueCat |
 | Auth | Custom JWT |
+| Error tracking | Sentry (mobile) |
 
 ---
 
