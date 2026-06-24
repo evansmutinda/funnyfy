@@ -2627,12 +2627,7 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.55)',
     letterSpacing: -0.05,
     textAlign: 'center',
-  },
-
-  
-    pwdFooterLinkRestore: {
-    fontSize: 10.5,
-    lineHeight: 14,
+    lineHeight: 16,
   },
 
   

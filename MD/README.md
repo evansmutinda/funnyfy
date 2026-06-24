@@ -24,7 +24,8 @@ FunnyFy is a React Native mobile app (Android & iOS) that transforms user photos
 - `apps/mobile/hooks/useImagePicker.js` - Gallery/camera pick + OS crop (`expo-image-picker`)
 - `apps/mobile/components/NetworkProvider.js` - Connectivity state + global `OfflineBanner`
 - `apps/mobile/components/OfflineBanner.js` - Orange offline overlay (non-blocking)
-- `apps/mobile/utils/` - Style categories, subscription dates, trial warnings
+- `apps/mobile/utils/contactSupport.js` - Menu Contact us mailto helper
+- `apps/mobile/utils/` - Job progress, trial warnings, style categories, subscription dates
 - `api/_utils/styles-config.ts` - Enabled styles + prompts (server-side)
 - `api/_utils/style-catalog.ts` - Full catalog from spreadsheet
 - `scripts/generate-style-catalog.py` - Regenerate catalog from xlsx
@@ -54,7 +55,7 @@ FunnyFy is a React Native mobile app (Android & iOS) that transforms user photos
 
 **✅ Production-Ready – Awaiting App Store Submission**
 
-**Version**: 1.0.3 (`apps/mobile/version.json`) — auto-bumps on build
+**Version**: 1.0.7 (`apps/mobile/version.json`) — auto-bumps on dev changes and APK builds
 
 ### Implemented Features
 - ✅ React Native mobile app (Expo SDK 52)
@@ -62,8 +63,8 @@ FunnyFy is a React Native mobile app (Android & iOS) that transforms user photos
 - ✅ **Netflix-style style picker**: dark `#0B0F19`, category rows + horizontal style carousels, "See all" grid
 - ✅ **Upload → Review** two-screen flow with `UploadFlowHeader` (back + style pill left + usage pill right)
 - ✅ **Photo tips**: auto-opens on Upload per style; "Do not show again" per style; OS crop via `expo-image-picker`
-- ✅ Before/after compare on result (no Before/After badges); **Try another style** restyle flow
-- ✅ Gallery, save/share, toast notifications (`warning` = orange for offline), ConfirmDialog
+- ✅ Before/after compare on result (no Before/After badges); **Try another style** restyle flow; **Try another photo** on result
+- ✅ Menu **Contact us**, **Share app**, **Request a style**; Gallery, save/share, toast notifications (`warning` = orange for offline), ConfirmDialog
 - ✅ RevenueCat subscriptions + backend sync
 - ✅ Usage quota, NSFW moderation, JWT auth, admin dashboard
 - ✅ **Auto versioning** on local/EAS builds

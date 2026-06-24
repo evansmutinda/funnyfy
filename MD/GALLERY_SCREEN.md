@@ -3,7 +3,7 @@
 **Status:** Implemented  
 **Implementation:** `apps/mobile/screens/GalleryScreen.js`  
 **Album utilities:** `apps/mobile/utils/funnyfyAlbum.js`  
-**UI reference:** `MD/UI_REDESIGN_2026_06.md` § Gallery
+**Save implementation:** `saveToFunnyfyAlbum()` in `funnyfyAlbum.js` only (re-exported from `constants.js`)
 
 ---
 
@@ -55,7 +55,9 @@ On every open, the app **merges** the device album into the in-app list (reinsta
 | **Typical Android folder** | `DCIM/Funnyfy/` |
 | **Legacy titles detected** | `FunnyFy`, `funnyfy`, `FUNNYFY` |
 
-Always use `saveToFunnyfyAlbum()` → `MediaLibrary.createAssetAsync(uri, album)`. Do not write directly to DCIM paths.
+Always use `saveToFunnyfyAlbum()` in **`utils/funnyfyAlbum.js`** → `MediaLibrary.createAssetAsync(uri, albumId)` or `createAlbumAsync`. Do not write directly to DCIM paths.
+
+**Do not** add a root-DCIM fallback (`createAssetAsync(uri)` without an album). That regresses saves to `DCIM/` instead of `DCIM/Funnyfy/` and has been reintroduced by mistake during other edits — prebuild/APK rebuild does not fix it; only this save path does.
 
 ---
 
@@ -66,6 +68,7 @@ Always use `saveToFunnyfyAlbum()` → `MediaLibrary.createAssetAsync(uri, album)
 | Root DCIM fallback on album failure | Removed; rescan albums |
 | Stale cached album id | `resolveFunnyfyAlbum()` validates id |
 | Inconsistent album naming | Legacy title scan |
+| Album missing after reinstall / cache loss | `discoverFunnyfyAlbumFromExistingPhotos()` — scans Funnyfy-titled albums + `Funnyfy-*` / `DCIM/Funnyfy/` paths |
 | Gallery only scanned when AsyncStorage empty | **Always merge** on load |
 | Old root saves | Scan 200 recent photos for `Funnyfy-*` / `/Funnyfy/` paths |
 
@@ -82,16 +85,17 @@ Toast offers **View in Gallery** after save.
 
 ## Key files
 
-- `apps/mobile/utils/funnyfyAlbum.js`
+- `apps/mobile/utils/funnyfyAlbum.js` — **canonical** album resolve + save
 - `apps/mobile/screens/GalleryScreen.js`
 - `apps/mobile/screens/ResultScreen.js`
-- `apps/mobile/constants.js`
+- `apps/mobile/constants.js` — re-exports `saveToFunnyfyAlbum`, `FUNNYFY_FOLDER_NAME`
 
 ---
 
 ## QA checklist
 
 - [ ] Save from result → appears in My Gallery + phone Funnyfy album
+- [ ] Reinstall / clear app data → existing Funnyfy device photos are rediscovered in My Gallery
 - [ ] Reinstall → existing album photos appear after merge
 - [ ] Viewer swipe through multiple items; counter updates
 - [ ] Clear in-app list does not delete device album files

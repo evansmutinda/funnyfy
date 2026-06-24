@@ -20,7 +20,7 @@ index.js → polyfills.js → App.js
 | `apps/mobile/App.js` | `expo-splash-screen` — hide when fonts + auth ready |
 | `apps/mobile/app.config.js` | `expo-splash-screen` plugin + splash config |
 | `apps/mobile/plugins/withAndroidNavBarContrast.js` | Nav bar: no contrast scrim, edge-to-edge MainActivity, translucent `DARK_BG` |
-| `apps/mobile/constants/theme.js` | `DARK_BG`, nav bar 15% transparent — runtime + native hex helpers |
+| `apps/mobile/constants/theme.js` | `DARK_BG`, nav bar **20%** transparent — runtime + native hex helpers |
 
 ---
 
@@ -52,7 +52,7 @@ Required for: splash plugin, **navigation bar transparency**, RevenueCat native 
 - [ ] Metro starts: `cd apps/mobile && npx expo start`
 - [ ] Expo Go: no `sdk_initialized` / `window.location.search` error on launch (polyfills)
 - [ ] Native debug APK: launches to dark splash → StyleScreen (no white flash)
-- [ ] **Nav bar:** `#0B0F19` tint, ~15% transparent — scroll style rows to see tiles through bar; rebuild after `theme.js` / plugin changes
+- [ ] **Nav bar:** `#0B0F19` tint, **20%** transparent — scroll style rows to see tiles through bar; rebuild after `theme.js` / plugin changes
 - [ ] RevenueCat init works in **dev APK** (native module), not only Expo Go browser mode
 - [ ] After `expo prebuild --clean`, Gradle `assembleDebug` succeeds without manual patches
 

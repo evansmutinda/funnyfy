@@ -9,9 +9,12 @@ const ITEMS = [
   { id: 'gallery', label: 'My Gallery', icon: 'image' },
   { id: 'usage', label: 'Usage', icon: 'bar-chart-2' },
   { id: 'subscription', label: 'Subscription', icon: 'credit-card' },
+  { id: 'share-app', label: 'Share app', icon: 'share-2' },
+  { id: 'request-style', label: 'Request a style', icon: 'plus-circle' },
   { id: 'privacy', label: 'Privacy Policy', icon: 'shield' },
   { id: 'terms', label: 'Terms & Conditions', icon: 'file-text' },
   { id: 'about', label: 'About', icon: 'info' },
+  { id: 'contact', label: 'Contact us', icon: 'mail' },
 ];
 
 export default function MenuModal({ visible, onClose, onSelect }) {

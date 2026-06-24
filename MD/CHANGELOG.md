@@ -4,6 +4,41 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [Unreleased] - 2026-06-23
+
+### Added
+- **Menu → Share app** — native share sheet; set `EXPO_PUBLIC_APP_STORE_URL` when listing is live
+- **Menu → Request a style** — email `support@funnyfy.app` with subject “Style request”
+
+### Fixed
+- **Save to Funnyfy album (Android)**: removed DCIM-root fallback; save logic consolidated in `utils/funnyfyAlbum.js` per `MD/GALLERY_SCREEN.md`
+- **Funnyfy album detection**: existing device photos now rediscover and re-cache the correct album after reinstall / cache loss
+- **Subscription footer**: symmetric **Privacy · Terms · Restore** (equal font size; “Restore” label)
+- **Android nav bar transparency**: plugin/build path now preserves edge-to-edge setup after prebuild, preventing the bar from reverting to a solid dark/grey strip
+
+### Changed
+- `saveToFunnyfyAlbum()` moved from `constants.js` to `funnyfyAlbum.js` (single implementation)
+- **Android nav bar**: transparency adjusted to **20%** (`#CC0B0F19` / `rgba(11, 15, 25, 0.80)`)
+
+---
+
+## [1.0.4] - 2026-06-22
+
+### Added
+- **Menu → Contact us**: opens mail app to `support@funnyfy.app` (blank subject; user types in mail app)
+- **Result screen → Try another photo**: pick a new photo without leaving the current style (`onTryAnotherPhoto` + `handleTryAnotherPhoto`)
+- **`utils/contactSupport.js`**: shared `openContactSupport()` for menu mailto flow
+- **Cursor rule** (`.cursor/rules/auto-version.mdc`): agent bumps `version.json` patch on user-facing mobile changes
+
+### Fixed
+- **Save to Funnyfy album (Android)**: write-only permission + `createAssetAsync(uri, albumId)` / `createAlbumAsync` — avoids Expo Go / system “modify this photo” prompt from read-album fallbacks
+- **Result save flow**: removed redundant try/catch around `saveToFunnyfyAlbum` (returns `false` on failure)
+
+### Changed
+- **Auto versioning**: patch bump during development (`--patch`); build script still increments `versionCode` / `iosBuildNumber` on APK build
+
+---
+
 ## [Unreleased] - 2026-06-21
 
 ### Added

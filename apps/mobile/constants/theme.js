@@ -1,8 +1,8 @@
 /** App shell color — keep in sync with styles.js DARK_BG */
 const DARK_BG = '#0B0F19';
 
-/** Fraction of the system nav bar that shows content behind (0.15 = 15% transparent). */
-const NAV_BAR_TRANSPARENT_FRACTION = 0.15;
+/** Fraction of the system nav bar that shows content behind (0.20 = 20% transparent). */
+const NAV_BAR_TRANSPARENT_FRACTION = 0.2;
 
 function navBarOpacity() {
   return 1 - NAV_BAR_TRANSPARENT_FRACTION;

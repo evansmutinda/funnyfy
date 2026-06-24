@@ -9,6 +9,10 @@ export const FUNNYFY_FOLDER_NAME = 'Funnyfy';
 const FUNNYFY_FILENAME_PREFIX = /^funnyfy-/i;
 const FUNNYFY_PATH_PATTERN = /[\\/]funnyfy[\\/]/i;
 
+const devWarn = (...args) => {
+  if (__DEV__) console.warn(...args);
+};
+
 /** Legacy album titles from earlier builds — matched case-insensitively. */
 const LEGACY_ALBUM_TITLES = ['Funnyfy', 'FunnyFy', 'FUNNYFY', 'funnyfy'];
 
@@ -111,6 +115,84 @@ export async function resolveFunnyfyAlbum({ rescan = false } = {}) {
     console.warn('[Album] getAlbumsAsync failed:', err?.message || err);
   }
 
+  const discovered = await discoverFunnyfyAlbumFromExistingPhotos();
+  if (discovered) {
+    return discovered;
+  }
+
+  return null;
+}
+
+/**
+ * Locate the Funnyfy album from photos already on the device (DCIM/Funnyfy or
+ * Funnyfy-* filenames). Caches album id for saves after reinstall / cache loss.
+ */
+async function discoverFunnyfyAlbumFromExistingPhotos() {
+  const canRead = await requestGalleryReadPermission();
+  if (!canRead) {
+    return null;
+  }
+
+  try {
+    const albums = await MediaLibrary.getAlbumsAsync({ includeSmartAlbums: false });
+    const funnyfyAlbums = albums.filter((album) => isFunnyfyAlbumTitle(album.title));
+
+    for (const album of funnyfyAlbums) {
+      const count = album.assetCount;
+      if (typeof count === 'number' && count > 0) {
+        await AsyncStorage.setItem(FUNNYFY_ALBUM_ID_KEY, album.id);
+        return album;
+      }
+      const sample = await getAssetsFromAlbum(album, 1);
+      if (sample.length > 0) {
+        await AsyncStorage.setItem(FUNNYFY_ALBUM_ID_KEY, album.id);
+        return album;
+      }
+    }
+
+    if (funnyfyAlbums.length > 0) {
+      await AsyncStorage.setItem(FUNNYFY_ALBUM_ID_KEY, funnyfyAlbums[0].id);
+      return funnyfyAlbums[0];
+    }
+  } catch (err) {
+    devWarn('[Album] title scan discovery failed:', err?.message || err);
+  }
+
+  const matches = await scanFunnyfySavedPhotos({ first: 20, scanPool: 500 });
+  if (matches.length === 0) {
+    return null;
+  }
+
+  const matchIds = new Set(matches.map((asset) => asset.id));
+
+  try {
+    const albums = await MediaLibrary.getAlbumsAsync({ includeSmartAlbums: false });
+    for (const album of albums) {
+      if (!isFunnyfyAlbumTitle(album.title)) {
+        continue;
+      }
+      const sample = await getAssetsFromAlbum(album, 100);
+      if (sample.some((asset) => matchIds.has(asset.id))) {
+        await AsyncStorage.setItem(FUNNYFY_ALBUM_ID_KEY, album.id);
+        return album;
+      }
+    }
+  } catch (err) {
+    devWarn('[Album] photo-to-album match failed:', err?.message || err);
+  }
+
+  for (const title of LEGACY_ALBUM_TITLES) {
+    try {
+      const album = await MediaLibrary.getAlbumAsync(title);
+      if (album) {
+        await AsyncStorage.setItem(FUNNYFY_ALBUM_ID_KEY, album.id);
+        return album;
+      }
+    } catch {
+      // try next title
+    }
+  }
+
   return null;
 }
 
@@ -194,7 +276,7 @@ export async function getFunnyfyAlbumAssets({ first = 50 } = {}) {
     return [];
   }
 
-  const album = await resolveFunnyfyAlbum();
+  let album = await resolveFunnyfyAlbum();
   let assets = [];
 
   if (album) {
@@ -207,27 +289,194 @@ export async function getFunnyfyAlbumAssets({ first = 50 } = {}) {
         album.title || FUNNYFY_FOLDER_NAME,
       );
     }
-  } else {
-    console.log(
-      '[Gallery] No',
-      FUNNYFY_FOLDER_NAME,
-      'album — scanning recent photos for Funnyfy-* saves',
-    );
   }
 
-  if (assets.length < first) {
-    const scanned = await scanFunnyfySavedPhotos({ first: first - assets.length });
-    const seen = new Set(assets.map((asset) => asset.id));
-    for (const asset of scanned) {
-      if (!seen.has(asset.id)) {
-        assets.push(asset);
-        seen.add(asset.id);
+  const scanned = await scanFunnyfySavedPhotos({ first, scanPool: 500 });
+
+  if (!album && scanned.length > 0) {
+    album = await discoverFunnyfyAlbumFromExistingPhotos();
+    if (album) {
+      const albumAssets = await getAssetsFromAlbum(album, first);
+      if (albumAssets.length > 0) {
+        console.log(
+          '[Gallery] discovered album from existing photos:',
+          albumAssets.length,
+          'in',
+          album.title || FUNNYFY_FOLDER_NAME,
+        );
+        assets = albumAssets;
+      }
+    }
+  } else if (album && assets.length === 0 && scanned.length > 0) {
+    const rediscovered = await discoverFunnyfyAlbumFromExistingPhotos();
+    if (rediscovered) {
+      const albumAssets = await getAssetsFromAlbum(rediscovered, first);
+      if (albumAssets.length > 0) {
+        album = rediscovered;
+        assets = albumAssets;
       }
     }
   }
 
-  return assets.map(mapAssetToGalleryItem);
+  const seen = new Set(assets.map((asset) => asset.id));
+  for (const asset of scanned) {
+    if (!seen.has(asset.id)) {
+      assets.push(asset);
+      seen.add(asset.id);
+    }
+  }
+
+  if (assets.length === 0 && scanned.length === 0 && !album) {
+    console.log(
+      '[Gallery] No',
+      FUNNYFY_FOLDER_NAME,
+      'album or matching photos found on device',
+    );
+  }
+
+  return assets.slice(0, first).map(mapAssetToGalleryItem);
 }
+
+export async function requestGalleryWritePermission() {
+  let perm = await MediaLibrary.getPermissionsAsync(true);
+  if (perm.status !== 'granted') {
+    perm = await MediaLibrary.requestPermissionsAsync(true);
+  }
+  return perm.status === 'granted';
+}
+
+/**
+ * Save into the Funnyfy device album (DCIM/Funnyfy on Android).
+ * Never falls back to DCIM root — see MD/GALLERY_SCREEN.md.
+ */
+export async function saveToFunnyfyAlbum(localFileUri) {
+  try {
+    if (!localFileUri?.startsWith('file://')) {
+      devWarn('[Save] invalid file uri for MediaLibrary');
+      return false;
+    }
+
+    const canWrite = await requestGalleryWritePermission();
+    if (!canWrite) {
+      devWarn('[Save] MediaLibrary write permission denied');
+      return false;
+    }
+
+    if (Platform.OS === 'android') {
+      return saveToFunnyfyAlbumAndroid(localFileUri);
+    }
+
+    return saveToFunnyfyAlbumIos(localFileUri);
+  } catch (err) {
+    console.error('[Save] saveToFunnyfyAlbum error:', err);
+    return false;
+  }
+}
+
+async function saveToFunnyfyAlbumAndroid(localFileUri) {
+  const cachedId = await AsyncStorage.getItem(FUNNYFY_ALBUM_ID_KEY);
+  if (cachedId) {
+    try {
+      await MediaLibrary.createAssetAsync(localFileUri, cachedId);
+      return true;
+    } catch (err) {
+      devWarn('[Save] create in cached album failed:', err?.message || err);
+      await AsyncStorage.removeItem(FUNNYFY_ALBUM_ID_KEY);
+    }
+  }
+
+  const canRead = await requestGalleryReadPermission();
+  if (canRead) {
+    const existing = await resolveFunnyfyAlbum({ rescan: true });
+    if (existing?.id) {
+      try {
+        await MediaLibrary.createAssetAsync(localFileUri, existing.id);
+        await AsyncStorage.setItem(FUNNYFY_ALBUM_ID_KEY, existing.id);
+        return true;
+      } catch (err) {
+        devWarn('[Save] create in resolved album failed:', err?.message || err);
+      }
+    }
+  }
+
+  try {
+    const album = await MediaLibrary.createAlbumAsync(
+      FUNNYFY_FOLDER_NAME,
+      localFileUri,
+      false,
+    );
+    if (album?.id) {
+      await AsyncStorage.setItem(FUNNYFY_ALBUM_ID_KEY, album.id);
+    }
+    return true;
+  } catch (createErr) {
+    devWarn('[Save] createAlbumAsync failed:', createErr?.message || createErr);
+  }
+
+  return false;
+}
+
+async function saveToFunnyfyAlbumIos(localFileUri) {
+  let asset;
+  try {
+    asset = await MediaLibrary.createAssetAsync(localFileUri);
+  } catch (assetErr) {
+    console.error('[Save] createAssetAsync failed:', assetErr);
+    return false;
+  }
+
+  const persistAlbumId = async (albumRef) => {
+    const id = typeof albumRef === 'string' ? albumRef : albumRef?.id;
+    if (id) {
+      await AsyncStorage.setItem(FUNNYFY_ALBUM_ID_KEY, id);
+    }
+  };
+
+  const addToAlbum = async (albumRef) => {
+    await MediaLibrary.addAssetsToAlbumAsync([asset], albumRef, false);
+    await persistAlbumId(albumRef);
+  };
+
+  const cachedId = await AsyncStorage.getItem(FUNNYFY_ALBUM_ID_KEY);
+  if (cachedId) {
+    try {
+      await addToAlbum(cachedId);
+      return true;
+    } catch (err) {
+      devWarn('[Save] add to cached album failed:', err?.message || err);
+      await AsyncStorage.removeItem(FUNNYFY_ALBUM_ID_KEY);
+    }
+  }
+
+  const canRead = await requestGalleryReadPermission();
+  if (canRead) {
+    const existing = await resolveFunnyfyAlbum({ rescan: true });
+    if (existing) {
+      try {
+        await addToAlbum(existing);
+        return true;
+      } catch (err) {
+        devWarn('[Save] add to resolved album failed:', err?.message || err);
+      }
+    }
+  }
+
+  try {
+    const album = await MediaLibrary.createAlbumAsync(
+      FUNNYFY_FOLDER_NAME,
+      asset,
+      false,
+    );
+    await persistAlbumId(album);
+    return true;
+  } catch (createErr) {
+    devWarn('[Save] createAlbumAsync failed:', createErr?.message || createErr);
+  }
+
+  devWarn('[Save] Saved to Photos library; Funnyfy album assignment failed');
+  return true;
+}
+
 export function mergeGalleryItems(storedItems, albumItems) {
   const merged = [];
   const seen = new Set();

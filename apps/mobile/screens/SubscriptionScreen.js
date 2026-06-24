@@ -273,9 +273,7 @@ export default function SubscriptionScreen({
               hitSlop={8}
               style={styles.pwdFooterLinkPress}
             >
-              <Text style={[styles.pwdFooterLink, styles.pwdFooterLinkRestore]} numberOfLines={2}>
-                Restore purchases
-              </Text>
+              <Text style={styles.pwdFooterLink}>Restore</Text>
             </PressScale>
           </View>
         </View>

@@ -127,11 +127,15 @@ npm start
    - Gallery/Camera → OS crop (`expo-image-picker`) → Review → **Generate**
    - **Offline**: Generate disabled; orange toast if tapped; usage pill still visible
 4. **Generation**: `POST /api/enqueue` then poll `/api/job` — phased loading copy; **usage counter +1 only on success**
-5. **Result**: Drag compare (no Before/After labels), save (silent), share, **Try another style**
+5. **Result**: Drag compare (no Before/After labels), save (silent), share, **Try another style**, **Try another photo**
 6. **Gallery**: Tile grid; saved images in Funnyfy device album
 7. **Subscription**: Full-bleed dark paywall; usage card + tier cards + pinned CTA
 8. **Trial warning**: Quota/trial banners on upload when applicable
 9. **About**: Version matches `version.json` / `expo-constants`
+10. **Contact us** (menu): Opens mail app to `support@funnyfy.app` with blank subject
+11. **Share app** (menu): Native share sheet (store URL via `EXPO_PUBLIC_APP_STORE_URL` when set)
+12. **Request a style** (menu): Email with subject “Style request”
+13. **Android nav bar**: On a rebuilt APK, bottom bar is `#0B0F19` at ~20% transparency; scroll home rows to verify content shows through
 
 ---
 
@@ -188,6 +192,8 @@ cd apps/mobile
 # or
 npm run version:patch   # also: version:minor, version:major, version:bump
 ```
+
+**Dev workflow**: After user-facing mobile changes, run `node scripts/bump-version.js --patch` (see `.cursor/rules/auto-version.mdc`).
 
 After a bump, commit `version.json` (and `package.json` if semver changed) before the next store upload.
 

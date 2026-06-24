@@ -52,6 +52,7 @@ export default function ResultScreen({
   onHome,
   onOpenGallery,
   onTryAnotherStyle,
+  onTryAnotherPhoto,
   subscriptionInfo,
   onOpenUsage,
   backHandlerRef,
@@ -224,16 +225,12 @@ export default function ResultScreen({
       let saved = false;
       let savedPath = '';
 
-      try {
-        const ok = await saveToFunnyfyAlbum(localPath);
-        if (ok) {
-          saved = true;
-          savedPath = Platform.OS === 'android'
-            ? `Gallery › ${FUNNYFY_FOLDER_NAME} album`
-            : 'Photos';
-        }
-      } catch (saveErr) {
-        console.warn('[Save] saveToFunnyfyAlbum failed, trying fallback:', saveErr);
+      const ok = await saveToFunnyfyAlbum(localPath);
+      if (ok) {
+        saved = true;
+        savedPath = Platform.OS === 'android'
+          ? `Gallery › ${FUNNYFY_FOLDER_NAME} album`
+          : 'Photos';
       }
 
       if (!saved) {
@@ -496,16 +493,28 @@ export default function ResultScreen({
           </View>
         ) : null}
 
-        {hasResult && onTryAnotherStyle ? (
+        {hasResult && (onTryAnotherStyle || onTryAnotherPhoto) ? (
           <View style={styles.uploadInlineActionsRow}>
-            <PressScale
-              style={[styles.uploadSmallGhostButton, loading && styles.buttonDisabled]}
-              onPress={() => confirmNavigate(onTryAnotherStyle)}
-              disabled={loading}
-            >
-              <Feather name="refresh-ccw" size={14} color="#FFFFFF" />
-              <Text style={styles.uploadSmallGhostButtonText}>Try another style</Text>
-            </PressScale>
+            {onTryAnotherPhoto ? (
+              <PressScale
+                style={[styles.uploadSmallGhostButton, loading && styles.buttonDisabled]}
+                onPress={() => confirmNavigate(onTryAnotherPhoto)}
+                disabled={loading}
+              >
+                <Feather name="image" size={14} color="#FFFFFF" />
+                <Text style={styles.uploadSmallGhostButtonText}>Try another photo</Text>
+              </PressScale>
+            ) : null}
+            {onTryAnotherStyle ? (
+              <PressScale
+                style={[styles.uploadSmallGhostButton, loading && styles.buttonDisabled]}
+                onPress={() => confirmNavigate(onTryAnotherStyle)}
+                disabled={loading}
+              >
+                <Feather name="refresh-ccw" size={14} color="#FFFFFF" />
+                <Text style={styles.uploadSmallGhostButtonText}>Try another style</Text>
+              </PressScale>
+            ) : null}
           </View>
         ) : null}
 

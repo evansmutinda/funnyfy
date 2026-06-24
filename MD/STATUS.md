@@ -1,7 +1,7 @@
 # FunnyFy App - Current Status
 
 **Last Updated**: June 2026  
-**Version**: 1.0.4 (in development; `version.json` still 1.0.3 until next build bump)  
+**Version**: 1.0.7 (`apps/mobile/version.json`)  
 **Status**: Feature-Complete – Ready for App Store Submission
 
 ---
@@ -25,8 +25,9 @@ FunnyFy is a React Native mobile application that transforms user photos into AI
 - ✅ **Photo tips sheet**: auto-opens on Upload per style; "Do not show again" per style; pictorial placeholders
 - ✅ Before/after comparison slider on result + **4-phase job loading** (submit → queue → moderation → generate; title **Creating your {style}**)
 - ✅ **Try another style**: Regenerate same photo with a new style (restyle flow)
-- ✅ Save to device functionality (no system prompt)
-- ✅ Share functionality
+- ✅ **Try another photo**: From result, pick a new photo for the same style
+- ✅ Save to device functionality (Funnyfy album on Android/iOS; write-only path on Android)
+- ✅ Share functionality (result + menu share sheet)
 - ✅ Error handling and user feedback
 - ✅ **Offline UX**: NetInfo connectivity, **orange global overlay** banner (non-blocking), generate/purchase guards, auto-refresh on reconnect
 - ✅ **Content-policy dialog** for NSFW blocks: **Content not permitted** + **Understood** CTA; clears photo and returns to upload (Sightengine, pre-Replicate)
@@ -37,10 +38,11 @@ FunnyFy is a React Native mobile application that transforms user photos into AI
 - ✅ **ConfirmDialog component**: Custom modal with optional neutral 3rd button
 - ✅ **NotificationContext**: App-wide toast/notification state via React Context
 - ✅ **Full Privacy Policy** and **Terms of Service** (13 sections each, in-app)
-- ✅ **Menu** (`MenuModal.js`): Dark bottom sheet from StyleScreen burger — Gallery, Subscription, Privacy, Terms, About
+- ✅ **Menu** (`MenuModal.js`): Gallery, Usage, Subscription, **Share app**, **Request a style**, Privacy, Terms, About, Contact us
 - ✅ **Dark-first UI** (`#0B0F19`): Style, Upload, Review, Result, Gallery, Info, Subscription, Splash, app shell
 - ✅ **Trial soft warnings**: Banner/toast when 1 free generation remains
-- ✅ **Auto versioning**: `version.json` + bump scripts; About screen shows runtime version
+- ✅ **Auto versioning**: `version.json` + bump scripts + Cursor rule; About screen shows runtime version
+- ✅ **Android nav bar**: 20% transparent `#0B0F19`; edge-to-edge preserved across prebuilds
 
 ### Auth System
 - ✅ `services/auth.js` — JWT auth service, persisted on device (use `auth.js` only; do not add `auth.ts`)

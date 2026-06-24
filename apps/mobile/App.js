@@ -46,12 +46,15 @@ import {
   PRIVACY_POLICY_TEXT,
   TERMS_TEXT,
   ABOUT_TEXT,
+  SUPPORT_EMAIL,
 } from './constants';
 import { DEFAULT_ENABLED_STYLES } from './data/styleCatalog';
 import { getTrialRemaining, getTrialWarningMessage, isTrialUser } from './utils/trialWarnings';
 import { isNsfwContentError, humanizeApiError, NSFW_REJECT_DIALOG } from './utils/contentErrors';
 import { pollJobUntilDone } from './utils/jobClient';
 import { setSentryUser, captureAppError } from './utils/sentry';
+import { openContactSupport, openStyleRequest } from './utils/contactSupport';
+import { shareApp } from './utils/shareApp';
 
 // Enforce HTTPS for security — prevent accidental HTTP misconfiguration
 if (API_BASE.startsWith('http://') && !API_BASE.includes('localhost') && !API_BASE.includes('127.0.0.1')) {
@@ -71,6 +74,9 @@ async function configureAndroidNavigationBar() {
   try {
     if (NavigationBar.setPositionAsync) {
       await NavigationBar.setPositionAsync('absolute');
+    }
+    if (NavigationBar.setBehaviorAsync) {
+      await NavigationBar.setBehaviorAsync('overlay-swipe');
     }
     await NavigationBar.setBackgroundColorAsync(navBarColor);
     await NavigationBar.setBorderColorAsync(navBarColor);
@@ -839,6 +845,43 @@ function AppContent({ fontsLoaded }) {
     setScreen('style');
   };
 
+  const handleTryAnotherPhoto = () => {
+    setRestyleMode(false);
+    setPickedImage(null);
+    setOriginal(null);
+    setResult(null);
+    setError('');
+    setFailedAttempts(0);
+    setPendingJobId(null);
+    setJob(null);
+    setLoading(false);
+    setScreen('upload');
+  };
+
+  const handleMenuSelect = useCallback((id) => {
+    setMenuOpen(false);
+    setRestyleMode(false);
+    if (id === 'contact') {
+      openContactSupport(() => {
+        showToast('Email', `Contact us at ${SUPPORT_EMAIL}`, 'info');
+      });
+      return;
+    }
+    if (id === 'request-style') {
+      openStyleRequest(() => {
+        showToast('Email', `Email style ideas to ${SUPPORT_EMAIL}`, 'info');
+      });
+      return;
+    }
+    if (id === 'share-app') {
+      shareApp().catch(() => {
+        showToast('Share', 'Could not open the share sheet', 'error');
+      });
+      return;
+    }
+    setScreen(id);
+  }, [showToast]);
+
   const handleRetry = async () => {
     if (!pendingJobId) {
       setError('Tap Generate to start again, or go back and choose another photo.');
@@ -963,11 +1006,7 @@ function AppContent({ fontsLoaded }) {
         <MenuModal
           visible={menuOpen}
           onClose={() => setMenuOpen(false)}
-          onSelect={(id) => {
-            setMenuOpen(false);
-            setRestyleMode(false);
-            setScreen(id);
-          }}
+          onSelect={handleMenuSelect}
         />
       </AppShell>
     );
@@ -1132,6 +1171,7 @@ function AppContent({ fontsLoaded }) {
         onOpenUsage={() => setScreen('usage')}
         onOpenGallery={() => setScreen('gallery')}
         onTryAnotherStyle={handleTryAnotherStyle}
+        onTryAnotherPhoto={handleTryAnotherPhoto}
         />
       </AppShell>
     );
