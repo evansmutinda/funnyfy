@@ -8,6 +8,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   AppState,
   BackHandler,
+  InteractionManager,
   Platform,
   View,
 } from 'react-native';
@@ -40,7 +41,7 @@ import UploadScreen from './screens/UploadScreen';
 import PhotoReviewScreen from './screens/PhotoReviewScreen';
 import SubscriptionScreen from './screens/SubscriptionScreen';
 import ResultScreen from './screens/ResultScreen';
-import { DARK_BG, navBarColorRuntime } from './constants/theme';
+import { DARK_BG, navBarBorderColorRuntime, navBarColorRuntime } from './constants/theme';
 import {
   API_BASE,
   PRIVACY_POLICY_TEXT,
@@ -71,6 +72,7 @@ ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
 async function configureAndroidNavigationBar() {
   if (Platform.OS !== 'android') return;
   const navBarColor = navBarColorRuntime();
+  const navBarBorderColor = navBarBorderColorRuntime();
   try {
     if (NavigationBar.setPositionAsync) {
       await NavigationBar.setPositionAsync('absolute');
@@ -79,12 +81,21 @@ async function configureAndroidNavigationBar() {
       await NavigationBar.setBehaviorAsync('overlay-swipe');
     }
     await NavigationBar.setBackgroundColorAsync(navBarColor);
-    await NavigationBar.setBorderColorAsync(navBarColor);
+    await NavigationBar.setBorderColorAsync(navBarBorderColor);
     await NavigationBar.setButtonStyleAsync('light');
     await NavigationBar.setVisibilityAsync('visible');
   } catch (err) {
     console.warn('[NavBar] configure failed:', err?.message || err);
   }
+}
+
+/** Splash hide and first layout can reset the system bar after our initial call. */
+function scheduleAndroidNavigationBar() {
+  if (Platform.OS !== 'android') return;
+  void configureAndroidNavigationBar();
+  InteractionManager.runAfterInteractions(() => {
+    void configureAndroidNavigationBar();
+  });
 }
 
 export default function App() {
@@ -319,18 +330,18 @@ function AppContent({ fontsLoaded }) {
   }, [fontsLoaded, authReady]);
 
   useEffect(() => {
-    configureAndroidNavigationBar();
+    if (Platform.OS !== 'android' || !splashHidden) return undefined;
 
-    if (Platform.OS !== 'android') return undefined;
+    scheduleAndroidNavigationBar();
 
     const subscription = AppState.addEventListener('change', (nextAppState) => {
       if (nextAppState === 'active') {
-        configureAndroidNavigationBar();
+        scheduleAndroidNavigationBar();
       }
     });
 
     return () => { subscription.remove(); };
-  }, [screen]);
+  }, [screen, splashHidden]);
 
   const showTrialWarningIfNeeded = (subInfo) => {
     if (!isTrialUser(subInfo)) return;
