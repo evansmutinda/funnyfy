@@ -18,7 +18,7 @@ FunnyFy is a React Native mobile application that transforms user photos into AI
 - ✅ Cross-platform app (Android & iOS)
 - ✅ **Native splash** (`expo-splash-screen`): solid `#0B0F19` until fonts + auth; no in-app splash component
 - ✅ **Netflix-style style picker**: category rows + horizontal tiles + "See all" grid; dark `#0B0F19` shell
-- ✅ **Discovery tiles** (`MediaTile`): labels below image (3-line captions); `PressScale` on taps
+- ✅ **Discovery tiles** (`MediaTile`): image-only on style picker; category row headers show names; gallery tiles keep captions
 - ✅ **18 enabled caricature styles** (160 in catalog; placeholders disabled until prompts/thumbnails ready)
 - ✅ **Two-step upload flow**: UploadScreen (comparison fade + Gallery/Camera) → PhotoReviewScreen (confirm + Generate); OS crop via `expo-image-picker`
 - ✅ **Upload/Review header** (`UploadFlowHeader.js`): back + **style pill** (left) + **usage pill** (right); no Photo tips chip
@@ -42,7 +42,7 @@ FunnyFy is a React Native mobile application that transforms user photos into AI
 - ✅ **Dark-first UI** (`#0B0F19`): Style, Upload, Review, Result, Gallery, Info, Subscription, Splash, app shell
 - ✅ **Trial soft warnings**: Banner/toast when 1 free generation remains
 - ✅ **Auto versioning**: `version.json` + bump scripts + Cursor rule; About screen shows runtime version
-- ✅ **Android nav bar**: 20% transparent `#0B0F19`; edge-to-edge preserved across prebuilds
+- ✅ **Android nav bar**: solid `#0B0F19` (matches app shell)
 
 ### Auth System
 - ✅ `services/auth.js` — JWT auth service, persisted on device (use `auth.js` only; do not add `auth.ts`)

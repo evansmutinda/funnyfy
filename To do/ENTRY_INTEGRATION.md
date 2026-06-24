@@ -18,15 +18,14 @@ index.js → polyfills.js → App.js
 | `apps/mobile/polyfills.js` | `react-native-url-polyfill` + `window.location` stub for RevenueCat Expo Go / `purchases-js` |
 | `apps/mobile/package.json` | `"main": "index.js"` |
 | `apps/mobile/App.js` | `expo-splash-screen` — hide when fonts + auth ready |
-| `apps/mobile/app.config.js` | `expo-splash-screen` plugin + splash config |
-| `apps/mobile/plugins/withAndroidNavBarContrast.js` | Nav bar: no contrast scrim, edge-to-edge MainActivity, translucent `DARK_BG` |
-| `apps/mobile/constants/theme.js` | `DARK_BG`, nav bar **20%** transparent — runtime + native hex helpers |
+| `apps/mobile/app.config.js` | `expo-splash-screen` plugin + splash config; solid `#0B0F19` nav bar |
+| `apps/mobile/constants/theme.js` | `DARK_BG` `#0B0F19` — app shell + nav bar |
 
 ---
 
 ## After changing native config or adding native modules
 
-Required for: splash plugin, **navigation bar transparency**, RevenueCat native modules, new permissions, etc.
+Required for: splash plugin, RevenueCat native modules, new permissions, etc.
 
 1. Update `app.config.js` / plugins if needed.
 2. Regenerate native project (local only — not EAS):
@@ -52,7 +51,7 @@ Required for: splash plugin, **navigation bar transparency**, RevenueCat native 
 - [ ] Metro starts: `cd apps/mobile && npx expo start`
 - [ ] Expo Go: no `sdk_initialized` / `window.location.search` error on launch (polyfills)
 - [ ] Native debug APK: launches to dark splash → StyleScreen (no white flash)
-- [ ] **Nav bar:** `#0B0F19` tint, **20%** transparent — scroll style rows to see tiles through bar; rebuild after `theme.js` / plugin changes
+- [ ] **Nav bar:** solid `#0B0F19` on rebuilt APK (matches app shell)
 - [ ] RevenueCat init works in **dev APK** (native module), not only Expo Go browser mode
 - [ ] After `expo prebuild --clean`, Gradle `assembleDebug` succeeds without manual patches
 

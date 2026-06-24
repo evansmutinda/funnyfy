@@ -108,20 +108,6 @@ if (-not (Test-Path $androidDir)) {
     exit 1
 }
 
-# Edge-to-edge MainActivity — nav bar transparency breaks if this line is missing after prebuild.
-$mainActivities = Get-ChildItem -Path (Join-Path $androidDir "app\src\main") -Recurse -Filter "MainActivity.kt" -ErrorAction SilentlyContinue
-foreach ($ma in $mainActivities) {
-    $mc = Get-Content $ma.FullName -Raw
-    if ($mc -notmatch 'setDecorFitsSystemWindows') {
-        if ($mc -notmatch 'import androidx.core.view.WindowCompat') {
-            $mc = $mc -replace 'import android.os.Bundle', "import android.os.Bundle`r`nimport androidx.core.view.WindowCompat"
-        }
-        $mc = $mc -replace '(fun onCreate\([^{]+\{)\s*\r?\n', "`$1`r`n    WindowCompat.setDecorFitsSystemWindows(window, false)`r`n"
-        [System.IO.File]::WriteAllText($ma.FullName, $mc)
-        Write-Host "Patched MainActivity edge-to-edge: $($ma.Name)" -ForegroundColor Green
-    }
-}
-
 # Gradle wrapper defaults to 10s network timeout — too short for gradle-8.x zip on slow networks.
 $gradleWrapperProps = Join-Path $androidDir "gradle\wrapper\gradle-wrapper.properties"
 if (Test-Path $gradleWrapperProps) {

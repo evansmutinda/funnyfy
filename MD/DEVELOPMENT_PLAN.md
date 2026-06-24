@@ -11,7 +11,7 @@ This document outlines the development plan and current status of FunnyFy — a 
 - **Mobile App**: React Native (Expo SDK 52) — Android & iOS compatible
 - **Backend**: Vercel serverless functions (Node.js/TypeScript)
 - **Styles**: 160 in catalog; **18 enabled** legacy styles with live prompts
-- **Style UX**: Netflix-style category rows on dark background, `MediaTile` discovery layout — labels below image on picker tiles
+- **Style UX**: Netflix-style category rows on dark background; image-only `MediaTile` on picker (category headers only)
 - **Core Features**: Image upload, style selection, generation, save/share, gallery, restyle
 - **Upload header**: `UploadFlowHeader` — `[ ← back ] [ style pill ] ···· [ usage pill ]` on Upload + Review (see `MD/UI_REDESIGN_2026_06.md` §6)
 - **Security**: API keys and prompts protected server-side; JWT auth; NSFW moderation; image validation

@@ -135,7 +135,8 @@ npm start
 10. **Contact us** (menu): Opens mail app to `support@funnyfy.app` with blank subject
 11. **Share app** (menu): Native share sheet (store URL via `EXPO_PUBLIC_APP_STORE_URL` when set)
 12. **Request a style** (menu): Email with subject “Style request”
-13. **Android nav bar**: On a rebuilt APK, bottom bar is `#0B0F19` at ~20% transparency; scroll home rows to verify content shows through
+13. **Android nav bar**: On a rebuilt APK, bottom bar is solid `#0B0F19` (matches app background)
+14. **Style picker**: Category row titles visible; style tiles show thumbnails only (no per-style names)
 
 ---
 

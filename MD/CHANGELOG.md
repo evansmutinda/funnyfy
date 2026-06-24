@@ -4,7 +4,19 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-## [Unreleased] - 2026-06-23
+## [Unreleased]
+
+---
+
+## [1.0.9] - 2026-06-24
+
+### Changed
+- **Style picker**: category names only on home rows and “See all” grid — per-style tile captions removed
+- **Android nav bar**: reverted to solid `#0B0F19`; removed transparency plugin (grey scrim on APK)
+
+---
+
+## [1.0.8] - 2026-06-24
 
 ### Added
 - **Menu → Share app** — native share sheet; set `EXPO_PUBLIC_APP_STORE_URL` when listing is live
@@ -14,11 +26,11 @@ All notable changes to this project will be documented in this file.
 - **Save to Funnyfy album (Android)**: removed DCIM-root fallback; save logic consolidated in `utils/funnyfyAlbum.js` per `MD/GALLERY_SCREEN.md`
 - **Funnyfy album detection**: existing device photos now rediscover and re-cache the correct album after reinstall / cache loss
 - **Subscription footer**: symmetric **Privacy · Terms · Restore** (equal font size; “Restore” label)
-- **Android nav bar transparency**: plugin/build path now preserves edge-to-edge setup after prebuild, preventing the bar from reverting to a solid dark/grey strip
+- **Android nav bar (Expo Go)**: stabilized translucent tint re-apply after splash and reload
 
 ### Changed
 - `saveToFunnyfyAlbum()` moved from `constants.js` to `funnyfyAlbum.js` (single implementation)
-- **Android nav bar**: transparency adjusted to **20%** (`#CC0B0F19` / `rgba(11, 15, 25, 0.80)`)
+- **Android nav bar**: brief transparency experiment (later reverted in unreleased)
 
 ---
 

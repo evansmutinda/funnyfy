@@ -196,7 +196,6 @@ export default function StyleScreen({
                   <PressScale onPress={() => onNext(s)}>
                     <MediaTile
                       imageSource={getStyleImage(s)}
-                      label={s.label}
                       isSelected={selectedStyle?.id === s.id}
                       variant="discovery"
                     />
@@ -246,7 +245,6 @@ function CategoryRow({ category, styleList, selectedStyle, onSelect, onSeeAll, r
           >
             <MediaTile
               imageSource={getStyleImage(item)}
-              label={item.label}
               isSelected={selectedStyle?.id === item.id}
               variant="discovery"
             />
@@ -264,7 +262,6 @@ function CategoryRow({ category, styleList, selectedStyle, onSelect, onSeeAll, r
                   </Text>
                 </View>
               </View>
-              <View style={styles.styleRowSeeAllCaptionSpacer} />
             </PressScale>
           ) : null
         }

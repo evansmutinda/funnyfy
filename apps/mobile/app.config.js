@@ -7,7 +7,7 @@
 // 3. System environment variables
 
 const versionInfo = require('./version.json');
-const { DARK_BG, navBarColorNative } = require('./constants/theme');
+const { DARK_BG } = require('./constants/theme');
 
 export default {
   expo: {
@@ -46,7 +46,7 @@ export default {
       ],
     },
     androidNavigationBar: {
-      backgroundColor: navBarColorNative(),
+      backgroundColor: DARK_BG,
       barStyle: 'light-content',
     },
     web: { bundler: 'metro' },
@@ -62,12 +62,10 @@ export default {
       [
         'expo-navigation-bar',
         {
-          backgroundColor: navBarColorNative(),
+          backgroundColor: DARK_BG,
           barStyle: 'light',
-          position: 'absolute',
         },
       ],
-      './plugins/withAndroidNavBarContrast.js',
       [
         'expo-splash-screen',
         {
