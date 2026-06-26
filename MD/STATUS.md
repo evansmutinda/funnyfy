@@ -1,7 +1,7 @@
 # FunnyFy App - Current Status
 
 **Last Updated**: June 2026  
-**Version**: 1.0.7 (`apps/mobile/version.json`)  
+**Version**: 1.0.10 (`apps/mobile/version.json`)  
 **Status**: Feature-Complete – Ready for App Store Submission
 
 ---
@@ -18,7 +18,7 @@ FunnyFy is a React Native mobile application that transforms user photos into AI
 - ✅ Cross-platform app (Android & iOS)
 - ✅ **Native splash** (`expo-splash-screen`): solid `#0B0F19` until fonts + auth; no in-app splash component
 - ✅ **Netflix-style style picker**: category rows + horizontal tiles + "See all" grid; dark `#0B0F19` shell
-- ✅ **Discovery tiles** (`MediaTile`): image-only on style picker; category row headers show names; gallery tiles keep captions
+- ✅ **Discovery tiles** (`MediaTile`): image-only on style picker; **curated before/after crossfade** on seven styles; row-focus sequencing on home
 - ✅ **18 enabled caricature styles** (160 in catalog; placeholders disabled until prompts/thumbnails ready)
 - ✅ **Two-step upload flow**: UploadScreen (comparison fade + Gallery/Camera) → PhotoReviewScreen (confirm + Generate); OS crop via `expo-image-picker`
 - ✅ **Upload/Review header** (`UploadFlowHeader.js`): back + **style pill** (left) + **usage pill** (right); no Photo tips chip
@@ -138,7 +138,7 @@ FunnyFy is a React Native mobile application that transforms user photos into AI
 ## 🚧 Deferred / Future
 
 - [ ] Enable more catalog styles (thumbnails + prompts per style)
-- [ ] Style tile before/after auto-sliders (curated demo assets)
+- [ ] Remaining style tile comparison pairs (7 of 18 enabled styles have curated assets — see `To do/COMPARISON_ASSETS.md`)
 - [ ] E003 high-demand error: friendly "generators busy" message
 - [ ] Analytics
 - [ ] Subscription trial (time-based 3-day trial via Play Store)

@@ -8,6 +8,23 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [1.0.10] - 2026-06-24
+
+### Added
+- **Style tile before/after crossfade** — `ComparisonFade` on curated styles via `MediaTile`; seven pairs in `data/comparisonPairs.js` + `assets/comparisons/`
+- **`hooks/useRowFocus.js`** — one active category row at a time; top→bottom sequence when multiple rows visible after scroll settles
+- **`hooks/useAppForeground.js`** — pauses tile animations when app is backgrounded
+
+### Changed
+- **`ComparisonFade`**: `withDelay` holds, configurable `maxCycles` (tiles: 3×); resting state shows styled result
+- **Upload hero**: slower crossfade (`holdMs=1800`, `fadeMs=1000`)
+- **See all grid**: first two curated tiles animate; home rows use horizontal viewability + `extraData` for focus updates
+
+### Docs
+- `To do/COMPARISON_ASSETS.md`, `MD/STATUS.md`, `MD/UI_REDESIGN_2026_06.md` — comparison tile behavior and asset checklist
+
+---
+
 ## [1.0.9] - 2026-06-24
 
 ### Changed

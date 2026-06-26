@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   BackHandler,
   FlatList,
@@ -13,26 +13,34 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MediaTile from '../components/MediaTile';
 import PressScale from '../components/PressScale';
 import { BOTTOM_INSET_MIN, getStyleImage } from '../constants';
+import { getComparisonPair, hasCuratedComparisonPair } from '../data/comparisonPairs';
 import {
   DEFAULT_ENABLED_STYLES,
-  STYLE_CATALOG,
   STYLE_CATEGORIES,
   getStyleCategory,
 } from '../utils/styleCategories';
+import { RowFocusProvider, useCategoryRowFocus } from '../hooks/useRowFocus';
 import styles from '../styles';
+
+const HORIZONTAL_VIEWABILITY = {
+  itemVisiblePercentThreshold: 50,
+  minimumViewTime: 0,
+};
 
 function resolveStyleCategory(style) {
   return style?.categoryId || getStyleCategory(style?.id);
 }
 
-// Tiles to render before the "See all" affordance kicks in.
 const ROW_PREVIEW_COUNT = 8;
-// Staggered entrance delay (ms) per row.
 const ROW_ENTRANCE_STAGGER = 60;
 
 const BROWSE_CATEGORIES = STYLE_CATEGORIES.filter((cat) => cat.id !== 'all');
 
-export default function StyleScreen({
+export default function StyleScreen(props) {
+  return <StyleScreenContent {...props} />;
+}
+
+function StyleScreenContent({
   selectedStyle,
   availableStyles,
   onNext,
@@ -41,6 +49,7 @@ export default function StyleScreen({
   onCancelRestyle,
 }) {
   const insets = useSafeAreaInsets();
+  const [homeScrollTick, setHomeScrollTick] = useState(0);
   const [activeCategory, setActiveCategory] = useState(null);
   const styleList =
     Array.isArray(availableStyles) && availableStyles.length > 0
@@ -50,9 +59,6 @@ export default function StyleScreen({
   const browsingHome = !restyleMode && activeCategory === null;
   const activeCategoryMeta = BROWSE_CATEGORIES.find((cat) => cat.id === activeCategory);
 
-  // Group enabled styles by category, in the catalog's declared order.
-  // Categories with zero enabled styles are hidden (cleaner UX while the
-  // catalog is being filled — they reappear as styles get enabled).
   const categoryRows = useMemo(() => {
     if (!browsingHome) return [];
     const byCategory = new Map();
@@ -72,6 +78,10 @@ export default function StyleScreen({
     if (restyleMode) return styleList;
     return styleList.filter((s) => resolveStyleCategory(s) === activeCategory);
   }, [activeCategory, browsingHome, restyleMode, styleList]);
+
+  const onHomeScroll = useCallback(() => {
+    setHomeScrollTick((tick) => tick + 1);
+  }, []);
 
   useEffect(() => {
     if (browsingHome || restyleMode) return undefined;
@@ -140,35 +150,39 @@ export default function StyleScreen({
       ) : null}
 
       {browsingHome ? (
-        <ScrollView
-          style={styles.styleScroll}
-          contentContainerStyle={[
-            styles.styleHomeContainer,
-            { paddingBottom: Math.max(insets.bottom, BOTTOM_INSET_MIN) + 8 },
-          ]}
-          showsVerticalScrollIndicator={false}
-        >
-          {categoryRows.length === 0 ? (
-            <View style={styles.styleEmptyState}>
-              <Text style={styles.styleEmptyStateTitle}>Coming soon</Text>
-              <Text style={styles.styleEmptyStateText}>
-                We're loading styles. Pull down to refresh in a moment.
-              </Text>
-            </View>
-          ) : (
-            categoryRows.map((row, rowIndex) => (
-              <CategoryRow
-                key={row.id}
-                category={row}
-                styleList={row.styles}
-                selectedStyle={selectedStyle}
-                onSelect={onNext}
-                onSeeAll={() => setActiveCategory(row.id)}
-                rowIndex={rowIndex}
-              />
-            ))
-          )}
-        </ScrollView>
+        <RowFocusProvider scrollTick={homeScrollTick}>
+          <ScrollView
+            style={styles.styleScroll}
+            contentContainerStyle={[
+              styles.styleHomeContainer,
+              { paddingBottom: Math.max(insets.bottom, BOTTOM_INSET_MIN) + 8 },
+            ]}
+            showsVerticalScrollIndicator={false}
+            onScroll={onHomeScroll}
+            scrollEventThrottle={100}
+          >
+            {categoryRows.length === 0 ? (
+              <View style={styles.styleEmptyState}>
+                <Text style={styles.styleEmptyStateTitle}>Coming soon</Text>
+                <Text style={styles.styleEmptyStateText}>
+                  We're loading styles. Pull down to refresh in a moment.
+                </Text>
+              </View>
+            ) : (
+              categoryRows.map((row, rowIndex) => (
+                <CategoryRow
+                  key={row.id}
+                  category={row}
+                  styleList={row.styles}
+                  selectedStyle={selectedStyle}
+                  onSelect={onNext}
+                  onSeeAll={() => setActiveCategory(row.id)}
+                  rowIndex={rowIndex}
+                />
+              ))
+            )}
+          </ScrollView>
+        </RowFocusProvider>
       ) : (
         <ScrollView
           style={styles.styleScroll}
@@ -188,19 +202,17 @@ export default function StyleScreen({
           ) : (
             <View style={styles.discoveryGrid}>
               {categoryStyles.map((s, index) => (
-                <Animated.View
-                  key={s.id}
-                  entering={FadeInDown.delay(index * 35).duration(280)}
-                  style={styles.discoveryCard}
-                >
+                <View key={s.id} style={styles.discoveryCard}>
                   <PressScale onPress={() => onNext(s)}>
                     <MediaTile
                       imageSource={getStyleImage(s)}
+                      comparisonPair={hasCuratedComparisonPair(s) ? getComparisonPair(s) : null}
                       isSelected={selectedStyle?.id === s.id}
                       variant="discovery"
+                      comparisonActive={index < 2}
                     />
                   </PressScale>
-                </Animated.View>
+                </View>
               ))}
             </View>
           )}
@@ -210,66 +222,97 @@ export default function StyleScreen({
   );
 }
 
-function CategoryRow({ category, styleList, selectedStyle, onSelect, onSeeAll, rowIndex }) {
+function CategoryRow({
+  category,
+  styleList,
+  selectedStyle,
+  onSelect,
+  onSeeAll,
+  rowIndex,
+}) {
   const hasOverflow = styleList.length > ROW_PREVIEW_COUNT;
   const visibleStyles = hasOverflow ? styleList.slice(0, ROW_PREVIEW_COUNT) : styleList;
   const showSeeAll = styleList.length > 0;
+  const { rowRef, isRowActive, onRowLayout } = useCategoryRowFocus(category.id, rowIndex);
+  const [viewableIds, setViewableIds] = useState(null);
+
+  const onViewableItemsChangedRef = useRef(({ viewableItems }) => {
+    setViewableIds(new Set(viewableItems.map((token) => token.item.id)));
+  });
+
+  const viewabilityConfigCallbackPairs = useRef([
+    {
+      viewabilityConfig: HORIZONTAL_VIEWABILITY,
+      onViewableItemsChanged: (info) => onViewableItemsChangedRef.current(info),
+    },
+  ]).current;
+
+  const isTileActive = (styleId, index) => {
+    if (!isRowActive) return false;
+    if (!hasCuratedComparisonPair({ id: styleId })) return false;
+    if (!viewableIds) return index < 3;
+    return viewableIds.has(styleId);
+  };
+
+  const listExtraData = `${isRowActive}:${viewableIds ? [...viewableIds].join(',') : 'pending'}`;
 
   return (
-    <Animated.View
-      entering={FadeInDown.delay(rowIndex * ROW_ENTRANCE_STAGGER).duration(320)}
-      style={styles.styleRowSection}
-    >
-      <View style={styles.styleRowHeader}>
-        <Text style={styles.styleRowTitle}>{category.label}</Text>
-        {showSeeAll ? (
-          <PressScale onPress={onSeeAll} hitSlop={8}>
-            <View style={styles.styleRowSeeAll}>
-              <Text style={styles.styleRowSeeAllText}>See all</Text>
-              <Feather name="chevron-right" size={14} color="rgba(255,255,255,0.65)" />
-            </View>
-          </PressScale>
-        ) : null}
-      </View>
-
-      <FlatList
-        data={visibleStyles}
-        horizontal
-        keyExtractor={(item) => item.id}
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.styleRowList}
-        renderItem={({ item }) => (
-          <PressScale
-            onPress={() => onSelect(item)}
-            style={styles.styleRowCard}
-          >
-            <MediaTile
-              imageSource={getStyleImage(item)}
-              isSelected={selectedStyle?.id === item.id}
-              variant="discovery"
-            />
-          </PressScale>
-        )}
-        ListFooterComponent={
-          hasOverflow ? (
-            <PressScale onPress={onSeeAll} style={styles.styleRowSeeAllTile}>
-              <View style={styles.styleRowSeeAllTileImage}>
-                <View style={styles.styleRowSeeAllTileInner}>
-                  <Feather name="grid" size={22} color="#FFFFFF" />
-                  <Text style={styles.styleRowSeeAllTileText}>See all</Text>
-                  <Text style={styles.styleRowSeeAllTileCount}>
-                    {styleList.length} styles
-                  </Text>
-                </View>
+    <View ref={rowRef} onLayout={onRowLayout}>
+      <Animated.View
+        entering={FadeInDown.delay(rowIndex * ROW_ENTRANCE_STAGGER).duration(320)}
+        style={styles.styleRowSection}
+      >
+        <View style={styles.styleRowHeader}>
+          <Text style={styles.styleRowTitle}>{category.label}</Text>
+          {showSeeAll ? (
+            <PressScale onPress={onSeeAll} hitSlop={8}>
+              <View style={styles.styleRowSeeAll}>
+                <Text style={styles.styleRowSeeAllText}>See all</Text>
+                <Feather name="chevron-right" size={14} color="rgba(255,255,255,0.65)" />
               </View>
             </PressScale>
-          ) : null
-        }
-      />
-    </Animated.View>
+          ) : null}
+        </View>
+
+        <FlatList
+          data={visibleStyles}
+          horizontal
+          keyExtractor={(item) => item.id}
+          extraData={listExtraData}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.styleRowList}
+          viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs}
+          renderItem={({ item, index }) => (
+            <PressScale
+              onPress={() => onSelect(item)}
+              style={styles.styleRowCard}
+            >
+              <MediaTile
+                imageSource={getStyleImage(item)}
+                comparisonPair={hasCuratedComparisonPair(item) ? getComparisonPair(item) : null}
+                isSelected={selectedStyle?.id === item.id}
+                variant="discovery"
+                comparisonActive={isTileActive(item.id, index)}
+              />
+            </PressScale>
+          )}
+          ListFooterComponent={
+            hasOverflow ? (
+              <PressScale onPress={onSeeAll} style={styles.styleRowSeeAllTile}>
+                <View style={styles.styleRowSeeAllTileImage}>
+                  <View style={styles.styleRowSeeAllTileInner}>
+                    <Feather name="grid" size={22} color="#FFFFFF" />
+                    <Text style={styles.styleRowSeeAllTileText}>See all</Text>
+                    <Text style={styles.styleRowSeeAllTileCount}>
+                      {styleList.length} styles
+                    </Text>
+                  </View>
+                </View>
+              </PressScale>
+            ) : null
+          }
+        />
+      </Animated.View>
+    </View>
   );
 }
-
-// Suppress unused-import warning while keeping the path available for
-// future "show coming soon rows" toggling.
-void STYLE_CATALOG;

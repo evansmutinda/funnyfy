@@ -1,21 +1,28 @@
 import React, { useEffect } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 import Animated, {
-  useSharedValue,
+  cancelAnimation,
+  Easing,
   useAnimatedStyle,
+  useSharedValue,
+  withDelay,
   withRepeat,
   withSequence,
   withTiming,
-  Easing,
 } from 'react-native-reanimated';
 
-const HOLD_MS = 1800;
-const FADE_MS = 700;
+export const TILE_HOLD_MS = 1200;
+export const TILE_FADE_MS = 1500;
+
+const HOLD_MS = TILE_HOLD_MS;
+const FADE_MS = TILE_FADE_MS;
+
+/** Enough to demo the effect without endless motion on tiles. */
+export const DEFAULT_COMPARISON_CYCLES = 3;
 
 /**
- * Crossfades between a `beforeSource` and `afterSource` indefinitely.
- * Used on UploadScreen to preview what the selected style does.
- * If `paused` is true, holds on `beforeSource`.
+ * Crossfade between original (before) and styled (after).
+ * Resting state is the styled result (after layer opacity = 1).
  */
 export default function ComparisonFade({
   beforeSource,
@@ -25,34 +32,45 @@ export default function ComparisonFade({
   paused = false,
   holdMs = HOLD_MS,
   fadeMs = FADE_MS,
+  maxCycles,
 }) {
-  const opacity = useSharedValue(0);
+  const opacity = useSharedValue(1);
 
   useEffect(() => {
+    cancelAnimation(opacity);
+
     if (paused) {
-      opacity.value = withTiming(0, { duration: fadeMs });
-      return;
+      opacity.value = withTiming(1, { duration: 200 });
+      return undefined;
     }
+
+    opacity.value = 1;
     const ease = Easing.inOut(Easing.cubic);
-    opacity.value = withRepeat(
-      withSequence(
-        withTiming(0, { duration: holdMs, easing: ease }),
-        withTiming(1, { duration: fadeMs, easing: ease }),
-        withTiming(1, { duration: holdMs, easing: ease }),
-        withTiming(0, { duration: fadeMs, easing: ease }),
-      ),
-      -1,
+
+    // withDelay for holds — withTiming to the same value does not wait in Reanimated 3.
+    const cycle = withSequence(
+      withDelay(holdMs, withTiming(0, { duration: fadeMs, easing: ease })),
+      withDelay(holdMs, withTiming(1, { duration: fadeMs, easing: ease })),
     );
-  }, [paused, holdMs, fadeMs]);
+
+    const repeats = maxCycles == null || maxCycles < 0 ? -1 : maxCycles;
+    opacity.value = withRepeat(cycle, repeats, false);
+    return undefined;
+  }, [paused, holdMs, fadeMs, maxCycles, beforeSource, afterSource, opacity]);
 
   const animatedAfterStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
 
   return (
     <View style={[styles.root, style]}>
-      <Image source={beforeSource} style={[StyleSheet.absoluteFill, imageStyle]} />
+      <Image
+        source={beforeSource}
+        style={[StyleSheet.absoluteFill, styles.image, imageStyle]}
+        resizeMode="cover"
+      />
       <Animated.Image
         source={afterSource}
-        style={[StyleSheet.absoluteFill, imageStyle, animatedAfterStyle]}
+        style={[StyleSheet.absoluteFill, styles.image, imageStyle, animatedAfterStyle]}
+        resizeMode="cover"
       />
     </View>
   );
@@ -61,5 +79,9 @@ export default function ComparisonFade({
 const styles = StyleSheet.create({
   root: {
     overflow: 'hidden',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
   },
 });

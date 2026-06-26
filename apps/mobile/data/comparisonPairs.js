@@ -1,8 +1,9 @@
-// Comparison pairs (before → styled after) for the UploadScreen background.
-// Asset spec + generation checklist: To do/COMPARISON_ASSETS.md
+// Comparison pairs (before → styled after) for UploadScreen + style tile crossfades.
+// Asset spec: To do/COMPARISON_ASSETS.md
 //
-// Placeholder: shared realistic.jpeg "before" + style picker thumbnail "after".
-// Replace via COMPARISON_OVERRIDES once curated pairs exist.
+// Layout:
+//   assets/comparisons/before/<original>.png|jpg
+//   assets/comparisons/<styleId>/<after>.jpg|jpeg
 
 import { getStyleImage } from '../constants';
 
@@ -14,11 +15,41 @@ export const COMPARISON_IMAGE_SIZE = { width: 832, height: 1248 };
 
 const DEFAULT_BEFORE = require('../assets/realistic.jpeg');
 
-/**
- * Per-style overrides: { [styleId]: { before, after } }.
- * Empty for now — populated as we generate real pairs.
- */
-const COMPARISON_OVERRIDES = {};
+/** Curated pairs — add one entry per style as assets land. */
+const CURATED_PAIRS = {
+  handd: {
+    before: require('../assets/comparisons/before/hdd.png'),
+    after: require('../assets/comparisons/handd/handd.jpeg'),
+  },
+  '90s-cartoon': {
+    before: require('../assets/comparisons/before/toon.png'),
+    after: require('../assets/comparisons/90s-cartoon/toon.jpg'),
+  },
+  chibi: {
+    before: require('../assets/comparisons/before/chibi.png'),
+    after: require('../assets/comparisons/chibi/chibi.jpg'),
+  },
+  '3dclay': {
+    before: require('../assets/comparisons/before/3dclay.png'),
+    after: require('../assets/comparisons/3dclay/3dclay.jpg'),
+  },
+  'pixar-like': {
+    before: require('../assets/comparisons/before/pxl.png'),
+    after: require('../assets/comparisons/pxl/pxl.jpg'),
+  },
+  'oil-paint': {
+    before: require('../assets/comparisons/before/oilpaint.png'),
+    after: require('../assets/comparisons/oilpaint/oilpaint.jpg'),
+  },
+  'water-color': {
+    before: require('../assets/comparisons/before/wc.png'),
+    after: require('../assets/comparisons/wc/wc.jpg'),
+  },
+};
+
+export function hasCuratedComparisonPair(style) {
+  return Boolean(style?.id && CURATED_PAIRS[style.id]);
+}
 
 /**
  * Returns the { before, after } image pair for a given style. Falls back
@@ -29,12 +60,12 @@ export function getComparisonPair(style) {
   if (!style) {
     return { before: DEFAULT_BEFORE, after: DEFAULT_BEFORE };
   }
-  const override = COMPARISON_OVERRIDES[style.id];
-  if (override) return override;
+  const curated = CURATED_PAIRS[style.id];
+  if (curated) return curated;
   return {
     before: DEFAULT_BEFORE,
     after: getStyleImage(style),
   };
 }
 
-export { DEFAULT_BEFORE };
+export { DEFAULT_BEFORE, CURATED_PAIRS };

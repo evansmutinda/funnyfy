@@ -239,7 +239,8 @@ See `MD/TOAST_NOTIFICATION_SYSTEM.md`.
 | Pattern | Where |
 |---------|-------|
 | `FadeInDown` stagger | Style rows, usage card |
-| Comparison crossfade | `ComparisonFade` on Upload |
+| Row focus sequence | `useRowFocus.js` — one category row’s tiles animate at a time |
+| Comparison crossfade | `ComparisonFade` on Upload + curated style tiles (`MediaTile`) |
 | Style carousel crossfade | `PaywallStyleFade` on Subscription |
 | Tips sheet slide | `PhotoTipsSheet` in-tree `withTiming` |
 
@@ -255,6 +256,9 @@ apps/mobile/styles.js                 tokens + pwd* + upload* + gallery*
 apps/mobile/app.config.js             splash, nav bar plugin
 apps/mobile/components/UploadFlowHeader.js
 apps/mobile/components/ComparisonFade.js
+apps/mobile/components/MediaTile.js
+apps/mobile/hooks/useRowFocus.js
+apps/mobile/data/comparisonPairs.js
 apps/mobile/components/PaywallStyleFade.js
 apps/mobile/components/MenuModal.js
 apps/mobile/screens/StyleScreen.js
@@ -272,7 +276,8 @@ apps/mobile/utils/funnyfyAlbum.js
 
 ## 14. Pending / content TODOs
 
-- [ ] Comparison pairs — `npm run generate-comparisons` + `COMPARISON_OVERRIDES`
+- [x] First seven comparison pairs — `CURATED_PAIRS` in `data/comparisonPairs.js` (see `To do/COMPARISON_ASSETS.md`)
+- [ ] Remaining enabled styles — `npm run generate-comparisons` + register pairs
 - [ ] Photo tips real photos in `assets/tips/`
 - [ ] Branded splash PNG — `To do/SPLASH_ASSET.md`
 - [x] Sentry mobile — `To do/SENTRY_INTEGRATION.md` (staging verified June 2026)

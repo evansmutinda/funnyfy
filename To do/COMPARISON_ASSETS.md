@@ -1,59 +1,75 @@
-# Upload comparison assets (before/after hero)
+# Comparison assets (before/after pairs)
 
-**Status:** Placeholder — UploadScreen uses `realistic.jpeg` + each style's picker thumbnail. Pairs are mismatched sizes; crossfade can look zoomed/cropped.
-
----
-
-## Problem
-
-UploadScreen shows a looping before/after via `ComparisonFade` (`apps/mobile/screens/UploadScreen.js`):
-
-- Full-bleed background
-- `resizeMode: 'cover'`
-- Top scrim ~180px + safe area; bottom scrim ~320px
-
-Mixed aspect ratios crop differently, so the preview looks **zoomed in** and the crossfade **jumps** between before and after.
-
-| Asset (examples) | Size | Ratio |
-|------------------|------|--------|
-| `assets/realistic.jpeg` (before) | 832×1248 | 2:3 portrait |
-| `anime.jpg`, `funko.jpg` (after placeholders) | 1024×1024 | 1:1 square |
-| `cyborg.jpeg` | 896×1152 | ~7:9 |
-
-Style **picker tiles** can stay square. **Upload hero pairs** must not.
+**Status:** Partial — seven curated pairs ship on style tiles; Upload still uses placeholders for other styles.
 
 ---
 
-## Asset spec (every before/after pair)
+## Where comparisons run
+
+| Surface | Component | Behavior |
+|---------|-----------|----------|
+| **Upload hero** | `ComparisonFade` in `UploadScreen.js` | Infinite crossfade; `holdMs=1800`, `fadeMs=1000` |
+| **Style picker tiles** | `ComparisonFade` via `MediaTile.js` | Crossfade when a curated pair exists; `holdMs=1200`, `fadeMs=1500`, **3 cycles** max |
+| **Row focus** | `hooks/useRowFocus.js` | One category row animates at a time; sequences top→bottom when multiple rows are visible after scroll settles |
+| **See all grid** | `StyleScreen.js` | First two tiles with curated pairs animate |
+
+Tiles pause when off-screen, row inactive, or app backgrounded (`useAppForeground`).
+
+---
+
+## Curated pairs (shipped)
+
+Registered in `apps/mobile/data/comparisonPairs.js` → `CURATED_PAIRS`:
+
+| styleId | before | after |
+|---------|--------|--------|
+| `handd` | `comparisons/before/hdd.png` | `comparisons/handd/handd.jpeg` |
+| `90s-cartoon` | `comparisons/before/toon.png` | `comparisons/90s-cartoon/toon.jpg` |
+| `chibi` | `comparisons/before/chibi.png` | `comparisons/chibi/chibi.jpg` |
+| `3dclay` | `comparisons/before/3dclay.png` | `comparisons/3dclay/3dclay.jpg` |
+| `pixar-like` | `comparisons/before/pxl.png` | `comparisons/pxl/pxl.jpg` |
+| `oil-paint` | `comparisons/before/oilpaint.png` | `comparisons/oilpaint/oilpaint.jpg` |
+| `water-color` | `comparisons/before/wc.png` | `comparisons/wc/wc.jpg` |
+
+Styles without a curated entry fall back to `realistic.jpeg` + the style thumbnail on Upload only; picker tiles show a static thumbnail.
+
+---
+
+## Asset layout
+
+```
+apps/mobile/assets/comparisons/
+  before/           # original portraits (one per pair)
+  <styleId>/        # styled output for that style
+```
+
+Constants: `COMPARISON_ASPECT_RATIO`, `COMPARISON_IMAGE_SIZE` in `comparisonPairs.js`.
+
+---
+
+## Upload hero spec (full-bleed pairs)
+
+Upload uses `resizeMode: 'cover'` with top/bottom scrims. Mixed aspect ratios crop differently and the crossfade can **jump**.
 
 | Property | Value |
 |----------|--------|
 | Aspect ratio | **2:3 portrait** (width ÷ height = 0.667) |
-| Recommended pixels | **832×1248** (current baseline) or **1080×1620** (@2x) |
+| Recommended pixels | **832×1248** or **1080×1620** (@2x) |
 | Format | JPG (bundled assets) |
-| Framing | **Same face crop** in before and after — only the style changes |
-| Subject placement | Face in the **vertical center third** (scrims eat top/bottom) |
-
-Constants in code: `COMPARISON_ASPECT_RATIO`, `COMPARISON_IMAGE_SIZE` in `apps/mobile/data/comparisonPairs.js`.
+| Framing | **Same face crop** in before and after |
 
 ---
 
-## How to generate curated pairs
+## How to add more pairs
 
-### 1. Add reference “before” faces
+### 1. Reference “before” faces
 
 ```
 apps/mobile/assets/comparisons/before/
   face-1.jpg   # 832×1248, 2:3
-  face-2.jpg
-  ...
 ```
 
-Use 4–8 reference portraits, all **832×1248** (or 1080×1620), same spec as above.
-
-### 2. Run the generator script
-
-From repo root (requires quota + auth):
+### 2. Generate styled outputs
 
 ```powershell
 $env:API_BASE = "https://funnyfy-staging.vercel.app"
@@ -61,52 +77,22 @@ $env:AUTH_TOKEN = "<jwt>"
 npm run generate-comparisons
 ```
 
-Script: `scripts/generate-comparison-set.js`
+Script: `scripts/generate-comparison-set.js` → `comparisons/<styleId>/<beforeBaseName>-after.jpg`
 
-Output layout:
+### 3. Register in the app
 
-```
-apps/mobile/assets/comparisons/<styleId>/<beforeBaseName>-after.jpg
-```
-
-Re-export or post-process outputs to **832×1248** if the API returns a different size.
-
-### 3. Register pairs in the app
-
-Edit `apps/mobile/data/comparisonPairs.js` → `COMPARISON_OVERRIDES`:
-
-```js
-const COMPARISON_OVERRIDES = {
-  '90s-cartoon': {
-    before: require('../assets/comparisons/before/face-1.jpg'),
-    after: require('../assets/comparisons/90s-cartoon/face-1-after.jpg'),
-  },
-  // ...
-};
-```
-
-Pick one default pair per enabled style (or rotate later).
+Add to `CURATED_PAIRS` in `apps/mobile/data/comparisonPairs.js`.
 
 ### 4. Rebuild APK
 
-New assets are bundled at build time — run `.\build-apk-local.ps1` or EAS after adding files.
-
----
-
-## Optional UI follow-up
-
-If assets are standardized but crop still feels tight on some devices:
-
-- [ ] Constrain `ComparisonFade` to a fixed **2:3 viewport** between header and Gallery/Camera cards (cover inside the box, not full screen)
-- [ ] Do **not** switch to full-screen `contain` without the viewport — letterboxing on the whole screen looked worse in testing
+Assets bundle at build time — run `.\build-apk-local.ps1` or EAS after adding files.
 
 ---
 
 ## Checklist
 
-- [ ] Reference before photos added (`assets/comparisons/before/`), all 832×1248 @ 2:3
-- [ ] `npm run generate-comparisons` run for enabled styles
-- [ ] After images cropped/resized to match before (832×1248)
-- [ ] `COMPARISON_OVERRIDES` populated in `comparisonPairs.js`
-- [ ] Verified on device: no zoom jump on crossfade; face readable under scrims
-- [ ] Update `MD/UI_REDESIGN_2026_06.md` when placeholder phase is done
+- [x] First seven curated pairs + `CURATED_PAIRS` entries
+- [x] Style tile crossfade + row focus behavior
+- [ ] Remaining enabled styles — generate + register pairs
+- [ ] Upload hero pairs at 832×1248 for all enabled styles (no zoom jump)
+- [ ] Optional: fixed 2:3 viewport on Upload between header and Gallery/Camera cards

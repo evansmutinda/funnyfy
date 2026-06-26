@@ -103,6 +103,8 @@ export default function UploadScreen({
         afterSource={comparisonPair.after}
         style={styles.uploadBackgroundFill}
         imageStyle={styles.uploadBackgroundImage}
+        holdMs={1800}
+        fadeMs={1000}
       />
 
       {/* Top scrim — improves legibility of header chips */}

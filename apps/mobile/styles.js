@@ -79,6 +79,11 @@ const styles = StyleSheet.create({
   },
 
   
+  styleCardImageShellComparison: {
+    backgroundColor: '#0B0F19',
+  },
+
+  
     styleCardImageShellSelected: {
     borderColor: PAPER,
     borderWidth: 2,
@@ -396,13 +401,13 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     bottom: 0,
-    width: 2,
+    width: 1,
     backgroundColor: '#ffffff',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowOpacity: 0.25,
+    shadowRadius: 1,
+    elevation: 1,
   },
 
   

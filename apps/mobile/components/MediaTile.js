@@ -1,6 +1,12 @@
-import React from 'react';
-import { Image, Platform, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Image, Platform, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import ComparisonFade, {
+  DEFAULT_COMPARISON_CYCLES,
+  TILE_FADE_MS,
+  TILE_HOLD_MS,
+} from './ComparisonFade';
+import useAppForeground from '../hooks/useAppForeground';
 import styles from '../styles';
 
 const DISCOVERY_VARIANTS = new Set(['discovery', 'discoveryWide', 'discoveryDense']);
@@ -17,10 +23,12 @@ const CAPTION_MAX_LINES = {
  */
 export default function MediaTile({
   imageSource,
+  comparisonPair = null,
   label,
   isSelected = false,
   variant = 'grid',
   badge,
+  comparisonActive = true,
 }) {
   const showLabel = Boolean(label);
   const isHero = variant === 'hero';
@@ -28,6 +36,19 @@ export default function MediaTile({
   const isWide = variant === 'discoveryWide';
   const isDense = variant === 'discoveryDense';
   const labelBelowImage = isDiscovery;
+  const showComparison = Boolean(comparisonPair?.before && comparisonPair?.after);
+  const appForeground = useAppForeground();
+  const comparisonPausedRaw = !showComparison || !comparisonActive || !appForeground;
+  const [comparisonPaused, setComparisonPaused] = useState(comparisonPausedRaw);
+
+  useEffect(() => {
+    if (!comparisonPausedRaw) {
+      setComparisonPaused(false);
+      return undefined;
+    }
+    const timeoutId = setTimeout(() => setComparisonPaused(true), 120);
+    return () => clearTimeout(timeoutId);
+  }, [comparisonPausedRaw]);
 
   const imageWrapperStyle = isDiscovery
     ? [
@@ -35,6 +56,7 @@ export default function MediaTile({
         isWide && styles.discoveryWideImageWrapper,
         isDense && styles.discoveryDenseImageWrapper,
         styles.styleCardImageShell,
+        showComparison && styles.styleCardImageShellComparison,
         isSelected && styles.styleCardImageShellSelected,
       ]
     : [
@@ -67,7 +89,19 @@ export default function MediaTile({
       ]}
     >
       <View style={imageWrapperStyle}>
-        <Image source={imageSource} style={styles.styleImage} resizeMode="cover" />
+        {showComparison ? (
+          <ComparisonFade
+            beforeSource={comparisonPair.before}
+            afterSource={comparisonPair.after}
+            style={StyleSheet.absoluteFillObject}
+            paused={comparisonPaused}
+            holdMs={TILE_HOLD_MS}
+            fadeMs={TILE_FADE_MS}
+            maxCycles={DEFAULT_COMPARISON_CYCLES}
+          />
+        ) : (
+          <Image source={imageSource} style={styles.styleImage} resizeMode="cover" />
+        )}
         {badge ? (
           <View style={styles.styleHeroBadge}>
             <Text style={styles.styleHeroBadgeText}>{badge}</Text>
