@@ -7,6 +7,7 @@ import { query } from './db';
 const MODEL_COSTS: Record<string, number> = {
   'black-forest-labs/flux-kontext-pro': 0.04, // $0.04 per generation
   'google/nano-banana': 0.03, // ~$0.03 per generation (estimate - verify actual cost)
+  'bytedance/seedream-4': 0.04, // estimate — verify Replicate pricing
   'default': 0.04, // Default fallback
 };
 

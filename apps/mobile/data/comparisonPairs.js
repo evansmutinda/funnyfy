@@ -3,7 +3,7 @@
 //
 // Layout:
 //   assets/comparisons/before/<original>.png|jpg
-//   assets/comparisons/<styleId>/<after>.jpg|jpeg
+//   assets/comparisons/after/<categoryFolder>/<after>.jpg|jpeg
 
 import { getStyleImage } from '../constants';
 
@@ -19,31 +19,35 @@ const DEFAULT_BEFORE = require('../assets/realistic.jpeg');
 const CURATED_PAIRS = {
   handd: {
     before: require('../assets/comparisons/before/hdd.png'),
-    after: require('../assets/comparisons/handd/handd.jpeg'),
+    after: require('../assets/comparisons/after/caricature/handd.jpeg'),
+  },
+  carc1: {
+    before: require('../assets/comparisons/before/toon.png'),
+    after: require('../assets/comparisons/after/caricature/carc1.jpg'),
   },
   '90s-cartoon': {
     before: require('../assets/comparisons/before/toon.png'),
-    after: require('../assets/comparisons/90s-cartoon/toon.jpg'),
+    after: require('../assets/comparisons/after/cartoons/toon.jpg'),
   },
   chibi: {
     before: require('../assets/comparisons/before/chibi.png'),
-    after: require('../assets/comparisons/chibi/chibi.jpg'),
+    after: require('../assets/comparisons/after/cartoons/chibi.jpg'),
   },
   '3dclay': {
     before: require('../assets/comparisons/before/3dclay.png'),
-    after: require('../assets/comparisons/3dclay/3dclay.jpg'),
+    after: require('../assets/comparisons/after/3d/3dclay.jpg'),
   },
   'pixar-like': {
     before: require('../assets/comparisons/before/pxl.png'),
-    after: require('../assets/comparisons/pxl/pxl.jpg'),
+    after: require('../assets/comparisons/after/3d/pxl.jpg'),
   },
   'oil-paint': {
     before: require('../assets/comparisons/before/oilpaint.png'),
-    after: require('../assets/comparisons/oilpaint/oilpaint.jpg'),
+    after: require('../assets/comparisons/after/Paintings/oilpaint.jpg'),
   },
   'water-color': {
     before: require('../assets/comparisons/before/wc.png'),
-    after: require('../assets/comparisons/wc/wc.jpg'),
+    after: require('../assets/comparisons/after/Paintings/wc.jpg'),
   },
 };
 

@@ -8,10 +8,10 @@
  * via the existing /api/enqueue + /api/job pipeline, downloads the
  * results, and saves them as bundled mobile assets:
  *
- *   apps/mobile/assets/comparisons/<styleId>/<beforeBaseName>-after.jpg
+ *   apps/mobile/assets/comparisons/after/<categoryFolder>/<afterBase>.jpg
  *
  * After it finishes, register the curated pairs in
- *   apps/mobile/data/comparisonPairs.js  →  COMPARISON_OVERRIDES
+ *   apps/mobile/data/comparisonPairs.js  →  CURATED_PAIRS
  *
  * Usage:
  *   node scripts/generate-comparison-set.js
@@ -39,11 +39,32 @@ const path = require('path');
 const ROOT = path.resolve(__dirname, '..');
 const DEFAULTS = {
   BEFORE_DIR: path.join(ROOT, 'apps/mobile/assets/comparisons/before'),
-  OUTPUT_DIR: path.join(ROOT, 'apps/mobile/assets/comparisons'),
+  OUTPUT_DIR: path.join(ROOT, 'apps/mobile/assets/comparisons/after'),
   CONCURRENCY: 2,
   POLL_INTERVAL_MS: 2000,
   POLL_TIMEOUT_S: 120,
   SKIP_EXISTING: 1,
+};
+
+/** Maps catalog categoryId → folder under comparisons/after/ */
+const AFTER_CATEGORY_DIR = {
+  caricatures: 'caricature',
+  cartoons: 'cartoons',
+  '3d-characters': '3d',
+  paintings: 'Paintings',
+  'anime-manga': 'Anime',
+};
+
+/** Output basename per style when it differs from the before filename. */
+const STYLE_AFTER_BASENAME = {
+  handd: 'handd',
+  carc1: 'carc1',
+  '90s-cartoon': 'toon',
+  chibi: 'chibi',
+  '3dclay': '3dclay',
+  'pixar-like': 'pxl',
+  'oil-paint': 'oilpaint',
+  'water-color': 'wc',
 };
 
 const env = {
@@ -199,8 +220,13 @@ function sleep(ms) {
 }
 
 async function processPair(style, beforePath) {
-  const outDir = path.join(env.OUTPUT_DIR, style.id);
-  const outPath = path.join(outDir, `${basename(beforePath)}-after.jpg`);
+  const categoryDir = AFTER_CATEGORY_DIR[style.categoryId];
+  if (!categoryDir) {
+    throw new Error(`No after/ folder mapped for categoryId=${style.categoryId}`);
+  }
+
+  const fileBase = STYLE_AFTER_BASENAME[style.id] || basename(beforePath);
+  const outPath = path.join(env.OUTPUT_DIR, categoryDir, `${fileBase}.jpg`);
 
   if (env.SKIP_EXISTING && (await fileExists(outPath))) {
     return { skipped: true, outPath };
@@ -294,8 +320,8 @@ async function main() {
   }
 
   console.log(
-    '\nNext: open apps/mobile/data/comparisonPairs.js and register the new pairs in COMPARISON_OVERRIDES,\n' +
-      'or wire the directory into the helper directly. After bundling, rebuild the APK to ship the assets.',
+    '\nNext: open apps/mobile/data/comparisonPairs.js and register the new pairs in CURATED_PAIRS,\n' +
+      'then rebuild the APK to ship the assets.',
   );
 }
 

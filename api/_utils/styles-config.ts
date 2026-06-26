@@ -1,6 +1,6 @@
 // Styles configuration - protected on server
 // Catalog: 160 styles from Funnyfy_Categories_Updated.xlsx (placeholders, disabled by default)
-// Legacy: 17 live styles with real prompts (enabled)
+// Legacy: 19 live styles with real prompts (enabled)
 
 import { STYLE_CATALOG } from './style-catalog';
 
@@ -17,6 +17,17 @@ export interface StyleConfig {
 
 const DEFAULT_MODEL = 'black-forest-labs/flux-kontext-pro';
 const NANO_BANANA = 'google/nano-banana';
+const SEEDREAM_4 = 'bytedance/seedream-4';
+
+const CARC1_PROMPT =
+  'Using the uploaded photo as the sole identity reference, create a full-body stylized 3D caricature that faithfully preserves the person\'s recognizable facial features, body type, skin tone, ethnicity, hairstyle, facial hair, clothing, footwear, and accessories. The character should unmistakably resemble the person in the reference photo. ' +
+  'Maintain a clean studio composition with the character standing upright in a relaxed pose, facing forward, with the entire body visible from head to toe. ' +
+  'Apply a cohesive stylized character design with: An oversized head (approximately 1.8–2.2× realistic size), A very long, slim neck, A smaller, simplified torso, Long, thin arms and legs, Large expressive hands, Slightly oversized shoes, Gentle exaggeration of the person\'s natural facial features (nose, ears, jawline, cheeks, eyes, lips, eyebrows) while preserving identity, Expressive but believable proportions. ' +
+  'Preserve the person\'s actual: race and skin tone, facial structure, hairstyle, facial hair, age appearance, body build (slim, average, muscular, heavy-set, etc.), clothing style, colors, textures and logos (unless copyright-safe replacements are required), accessories. ' +
+  'Render using premium stylized 3D character artwork with: physically based materials, soft cinematic lighting, subtle skin texture, realistic fabric folds, clean matte surfaces, high-quality sculpted details, smooth stylized anatomy, slightly enlarged eyes with expressive brows. ' +
+  'The expression should be natural and personality-driven rather than exaggerated into comedy. ' +
+  'Keep the background completely transparent with no floor, shadows, props, or scenery. ' +
+  'The final image should resemble a collectible animated film character or high-end stylized game character while remaining an unmistakable caricature of the person in the uploaded photograph.';
 
 function placeholderPrompt(label: string): string {
   return (
@@ -197,6 +208,17 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     prompt:
       "Using the uploaded photo as the visual reference, create a hand-drawn editorial caricature of the subject. The caricature should feature a very large, exaggerated head and a small, simplified body, preserving the subject's core facial likeness while emphasizing distinctive features. Strongly exaggerate: Head size and facial proportions, Nose, cheeks, jaw, and brow, Eye spacing and expression. Style: Traditional colored-pencil and ink illustration, Visible pencil strokes, Cross-hatching and line shading, Slightly uneven, hand-drawn outlines, Subtle paper texture. Shading should be: Built with layered pencil tones, Warm, earthy colors, No smooth digital gradients. Facial expression should be expressive and characterful, leaning slightly humorous or serious depending on the reference photo. Clothing should be simplified and secondary, drawn with minimal detail to keep focus on the face. Background: Plain, light, off-white or beige, Minimal texture only, No scenery, no environment. Overall look: Classic newspaper / magazine caricature, Hand-drawn, imperfect, human, Exaggerated but recognizable. Full-bleed illustration. No borders. Avoid 3D, avoid painterly styles, avoid realism.",
     model: NANO_BANANA,
+    enabled: true,
+    premium: false,
+  },
+  carc1: {
+    id: 'carc1',
+    label: 'Carc1',
+    categoryId: 'caricatures',
+    description:
+      'Full-body stylized 3D caricature with oversized head, slim proportions, and premium character shading',
+    prompt: CARC1_PROMPT,
+    model: SEEDREAM_4,
     enabled: true,
     premium: false,
   },

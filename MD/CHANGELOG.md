@@ -8,6 +8,21 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [1.0.11] - 2026-06-26
+
+### Added
+- **`carc1` style** — full-body stylized 3D caricature (`caricatures`); model `bytedance/seedream-4`; curated comparison pair + tile thumbnail
+- **`utils/mergeServerStyles.js`** — bundles styles from `DEFAULT_ENABLED_STYLES` not yet returned by `/api/styles` (until API deploy catches up)
+
+### Changed
+- **Comparison assets** — after images moved to `assets/comparisons/after/<category>/`; `comparisonPairs.js` + `generate-comparison-set.js` updated
+- **Replicate job input** — Seedream-4 uses `image_input`, `match_input_image`, single-image mode (`process-job.ts`)
+
+### Docs
+- `MD/STATUS.md`, `To do/COMPARISON_ASSETS.md` — eight curated pairs, `carc1`, asset layout
+
+---
+
 ## [1.0.10] - 2026-06-24
 
 ### Added

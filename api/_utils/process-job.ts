@@ -59,6 +59,11 @@ export async function processJob(job: JobRow): Promise<void> {
         prompt = `Using the uploaded image as reference: ${prompt}`;
         input.prompt = prompt;
       }
+    } else if (modelVersion.includes('seedream')) {
+      input.image_input = [imageUrl];
+      input.aspect_ratio = 'match_input_image';
+      input.sequential_image_generation = 'disabled';
+      input.max_images = 1;
     } else {
       input.input_image = imageUrl;
     }

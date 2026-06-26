@@ -1,6 +1,6 @@
 # Comparison assets (before/after pairs)
 
-**Status:** Partial — seven curated pairs ship on style tiles; Upload still uses placeholders for other styles.
+**Status:** Partial — eight curated pairs ship on style tiles; Upload still uses placeholders for other styles.
 
 ---
 
@@ -23,13 +23,14 @@ Registered in `apps/mobile/data/comparisonPairs.js` → `CURATED_PAIRS`:
 
 | styleId | before | after |
 |---------|--------|--------|
-| `handd` | `comparisons/before/hdd.png` | `comparisons/handd/handd.jpeg` |
-| `90s-cartoon` | `comparisons/before/toon.png` | `comparisons/90s-cartoon/toon.jpg` |
-| `chibi` | `comparisons/before/chibi.png` | `comparisons/chibi/chibi.jpg` |
-| `3dclay` | `comparisons/before/3dclay.png` | `comparisons/3dclay/3dclay.jpg` |
-| `pixar-like` | `comparisons/before/pxl.png` | `comparisons/pxl/pxl.jpg` |
-| `oil-paint` | `comparisons/before/oilpaint.png` | `comparisons/oilpaint/oilpaint.jpg` |
-| `water-color` | `comparisons/before/wc.png` | `comparisons/wc/wc.jpg` |
+| `handd` | `before/hdd.png` | `after/caricature/handd.jpeg` |
+| `carc1` | `before/toon.png` | `after/caricature/carc1.jpg` |
+| `90s-cartoon` | `before/toon.png` | `after/cartoons/toon.jpg` |
+| `chibi` | `before/chibi.png` | `after/cartoons/chibi.jpg` |
+| `3dclay` | `before/3dclay.png` | `after/3d/3dclay.jpg` |
+| `pixar-like` | `before/pxl.png` | `after/3d/pxl.jpg` |
+| `oil-paint` | `before/oilpaint.png` | `after/Paintings/oilpaint.jpg` |
+| `water-color` | `before/wc.png` | `after/Paintings/wc.jpg` |
 
 Styles without a curated entry fall back to `realistic.jpeg` + the style thumbnail on Upload only; picker tiles show a static thumbnail.
 
@@ -39,8 +40,14 @@ Styles without a curated entry fall back to `realistic.jpeg` + the style thumbna
 
 ```
 apps/mobile/assets/comparisons/
-  before/           # original portraits (one per pair)
-  <styleId>/        # styled output for that style
+  before/              # original portraits (one per pair)
+  after/
+    caricature/        # caricatures row
+    cartoons/
+    3d/
+    Paintings/
+    Anime/             # reserved for anime-manga pairs
+    <category>/        # after image filename (e.g. toon.jpg, handd.jpeg)
 ```
 
 Constants: `COMPARISON_ASPECT_RATIO`, `COMPARISON_IMAGE_SIZE` in `comparisonPairs.js`.
@@ -77,7 +84,7 @@ $env:AUTH_TOKEN = "<jwt>"
 npm run generate-comparisons
 ```
 
-Script: `scripts/generate-comparison-set.js` → `comparisons/<styleId>/<beforeBaseName>-after.jpg`
+Script: `scripts/generate-comparison-set.js` → `comparisons/after/<categoryFolder>/<basename>.jpg`
 
 ### 3. Register in the app
 
@@ -91,7 +98,7 @@ Assets bundle at build time — run `.\build-apk-local.ps1` or EAS after adding 
 
 ## Checklist
 
-- [x] First seven curated pairs + `CURATED_PAIRS` entries
+- [x] First eight curated pairs + `CURATED_PAIRS` entries
 - [x] Style tile crossfade + row focus behavior
 - [ ] Remaining enabled styles — generate + register pairs
 - [ ] Upload hero pairs at 832×1248 for all enabled styles (no zoom jump)

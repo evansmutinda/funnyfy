@@ -207,6 +207,7 @@ export const STYLE_CARD_IMAGE_CUSTOM2 = require('./assets/custom2.jpg');
 export const STYLE_CARD_IMAGE_NEANDC = require('./assets/neandc.jpeg');
 export const STYLE_CARD_IMAGE_NEAND3D = require('./assets/neand3d.jpeg');
 export const STYLE_CARD_IMAGE_HANDD = require('./assets/handd.jpeg');
+export const STYLE_CARD_IMAGE_CARC1 = require('./assets/carc1.jpg');
 export const STYLE_CARD_IMAGE_SUPERHERO = require('./assets/superhero.jpeg');
 export const STYLE_CARD_IMAGE_VILLIAN = require('./assets/villian.jpeg');
 export const STYLE_CARD_IMAGE_CYBORG = require('./assets/cyborg.jpeg');
@@ -244,6 +245,7 @@ export function getStyleImage(style) {
   if (id === 'neandc' || (label.includes('neanderthal') && !label.includes('3d'))) return STYLE_CARD_IMAGE_NEANDC;
   if (id === 'neand3d' || label.includes('neanderthal 3d') || label.includes('neand3d')) return STYLE_CARD_IMAGE_NEAND3D;
   if (id === 'handd' || label.includes('hand-drawn') || label.includes('handd')) return STYLE_CARD_IMAGE_HANDD;
+  if (id === 'carc1' || label.includes('carc1')) return STYLE_CARD_IMAGE_CARC1;
   if (id === 'superhero' || label.includes('superhero')) return STYLE_CARD_IMAGE_SUPERHERO;
   if (id === 'villian' || label.includes('villain') || label.includes('villian')) return STYLE_CARD_IMAGE_VILLIAN;
   if (id === 'cyborg' || label.includes('cyborg')) return STYLE_CARD_IMAGE_CYBORG;

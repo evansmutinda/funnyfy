@@ -259,6 +259,7 @@ apps/mobile/components/ComparisonFade.js
 apps/mobile/components/MediaTile.js
 apps/mobile/hooks/useRowFocus.js
 apps/mobile/data/comparisonPairs.js
+apps/mobile/utils/mergeServerStyles.js
 apps/mobile/components/PaywallStyleFade.js
 apps/mobile/components/MenuModal.js
 apps/mobile/screens/StyleScreen.js
@@ -276,7 +277,7 @@ apps/mobile/utils/funnyfyAlbum.js
 
 ## 14. Pending / content TODOs
 
-- [x] First seven comparison pairs — `CURATED_PAIRS` in `data/comparisonPairs.js` (see `To do/COMPARISON_ASSETS.md`)
+- [x] Eight comparison pairs — `CURATED_PAIRS` in `data/comparisonPairs.js`; assets under `comparisons/after/<category>/` (see `To do/COMPARISON_ASSETS.md`)
 - [ ] Remaining enabled styles — `npm run generate-comparisons` + register pairs
 - [ ] Photo tips real photos in `assets/tips/`
 - [ ] Branded splash PNG — `To do/SPLASH_ASSET.md`

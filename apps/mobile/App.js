@@ -49,6 +49,7 @@ import {
   SUPPORT_EMAIL,
 } from './constants';
 import { DEFAULT_ENABLED_STYLES } from './data/styleCatalog';
+import { mergeServerStyles } from './utils/mergeServerStyles';
 import { getTrialRemaining, getTrialWarningMessage, isTrialUser } from './utils/trialWarnings';
 import { isNsfwContentError, humanizeApiError, NSFW_REJECT_DIALOG } from './utils/contentErrors';
 import { pollJobUntilDone } from './utils/jobClient';
@@ -437,7 +438,7 @@ function AppContent({ fontsLoaded }) {
           description: s.description,
           categoryId: s.categoryId,
         }));
-        setAvailableStyles(serverStyles);
+        setAvailableStyles(mergeServerStyles(serverStyles));
       } else {
         throw new Error('No styles returned');
       }
