@@ -13,7 +13,7 @@ You have **160 styles** in the catalog (from `Funnyfy_Categories_Updated.xlsx`) 
 | Layer | File | Purpose |
 |-------|------|---------|
 | **Full catalog** | `api/_utils/style-catalog.ts`, `apps/mobile/data/styleCatalog.js` | All 160 styles + categories (generated) |
-| **Live config** | `api/_utils/styles-config.ts` | Prompts, models, `enabled: true/false` |
+| **Live config** | `api/_utils/styles-config.ts` (`LEGACY_STYLES`) | Prompts, models, `enabled: true/false` — `api/styles-config.ts` re-exports this file |
 | **Tile thumbnails** | `apps/mobile/constants.js` → `getStyleImage()` | Maps style id/label → `assets/*.jpg` |
 
 ### Regenerate catalog from spreadsheet

@@ -46,7 +46,7 @@ export default async function handler(
   const payload = (body?.payload as Record<string, unknown>) ?? {};
 
   // Import styles configuration from shared file
-  const { getStyleById } = await import('./styles-config');
+  const { getStyleById } = await import('./_utils/styles-config');
 
   // Adapt payload shape for Replicate API
   // Mobile app must send: { payload: { styleId: string, imageUrl?: string } }
@@ -108,6 +108,12 @@ export default async function handler(
         prompt = `Using the uploaded image as reference: ${prompt}`;
         input.prompt = prompt;
       }
+    }
+    else if (modelVersion.includes('seedream')) {
+      input.image_input = [imageUrl];
+      input.aspect_ratio = 'match_input_image';
+      input.sequential_image_generation = 'disabled';
+      input.max_images = 1;
     }
     // Default fallback for other models
     else {

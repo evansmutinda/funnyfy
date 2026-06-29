@@ -1,6 +1,9 @@
 // Styles configuration - protected on server
 // Catalog: 160 styles from Funnyfy_Categories_Updated.xlsx (placeholders, disabled by default)
 // Legacy: 19 live styles with real prompts (enabled)
+//
+// >>> Add new enabled styles to LEGACY_STYLES below. <<<
+// api/styles-config.ts re-exports this file — do not duplicate entries there.
 
 import { STYLE_CATALOG } from './style-catalog';
 
