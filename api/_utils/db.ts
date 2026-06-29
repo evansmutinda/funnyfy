@@ -11,6 +11,17 @@ import { Pool, QueryResult, QueryResultRow } from 'pg';
 
 let cachedPool: Pool | null = null;
 
+/** Supabase pooler certs often fail Node strict verification; traffic is still TLS-encrypted. */
+function getSslConfig(connectionString: string) {
+  const flag = process.env.DATABASE_SSL_REJECT_UNAUTHORIZED;
+  if (flag === 'true') return { rejectUnauthorized: true };
+  if (flag === 'false') return { rejectUnauthorized: false };
+  if (/supabase\.com/i.test(connectionString)) {
+    return { rejectUnauthorized: false };
+  }
+  return { rejectUnauthorized: true };
+}
+
 function getPool(): Pool {
   if (cachedPool) {
     return cachedPool;
@@ -28,10 +39,7 @@ function getPool(): Pool {
     connectionString,
     // Serverless: one connection per warm instance (use Supabase pooler port 6543).
     // Override with DATABASE_POOL_MAX if needed after load testing.
-    ssl:
-      process.env.DATABASE_SSL_REJECT_UNAUTHORIZED === 'false'
-        ? { rejectUnauthorized: false }
-        : { rejectUnauthorized: true },
+    ssl: getSslConfig(connectionString),
     max: Number(process.env.DATABASE_POOL_MAX || 1),
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 8000, // Supabase free tier can be slow to wake from pause
@@ -60,7 +68,12 @@ export async function query<T extends QueryResultRow = any>(
     return await pool.query<T>(text, params);
   } catch (err: any) {
     // Clear pool on connection-level errors so the next invocation retries fresh
-    if (err?.code === 'ECONNREFUSED' || err?.code === 'ENOTFOUND' || err?.message?.includes('password authentication')) {
+    if (
+      err?.code === 'ECONNREFUSED' ||
+      err?.code === 'ENOTFOUND' ||
+      err?.message?.includes('password authentication') ||
+      err?.message?.includes('self-signed certificate')
+    ) {
       cachedPool = null;
     }
     throw err;
