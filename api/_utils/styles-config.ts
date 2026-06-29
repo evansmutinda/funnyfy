@@ -3,7 +3,7 @@
 // Legacy: 19 live styles with real prompts (enabled)
 //
 // >>> Add new enabled styles to LEGACY_STYLES below. <<<
-// api/styles-config.ts re-exports this file — do not duplicate entries there.
+// Single source of truth — all API routes import from this file.
 
 import { STYLE_CATALOG } from './style-catalog';
 

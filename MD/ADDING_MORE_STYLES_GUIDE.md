@@ -13,7 +13,7 @@ You have **160 styles** in the catalog (from `Funnyfy_Categories_Updated.xlsx`) 
 | Layer | File | Purpose |
 |-------|------|---------|
 | **Full catalog** | `api/_utils/style-catalog.ts`, `apps/mobile/data/styleCatalog.js` | All 160 styles + categories (generated) |
-| **Live config** | `api/_utils/styles-config.ts` (`LEGACY_STYLES`) | Prompts, models, `enabled: true/false` — `api/styles-config.ts` re-exports this file |
+| **Live config** | `api/_utils/styles-config.ts` (`LEGACY_STYLES`) | Prompts, models, `enabled: true/false` |
 | **Tile thumbnails** | `apps/mobile/constants.js` → `getStyleImage()` | Maps style id/label → `assets/*.jpg` |
 
 ### Regenerate catalog from spreadsheet
@@ -482,5 +482,5 @@ Each style uses the same API cost:
 ---
 
 **Last Updated:** January 2025  
-**Related Files:** `api/styles-config.ts`, `api/styles.ts`
+**Related Files:** `api/_utils/styles-config.ts`, `api/styles.ts`
 
