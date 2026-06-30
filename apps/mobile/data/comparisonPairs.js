@@ -21,6 +21,18 @@ const CURATED_PAIRS = {
     before: require('../assets/comparisons/before/hdd.png'),
     after: require('../assets/comparisons/after/caricature/handd.jpeg'),
   },
+  editorial: {
+    before: require('../assets/comparisons/before/man.png'),
+    after: require('../assets/comparisons/after/caricature/editorial.jpeg'),
+  },
+  exaggerated: {
+    before: require('../assets/comparisons/before/man2.png'),
+    after: require('../assets/comparisons/after/caricature/Exaggerated.jpeg'),
+  },
+  watercolor: {
+    before: require('../assets/comparisons/before/couple.png'),
+    after: require('../assets/comparisons/after/caricature/Watercolor-c.jpg'),
+  },
   carc1: {
     before: require('../assets/comparisons/before/toon.png'),
     after: require('../assets/comparisons/after/caricature/carc1.jpg'),
@@ -48,6 +60,46 @@ const CURATED_PAIRS = {
   'water-color': {
     before: require('../assets/comparisons/before/wc.png'),
     after: require('../assets/comparisons/after/Paintings/wc.jpg'),
+  },
+  mural: {
+    before: require('../assets/comparisons/before/lady2.png'),
+    after: require('../assets/comparisons/after/Art/mural.jpeg'),
+  },
+  neon: {
+    before: require('../assets/comparisons/before/lady3.png'),
+    after: require('../assets/comparisons/after/Art/neon.jpg'),
+  },
+  lowpoly: {
+    before: require('../assets/comparisons/before/lady4.png'),
+    after: require('../assets/comparisons/after/Art/lowpoly.jpg'),
+  },
+  'pop-art-v1': {
+    before: require('../assets/comparisons/before/lady5.png'),
+    after: require('../assets/comparisons/after/Art/portart-fkp.jpg'),
+  },
+  'pop-art-v2': {
+    before: require('../assets/comparisons/before/man3.png'),
+    after: require('../assets/comparisons/after/Art/popart-sr4.jpg'),
+  },
+  'pop-art-v3': {
+    before: require('../assets/comparisons/before/dude.png'),
+    after: require('../assets/comparisons/after/Art/popart-nbn.jpeg'),
+  },
+  graffiti: {
+    before: require('../assets/comparisons/before/dude2.png'),
+    after: require('../assets/comparisons/after/Art/graffiti.jpg'),
+  },
+  banksy: {
+    before: require('../assets/comparisons/before/lady6.png'),
+    after: require('../assets/comparisons/after/Art/banksy.jpg'),
+  },
+  mosaic: {
+    before: require('../assets/comparisons/before/man4.png'),
+    after: require('../assets/comparisons/after/Art/mosaic.jpg'),
+  },
+  'e-glow': {
+    before: require('../assets/comparisons/before/lady6.png'),
+    after: require('../assets/comparisons/after/Art/eglow.jpg'),
   },
 };
 

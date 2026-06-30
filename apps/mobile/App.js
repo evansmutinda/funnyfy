@@ -48,7 +48,6 @@ import {
   ABOUT_TEXT,
   SUPPORT_EMAIL,
 } from './constants';
-import { DEFAULT_ENABLED_STYLES } from './data/styleCatalog';
 import { mergeServerStyles } from './utils/mergeServerStyles';
 import { getTrialRemaining, getTrialWarningMessage, isTrialUser } from './utils/trialWarnings';
 import { isNsfwContentError, humanizeApiError, NSFW_REJECT_DIALOG } from './utils/contentErrors';
@@ -66,6 +65,18 @@ if (API_BASE.startsWith('http://') && !API_BASE.includes('localhost') && !API_BA
 const devLog = (...args) => {
   if (__DEV__) console.log(...args);
 };
+
+const STARTUP_FAILSAFE_MS = 12_000;
+const RC_STARTUP_TIMEOUT_MS = 8_000;
+
+function withTimeout(promise, ms, label) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      setTimeout(() => reject(new Error(`${label} timed out`)), ms);
+    }),
+  ]);
+}
 
 ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -136,6 +147,7 @@ function AppContent({ fontsLoaded }) {
   const subscriptionRefreshSeqRef = useRef(0);
   const revenueCatExpirationRef = useRef(null);
   const wasOnlineRef = useRef(true);
+  const serverStyleIdsRef = useRef(null);
 
   // Keep refs in sync so async functions always use the latest values
   useEffect(() => {
@@ -179,8 +191,8 @@ function AppContent({ fontsLoaded }) {
     let rcUserId = null;
     if (hasKey) {
       try {
-        await initRevenueCat(null);
-        rcUserId = await getAppUserId();
+        await withTimeout(initRevenueCat(null), RC_STARTUP_TIMEOUT_MS, 'RevenueCat init');
+        rcUserId = await withTimeout(getAppUserId(), RC_STARTUP_TIMEOUT_MS, 'RevenueCat user');
         devLog('[RevenueCat] Initialized, appUserId:', rcUserId);
       } catch (err) {
         console.error('[RevenueCat] init error:', err);
@@ -296,12 +308,26 @@ function AppContent({ fontsLoaded }) {
   };
 
   useEffect(() => {
+    const failsafe = setTimeout(() => {
+      setAuthReady((ready) => {
+        if (!ready) {
+          console.warn('[Auth] Startup failsafe — continuing without full init');
+        }
+        return true;
+      });
+    }, STARTUP_FAILSAFE_MS);
+
     authInitPromiseRef.current = performAuthInit()
       .catch((err) => {
         console.error('[Auth] Startup init failed:', err);
         return null;
       })
-      .finally(() => setAuthReady(true));
+      .finally(() => {
+        clearTimeout(failsafe);
+        setAuthReady(true);
+      });
+
+    return () => clearTimeout(failsafe);
   }, []);
 
   useEffect(() => {
@@ -438,13 +464,15 @@ function AppContent({ fontsLoaded }) {
           description: s.description,
           categoryId: s.categoryId,
         }));
+        serverStyleIdsRef.current = new Set(serverStyles.map((s) => s.id));
         setAvailableStyles(mergeServerStyles(serverStyles));
       } else {
         throw new Error('No styles returned');
       }
     } catch (err) {
-      console.error('Failed to fetch styles from server, using default:', err);
-      setAvailableStyles(DEFAULT_ENABLED_STYLES);
+      console.error('Failed to fetch styles from server:', err);
+      serverStyleIdsRef.current = null;
+      setAvailableStyles([]);
     }
   }, []);
 
@@ -490,6 +518,13 @@ function AppContent({ fontsLoaded }) {
       async ({ imageDataUrl, styleId }) => {
         if (!styleId) {
           setError('No style selected. Please choose a style and try again.');
+          return;
+        }
+
+        if (serverStyleIdsRef.current && !serverStyleIdsRef.current.has(styleId)) {
+          setError(
+            `"${styleId}" is not available on ${API_BASE} yet. Redeploy staging to pick up the latest styles.`
+          );
           return;
         }
 
@@ -599,7 +634,9 @@ function AppContent({ fontsLoaded }) {
           }
 
           console.error('API error:', err);
-          captureAppError(err, { flow: 'generate', styleId });
+          if (!/invalid_style_id/i.test(errorMessage)) {
+            captureAppError(err, { flow: 'generate', styleId });
+          }
           setError(humanizeApiError(errorMessage));
           setFailedAttempts((prev) => prev + 1);
         } finally {

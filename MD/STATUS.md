@@ -1,7 +1,7 @@
 # FunnyFy App - Current Status
 
 **Last Updated**: June 2026  
-**Version**: 1.0.11 (`apps/mobile/version.json`)  
+**Version**: 1.0.30 (`apps/mobile/version.json`)  
 **Status**: Feature-Complete – Ready for App Store Submission
 
 ---
@@ -18,8 +18,8 @@ FunnyFy is a React Native mobile application that transforms user photos into AI
 - ✅ Cross-platform app (Android & iOS)
 - ✅ **Native splash** (`expo-splash-screen`): solid `#0B0F19` until fonts + auth; no in-app splash component
 - ✅ **Netflix-style style picker**: category rows + horizontal tiles + "See all" grid; dark `#0B0F19` shell
-- ✅ **Discovery tiles** (`MediaTile`): image-only on style picker; **curated before/after crossfade** on seven styles; row-focus sequencing on home
-- ✅ **19 enabled caricature styles** (160 in catalog; placeholders disabled until prompts/thumbnails ready)
+- ✅ **Discovery tiles** (`MediaTile`): image-only on style picker; **curated before/after crossfade** on 22 styles; row-focus sequencing on home and **See all** category grid
+- ✅ **30 enabled styles** (160 in catalog; placeholders disabled until prompts/thumbnails ready) — see `MD/STYLES.md`
 - ✅ **Two-step upload flow**: UploadScreen (comparison fade + Gallery/Camera) → PhotoReviewScreen (confirm + Generate); OS crop via `expo-image-picker`
 - ✅ **Upload/Review header** (`UploadFlowHeader.js`): back + **style pill** (left) + **usage pill** (right); no Photo tips chip
 - ✅ **Photo tips sheet**: auto-opens on Upload per style; "Do not show again" per style; pictorial placeholders
@@ -73,7 +73,7 @@ FunnyFy is a React Native mobile application that transforms user photos into AI
 - ✅ Queue worker (`/api/cron/process-queue`) via `api/process-job.ts` — scheduled externally by [cron-job.org](https://cron-job.org/) (moved off Vercel cron)
 - ✅ User subscription API (`/api/user/subscription`)
 - ✅ Sync subscription, RevenueCat webhook handling
-- ✅ **160 styles in catalog**; **19 enabled** with protected prompts
+- ✅ **160 styles in catalog**; **30 enabled** with protected prompts — `MD/STYLES.md`
 - ✅ Usage tracking, quota enforcement, **idempotent per-job credits** (`job_usage_credits`)
 - ✅ Queue worker: **atomic job claim** (`FOR UPDATE SKIP LOCKED`)
 - ✅ **JWT auth** (`/api/auth/token`)
@@ -85,33 +85,17 @@ FunnyFy is a React Native mobile application that transforms user photos into AI
 - ✅ `users`, `subscriptions`, `usage_tracking`, `job_usage_credits`, `jobs`
 - ✅ `rate_limits`, `infringements`, `subscription_history`, `cost_tracking`, `security_logs`
 
-### Styles — Enabled (18 legacy)
+### Styles — Enabled (30)
 
-| Id | Label | Category | Thumbnail |
-|----|-------|----------|-----------|
-| `90s-cartoon` | 90s | Cartoons | `toon.jpg` |
-| `chibi` | Chibi | Cartoons | `chibi.jpg` |
-| `neon` | Neon | Art | `neon.png` |
-| `anime` | Anime | Anime & Manga | `anime.jpg` |
-| `custom1` | Custom 1 | Trending | `custom1.jpg` |
-| `custom2` | Custom 2 | Trending | `custom2.jpg` |
-| `3dclay` | 3D Clay | 3D Characters | `3dclay.jpg` |
-| `oil-paint` | Oil Paint | Paintings | `oilpaint.jpg` |
-| `low-poly` | Low-Poly Cartoon | Art | `lowpoly.jpg` |
-| `water-color` | Water Color | Paintings | `wc.jpg` |
-| `pixar-like` | Pixar-like | 3D Characters | `pxl.jpg` |
-| `funko-pop` | Funko Pop | 3D Characters | `funko.jpg` |
-| `neandc` | Neanderthal | Fantasy & Mythical | `neandc.jpeg` |
-| `neand3d` | Neanderthal 3D | Fantasy & Mythical | `neand3d.jpeg` |
-| `handd` | Hand-Drawn | Caricatures | `handd.jpeg` |
-| `carc1` | Carc1 | Caricatures | `carc1.jpg` |
-| `superhero` | Superhero | Video Games | `superhero.jpeg` |
-| `villian` | Super Villain | Video Games | `villian.jpeg` |
-| `cyborg` | Cyborg | Video Games | `cyborg.jpeg` |
+Full table (ids, models, comparison pairs, deploy steps): **`MD/STYLES.md`**
 
-**Models**: `black-forest-labs/flux-kontext-pro` (most styles), `google/nano-banana` (custom2, neand3d, handd, superhero, villian, cyborg), `bytedance/seedream-4` (`carc1`)
+**Categories with recent additions:** Art (neon, lowpoly, mural, pop art v1–v3, graffiti, banksy, mosaic, e-glow), Caricatures (editorial, exaggerated, watercolor, handd, carc1).
 
-**Catalog**: 160 styles from spreadsheet — enable individually in `api/_utils/styles-config.ts` as prompts and thumbnails are ready.
+**Models:** `flux-kontext-pro` (default), `google/nano-banana`, `bytedance/seedream-4`.
+
+**Pending:** `coloured_pencil` disabled until comparison asset is added.
+
+**Catalog:** 160 styles from spreadsheet — enable individually in `api/_utils/styles-config.ts` as prompts and thumbnails are ready.
 
 ---
 

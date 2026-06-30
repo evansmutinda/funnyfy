@@ -10,6 +10,18 @@ const devLog = (...args) => {
   if (__DEV__) console.log(...args);
 };
 
+const FETCH_TIMEOUT_MS = 12_000;
+
+async function fetchWithTimeout(url, options = {}, timeoutMs = FETCH_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 // Read stored auth from device
 async function readStored() {
   try {
@@ -58,7 +70,7 @@ export async function initAuth(apiBase, revenuecatUserId = null) {
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     try {
       devLog('[Auth] Requesting token from backend...', attempt > 0 ? `(retry ${attempt})` : '');
-      const res = await fetch(`${apiBase}/api/auth/token`, {
+      const res = await fetchWithTimeout(`${apiBase}/api/auth/token`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(

@@ -4,7 +4,7 @@ import * as FileSystem from 'expo-file-system';
 
 export { FUNNYFY_FOLDER_NAME, saveToFunnyfyAlbum } from './utils/funnyfyAlbum';
 
-export const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'https://funnyfyapp.vercel.app';
+export const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'https://funnyfy-staging.vercel.app';
 
 export const SUPPORT_EMAIL = 'support@funnyfy.app';
 export const APP_NAME = 'FunnyFy';
@@ -200,20 +200,31 @@ export function getSavedImageFileName() {
 
 export const STYLE_CARD_IMAGE_DEFAULT = require('./assets/toon.jpg');
 export const STYLE_CARD_IMAGE_CHIBI = require('./assets/chibi.jpg');
-export const STYLE_CARD_IMAGE_NEON = require('./assets/neon.png');
+export const STYLE_CARD_IMAGE_NEON = require('./assets/comparisons/after/Art/neon.jpg');
 export const STYLE_CARD_IMAGE_ANIME = require('./assets/anime.jpg');
 export const STYLE_CARD_IMAGE_CUSTOM1 = require('./assets/custom1.jpg');
 export const STYLE_CARD_IMAGE_CUSTOM2 = require('./assets/custom2.jpg');
 export const STYLE_CARD_IMAGE_NEANDC = require('./assets/neandc.jpeg');
 export const STYLE_CARD_IMAGE_NEAND3D = require('./assets/neand3d.jpeg');
 export const STYLE_CARD_IMAGE_HANDD = require('./assets/handd.jpeg');
+export const STYLE_CARD_IMAGE_EDITORIAL = require('./assets/comparisons/after/caricature/editorial.jpeg');
+export const STYLE_CARD_IMAGE_EXAGGERATED = require('./assets/comparisons/after/caricature/Exaggerated.jpeg');
+export const STYLE_CARD_IMAGE_WATERCOLOR_C = require('./assets/comparisons/after/caricature/Watercolor-c.jpg');
 export const STYLE_CARD_IMAGE_CARC1 = require('./assets/carc1.jpg');
 export const STYLE_CARD_IMAGE_SUPERHERO = require('./assets/superhero.jpeg');
 export const STYLE_CARD_IMAGE_VILLIAN = require('./assets/villian.jpeg');
 export const STYLE_CARD_IMAGE_CYBORG = require('./assets/cyborg.jpeg');
 export const STYLE_CARD_IMAGE_3DCLAY = require('./assets/3dclay.jpg');
 export const STYLE_CARD_IMAGE_OILPAINT = require('./assets/oilpaint.jpg');
-export const STYLE_CARD_IMAGE_LOWPOLY = require('./assets/lowpoly.jpg');
+export const STYLE_CARD_IMAGE_LOWPOLY = require('./assets/comparisons/after/Art/lowpoly.jpg');
+export const STYLE_CARD_IMAGE_MURAL = require('./assets/comparisons/after/Art/mural.jpeg');
+export const STYLE_CARD_IMAGE_POP_ART_V1 = require('./assets/comparisons/after/Art/portart-fkp.jpg');
+export const STYLE_CARD_IMAGE_POP_ART_V2 = require('./assets/comparisons/after/Art/popart-sr4.jpg');
+export const STYLE_CARD_IMAGE_POP_ART_V3 = require('./assets/comparisons/after/Art/popart-nbn.jpeg');
+export const STYLE_CARD_IMAGE_GRAFFITI = require('./assets/comparisons/after/Art/graffiti.jpg');
+export const STYLE_CARD_IMAGE_BANKSY = require('./assets/comparisons/after/Art/banksy.jpg');
+export const STYLE_CARD_IMAGE_MOSAIC = require('./assets/comparisons/after/Art/mosaic.jpg');
+export const STYLE_CARD_IMAGE_EGLOW = require('./assets/comparisons/after/Art/eglow.jpg');
 export const STYLE_CARD_IMAGE_WC = require('./assets/wc.jpg');
 export const STYLE_CARD_IMAGE_PXL = require('./assets/pxl.jpg');
 export const STYLE_CARD_IMAGE_FUNKO = require('./assets/funko.jpg');
@@ -245,16 +256,30 @@ export function getStyleImage(style) {
   if (id === 'neandc' || (label.includes('neanderthal') && !label.includes('3d'))) return STYLE_CARD_IMAGE_NEANDC;
   if (id === 'neand3d' || label.includes('neanderthal 3d') || label.includes('neand3d')) return STYLE_CARD_IMAGE_NEAND3D;
   if (id === 'handd' || label.includes('hand-drawn') || label.includes('handd')) return STYLE_CARD_IMAGE_HANDD;
+  if (id === 'editorial' || label.includes('editorial')) return STYLE_CARD_IMAGE_EDITORIAL;
+  if (id === 'exaggerated' || label.includes('exaggerated')) return STYLE_CARD_IMAGE_EXAGGERATED;
+  if (id === 'watercolor' || label.includes('watercolor')) return STYLE_CARD_IMAGE_WATERCOLOR_C;
   if (id === 'carc1' || label.includes('carc1')) return STYLE_CARD_IMAGE_CARC1;
   if (id === 'superhero' || label.includes('superhero')) return STYLE_CARD_IMAGE_SUPERHERO;
   if (id === 'villian' || label.includes('villain') || label.includes('villian')) return STYLE_CARD_IMAGE_VILLIAN;
   if (id === 'cyborg' || label.includes('cyborg')) return STYLE_CARD_IMAGE_CYBORG;
   if (id === '3dclay' || label.includes('3dclay') || label.includes('3d clay')) return STYLE_CARD_IMAGE_3DCLAY;
   if (id === 'oil-paint' || label.includes('oil paint') || label.includes('oilpaint')) return STYLE_CARD_IMAGE_OILPAINT;
-  if (id === 'low-poly' || label.includes('low-poly') || label.includes('lowpoly')) return STYLE_CARD_IMAGE_LOWPOLY;
+  if (id === 'lowpoly' || id === 'low-poly' || label.includes('low-poly') || label.includes('lowpoly')) return STYLE_CARD_IMAGE_LOWPOLY;
+  if (id === 'mural' || label.includes('mural')) return STYLE_CARD_IMAGE_MURAL;
+  if (id === 'graffiti' || label.includes('graffiti')) return STYLE_CARD_IMAGE_GRAFFITI;
+  if (id === 'banksy' || label.includes('banksy')) return STYLE_CARD_IMAGE_BANKSY;
+  if (id === 'mosaic' || label.includes('mosaic')) return STYLE_CARD_IMAGE_MOSAIC;
+  if (id === 'e-glow' || label.includes('e-glow') || label.includes('eglow') || label.includes('electric glow')) return STYLE_CARD_IMAGE_EGLOW;
+  if (id === 'pop-art-v1' || label.includes('pop art v1')) return STYLE_CARD_IMAGE_POP_ART_V1;
+  if (id === 'pop-art-v2' || label.includes('pop art v2')) return STYLE_CARD_IMAGE_POP_ART_V2;
+  if (id === 'pop-art-v3' || label.includes('pop art v3')) return STYLE_CARD_IMAGE_POP_ART_V3;
   if (id === 'water-color' || label.includes('water color') || label.includes('watercolor')) return STYLE_CARD_IMAGE_WC;
   if (id === 'pixar-like' || label.includes('pixar-like') || label.includes('pixar')) return STYLE_CARD_IMAGE_PXL;
   if (id === 'funko-pop' || label.includes('funko pop') || label.includes('funko')) return STYLE_CARD_IMAGE_FUNKO;
+
+  const categoryId = (style.categoryId || '').toLowerCase();
+  if (categoryId === 'caricatures') return STYLE_CARD_IMAGE_EDITORIAL;
 
   return STYLE_CARD_IMAGE_DEFAULT;
 }

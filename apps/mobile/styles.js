@@ -48,10 +48,14 @@ const styles = StyleSheet.create({
 
   
   discoveryGrid: {
+    rowGap: 20,
+  },
+
+  discoveryGridRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    rowGap: 20,
+    width: '100%',
   },
 
   

@@ -15,7 +15,6 @@ import PressScale from '../components/PressScale';
 import { BOTTOM_INSET_MIN, getStyleImage } from '../constants';
 import { getComparisonPair, hasCuratedComparisonPair } from '../data/comparisonPairs';
 import {
-  DEFAULT_ENABLED_STYLES,
   STYLE_CATEGORIES,
   getStyleCategory,
 } from '../utils/styleCategories';
@@ -31,10 +30,19 @@ function resolveStyleCategory(style) {
   return style?.categoryId || getStyleCategory(style?.id);
 }
 
-const ROW_PREVIEW_COUNT = 8;
+const ROW_PREVIEW_COUNT = 5;
 const ROW_ENTRANCE_STAGGER = 60;
+const GRID_COLUMNS = 2;
 
 const BROWSE_CATEGORIES = STYLE_CATEGORIES.filter((cat) => cat.id !== 'all');
+
+function chunkStyles(styles, columns = GRID_COLUMNS) {
+  const rows = [];
+  for (let i = 0; i < styles.length; i += columns) {
+    rows.push(styles.slice(i, i + columns));
+  }
+  return rows;
+}
 
 export default function StyleScreen(props) {
   return <StyleScreenContent {...props} />;
@@ -50,11 +58,9 @@ function StyleScreenContent({
 }) {
   const insets = useSafeAreaInsets();
   const [homeScrollTick, setHomeScrollTick] = useState(0);
+  const [categoryScrollTick, setCategoryScrollTick] = useState(0);
   const [activeCategory, setActiveCategory] = useState(null);
-  const styleList =
-    Array.isArray(availableStyles) && availableStyles.length > 0
-      ? availableStyles
-      : DEFAULT_ENABLED_STYLES;
+  const styleList = Array.isArray(availableStyles) ? availableStyles : [];
 
   const browsingHome = !restyleMode && activeCategory === null;
   const activeCategoryMeta = BROWSE_CATEGORIES.find((cat) => cat.id === activeCategory);
@@ -79,9 +85,20 @@ function StyleScreenContent({
     return styleList.filter((s) => resolveStyleCategory(s) === activeCategory);
   }, [activeCategory, browsingHome, restyleMode, styleList]);
 
+  const onCategoryScroll = useCallback(() => {
+    setCategoryScrollTick((tick) => tick + 1);
+  }, []);
+
   const onHomeScroll = useCallback(() => {
     setHomeScrollTick((tick) => tick + 1);
   }, []);
+
+  const categoryGridRows = useMemo(
+    () => chunkStyles(categoryStyles),
+    [categoryStyles],
+  );
+
+  const categoryGridKey = restyleMode ? 'restyle' : activeCategory || 'category';
 
   useEffect(() => {
     if (browsingHome || restyleMode) return undefined;
@@ -184,40 +201,69 @@ function StyleScreenContent({
           </ScrollView>
         </RowFocusProvider>
       ) : (
-        <ScrollView
-          style={styles.styleScroll}
-          contentContainerStyle={[
-            styles.styleContainer,
-            { paddingBottom: Math.max(insets.bottom, BOTTOM_INSET_MIN) + 8 },
-          ]}
-          showsVerticalScrollIndicator={false}
-        >
-          {categoryStyles.length === 0 ? (
-            <View style={styles.styleEmptyState}>
-              <Text style={styles.styleEmptyStateTitle}>Coming soon</Text>
-              <Text style={styles.styleEmptyStateText}>
-                New styles for this category are on the way.
-              </Text>
-            </View>
-          ) : (
-            <View style={styles.discoveryGrid}>
-              {categoryStyles.map((s, index) => (
-                <View key={s.id} style={styles.discoveryCard}>
-                  <PressScale onPress={() => onNext(s)}>
-                    <MediaTile
-                      imageSource={getStyleImage(s)}
-                      comparisonPair={hasCuratedComparisonPair(s) ? getComparisonPair(s) : null}
-                      isSelected={selectedStyle?.id === s.id}
-                      variant="discovery"
-                      comparisonActive={index < 2}
-                    />
-                  </PressScale>
-                </View>
-              ))}
-            </View>
-          )}
-        </ScrollView>
+        <RowFocusProvider key={categoryGridKey} scrollTick={categoryScrollTick}>
+          <ScrollView
+            style={styles.styleScroll}
+            contentContainerStyle={[
+              styles.styleContainer,
+              { paddingBottom: Math.max(insets.bottom, BOTTOM_INSET_MIN) + 8 },
+            ]}
+            showsVerticalScrollIndicator={false}
+            onScroll={onCategoryScroll}
+            scrollEventThrottle={100}
+          >
+            {categoryStyles.length === 0 ? (
+              <View style={styles.styleEmptyState}>
+                <Text style={styles.styleEmptyStateTitle}>Coming soon</Text>
+                <Text style={styles.styleEmptyStateText}>
+                  New styles for this category are on the way.
+                </Text>
+              </View>
+            ) : (
+              <View style={styles.discoveryGrid}>
+                {categoryGridRows.map((rowStyles, rowIndex) => (
+                  <DiscoveryGridRow
+                    key={`${categoryGridKey}-${rowIndex}`}
+                    rowId={`${categoryGridKey}-${rowIndex}`}
+                    rowIndex={rowIndex}
+                    styleList={rowStyles}
+                    selectedStyle={selectedStyle}
+                    onSelect={onNext}
+                  />
+                ))}
+              </View>
+            )}
+          </ScrollView>
+        </RowFocusProvider>
       )}
+    </View>
+  );
+}
+
+function DiscoveryGridRow({
+  rowId,
+  rowIndex,
+  styleList,
+  selectedStyle,
+  onSelect,
+}) {
+  const { rowRef, isRowActive, onRowLayout } = useCategoryRowFocus(rowId, rowIndex);
+
+  return (
+    <View ref={rowRef} onLayout={onRowLayout} style={styles.discoveryGridRow}>
+      {styleList.map((item) => (
+        <View key={item.id} style={styles.discoveryCard}>
+          <PressScale onPress={() => onSelect(item)}>
+            <MediaTile
+              imageSource={getStyleImage(item)}
+              comparisonPair={hasCuratedComparisonPair(item) ? getComparisonPair(item) : null}
+              isSelected={selectedStyle?.id === item.id}
+              variant="discovery"
+              comparisonActive={isRowActive && hasCuratedComparisonPair(item)}
+            />
+          </PressScale>
+        </View>
+      ))}
     </View>
   );
 }

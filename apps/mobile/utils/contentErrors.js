@@ -75,6 +75,10 @@ export function humanizeApiError(message) {
     return raw.replace(/^[A-Z][A-Z0-9_]*:\s*/, '') || 'You have reached your generation limit.';
   }
 
+  if (lower.includes('invalid_style_id') || lower.includes('invalid styleid')) {
+    return 'This style is not on staging yet. Redeploy funnyfy-staging to sync the latest styles.';
+  }
+
   if (
     lower.includes('replicate did not return an image') ||
     lower.includes('replicate generation failed') ||

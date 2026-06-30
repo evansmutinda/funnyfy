@@ -374,13 +374,33 @@ export async function saveToFunnyfyAlbum(localFileUri) {
 }
 
 async function saveToFunnyfyAlbumAndroid(localFileUri) {
+  let asset;
+  try {
+    asset = await MediaLibrary.createAssetAsync(localFileUri);
+  } catch (assetErr) {
+    console.error('[Save] createAssetAsync failed:', assetErr);
+    return false;
+  }
+
+  const persistAlbumId = async (albumRef) => {
+    const id = typeof albumRef === 'string' ? albumRef : albumRef?.id;
+    if (id) {
+      await AsyncStorage.setItem(FUNNYFY_ALBUM_ID_KEY, id);
+    }
+  };
+
+  const addToAlbum = async (albumRef) => {
+    await MediaLibrary.addAssetsToAlbumAsync([asset], albumRef, false);
+    await persistAlbumId(albumRef);
+  };
+
   const cachedId = await AsyncStorage.getItem(FUNNYFY_ALBUM_ID_KEY);
   if (cachedId) {
     try {
-      await MediaLibrary.createAssetAsync(localFileUri, cachedId);
+      await addToAlbum(cachedId);
       return true;
     } catch (err) {
-      devWarn('[Save] create in cached album failed:', err?.message || err);
+      devWarn('[Save] add to cached album failed:', err?.message || err);
       await AsyncStorage.removeItem(FUNNYFY_ALBUM_ID_KEY);
     }
   }
@@ -388,13 +408,12 @@ async function saveToFunnyfyAlbumAndroid(localFileUri) {
   const canRead = await requestGalleryReadPermission();
   if (canRead) {
     const existing = await resolveFunnyfyAlbum({ rescan: true });
-    if (existing?.id) {
+    if (existing) {
       try {
-        await MediaLibrary.createAssetAsync(localFileUri, existing.id);
-        await AsyncStorage.setItem(FUNNYFY_ALBUM_ID_KEY, existing.id);
+        await addToAlbum(existing);
         return true;
       } catch (err) {
-        devWarn('[Save] create in resolved album failed:', err?.message || err);
+        devWarn('[Save] add to resolved album failed:', err?.message || err);
       }
     }
   }
@@ -402,18 +421,18 @@ async function saveToFunnyfyAlbumAndroid(localFileUri) {
   try {
     const album = await MediaLibrary.createAlbumAsync(
       FUNNYFY_FOLDER_NAME,
-      localFileUri,
+      asset,
       false,
     );
-    if (album?.id) {
-      await AsyncStorage.setItem(FUNNYFY_ALBUM_ID_KEY, album.id);
-    }
+    await persistAlbumId(album);
     return true;
   } catch (createErr) {
     devWarn('[Save] createAlbumAsync failed:', createErr?.message || createErr);
   }
 
-  return false;
+  // Asset is in the gallery even if album assignment failed (matches iOS behavior).
+  devWarn('[Save] Saved to gallery; Funnyfy album assignment failed');
+  return true;
 }
 
 async function saveToFunnyfyAlbumIos(localFileUri) {

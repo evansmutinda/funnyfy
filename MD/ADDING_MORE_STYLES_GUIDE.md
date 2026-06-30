@@ -2,7 +2,9 @@
 
 ## Current Status
 
-You have **160 styles** in the catalog (from `Funnyfy_Categories_Updated.xlsx`) across **16 categories**. **18 legacy styles** are enabled with real prompts and thumbnails. The rest are placeholders (`enabled: false`) until you add prompts and tile art.
+You have **160 styles** in the catalog (from `Funnyfy_Categories_Updated.xlsx`) across **16 categories**. **30 legacy styles** are enabled with real prompts and thumbnails. The rest are placeholders (`enabled: false`) until you add prompts and tile art.
+
+**Canonical list:** see `MD/STYLES.md` for all enabled ids, models, comparison pairs, and deploy checklist.
 
 ---
 
@@ -28,10 +30,12 @@ Outputs:
 
 ### Enable a catalog style
 
-1. Set `enabled: true` and a real `prompt` in `api/_utils/styles-config.ts` (or add to `LEGACY_STYLES`)
-2. Add thumbnail: place image in `apps/mobile/assets/` and map in `getStyleImage()` in `constants.js`
-3. Add to `DEFAULT_ENABLED_STYLES` in `styleCatalog.js` (or regenerate script's legacy list)
-4. Deploy API to Vercel
+1. Set `enabled: true` and a real `prompt` in `api/_utils/styles-config.ts` (`LEGACY_STYLES`)
+2. Add thumbnail mapping in `getStyleImage()` in `apps/mobile/constants.js`
+3. Add comparison pair in `comparisonPairs.js` (optional)
+4. Add to `DEFAULT_ENABLED_STYLES` in `styleCatalog.js` (offline fallback only)
+5. Deploy API to Vercel — app reads styles from `/api/styles` only (no local merge on success)
+6. Update `MD/STYLES.md`
 
 ### The Good News
 - ✅ **Prompts are server-side** — protected in `api/_utils/styles-config.ts`
@@ -454,28 +458,9 @@ Each style uses the same API cost:
 
 ---
 
-## Quick Reference: Enabled Live Styles (18)
+## Quick Reference
 
-| # | Label | Id | Category |
-|---|-------|-----|----------|
-| 1 | 90s | `90s-cartoon` | Cartoons |
-| 2 | Chibi | `chibi` | Cartoons |
-| 3 | Neon | `neon` | Art |
-| 4 | Anime | `anime` | Anime & Manga |
-| 5 | Custom 1 | `custom1` | Trending |
-| 6 | Custom 2 | `custom2` | Trending |
-| 7 | 3D Clay | `3dclay` | 3D Characters |
-| 8 | Oil Paint | `oil-paint` | Paintings |
-| 9 | Low-Poly Cartoon | `low-poly` | Art |
-| 10 | Water Color | `water-color` | Paintings |
-| 11 | Pixar-like | `pixar-like` | 3D Characters |
-| 12 | Funko Pop | `funko-pop` | 3D Characters |
-| 13 | Neanderthal | `neandc` | Fantasy & Mythical |
-| 14 | Neanderthal 3D | `neand3d` | Fantasy & Mythical |
-| 15 | Hand-Drawn | `handd` | Caricatures |
-| 16 | Superhero | `superhero` | Video Games |
-| 17 | Super Villain | `villian` | Video Games |
-| 18 | Cyborg | `cyborg` | Video Games |
+See **`MD/STYLES.md`** for the full enabled-style table (30 live), models, comparison pairs, and deploy checklist.
 
 **+ 142 catalog placeholders** — enable as thumbnails and prompts are ready.
 

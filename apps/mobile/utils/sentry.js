@@ -27,14 +27,19 @@ export function initSentry() {
     process.env.EXPO_PUBLIC_SENTRY_ENV ||
     (__DEV__ ? 'development' : 'production');
 
-  Sentry.init({
-    dsn,
-    environment,
-    enabled: forceEnable || !__DEV__,
-    tracesSampleRate: 0.2,
-    sendDefaultPii: false,
-    beforeSend: scrubEvent,
-  });
+  try {
+    Sentry.init({
+      dsn,
+      environment,
+      enabled: forceEnable || !__DEV__,
+      tracesSampleRate: 0.2,
+      sendDefaultPii: false,
+      beforeSend: scrubEvent,
+    });
+  } catch (err) {
+    console.warn('[Sentry] init failed:', err?.message || err);
+    return false;
+  }
 
   if (process.env.EXPO_PUBLIC_SENTRY_TEST === 'true') {
     Sentry.captureMessage('FunnyFy Sentry connection test');

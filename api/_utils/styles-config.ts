@@ -1,6 +1,6 @@
 // Styles configuration - protected on server
 // Catalog: 160 styles from Funnyfy_Categories_Updated.xlsx (placeholders, disabled by default)
-// Legacy: 19 live styles with real prompts (enabled)
+// Live styles: LEGACY_STYLES in this file (prompts, models, enabled flag)
 //
 // >>> Add new enabled styles to LEGACY_STYLES below. <<<
 // Single source of truth — all API routes import from this file.
@@ -21,16 +21,6 @@ export interface StyleConfig {
 const DEFAULT_MODEL = 'black-forest-labs/flux-kontext-pro';
 const NANO_BANANA = 'google/nano-banana';
 const SEEDREAM_4 = 'bytedance/seedream-4';
-
-const CARC1_PROMPT =
-  'Using the uploaded photo as the sole identity reference, create a full-body stylized 3D caricature that faithfully preserves the person\'s recognizable facial features, body type, skin tone, ethnicity, hairstyle, facial hair, clothing, footwear, and accessories. The character should unmistakably resemble the person in the reference photo. ' +
-  'Maintain a clean studio composition with the character standing upright in a relaxed pose, facing forward, with the entire body visible from head to toe. ' +
-  'Apply a cohesive stylized character design with: An oversized head (approximately 1.8–2.2× realistic size), A very long, slim neck, A smaller, simplified torso, Long, thin arms and legs, Large expressive hands, Slightly oversized shoes, Gentle exaggeration of the person\'s natural facial features (nose, ears, jawline, cheeks, eyes, lips, eyebrows) while preserving identity, Expressive but believable proportions. ' +
-  'Preserve the person\'s actual: race and skin tone, facial structure, hairstyle, facial hair, age appearance, body build (slim, average, muscular, heavy-set, etc.), clothing style, colors, textures and logos (unless copyright-safe replacements are required), accessories. ' +
-  'Render using premium stylized 3D character artwork with: physically based materials, soft cinematic lighting, subtle skin texture, realistic fabric folds, clean matte surfaces, high-quality sculpted details, smooth stylized anatomy, slightly enlarged eyes with expressive brows. ' +
-  'The expression should be natural and personality-driven rather than exaggerated into comedy. ' +
-  'Keep the background completely transparent with no floor, shadows, props, or scenery. ' +
-  'The final image should resemble a collectible animated film character or high-end stylized game character while remaining an unmistakable caricature of the person in the uploaded photograph.';
 
 function placeholderPrompt(label: string): string {
   return (
@@ -131,12 +121,92 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     enabled: true,
     premium: false,
   },
-  'low-poly': {
-    id: 'low-poly',
-    label: 'Low-Poly Cartoon',
+  lowpoly: {
+    id: 'lowpoly',
+    label: 'lowpoly',
     categoryId: 'art',
-    description: 'Low-poly cartoon style',
-    prompt: 'make this a low-poly cartoon',
+    description: 'Low-poly cartoon with geometric facets and plain-color background',
+    prompt: 'make this a low-poly cartoon, make background plain color if none.',
+    model: SEEDREAM_4,
+    enabled: true,
+    premium: false,
+  },
+  mural: {
+    id: 'mural',
+    label: 'Mural',
+    categoryId: 'art',
+    description: 'Street mural graffiti portrait of the subject',
+    prompt: 'make a street mural graffiti of the subject/s',
+    model: NANO_BANANA,
+    enabled: true,
+    premium: false,
+  },
+  'pop-art-v1': {
+    id: 'pop-art-v1',
+    label: 'pop art v1',
+    categoryId: 'art',
+    description: 'Pop art portrait rendered with bold flat colors',
+    prompt: 'make this a pop art.',
+    model: DEFAULT_MODEL,
+    enabled: true,
+    premium: false,
+  },
+  'pop-art-v2': {
+    id: 'pop-art-v2',
+    label: 'pop art v2',
+    categoryId: 'art',
+    description: 'Pop art portrait with vibrant graphic styling',
+    prompt: 'make this a pop art.',
+    model: SEEDREAM_4,
+    enabled: true,
+    premium: false,
+  },
+  'pop-art-v3': {
+    id: 'pop-art-v3',
+    label: 'pop art v3',
+    categoryId: 'art',
+    description: 'Pop art portrait with bold comic-inspired color blocks',
+    prompt: 'make this a pop art.',
+    model: NANO_BANANA,
+    enabled: true,
+    premium: false,
+  },
+  graffiti: {
+    id: 'graffiti',
+    label: 'graffiti',
+    categoryId: 'art',
+    description: 'Graffiti art portrait with bold street-art styling',
+    prompt: 'make this a Graffiti Art.',
+    model: SEEDREAM_4,
+    enabled: true,
+    premium: false,
+  },
+  banksy: {
+    id: 'banksy',
+    label: 'banksy',
+    categoryId: 'art',
+    description: 'Banksy-style stencil street art portrait',
+    prompt: 'make this a banksy style art',
+    model: SEEDREAM_4,
+    enabled: true,
+    premium: false,
+  },
+  mosaic: {
+    id: 'mosaic',
+    label: 'mosaic',
+    categoryId: 'art',
+    description: 'Mosaic installation art portrait with tiled color fragments',
+    prompt: 'make this a Mosaic installations art',
+    model: SEEDREAM_4,
+    enabled: true,
+    premium: false,
+  },
+  'e-glow': {
+    id: 'e-glow',
+    label: 'e-glow',
+    categoryId: 'art',
+    description: 'Electric glow art portrait with neon luminous highlights',
+    prompt: 'make this a Electric Glow art',
     model: DEFAULT_MODEL,
     enabled: true,
     premium: false,
@@ -214,13 +284,56 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     enabled: true,
     premium: false,
   },
+  editorial: {
+    id: 'editorial',
+    label: 'Editorial',
+    categoryId: 'caricatures',
+    description:
+      'Sophisticated magazine editorial caricature with ink linework and watercolor washes',
+    prompt:
+      'Create a sophisticated editorial caricature of the provided subject while faithfully preserving their identity, facial structure, age, ethnicity, hairstyle, expression, clothing, and pose. Exaggerate the defining facial characteristics in a tasteful editorial manner—slightly enlarge the head, emphasize the forehead, eyebrows, eyes, nose, ears, cheek lines, smile lines, and wrinkles to communicate wisdom and character without becoming grotesque. Maintain realistic facial proportions despite the stylization. Render in a premium newspaper/magazine editorial illustration style using expressive black ink linework, fine cross-hatching, loose pen strokes, and layered watercolor washes. Use warm, earthy tones with subtle texture from watercolor paper. Employ confident contour lines, varied line weights, and painterly shading to create depth while retaining a handcrafted appearance. Preserve the library setting with bookshelves and the armchair, but simplify the background into soft watercolor shapes and sketch-like details so it supports rather than competes with the subject. Use soft natural window lighting, gentle shadows, and a muted, elegant color palette. The overall mood should be thoughtful, distinguished, intellectual, and timeless—resembling a high-end editorial portrait published in The New Yorker, The Economist, Financial Times, or a literary magazine. No typography, captions, speech bubbles, logos, signatures, watermarks, borders, decorative frames, or graphic elements. Background should remain clean and uncluttered, with the subject as the clear focal point.',
+    model: NANO_BANANA,
+    enabled: true,
+    premium: false,
+  },
+  exaggerated: {
+    id: 'exaggerated',
+    label: 'Exaggerated',
+    categoryId: 'caricatures',
+    description: 'Exaggerated 3D cartoon caricature with playful proportions',
+    prompt: 'Make this an Exaggerated 3d cartoon caricature',
+    model: NANO_BANANA,
+    enabled: true,
+    premium: false,
+  },
+  coloured_pencil: {
+    id: 'coloured_pencil',
+    label: 'coloured_pencil',
+    categoryId: 'caricatures',
+    description: 'Colored pencil caricature rendered with premium stylized shading',
+    prompt: 'Make this an Exaggerated 3d cartoon caricature',
+    model: SEEDREAM_4,
+    enabled: false, // re-enable after apps/mobile/assets/comparisons/after/caricature/colouredp.jpg is added
+    premium: false,
+  },
+  watercolor: {
+    id: 'watercolor',
+    label: 'watercolor',
+    categoryId: 'caricatures',
+    description: 'Watercolor caricature with soft painterly washes and stylized shading',
+    prompt: 'Make this a Watercolor caricature',
+    model: SEEDREAM_4,
+    enabled: true,
+    premium: false,
+  },
   carc1: {
     id: 'carc1',
     label: 'Carc1',
     categoryId: 'caricatures',
     description:
       'Full-body stylized 3D caricature with oversized head, slim proportions, and premium character shading',
-    prompt: CARC1_PROMPT,
+    prompt:
+      'Using the uploaded photo as the sole identity reference, create a full-body stylized 3D caricature that faithfully preserves the person\'s recognizable facial features, body type, skin tone, ethnicity, hairstyle, facial hair, clothing, footwear, and accessories. The character should unmistakably resemble the person in the reference photo. Maintain a clean studio composition with the character standing upright in a relaxed pose, facing forward, with the entire body visible from head to toe. Apply a cohesive stylized character design with: An oversized head (approximately 1.8–2.2× realistic size), A very long, slim neck, A smaller, simplified torso, Long, thin arms and legs, Large expressive hands, Slightly oversized shoes, Gentle exaggeration of the person\'s natural facial features (nose, ears, jawline, cheeks, eyes, lips, eyebrows) while preserving identity, Expressive but believable proportions. Preserve the person\'s actual: race and skin tone, facial structure, hairstyle, facial hair, age appearance, body build (slim, average, muscular, heavy-set, etc.), clothing style, colors, textures and logos (unless copyright-safe replacements are required), accessories. Render using premium stylized 3D character artwork with: physically based materials, soft cinematic lighting, subtle skin texture, realistic fabric folds, clean matte surfaces, high-quality sculpted details, smooth stylized anatomy, slightly enlarged eyes with expressive brows. The expression should be natural and personality-driven rather than exaggerated into comedy. Keep the background completely transparent with no floor, shadows, props, or scenery. The final image should resemble a collectible animated film character or high-end stylized game character while remaining an unmistakable caricature of the person in the uploaded photograph.',
     model: SEEDREAM_4,
     enabled: true,
     premium: false,

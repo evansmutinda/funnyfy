@@ -9,9 +9,6 @@
     "api/sync-subscription.ts": {
       "maxDuration": 10
     },
-    "api/admin/*.ts": {
-      "maxDuration": 15
-    },
     "api/auth/*.ts": {
       "maxDuration": 10
     },

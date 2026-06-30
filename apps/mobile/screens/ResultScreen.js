@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as FileSystem from 'expo-file-system';
-import * as MediaLibrary from 'expo-media-library';
 import * as Sharing from 'expo-sharing';
 import { Feather } from '@expo/vector-icons';
 import { useNotifications } from '../components/NotificationProvider';
@@ -235,14 +234,10 @@ export default function ResultScreen({
 
       if (!saved) {
         showToast(
-          'Permission needed',
+          'Could not save',
           'Allow FunnyFy to save photos to your gallery, then try again.',
-          'warning',
+          'error',
         );
-        await Sharing.shareAsync(localPath, {
-          mimeType: 'image/jpeg',
-          dialogTitle: 'Save image',
-        });
         return false;
       }
 
@@ -525,7 +520,7 @@ export default function ResultScreen({
               hasBeenSaved && styles.resultActionButtonSaved,
               (!hasResult || loading) && styles.buttonDisabled,
             ]}
-            onPress={handleDownload}
+            onPress={() => handleDownload()}
             disabled={!hasResult || loading}
           >
             <Feather

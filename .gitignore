@@ -12,6 +12,8 @@ __pycache__/
 dist/
 build/
 *.log
+apps/mobile/.expo-tmp-bundle/
+graphify-out/
 
 # IDE files
 .vscode/

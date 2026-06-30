@@ -8,6 +8,30 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [1.0.30] - 2026-06-30
+
+### Added
+- **Art styles:** `lowpoly`, `mural`, `pop-art-v1` / `v2` / `v3`, `graffiti`, `banksy`, `mosaic`, `e-glow` with comparison pairs and Art folder assets
+- **Caricature styles:** `editorial`, `exaggerated`, `watercolor` with comparison pairs
+- **`MD/STYLES.md`** — canonical enabled-styles reference (30 live, models, pairs, deploy checklist)
+- **`.vercelignore`** — keeps mobile assets out of API deploys
+
+### Changed
+- **`mergeServerStyles.js`** — API-only styles on successful `/api/styles` (fixes `INVALID_STYLE_ID` from stale local merge)
+- **`StyleScreen.js`** — See all category grid uses `RowFocusProvider` (row alternation like home); `ROW_PREVIEW_COUNT` = 5
+- **`neon`** — updated thumbnail + comparison pair (`lady3.png` → `neon.jpg`)
+- **`low-poly`** renamed to **`lowpoly`** with Seedream-4 model
+- **Mobile reliability** — startup/auth/RevenueCat timeouts, Sentry init guard, save-to-gallery without share fallback
+- **Staging default** in `constants.js` when env unset
+
+### Docs
+- `MD/STYLES.md`, `MD/STATUS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `To do/COMPARISON_ASSETS.md` updated
+
+### Pending
+- `coloured_pencil` disabled until `colouredp.jpg` asset is added
+
+---
+
 ## [1.0.11] - 2026-06-26
 
 ### Added
