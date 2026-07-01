@@ -1,4 +1,4 @@
-import { DEFAULT_ENABLED_STYLES } from '../data/styleCatalog';
+import { DEFAULT_ENABLED_STYLES, getStyleCategory } from '../data/styleCatalog';
 
 /**
  * Use styles from GET /api/styles when the server responds.
@@ -11,5 +11,14 @@ export function mergeServerStyles(serverStyles) {
     return DEFAULT_ENABLED_STYLES;
   }
 
-  return serverStyles;
+  const localById = new Map(DEFAULT_ENABLED_STYLES.map((s) => [s.id, s]));
+
+  return serverStyles.map((style) => ({
+    ...localById.get(style.id),
+    ...style,
+    categoryId:
+      style.categoryId ||
+      localById.get(style.id)?.categoryId ||
+      getStyleCategory(style.id),
+  }));
 }

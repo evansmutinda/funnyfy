@@ -1,6 +1,6 @@
 # Comparison assets (before/after pairs)
 
-**Status:** 22 curated pairs on style tiles; Upload still uses placeholders for styles without pairs.
+**Status:** 55 curated pairs on style tiles (64 enabled styles); Upload still uses placeholders for styles without pairs.
 
 ---
 
@@ -20,33 +20,11 @@ Tiles pause when off-screen, row inactive, or app backgrounded (`useAppForegroun
 
 ## Curated pairs (shipped)
 
-Registered in `apps/mobile/data/comparisonPairs.js` → `CURATED_PAIRS`. Full list: **`MD/STYLES.md`**.
+Registered in `apps/mobile/data/comparisonPairs.js` → `CURATED_PAIRS`.
 
-| styleId | before | after |
-|---------|--------|--------|
-| `handd` | `before/hdd.png` | `after/caricature/handd.jpeg` |
-| `editorial` | `before/man.png` | `after/caricature/editorial.jpeg` |
-| `exaggerated` | `before/man2.png` | `after/caricature/Exaggerated.jpeg` |
-| `watercolor` | `before/couple.png` | `after/caricature/Watercolor-c.jpg` |
-| `carc1` | `before/toon.png` | `after/caricature/carc1.jpg` |
-| `90s-cartoon` | `before/toon.png` | `after/cartoons/toon.jpg` |
-| `chibi` | `before/chibi.png` | `after/cartoons/chibi.jpg` |
-| `3dclay` | `before/3dclay.png` | `after/3d/3dclay.jpg` |
-| `pixar-like` | `before/pxl.png` | `after/3d/pxl.jpg` |
-| `oil-paint` | `before/oilpaint.png` | `after/Paintings/oilpaint.jpg` |
-| `water-color` | `before/wc.png` | `after/Paintings/wc.jpg` |
-| `mural` | `before/lady2.png` | `after/Art/mural.jpeg` |
-| `neon` | `before/lady3.png` | `after/Art/neon.jpg` |
-| `lowpoly` | `before/lady4.png` | `after/Art/lowpoly.jpg` |
-| `pop-art-v1` | `before/lady5.png` | `after/Art/portart-fkp.jpg` |
-| `pop-art-v2` | `before/man3.png` | `after/Art/popart-sr4.jpg` |
-| `pop-art-v3` | `before/dude.png` | `after/Art/popart-nbn.jpeg` |
-| `graffiti` | `before/dude2.png` | `after/Art/graffiti.jpg` |
-| `banksy` | `before/lady6.png` | `after/Art/banksy.jpg` |
-| `mosaic` | `before/man4.png` | `after/Art/mosaic.jpg` |
-| `e-glow` | `before/lady6.png` | `after/Art/eglow.jpg` |
+**Full list:** [`MD/STYLES.md`](../MD/STYLES.md) → Comparison pairs (`CURATED_PAIRS`).
 
-Styles without a curated entry fall back to `realistic.jpeg` + the style thumbnail on Upload only; picker tiles show a static thumbnail.
+Styles **without** a curated entry (static thumbnail on picker; placeholder on Upload): `anime`, `custom1`, `custom2`, `funko-pop`, `neandc`, `neand3d`, `superhero`, `villian`, `cyborg`.
 
 ---
 
@@ -111,8 +89,8 @@ Assets bundle at build time — run `.\build-apk-local.ps1` or EAS after adding 
 
 ## Checklist
 
-- [x] 22 curated pairs + `CURATED_PAIRS` entries
+- [x] 55 curated pairs + `CURATED_PAIRS` entries
 - [x] Style tile crossfade + row focus on home and See all grid
-- [ ] Remaining enabled styles — generate + register pairs
+- [ ] Remaining 9 enabled styles without pairs — generate + register
 - [ ] Upload hero pairs at 832×1248 for all enabled styles (no zoom jump)
 - [ ] `coloured_pencil` — add `after/caricature/colouredp.jpg` and enable style

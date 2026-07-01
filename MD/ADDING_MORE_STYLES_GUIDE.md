@@ -2,7 +2,7 @@
 
 ## Current Status
 
-You have **160 styles** in the catalog (from `Funnyfy_Categories_Updated.xlsx`) across **16 categories**. **30 legacy styles** are enabled with real prompts and thumbnails. The rest are placeholders (`enabled: false`) until you add prompts and tile art.
+You have **160 styles** in the catalog (from `Funnyfy_Categories_Updated.xlsx`) across **16 categories**. **64 legacy styles** are enabled with real prompts and thumbnails. The rest are placeholders (`enabled: false`) until you add prompts and tile art.
 
 **Canonical list:** see `MD/STYLES.md` for all enabled ids, models, comparison pairs, and deploy checklist.
 

@@ -45,6 +45,46 @@ const CURATED_PAIRS = {
     before: require('../assets/comparisons/before/chibi.png'),
     after: require('../assets/comparisons/after/cartoons/chibi.jpg'),
   },
+  'classic-v1': {
+    before: require('../assets/comparisons/before/lady4.png'),
+    after: require('../assets/comparisons/after/cartoons/classic.jpg'),
+  },
+  'classic-v2': {
+    before: require('../assets/comparisons/before/man3.png'),
+    after: require('../assets/comparisons/after/cartoons/classicv2.jpeg'),
+  },
+  'saturday-v1': {
+    before: require('../assets/comparisons/before/dude2.png'),
+    after: require('../assets/comparisons/after/cartoons/smv1.jpeg'),
+  },
+  'saturday-v2': {
+    before: require('../assets/comparisons/before/dude2.png'),
+    after: require('../assets/comparisons/after/cartoons/smv2.jpg'),
+  },
+  comic: {
+    before: require('../assets/comparisons/before/3dclay.png'),
+    after: require('../assets/comparisons/after/cartoons/comic.jpg'),
+  },
+  cute: {
+    before: require('../assets/comparisons/before/hdd.png'),
+    after: require('../assets/comparisons/after/cartoons/cute.jpg'),
+  },
+  dc: {
+    before: require('../assets/comparisons/before/man3.png'),
+    after: require('../assets/comparisons/after/cartoons/dc.jpg'),
+  },
+  'cyberpunk-v1': {
+    before: require('../assets/comparisons/before/lady5.png'),
+    after: require('../assets/comparisons/after/cartoons/cyberpunkv1.jpg'),
+  },
+  'cyberpunk-v2': {
+    before: require('../assets/comparisons/before/dude.png'),
+    after: require('../assets/comparisons/after/cartoons/cyberpunkv2.jpeg'),
+  },
+  disney: {
+    before: require('../assets/comparisons/before/lady3.png'),
+    after: require('../assets/comparisons/after/cartoons/disney.jpg'),
+  },
   '3dclay': {
     before: require('../assets/comparisons/before/3dclay.png'),
     after: require('../assets/comparisons/after/3d/3dclay.jpg'),
@@ -54,12 +94,84 @@ const CURATED_PAIRS = {
     after: require('../assets/comparisons/after/3d/pxl.jpg'),
   },
   'oil-paint': {
-    before: require('../assets/comparisons/before/oilpaint.png'),
+    before: require('../assets/comparisons/before/lady9.png'),
     after: require('../assets/comparisons/after/Paintings/oilpaint.jpg'),
   },
   'water-color': {
     before: require('../assets/comparisons/before/wc.png'),
     after: require('../assets/comparisons/after/Paintings/wc.jpg'),
+  },
+  acrylic: {
+    before: require('../assets/comparisons/before/lady12.png'),
+    after: require('../assets/comparisons/after/Paintings/Acrylic.jpg'),
+  },
+  gouache: {
+    before: require('../assets/comparisons/before/lady13.png'),
+    after: require('../assets/comparisons/after/Paintings/Gouache.jpg'),
+  },
+  expressionist: {
+    before: require('../assets/comparisons/before/man6.png'),
+    after: require('../assets/comparisons/after/Paintings/Expressionist.jpg'),
+  },
+  impressionist: {
+    before: require('../assets/comparisons/before/man6.png'),
+    after: require('../assets/comparisons/after/Paintings/Impressionist.jpg'),
+  },
+  baroque: {
+    before: require('../assets/comparisons/before/man7.png'),
+    after: require('../assets/comparisons/after/Paintings/Baroque.jpg'),
+  },
+  'van-gogh': {
+    before: require('../assets/comparisons/before/lady14.png'),
+    after: require('../assets/comparisons/after/Paintings/van-gogh.jpg'),
+  },
+  monet: {
+    before: require('../assets/comparisons/before/lady4.png'),
+    after: require('../assets/comparisons/after/Paintings/monet.jpg'),
+  },
+  renoir: {
+    before: require('../assets/comparisons/before/lady11.png'),
+    after: require('../assets/comparisons/after/Paintings/Renoir.jpeg'),
+  },
+  cezanne: {
+    before: require('../assets/comparisons/before/man5.png'),
+    after: require('../assets/comparisons/after/Paintings/Cézanne.jpg'),
+  },
+  gauguin: {
+    before: require('../assets/comparisons/before/lady10.png'),
+    after: require('../assets/comparisons/after/Paintings/Gauguin.jpg'),
+  },
+  matisse: {
+    before: require('../assets/comparisons/before/lady8.png'),
+    after: require('../assets/comparisons/after/Paintings/Matisse.jpg'),
+  },
+  seurat: {
+    before: require('../assets/comparisons/before/lady2.png'),
+    after: require('../assets/comparisons/after/Paintings/Seurat.jpg'),
+  },
+  'ink-wash': {
+    before: require('../assets/comparisons/before/lady5.png'),
+    after: require('../assets/comparisons/after/Paintings/Ink-Wash.jpg'),
+  },
+  impasto: {
+    before: require('../assets/comparisons/before/dude.png'),
+    after: require('../assets/comparisons/after/Paintings/Impasto.jpeg'),
+  },
+  'hokusai-v1': {
+    before: require('../assets/comparisons/before/man.png'),
+    after: require('../assets/comparisons/after/Paintings/Hokusai.jpg'),
+  },
+  'hokusai-v2': {
+    before: require('../assets/comparisons/before/dude.png'),
+    after: require('../assets/comparisons/after/Paintings/Hokusai2.jpeg'),
+  },
+  hiroshige: {
+    before: require('../assets/comparisons/before/lady12.png'),
+    after: require('../assets/comparisons/after/Paintings/Hiroshige.jpeg'),
+  },
+  sesshu: {
+    before: require('../assets/comparisons/before/lady5.png'),
+    after: require('../assets/comparisons/after/Paintings/Sesshū.jpeg'),
   },
   mural: {
     before: require('../assets/comparisons/before/lady2.png'),
@@ -98,8 +210,32 @@ const CURATED_PAIRS = {
     after: require('../assets/comparisons/after/Art/mosaic.jpg'),
   },
   'e-glow': {
-    before: require('../assets/comparisons/before/lady6.png'),
+    before: require('../assets/comparisons/before/lady7.png'),
     after: require('../assets/comparisons/after/Art/eglow.jpg'),
+  },
+  'abstract-v1': {
+    before: require('../assets/comparisons/before/lady8.png'),
+    after: require('../assets/comparisons/after/Art/abstractv1.jpeg'),
+  },
+  'abstract-v2': {
+    before: require('../assets/comparisons/before/lady8.png'),
+    after: require('../assets/comparisons/after/Art/abstractv2.jpg'),
+  },
+  geometric: {
+    before: require('../assets/comparisons/before/man5.png'),
+    after: require('../assets/comparisons/after/Art/geometric.jpg'),
+  },
+  surreal: {
+    before: require('../assets/comparisons/before/lady9.png'),
+    after: require('../assets/comparisons/after/Art/surreal.jpeg'),
+  },
+  'coloured-glass': {
+    before: require('../assets/comparisons/before/lady10.png'),
+    after: require('../assets/comparisons/after/Art/coloured-glass.jpg'),
+  },
+  'paste-up': {
+    before: require('../assets/comparisons/before/lady11.png'),
+    after: require('../assets/comparisons/after/Art/Paste-up.jpg'),
   },
 };
 

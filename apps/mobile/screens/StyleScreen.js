@@ -55,12 +55,17 @@ function StyleScreenContent({
   onOpenMenu,
   restyleMode = false,
   onCancelRestyle,
+  initialActiveCategory = null,
 }) {
   const insets = useSafeAreaInsets();
   const [homeScrollTick, setHomeScrollTick] = useState(0);
   const [categoryScrollTick, setCategoryScrollTick] = useState(0);
-  const [activeCategory, setActiveCategory] = useState(null);
+  const [activeCategory, setActiveCategory] = useState(initialActiveCategory);
   const styleList = Array.isArray(availableStyles) ? availableStyles : [];
+
+  useEffect(() => {
+    setActiveCategory(initialActiveCategory);
+  }, [initialActiveCategory]);
 
   const browsingHome = !restyleMode && activeCategory === null;
   const activeCategoryMeta = BROWSE_CATEGORIES.find((cat) => cat.id === activeCategory);

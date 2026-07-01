@@ -1,7 +1,7 @@
 # FunnyFy App - Current Status
 
 **Last Updated**: June 2026  
-**Version**: 1.0.30 (`apps/mobile/version.json`)  
+**Version**: 1.0.59 (`apps/mobile/version.json`)  
 **Status**: Feature-Complete – Ready for App Store Submission
 
 ---
@@ -18,8 +18,8 @@ FunnyFy is a React Native mobile application that transforms user photos into AI
 - ✅ Cross-platform app (Android & iOS)
 - ✅ **Native splash** (`expo-splash-screen`): solid `#0B0F19` until fonts + auth; no in-app splash component
 - ✅ **Netflix-style style picker**: category rows + horizontal tiles + "See all" grid; dark `#0B0F19` shell
-- ✅ **Discovery tiles** (`MediaTile`): image-only on style picker; **curated before/after crossfade** on 22 styles; row-focus sequencing on home and **See all** category grid
-- ✅ **30 enabled styles** (160 in catalog; placeholders disabled until prompts/thumbnails ready) — see `MD/STYLES.md`
+- ✅ **Discovery tiles** (`MediaTile`): image-only on style picker; **curated before/after crossfade** on 55 styles; row-focus sequencing on home and **See all** category grid
+- ✅ **64 enabled styles** (160 in catalog; placeholders disabled until prompts/thumbnails ready) — see `MD/STYLES.md`
 - ✅ **Two-step upload flow**: UploadScreen (comparison fade + Gallery/Camera) → PhotoReviewScreen (confirm + Generate); OS crop via `expo-image-picker`
 - ✅ **Upload/Review header** (`UploadFlowHeader.js`): back + **style pill** (left) + **usage pill** (right); no Photo tips chip
 - ✅ **Photo tips sheet**: auto-opens on Upload per style; "Do not show again" per style; pictorial placeholders

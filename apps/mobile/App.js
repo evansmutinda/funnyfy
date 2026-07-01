@@ -40,6 +40,7 @@ import UploadScreen from './screens/UploadScreen';
 import PhotoReviewScreen from './screens/PhotoReviewScreen';
 import SubscriptionScreen from './screens/SubscriptionScreen';
 import ResultScreen from './screens/ResultScreen';
+import { getStyleCategory } from './utils/styleCategories';
 import { DARK_BG } from './constants/theme';
 import {
   API_BASE,
@@ -136,6 +137,7 @@ function AppContent({ fontsLoaded }) {
   const [subscriptionLoading, setSubscriptionLoading] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [restyleMode, setRestyleMode] = useState(false);
+  const [styleReturnCategory, setStyleReturnCategory] = useState(null);
   const [userId, setUserId] = useState(null);
   const [authToken, setAuthToken] = useState(null);
   const [authReady, setAuthReady] = useState(false);
@@ -472,7 +474,7 @@ function AppContent({ fontsLoaded }) {
     } catch (err) {
       console.error('Failed to fetch styles from server:', err);
       serverStyleIdsRef.current = null;
-      setAvailableStyles([]);
+      setAvailableStyles(mergeServerStyles([]));
     }
   }, []);
 
@@ -1003,10 +1005,12 @@ function AppContent({ fontsLoaded }) {
           selectedStyle={style}
           availableStyles={availableStyles}
           restyleMode={restyleMode}
+          initialActiveCategory={styleReturnCategory}
           onCancelRestyle={handleCancelRestyle}
           onOpenMenu={() => setMenuOpen(true)}
           onNext={(s) => {
             setStyle(s);
+            setStyleReturnCategory(s?.categoryId || getStyleCategory(s?.id) || null);
             if (restyleMode && original?.imageDataUrl) {
               if (!isOnline) {
                 showToast(

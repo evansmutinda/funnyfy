@@ -1,7 +1,7 @@
 # FunnyFy — Enabled Styles Reference
 
 **Last updated:** June 2026  
-**App version:** `1.0.30` (`apps/mobile/version.json`)  
+**App version:** `1.0.59` (`apps/mobile/version.json`)  
 **Source of truth (prompts + enable flag):** `api/_utils/styles-config.ts` → `LEGACY_STYLES`  
 **Staging API:** `GET https://funnyfy-staging.vercel.app/api/styles`
 
@@ -27,34 +27,70 @@ See also: `MD/ADDING_MORE_STYLES_GUIDE.md`, `To do/COMPARISON_ASSETS.md`.
 
 | Constant | Replicate model | Used for |
 |----------|-----------------|----------|
-| `DEFAULT_MODEL` | `black-forest-labs/flux-kontext-pro` | Most cartoon / art styles |
-| `NANO_BANANA` | `google/nano-banana` | Caricatures, mural, pop art v3, video-game styles |
-| `SEEDREAM_4` | `bytedance/seedream-4` | lowpoly, pop art v2, graffiti, banksy, mosaic, watercolor, carc1 |
+| `DEFAULT_MODEL` | `black-forest-labs/flux-kontext-pro` | Most cartoon / art styles, dc |
+| `NANO_BANANA` | `google/nano-banana` | Caricatures, mural, pop art v3, video-game styles, classic-v2, saturday-v1 |
+| `NANO_BANANA_2` | `google/nano-banana-2` | renoir, impasto, hokusai-v2, hiroshige, sesshu, cyberpunk-v2, disney |
+| `SEEDREAM_4` | `bytedance/seedream-4` | lowpoly, pop art v2, graffiti, banksy, mosaic, watercolor, acrylic, gouache, expressionist, impressionist, baroque, van-gogh, monet, classic-v1, saturday-v2, carc1 |
+| `SEEDREAM_4_5` | `bytedance/seedream-4.5` | cezanne, gauguin, matisse, seurat, ink-wash, hokusai-v1, comic, cute, cyberpunk-v1 |
 
 ---
 
-## Enabled styles (30)
+## Enabled styles (64)
 
 | Id | Label | Category | Model | Comparison pair |
 |----|-------|----------|-------|-----------------|
 | `90s-cartoon` | 90s | cartoons | flux-kontext-pro | ✅ |
 | `chibi` | Chibi | cartoons | flux-kontext-pro | ✅ |
+| `classic-v1` | Classic V1 | cartoons | seedream-4 | ✅ |
+| `classic-v2` | Classic V2 | cartoons | nano-banana | ✅ |
+| `saturday-v1` | Saturday V1 | cartoons | nano-banana | ✅ |
+| `saturday-v2` | Saturday V2 | cartoons | seedream-4 | ✅ |
+| `comic` | Comic | cartoons | seedream-4.5 | ✅ |
+| `cute` | Cute | cartoons | seedream-4.5 | ✅ |
+| `dc` | DC | cartoons | flux-kontext-pro | ✅ |
+| `cyberpunk-v1` | Cyberpunk V1 | cartoons | seedream-4.5 | ✅ |
+| `cyberpunk-v2` | Cyberpunk V2 | cartoons | nano-banana-2 | ✅ |
+| `disney` | Disney | cartoons | nano-banana-2 | ✅ |
 | `neon` | Neon | art | flux-kontext-pro | ✅ |
 | `anime` | Anime | anime-manga | flux-kontext-pro | — |
 | `custom1` | Custom 1 | trending | flux-kontext-pro | — |
 | `custom2` | Custom 2 | trending | flux-kontext-pro | — |
 | `3dclay` | 3D Clay | 3d-characters | flux-kontext-pro | ✅ |
 | `oil-paint` | Oil Paint | paintings | flux-kontext-pro | ✅ |
-| `lowpoly` | lowpoly | art | seedream-4 | ✅ |
+| `lowpoly` | Low Poly | art | seedream-4 | ✅ |
 | `mural` | Mural | art | nano-banana | ✅ |
-| `pop-art-v1` | pop art v1 | art | flux-kontext-pro | ✅ |
-| `pop-art-v2` | pop art v2 | art | seedream-4 | ✅ |
-| `pop-art-v3` | pop art v3 | art | nano-banana | ✅ |
-| `graffiti` | graffiti | art | seedream-4 | ✅ |
-| `banksy` | banksy | art | seedream-4 | ✅ |
-| `mosaic` | mosaic | art | seedream-4 | ✅ |
-| `e-glow` | e-glow | art | flux-kontext-pro | ✅ |
+| `pop-art-v1` | Pop Art V1 | art | flux-kontext-pro | ✅ |
+| `pop-art-v2` | Pop Art V2 | art | seedream-4 | ✅ |
+| `pop-art-v3` | Pop Art V3 | art | nano-banana | ✅ |
+| `graffiti` | Graffiti | art | seedream-4 | ✅ |
+| `banksy` | Banksy | art | seedream-4 | ✅ |
+| `mosaic` | Mosaic | art | seedream-4 | ✅ |
+| `e-glow` | E-Glow | art | flux-kontext-pro | ✅ |
+| `abstract-v1` | Abstract V1 | art | nano-banana | ✅ |
+| `abstract-v2` | Abstract V2 | art | seedream-4 | ✅ |
+| `geometric` | Geometric | art | seedream-4 | ✅ |
+| `surreal` | Surreal | art | nano-banana | ✅ |
+| `coloured-glass` | Coloured Glass | art | seedream-4 | ✅ |
+| `paste-up` | Paste-up | art | seedream-4 | ✅ |
 | `water-color` | Water Color | paintings | flux-kontext-pro | ✅ |
+| `acrylic` | Acrylic | paintings | seedream-4 | ✅ |
+| `gouache` | Gouache | paintings | seedream-4 | ✅ |
+| `expressionist` | Expressionist | paintings | seedream-4 | ✅ |
+| `impressionist` | Impressionist | paintings | seedream-4 | ✅ |
+| `baroque` | Baroque | paintings | seedream-4 | ✅ |
+| `van-gogh` | Van Gogh | paintings | seedream-4 | ✅ |
+| `monet` | Monet | paintings | seedream-4 | ✅ |
+| `renoir` | Renoir | paintings | nano-banana-2 | ✅ |
+| `cezanne` | Cézanne | paintings | seedream-4.5 | ✅ |
+| `gauguin` | Gauguin | paintings | seedream-4.5 | ✅ |
+| `matisse` | Matisse | paintings | seedream-4.5 | ✅ |
+| `seurat` | Seurat | paintings | seedream-4.5 | ✅ |
+| `ink-wash` | Ink-Wash | paintings | seedream-4.5 | ✅ |
+| `impasto` | Impasto | paintings | nano-banana-2 | ✅ |
+| `hokusai-v1` | Hokusai V1 | paintings | seedream-4.5 | ✅ |
+| `hokusai-v2` | Hokusai V2 | paintings | nano-banana-2 | ✅ |
+| `hiroshige` | Hiroshige | paintings | nano-banana-2 | ✅ |
+| `sesshu` | Sesshū | paintings | nano-banana-2 | ✅ |
 | `pixar-like` | Pixar-like | 3d-characters | flux-kontext-pro | ✅ |
 | `funko-pop` | Funko Pop | 3d-characters | flux-kontext-pro | — |
 | `neandc` | Neanderthal | fantasy-mythical | nano-banana | — |
@@ -62,7 +98,7 @@ See also: `MD/ADDING_MORE_STYLES_GUIDE.md`, `To do/COMPARISON_ASSETS.md`.
 | `handd` | Hand-Drawn | caricatures | nano-banana | ✅ |
 | `editorial` | Editorial | caricatures | nano-banana | ✅ |
 | `exaggerated` | Exaggerated | caricatures | nano-banana | ✅ |
-| `watercolor` | watercolor | caricatures | seedream-4 | ✅ |
+| `watercolor` | Watercolor | caricatures | seedream-4 | ✅ |
 | `carc1` | Carc1 | caricatures | seedream-4 | ✅ |
 | `superhero` | Superhero | video-games | nano-banana | — |
 | `villian` | Super Villain | video-games | nano-banana | — |
@@ -95,10 +131,38 @@ Assets live under `apps/mobile/assets/comparisons/`. Folder name on disk is `Art
 | `carc1` | `before/toon.png` | `after/caricature/carc1.jpg` |
 | `90s-cartoon` | `before/toon.png` | `after/cartoons/toon.jpg` |
 | `chibi` | `before/chibi.png` | `after/cartoons/chibi.jpg` |
+| `classic-v1` | `before/lady4.png` | `after/cartoons/classic.jpg` |
+| `classic-v2` | `before/man3.png` | `after/cartoons/classicv2.jpeg` |
+| `saturday-v1` | `before/dude2.png` | `after/cartoons/smv1.jpeg` |
+| `saturday-v2` | `before/dude2.png` | `after/cartoons/smv2.jpg` |
+| `comic` | `before/3dclay.png` | `after/cartoons/comic.jpg` |
+| `cute` | `before/hdd.png` | `after/cartoons/cute.jpg` |
+| `dc` | `before/man3.png` | `after/cartoons/dc.jpg` |
+| `cyberpunk-v1` | `before/lady5.png` | `after/cartoons/cyberpunkv1.jpg` |
+| `cyberpunk-v2` | `before/dude.png` | `after/cartoons/cyberpunkv2.jpeg` |
+| `disney` | `before/lady3.png` | `after/cartoons/disney.jpg` |
 | `3dclay` | `before/3dclay.png` | `after/3d/3dclay.jpg` |
 | `pixar-like` | `before/pxl.png` | `after/3d/pxl.jpg` |
-| `oil-paint` | `before/oilpaint.png` | `after/Paintings/oilpaint.jpg` |
+| `oil-paint` | `before/lady9.png` | `after/Paintings/oilpaint.jpg` |
 | `water-color` | `before/wc.png` | `after/Paintings/wc.jpg` |
+| `acrylic` | `before/lady12.png` | `after/Paintings/Acrylic.jpg` |
+| `gouache` | `before/lady13.png` | `after/Paintings/Gouache.jpg` |
+| `expressionist` | `before/man6.png` | `after/Paintings/Expressionist.jpg` |
+| `impressionist` | `before/man6.png` | `after/Paintings/Impressionist.jpg` |
+| `baroque` | `before/man7.png` | `after/Paintings/Baroque.jpg` |
+| `van-gogh` | `before/lady14.png` | `after/Paintings/van-gogh.jpg` |
+| `monet` | `before/lady4.png` | `after/Paintings/monet.jpg` |
+| `renoir` | `before/lady11.png` | `after/Paintings/Renoir.jpeg` |
+| `cezanne` | `before/man5.png` | `after/Paintings/Cézanne.jpg` |
+| `gauguin` | `before/lady10.png` | `after/Paintings/Gauguin.jpg` |
+| `matisse` | `before/lady8.png` | `after/Paintings/Matisse.jpg` |
+| `seurat` | `before/lady2.png` | `after/Paintings/Seurat.jpg` |
+| `ink-wash` | `before/lady5.png` | `after/Paintings/Ink-Wash.jpg` |
+| `impasto` | `before/dude.png` | `after/Paintings/Impasto.jpeg` |
+| `hokusai-v1` | `before/man.png` | `after/Paintings/Hokusai.jpg` |
+| `hokusai-v2` | `before/dude.png` | `after/Paintings/Hokusai2.jpeg` |
+| `hiroshige` | `before/lady12.png` | `after/Paintings/Hiroshige.jpeg` |
+| `sesshu` | `before/lady5.png` | `after/Paintings/Sesshū.jpeg` |
 | `mural` | `before/lady2.png` | `after/Art/mural.jpeg` |
 | `neon` | `before/lady3.png` | `after/Art/neon.jpg` |
 | `lowpoly` | `before/lady4.png` | `after/Art/lowpoly.jpg` |
@@ -108,7 +172,13 @@ Assets live under `apps/mobile/assets/comparisons/`. Folder name on disk is `Art
 | `graffiti` | `before/dude2.png` | `after/Art/graffiti.jpg` |
 | `banksy` | `before/lady6.png` | `after/Art/banksy.jpg` |
 | `mosaic` | `before/man4.png` | `after/Art/mosaic.jpg` |
-| `e-glow` | `before/lady6.png` | `after/Art/eglow.jpg` |
+| `e-glow` | `before/lady7.png` | `after/Art/eglow.jpg` |
+| `abstract-v1` | `before/lady8.png` | `after/Art/abstractv1.jpeg` |
+| `abstract-v2` | `before/lady8.png` | `after/Art/abstractv2.jpg` |
+| `geometric` | `before/man5.png` | `after/Art/geometric.jpg` |
+| `surreal` | `before/lady9.png` | `after/Art/surreal.jpeg` |
+| `coloured-glass` | `before/lady10.png` | `after/Art/coloured-glass.jpg` |
+| `paste-up` | `before/lady11.png` | `after/Art/Paste-up.jpg` |
 
 **Style picker behavior:** Home category rows and the **See all** grid use `RowFocusProvider` (`hooks/useRowFocus.js`) so one row crossfades at a time. Home rows show up to **5** previews (`ROW_PREVIEW_COUNT`); use **See all** for the full category list.
 

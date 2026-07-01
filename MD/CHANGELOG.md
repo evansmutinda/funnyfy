@@ -8,6 +8,26 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [1.0.59] - 2026-06-30
+
+### Added
+- **Painting styles (20):** acrylic, gouache, expressionist, impressionist, baroque, van-gogh, monet, renoir, cezanne, gauguin, matisse, seurat, ink-wash, impasto, hokusai-v1/v2, hiroshige, sesshu — comparison pairs + `Paintings/` assets
+- **Cartoon styles (10):** classic-v1/v2, saturday-v1/v2, comic, cute, dc, cyberpunk-v1/v2, disney — comparison pairs + `cartoons/` assets
+- **Art styles (6):** abstract-v1/v2, geometric, surreal, coloured-glass, paste-up — comparison pairs + `Art/` assets
+
+### Changed
+- **`mergeServerStyles.js`** — enriches `categoryId` from local catalog on successful API fetch
+- **`App.js`** — falls back to `DEFAULT_ENABLED_STYLES` when `/api/styles` fails (offline)
+- **`StyleScreen.js`** — `initialActiveCategory` prop for deep-linking into a category grid
+- **`constants.js`** — `STYLE_IMAGE_BY_ID` map replaces long `getStyleImage()` if-chain
+- **`styleCatalog.js`** — `CATEGORY_BY_STYLE_ID` includes gouache, expressionist, impressionist
+- **Oil paint** — before image `lady9.png`; comparison asset under `Paintings/oilpaint.jpg`
+
+### Docs
+- `MD/STYLES.md`, `MD/STATUS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `To do/COMPARISON_ASSETS.md` updated (64 enabled, 55 curated pairs)
+
+---
+
 ## [1.0.30] - 2026-06-30
 
 ### Added

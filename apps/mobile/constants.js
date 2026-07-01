@@ -200,6 +200,16 @@ export function getSavedImageFileName() {
 
 export const STYLE_CARD_IMAGE_DEFAULT = require('./assets/toon.jpg');
 export const STYLE_CARD_IMAGE_CHIBI = require('./assets/chibi.jpg');
+export const STYLE_CARD_IMAGE_CLASSIC_V1 = require('./assets/comparisons/after/cartoons/classic.jpg');
+export const STYLE_CARD_IMAGE_CLASSIC_V2 = require('./assets/comparisons/after/cartoons/classicv2.jpeg');
+export const STYLE_CARD_IMAGE_SATURDAY_V1 = require('./assets/comparisons/after/cartoons/smv1.jpeg');
+export const STYLE_CARD_IMAGE_SATURDAY_V2 = require('./assets/comparisons/after/cartoons/smv2.jpg');
+export const STYLE_CARD_IMAGE_COMIC = require('./assets/comparisons/after/cartoons/comic.jpg');
+export const STYLE_CARD_IMAGE_CUTE = require('./assets/comparisons/after/cartoons/cute.jpg');
+export const STYLE_CARD_IMAGE_DC = require('./assets/comparisons/after/cartoons/dc.jpg');
+export const STYLE_CARD_IMAGE_CYBERPUNK_V1 = require('./assets/comparisons/after/cartoons/cyberpunkv1.jpg');
+export const STYLE_CARD_IMAGE_CYBERPUNK_V2 = require('./assets/comparisons/after/cartoons/cyberpunkv2.jpeg');
+export const STYLE_CARD_IMAGE_DISNEY = require('./assets/comparisons/after/cartoons/disney.jpg');
 export const STYLE_CARD_IMAGE_NEON = require('./assets/comparisons/after/Art/neon.jpg');
 export const STYLE_CARD_IMAGE_ANIME = require('./assets/anime.jpg');
 export const STYLE_CARD_IMAGE_CUSTOM1 = require('./assets/custom1.jpg');
@@ -225,7 +235,31 @@ export const STYLE_CARD_IMAGE_GRAFFITI = require('./assets/comparisons/after/Art
 export const STYLE_CARD_IMAGE_BANKSY = require('./assets/comparisons/after/Art/banksy.jpg');
 export const STYLE_CARD_IMAGE_MOSAIC = require('./assets/comparisons/after/Art/mosaic.jpg');
 export const STYLE_CARD_IMAGE_EGLOW = require('./assets/comparisons/after/Art/eglow.jpg');
+export const STYLE_CARD_IMAGE_ABSTRACT_V1 = require('./assets/comparisons/after/Art/abstractv1.jpeg');
+export const STYLE_CARD_IMAGE_ABSTRACT_V2 = require('./assets/comparisons/after/Art/abstractv2.jpg');
+export const STYLE_CARD_IMAGE_GEOMETRIC = require('./assets/comparisons/after/Art/geometric.jpg');
+export const STYLE_CARD_IMAGE_SURREAL = require('./assets/comparisons/after/Art/surreal.jpeg');
+export const STYLE_CARD_IMAGE_COLOURED_GLASS = require('./assets/comparisons/after/Art/coloured-glass.jpg');
+export const STYLE_CARD_IMAGE_PASTE_UP = require('./assets/comparisons/after/Art/Paste-up.jpg');
 export const STYLE_CARD_IMAGE_WC = require('./assets/wc.jpg');
+export const STYLE_CARD_IMAGE_ACRYLIC = require('./assets/comparisons/after/Paintings/Acrylic.jpg');
+export const STYLE_CARD_IMAGE_GOUACHE = require('./assets/comparisons/after/Paintings/Gouache.jpg');
+export const STYLE_CARD_IMAGE_EXPRESSIONIST = require('./assets/comparisons/after/Paintings/Expressionist.jpg');
+export const STYLE_CARD_IMAGE_IMPRESSIONIST = require('./assets/comparisons/after/Paintings/Impressionist.jpg');
+export const STYLE_CARD_IMAGE_BAROQUE = require('./assets/comparisons/after/Paintings/Baroque.jpg');
+export const STYLE_CARD_IMAGE_VAN_GOGH = require('./assets/comparisons/after/Paintings/van-gogh.jpg');
+export const STYLE_CARD_IMAGE_MONET = require('./assets/comparisons/after/Paintings/monet.jpg');
+export const STYLE_CARD_IMAGE_RENOIR = require('./assets/comparisons/after/Paintings/Renoir.jpeg');
+export const STYLE_CARD_IMAGE_CEZANNE = require('./assets/comparisons/after/Paintings/Cézanne.jpg');
+export const STYLE_CARD_IMAGE_GAUGUIN = require('./assets/comparisons/after/Paintings/Gauguin.jpg');
+export const STYLE_CARD_IMAGE_MATISSE = require('./assets/comparisons/after/Paintings/Matisse.jpg');
+export const STYLE_CARD_IMAGE_SEURAT = require('./assets/comparisons/after/Paintings/Seurat.jpg');
+export const STYLE_CARD_IMAGE_INK_WASH = require('./assets/comparisons/after/Paintings/Ink-Wash.jpg');
+export const STYLE_CARD_IMAGE_IMPASTO = require('./assets/comparisons/after/Paintings/Impasto.jpeg');
+export const STYLE_CARD_IMAGE_HOKUSAI_V1 = require('./assets/comparisons/after/Paintings/Hokusai.jpg');
+export const STYLE_CARD_IMAGE_HOKUSAI_V2 = require('./assets/comparisons/after/Paintings/Hokusai2.jpeg');
+export const STYLE_CARD_IMAGE_HIROSHIGE = require('./assets/comparisons/after/Paintings/Hiroshige.jpeg');
+export const STYLE_CARD_IMAGE_SESSHU = require('./assets/comparisons/after/Paintings/Sesshū.jpeg');
 export const STYLE_CARD_IMAGE_PXL = require('./assets/pxl.jpg');
 export const STYLE_CARD_IMAGE_FUNKO = require('./assets/funko.jpg');
 
@@ -242,41 +276,99 @@ export const PAYWALL_MARQUEE_IMAGES = [
   STYLE_CARD_IMAGE_WC,
 ];
 
+/** Primary thumbnail lookup by style id (enabled + common aliases). */
+const STYLE_IMAGE_BY_ID = {
+  '90s-cartoon': STYLE_CARD_IMAGE_DEFAULT,
+  chibi: STYLE_CARD_IMAGE_CHIBI,
+  'classic-v1': STYLE_CARD_IMAGE_CLASSIC_V1,
+  'classic-v2': STYLE_CARD_IMAGE_CLASSIC_V2,
+  'saturday-v1': STYLE_CARD_IMAGE_SATURDAY_V1,
+  'saturday-v2': STYLE_CARD_IMAGE_SATURDAY_V2,
+  comic: STYLE_CARD_IMAGE_COMIC,
+  cute: STYLE_CARD_IMAGE_CUTE,
+  dc: STYLE_CARD_IMAGE_DC,
+  'cyberpunk-v1': STYLE_CARD_IMAGE_CYBERPUNK_V1,
+  'cyberpunk-v2': STYLE_CARD_IMAGE_CYBERPUNK_V2,
+  disney: STYLE_CARD_IMAGE_DISNEY,
+  neon: STYLE_CARD_IMAGE_NEON,
+  anime: STYLE_CARD_IMAGE_ANIME,
+  custom1: STYLE_CARD_IMAGE_CUSTOM1,
+  custom2: STYLE_CARD_IMAGE_CUSTOM2,
+  neandc: STYLE_CARD_IMAGE_NEANDC,
+  neand3d: STYLE_CARD_IMAGE_NEAND3D,
+  handd: STYLE_CARD_IMAGE_HANDD,
+  editorial: STYLE_CARD_IMAGE_EDITORIAL,
+  exaggerated: STYLE_CARD_IMAGE_EXAGGERATED,
+  watercolor: STYLE_CARD_IMAGE_WATERCOLOR_C,
+  carc1: STYLE_CARD_IMAGE_CARC1,
+  superhero: STYLE_CARD_IMAGE_SUPERHERO,
+  villian: STYLE_CARD_IMAGE_VILLIAN,
+  cyborg: STYLE_CARD_IMAGE_CYBORG,
+  '3dclay': STYLE_CARD_IMAGE_3DCLAY,
+  'oil-paint': STYLE_CARD_IMAGE_OILPAINT,
+  lowpoly: STYLE_CARD_IMAGE_LOWPOLY,
+  'low-poly': STYLE_CARD_IMAGE_LOWPOLY,
+  mural: STYLE_CARD_IMAGE_MURAL,
+  graffiti: STYLE_CARD_IMAGE_GRAFFITI,
+  banksy: STYLE_CARD_IMAGE_BANKSY,
+  mosaic: STYLE_CARD_IMAGE_MOSAIC,
+  'e-glow': STYLE_CARD_IMAGE_EGLOW,
+  'abstract-v1': STYLE_CARD_IMAGE_ABSTRACT_V1,
+  'abstract-v2': STYLE_CARD_IMAGE_ABSTRACT_V2,
+  geometric: STYLE_CARD_IMAGE_GEOMETRIC,
+  surreal: STYLE_CARD_IMAGE_SURREAL,
+  'coloured-glass': STYLE_CARD_IMAGE_COLOURED_GLASS,
+  'paste-up': STYLE_CARD_IMAGE_PASTE_UP,
+  'pop-art-v1': STYLE_CARD_IMAGE_POP_ART_V1,
+  'pop-art-v2': STYLE_CARD_IMAGE_POP_ART_V2,
+  'pop-art-v3': STYLE_CARD_IMAGE_POP_ART_V3,
+  acrylic: STYLE_CARD_IMAGE_ACRYLIC,
+  gouache: STYLE_CARD_IMAGE_GOUACHE,
+  expressionist: STYLE_CARD_IMAGE_EXPRESSIONIST,
+  impressionist: STYLE_CARD_IMAGE_IMPRESSIONIST,
+  baroque: STYLE_CARD_IMAGE_BAROQUE,
+  'van-gogh': STYLE_CARD_IMAGE_VAN_GOGH,
+  monet: STYLE_CARD_IMAGE_MONET,
+  renoir: STYLE_CARD_IMAGE_RENOIR,
+  cezanne: STYLE_CARD_IMAGE_CEZANNE,
+  gauguin: STYLE_CARD_IMAGE_GAUGUIN,
+  matisse: STYLE_CARD_IMAGE_MATISSE,
+  seurat: STYLE_CARD_IMAGE_SEURAT,
+  'ink-wash': STYLE_CARD_IMAGE_INK_WASH,
+  impasto: STYLE_CARD_IMAGE_IMPASTO,
+  'hokusai-v1': STYLE_CARD_IMAGE_HOKUSAI_V1,
+  'hokusai-v2': STYLE_CARD_IMAGE_HOKUSAI_V2,
+  hiroshige: STYLE_CARD_IMAGE_HIROSHIGE,
+  sesshu: STYLE_CARD_IMAGE_SESSHU,
+  'water-color': STYLE_CARD_IMAGE_WC,
+  'pixar-like': STYLE_CARD_IMAGE_PXL,
+  'funko-pop': STYLE_CARD_IMAGE_FUNKO,
+};
+
 export function getStyleImage(style) {
   if (!style) return STYLE_CARD_IMAGE_DEFAULT;
-  const label = (style.label || '').toLowerCase();
   const id = (style.id || '').toLowerCase();
+  const label = (style.label || '').toLowerCase();
 
-  if (id === '90s-cartoon' || label.includes('90s')) return STYLE_CARD_IMAGE_DEFAULT;
-  if (id === 'chibi' || label.includes('chibi')) return STYLE_CARD_IMAGE_CHIBI;
-  if (id === 'neon' || label.includes('neon')) return STYLE_CARD_IMAGE_NEON;
-  if (id === 'anime' || label.includes('anime')) return STYLE_CARD_IMAGE_ANIME;
-  if (id === 'custom1' || label.includes('custom1')) return STYLE_CARD_IMAGE_CUSTOM1;
-  if (id === 'custom2' || label.includes('custom2')) return STYLE_CARD_IMAGE_CUSTOM2;
-  if (id === 'neandc' || (label.includes('neanderthal') && !label.includes('3d'))) return STYLE_CARD_IMAGE_NEANDC;
-  if (id === 'neand3d' || label.includes('neanderthal 3d') || label.includes('neand3d')) return STYLE_CARD_IMAGE_NEAND3D;
-  if (id === 'handd' || label.includes('hand-drawn') || label.includes('handd')) return STYLE_CARD_IMAGE_HANDD;
-  if (id === 'editorial' || label.includes('editorial')) return STYLE_CARD_IMAGE_EDITORIAL;
-  if (id === 'exaggerated' || label.includes('exaggerated')) return STYLE_CARD_IMAGE_EXAGGERATED;
-  if (id === 'watercolor' || label.includes('watercolor')) return STYLE_CARD_IMAGE_WATERCOLOR_C;
-  if (id === 'carc1' || label.includes('carc1')) return STYLE_CARD_IMAGE_CARC1;
-  if (id === 'superhero' || label.includes('superhero')) return STYLE_CARD_IMAGE_SUPERHERO;
-  if (id === 'villian' || label.includes('villain') || label.includes('villian')) return STYLE_CARD_IMAGE_VILLIAN;
-  if (id === 'cyborg' || label.includes('cyborg')) return STYLE_CARD_IMAGE_CYBORG;
-  if (id === '3dclay' || label.includes('3dclay') || label.includes('3d clay')) return STYLE_CARD_IMAGE_3DCLAY;
-  if (id === 'oil-paint' || label.includes('oil paint') || label.includes('oilpaint')) return STYLE_CARD_IMAGE_OILPAINT;
-  if (id === 'lowpoly' || id === 'low-poly' || label.includes('low-poly') || label.includes('lowpoly')) return STYLE_CARD_IMAGE_LOWPOLY;
-  if (id === 'mural' || label.includes('mural')) return STYLE_CARD_IMAGE_MURAL;
-  if (id === 'graffiti' || label.includes('graffiti')) return STYLE_CARD_IMAGE_GRAFFITI;
-  if (id === 'banksy' || label.includes('banksy')) return STYLE_CARD_IMAGE_BANKSY;
-  if (id === 'mosaic' || label.includes('mosaic')) return STYLE_CARD_IMAGE_MOSAIC;
-  if (id === 'e-glow' || label.includes('e-glow') || label.includes('eglow') || label.includes('electric glow')) return STYLE_CARD_IMAGE_EGLOW;
-  if (id === 'pop-art-v1' || label.includes('pop art v1')) return STYLE_CARD_IMAGE_POP_ART_V1;
-  if (id === 'pop-art-v2' || label.includes('pop art v2')) return STYLE_CARD_IMAGE_POP_ART_V2;
-  if (id === 'pop-art-v3' || label.includes('pop art v3')) return STYLE_CARD_IMAGE_POP_ART_V3;
-  if (id === 'water-color' || label.includes('water color') || label.includes('watercolor')) return STYLE_CARD_IMAGE_WC;
-  if (id === 'pixar-like' || label.includes('pixar-like') || label.includes('pixar')) return STYLE_CARD_IMAGE_PXL;
-  if (id === 'funko-pop' || label.includes('funko pop') || label.includes('funko')) return STYLE_CARD_IMAGE_FUNKO;
+  if (STYLE_IMAGE_BY_ID[id]) return STYLE_IMAGE_BY_ID[id];
+
+  // Label fallbacks for catalog placeholders and renamed ids
+  if (label.includes('90s')) return STYLE_CARD_IMAGE_DEFAULT;
+  if (label.includes('neanderthal 3d') || label.includes('neand3d')) return STYLE_CARD_IMAGE_NEAND3D;
+  if (label.includes('neanderthal')) return STYLE_CARD_IMAGE_NEANDC;
+  if (label.includes('hand-drawn') || label.includes('handd')) return STYLE_CARD_IMAGE_HANDD;
+  if (label.includes('villain') || label.includes('villian')) return STYLE_CARD_IMAGE_VILLIAN;
+  if (label.includes('3d clay') || label.includes('3dclay')) return STYLE_CARD_IMAGE_3DCLAY;
+  if (label.includes('oil paint') || label.includes('oilpaint')) return STYLE_CARD_IMAGE_OILPAINT;
+  if (label.includes('low-poly') || label.includes('lowpoly')) return STYLE_CARD_IMAGE_LOWPOLY;
+  if (label.includes('e-glow') || label.includes('eglow') || label.includes('electric glow')) return STYLE_CARD_IMAGE_EGLOW;
+  if (label.includes('colored glass') || label.includes('coloured glass')) return STYLE_CARD_IMAGE_COLOURED_GLASS;
+  if (label.includes('ink wash') || label.includes('ink-wash')) return STYLE_CARD_IMAGE_INK_WASH;
+  if (label.includes('van gogh') || label.includes('vangogh')) return STYLE_CARD_IMAGE_VAN_GOGH;
+  if (label.includes('cézanne')) return STYLE_CARD_IMAGE_CEZANNE;
+  if (label.includes('sesshū')) return STYLE_CARD_IMAGE_SESSHU;
+  if (label.includes('pixar')) return STYLE_CARD_IMAGE_PXL;
+  if (label.includes('funko')) return STYLE_CARD_IMAGE_FUNKO;
 
   const categoryId = (style.categoryId || '').toLowerCase();
   if (categoryId === 'caricatures') return STYLE_CARD_IMAGE_EDITORIAL;
