@@ -13,6 +13,7 @@ import { TILE_FADE_MS, TILE_HOLD_MS } from '../components/ComparisonFade';
 const ELIGIBLE_RATIO = 0.35;
 const PRIMARY_EXCLUSIVE_RATIO = 0.52;
 const SCROLL_SETTLE_MS = 450;
+const SCROLL_MEASURE_DEBOUNCE_MS = 120;
 
 /** One crossfade cycle: hold → fade → hold → fade */
 const ROW_SEQUENCE_MS = (TILE_HOLD_MS + TILE_FADE_MS) * 2;
@@ -55,7 +56,7 @@ export function RowFocusProvider({ children, scrollTick }) {
   const [activeRowId, setActiveRowId] = useState(null);
   const sequenceIndexRef = useRef(0);
   const sequenceTimerRef = useRef(null);
-  const sequenceRowIdsRef = useRef([]);
+  const measuringRef = useRef(false);
 
   const clearSequenceTimer = useCallback(() => {
     if (sequenceTimerRef.current != null) {
@@ -64,19 +65,22 @@ export function RowFocusProvider({ children, scrollTick }) {
     }
   }, []);
 
+  const setActiveRowIfChanged = useCallback((nextRowId) => {
+    setActiveRowId((prev) => (prev === nextRowId ? prev : nextRowId));
+  }, []);
+
   const startSequence = useCallback((rowIds) => {
     clearSequenceTimer();
     if (rowIds.length < 2) return;
 
-    sequenceRowIdsRef.current = rowIds;
     sequenceIndexRef.current = 0;
-    setActiveRowId(rowIds[0]);
+    setActiveRowIfChanged(rowIds[0]);
 
     sequenceTimerRef.current = setInterval(() => {
       sequenceIndexRef.current = (sequenceIndexRef.current + 1) % rowIds.length;
-      setActiveRowId(rowIds[sequenceIndexRef.current]);
+      setActiveRowIfChanged(rowIds[sequenceIndexRef.current]);
     }, ROW_SEQUENCE_MS);
-  }, [clearSequenceTimer]);
+  }, [clearSequenceTimer, setActiveRowIfChanged]);
 
   const registerRow = useCallback((rowId, ref, rowIndex) => {
     registryRef.current.set(rowId, { ref, rowIndex });
@@ -84,9 +88,13 @@ export function RowFocusProvider({ children, scrollTick }) {
   }, []);
 
   const measureRows = useCallback((enableSequence) => {
+    if (measuringRef.current) return;
+    measuringRef.current = true;
+
     const entries = Array.from(registryRef.current.entries());
     if (entries.length === 0) {
-      setActiveRowId(null);
+      measuringRef.current = false;
+      setActiveRowIfChanged(null);
       clearSequenceTimer();
       return;
     }
@@ -96,12 +104,14 @@ export function RowFocusProvider({ children, scrollTick }) {
     let pending = entries.length;
 
     const finish = () => {
+      measuringRef.current = false;
+
       const eligible = measurements
         .filter((m) => m.ratio >= ELIGIBLE_RATIO)
         .sort(sortByScreenPosition);
 
       if (eligible.length === 0) {
-        setActiveRowId(null);
+        setActiveRowIfChanged(null);
         clearSequenceTimer();
         return;
       }
@@ -112,19 +122,23 @@ export function RowFocusProvider({ children, scrollTick }) {
 
       if (dominant && !enableSequence) {
         clearSequenceTimer();
-        setActiveRowId(dominant.rowId);
+        setActiveRowIfChanged(dominant.rowId);
         return;
       }
 
       if (enableSequence && eligible.length >= 2) {
-        const orderedIds = eligible.map((m) => m.rowId);
-        startSequence(orderedIds);
+        const topTwo = [...eligible]
+          .sort((a, b) => b.ratio - a.ratio)
+          .slice(0, 2)
+          .sort(sortByScreenPosition)
+          .map((m) => m.rowId);
+        startSequence(topTwo);
         return;
       }
 
       const primary = pickPrimaryRow(measurements, winH);
       clearSequenceTimer();
-      setActiveRowId(primary?.rowId ?? eligible[0].rowId);
+      setActiveRowIfChanged(primary?.rowId ?? eligible[0].rowId);
     };
 
     entries.forEach(([rowId, { ref, rowIndex }]) => {
@@ -147,28 +161,29 @@ export function RowFocusProvider({ children, scrollTick }) {
         if (pending === 0) finish();
       });
     });
-  }, [clearSequenceTimer, startSequence]);
+  }, [clearSequenceTimer, setActiveRowIfChanged, startSequence]);
 
   useEffect(() => {
-    clearSequenceTimer();
-    measureRows(false);
-  }, [scrollTick, measureRows, clearSequenceTimer]);
+    const scrollMeasureTimer = setTimeout(() => {
+      measureRows(false);
+    }, SCROLL_MEASURE_DEBOUNCE_MS);
 
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      measureRows(true);
-    }, SCROLL_SETTLE_MS);
-
-    return () => clearTimeout(timeoutId);
+    return () => clearTimeout(scrollMeasureTimer);
   }, [scrollTick, measureRows]);
 
   useEffect(() => {
-    const soon = setTimeout(() => measureRows(false), 80);
-    const afterEnter = setTimeout(() => measureRows(false), 420);
+    const settleTimer = setTimeout(() => {
+      measureRows(true);
+    }, SCROLL_SETTLE_MS);
+
+    return () => clearTimeout(settleTimer);
+  }, [scrollTick, measureRows]);
+
+  useEffect(() => {
+    const mountTimer = setTimeout(() => measureRows(false), 100);
     return () => {
       clearSequenceTimer();
-      clearTimeout(soon);
-      clearTimeout(afterEnter);
+      clearTimeout(mountTimer);
     };
   }, [measureRows, clearSequenceTimer]);
 
@@ -207,10 +222,9 @@ export function useCategoryRowFocus(rowId, rowIndex) {
     if (layoutMeasureTimerRef.current != null) {
       clearTimeout(layoutMeasureTimerRef.current);
     }
-    // Entrance animations fire many layout events — debounce to avoid row-focus churn.
     layoutMeasureTimerRef.current = setTimeout(() => {
       ctx.measureRows(false);
-    }, 150);
+    }, 200);
   }, [ctx]);
 
   return { rowRef, isRowActive, onRowLayout };

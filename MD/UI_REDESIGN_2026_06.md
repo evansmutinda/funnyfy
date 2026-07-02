@@ -277,7 +277,7 @@ apps/mobile/utils/funnyfyAlbum.js
 
 ## 14. Pending / content TODOs
 
-- [x] Eight comparison pairs — `CURATED_PAIRS` in `data/comparisonPairs.js`; assets under `comparisons/after/<category>/` (see `To do/COMPARISON_ASSETS.md`)
+- [x] Eight comparison pairs — `CURATED_PAIR_PATHS` in `data/comparisonPairs.js`; assets under `assets/comparisons/source/` + bundled `tiles/` / `hero/` (see `To do/COMPARISON_ASSETS.md`)
 - [ ] Remaining enabled styles — `npm run generate-comparisons` + register pairs
 - [ ] Photo tips real photos in `assets/tips/`
 - [ ] Branded splash PNG — `To do/SPLASH_ASSET.md`

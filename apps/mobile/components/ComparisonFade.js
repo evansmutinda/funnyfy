@@ -20,38 +20,36 @@ const FADE_MS = TILE_FADE_MS;
 /** Enough to demo the effect without endless motion on tiles. */
 export const DEFAULT_COMPARISON_CYCLES = 3;
 
-/**
- * Crossfade between original (before) and styled (after).
- * Resting state is the styled result (after layer opacity = 1).
- */
-export default function ComparisonFade({
+function ComparisonFadeStatic({ afterSource, style, imageStyle }) {
+  return (
+    <View style={[styles.root, style]}>
+      <Image
+        source={afterSource}
+        style={[StyleSheet.absoluteFill, styles.image, imageStyle]}
+        resizeMode="cover"
+      />
+    </View>
+  );
+}
+
+function ComparisonFadeAnimated({
   beforeSource,
   afterSource,
   style,
   imageStyle,
-  paused = false,
   holdMs = HOLD_MS,
   fadeMs = FADE_MS,
   maxCycles,
 }) {
   const opacity = useSharedValue(1);
-  // Lazy-load the before image only while animating to save decoders on idle tiles.
-  const [showBefore, setShowBefore] = useState(!paused);
+  const [showBefore, setShowBefore] = useState(true);
 
   useEffect(() => {
     cancelAnimation(opacity);
-
-    if (paused) {
-      opacity.value = 1;
-      const timeoutId = setTimeout(() => setShowBefore(false), 50);
-      return () => clearTimeout(timeoutId);
-    }
-
     setShowBefore(true);
     opacity.value = 1;
     const ease = Easing.inOut(Easing.cubic);
 
-    // withDelay for holds — withTiming to the same value does not wait in Reanimated 3.
     const cycle = withSequence(
       withDelay(holdMs, withTiming(0, { duration: fadeMs, easing: ease })),
       withDelay(holdMs, withTiming(1, { duration: fadeMs, easing: ease })),
@@ -60,7 +58,7 @@ export default function ComparisonFade({
     const repeats = maxCycles == null || maxCycles < 0 ? -1 : maxCycles;
     opacity.value = withRepeat(cycle, repeats, false);
     return undefined;
-  }, [paused, holdMs, fadeMs, maxCycles, beforeSource, afterSource, opacity]);
+  }, [holdMs, fadeMs, maxCycles, beforeSource, afterSource, opacity]);
 
   const animatedAfterStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
 
@@ -81,6 +79,43 @@ export default function ComparisonFade({
         />
       </Animated.View>
     </View>
+  );
+}
+
+/**
+ * Crossfade between original (before) and styled (after).
+ * Idle tiles use a plain image — no Reanimated work on the picker grid.
+ */
+export default function ComparisonFade({
+  beforeSource,
+  afterSource,
+  style,
+  imageStyle,
+  paused = false,
+  holdMs = HOLD_MS,
+  fadeMs = FADE_MS,
+  maxCycles,
+}) {
+  if (paused) {
+    return (
+      <ComparisonFadeStatic
+        afterSource={afterSource}
+        style={style}
+        imageStyle={imageStyle}
+      />
+    );
+  }
+
+  return (
+    <ComparisonFadeAnimated
+      beforeSource={beforeSource}
+      afterSource={afterSource}
+      style={style}
+      imageStyle={imageStyle}
+      holdMs={holdMs}
+      fadeMs={fadeMs}
+      maxCycles={maxCycles}
+    />
   );
 }
 

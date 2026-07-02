@@ -98,6 +98,7 @@ const styles = StyleSheet.create({
 
   
   discoveryImageWrapper: {
+    width: '100%',
     aspectRatio: 0.72,
     borderRadius: 24,
     shadowOffset: { width: 0, height: 0 },

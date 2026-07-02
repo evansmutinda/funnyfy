@@ -7,6 +7,8 @@
     "generate-secrets": "node scripts/generate-secrets.js",
     "verify-env": "node scripts/verify-env.js",
     "generate-comparisons": "node scripts/generate-comparison-set.js",
+    "build-comparison-assets": "node scripts/build-comparison-assets.js",
+    "generate-prompts-md": "node scripts/generate-prompts-md.js",
     "typecheck": "npx tsc --noEmit"
   },
   "dependencies": {
@@ -19,5 +21,7 @@
     "typescript": "^5.3.3",
     "zod": "^3.22.4"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "sharp": "^0.35.3"
+  }
 }

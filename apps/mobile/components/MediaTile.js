@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Image, Platform, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import ComparisonFade, {
@@ -21,7 +21,7 @@ const CAPTION_MAX_LINES = {
  * Shared image tile — style picker, gallery grid, upload chip.
  * variant: 'grid' | 'discovery' | 'discoveryWide' | 'discoveryDense' | 'chip' | 'hero'
  */
-export default function MediaTile({
+function MediaTile({
   imageSource,
   comparisonPair = null,
   label,
@@ -36,10 +36,11 @@ export default function MediaTile({
   const isWide = variant === 'discoveryWide';
   const isDense = variant === 'discoveryDense';
   const labelBelowImage = isDiscovery;
-  const showComparison = Boolean(comparisonPair?.before && comparisonPair?.after);
+  const resolvedPair =
+    comparisonPair?.before && comparisonPair?.after ? comparisonPair : null;
+  const showComparison = Boolean(resolvedPair && comparisonActive);
   const appForeground = useAppForeground();
-  const comparisonPaused =
-    !showComparison || !comparisonActive || !appForeground;
+  const comparisonPaused = !showComparison || !appForeground;
 
   const imageWrapperStyle = isDiscovery
     ? [
@@ -82,8 +83,8 @@ export default function MediaTile({
       <View style={imageWrapperStyle}>
         {showComparison ? (
           <ComparisonFade
-            beforeSource={comparisonPair.before}
-            afterSource={comparisonPair.after}
+            beforeSource={resolvedPair.before}
+            afterSource={resolvedPair.after}
             style={StyleSheet.absoluteFillObject}
             paused={comparisonPaused}
             holdMs={TILE_HOLD_MS}
@@ -160,3 +161,5 @@ export default function MediaTile({
     </View>
   );
 }
+
+export default memo(MediaTile);

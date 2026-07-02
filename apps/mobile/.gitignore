@@ -1,6 +1,7 @@
 # Expo
 .expo/
 .expo-shared/
+.expo-export-test/
 dist/
 web-build/
 

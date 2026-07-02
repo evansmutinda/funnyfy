@@ -1,0 +1,38 @@
+---
+description: Workflow when the user prompts a new FunnyFy style with comparison assets
+globs:
+  - api/_utils/styles-config.ts
+  - apps/mobile/data/comparisonPairs.js
+  - apps/mobile/constants.js
+  - apps/mobile/assets/comparisons/source/**
+---
+
+# New style prompts
+
+When the user asks to add a new style and says they placed before/after files:
+
+## User provides
+
+- Style name, id (or accept generated slug), category, model, prompt
+- Original files in `apps/mobile/assets/comparisons/source/before/` and `.../source/after/<categoryFolder>/`
+- Do **not** ask them to run `build-comparison-assets` — the agent runs it
+
+## Agent must
+
+1. Verify source files exist at the paths they named
+2. Add `LEGACY_STYLES` entry in `api/_utils/styles-config.ts` (`enabled: true`)
+3. Deploy staging API
+4. Add `CURATED_PAIR_PATHS` in `comparisonPairs.js` (paths relative to `source/`, e.g. `before/man.png`, `after/caricature/editorial.jpeg`)
+5. Map thumbnail in `constants.js` → `STYLE_IMAGE_BY_ID` (tiles path after build)
+6. Update `styleCatalog.js` offline fallback if needed
+7. Run `npm run build-comparison-assets` from repo root
+8. Bump `apps/mobile/version.json` (--patch)
+9. Update `MD/STYLES.md` enabled table (do not add semver to doc headers — version lives in `version.json`)
+10. Run `node scripts/generate-prompts-md.js` (updates `MD/PROMPTS.md`)
+
+## Asset rules
+
+- **Originals** live only in `apps/mobile/assets/comparisons/source/` — never `require()` them in app code
+- **Picker** uses `getTileComparisonPair()` → `assets/comparisons/tiles/`
+- **Upload** uses `getComparisonPair()` → `assets/comparisons/hero/`
+- After `build-comparison-assets`, `comparisonPairAssets.generated.js` is auto-regenerated — do not hand-edit

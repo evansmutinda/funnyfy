@@ -1,5 +1,5 @@
 // Expo app configuration
-// Version: apps/mobile/version.json (bump via scripts/bump-version.js or build scripts)
+// Version: apps/mobile/version.json (bump via apps/mobile/scripts/bump-version.js or build scripts)
 // Note: EXPO_PUBLIC_* environment variables are automatically available in the app
 // They are loaded from:
 // 1. .env file in this directory (for local development)
@@ -24,7 +24,10 @@ export default {
       backgroundColor: DARK_BG,
     },
     updates: { fallbackToCacheTimeout: 0 },
-    assetBundlePatterns: ['**/*'],
+    assetBundlePatterns: [
+      'assets/**/*',
+      '!assets/comparisons/source/**',
+    ],
     ios: {
       supportsTablet: true,
       buildNumber: String(versionInfo.iosBuildNumber),

@@ -35,3 +35,5 @@ This updates `version.json` (semver + Android `versionCode` + iOS `buildNumber`)
 - **APK builds** (`build-apk-local.ps1`): `--build` only (already wired; use `-NoVersionBump` to skip)
 
 Do not commit version files unless the user asks to commit.
+
+Do not update hardcoded semver in `MD/*.md` or `README.md` — those files should reference `apps/mobile/version.json` only.

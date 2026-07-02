@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   BackHandler,
   FlatList,
@@ -13,7 +13,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MediaTile from '../components/MediaTile';
 import PressScale from '../components/PressScale';
 import { BOTTOM_INSET_MIN, getStyleImage } from '../constants';
-import { getComparisonPair, hasCuratedComparisonPair } from '../data/comparisonPairs';
 import {
   STYLE_CATEGORIES,
   getStyleCategory,
@@ -21,18 +20,14 @@ import {
 import { RowFocusProvider, useCategoryRowFocus } from '../hooks/useRowFocus';
 import styles from '../styles';
 
-const HORIZONTAL_VIEWABILITY = {
-  itemVisiblePercentThreshold: 50,
-  minimumViewTime: 0,
-};
-
 function resolveStyleCategory(style) {
   return style?.categoryId || getStyleCategory(style?.id);
 }
 
 const ROW_PREVIEW_COUNT = 5;
-const ROW_ENTRANCE_STAGGER = 60;
+const ROW_ENTRANCE_STAGGER = 40;
 const GRID_COLUMNS = 2;
+const MAX_ENTRANCE_ROWS = 4;
 
 const BROWSE_CATEGORIES = STYLE_CATEGORIES.filter((cat) => cat.id !== 'all');
 
@@ -181,7 +176,7 @@ function StyleScreenContent({
             ]}
             showsVerticalScrollIndicator={false}
             onScroll={onHomeScroll}
-            scrollEventThrottle={100}
+            scrollEventThrottle={200}
           >
             {categoryRows.length === 0 ? (
               <View style={styles.styleEmptyState}>
@@ -215,7 +210,7 @@ function StyleScreenContent({
             ]}
             showsVerticalScrollIndicator={false}
             onScroll={onCategoryScroll}
-            scrollEventThrottle={100}
+            scrollEventThrottle={200}
           >
             {categoryStyles.length === 0 ? (
               <View style={styles.styleEmptyState}>
@@ -245,6 +240,28 @@ function StyleScreenContent({
   );
 }
 
+function StylePickerTile({
+  item,
+  selectedStyle,
+  onSelect,
+}) {
+  return (
+    <PressScale
+      onPress={() => onSelect(item)}
+      style={styles.styleRowCard}
+    >
+      <MediaTile
+        imageSource={getStyleImage(item)}
+        isSelected={selectedStyle?.id === item.id}
+        variant="grid"
+        comparisonActive={false}
+      />
+    </PressScale>
+  );
+}
+
+const StylePickerTileMemo = memo(StylePickerTile);
+
 function DiscoveryGridRow({
   rowId,
   rowIndex,
@@ -252,19 +269,18 @@ function DiscoveryGridRow({
   selectedStyle,
   onSelect,
 }) {
-  const { rowRef, isRowActive, onRowLayout } = useCategoryRowFocus(rowId, rowIndex);
+  const { rowRef, onRowLayout } = useCategoryRowFocus(rowId, rowIndex);
 
   return (
     <View ref={rowRef} onLayout={onRowLayout} style={styles.discoveryGridRow}>
       {styleList.map((item) => (
         <View key={item.id} style={styles.discoveryCard}>
-          <PressScale onPress={() => onSelect(item)}>
+          <PressScale onPress={() => onSelect(item)} style={styles.styleCardOuter}>
             <MediaTile
               imageSource={getStyleImage(item)}
-              comparisonPair={hasCuratedComparisonPair(item) ? getComparisonPair(item) : null}
               isSelected={selectedStyle?.id === item.id}
-              variant="discovery"
-              comparisonActive={isRowActive && hasCuratedComparisonPair(item)}
+              variant="grid"
+              comparisonActive={false}
             />
           </PressScale>
         </View>
@@ -284,33 +300,16 @@ function CategoryRow({
   const hasOverflow = styleList.length > ROW_PREVIEW_COUNT;
   const visibleStyles = hasOverflow ? styleList.slice(0, ROW_PREVIEW_COUNT) : styleList;
   const showSeeAll = styleList.length > 0;
-  const { rowRef, isRowActive, onRowLayout } = useCategoryRowFocus(category.id, rowIndex);
-  const [viewableIds, setViewableIds] = useState(null);
-
-  const onViewableItemsChangedRef = useRef(({ viewableItems }) => {
-    setViewableIds(new Set(viewableItems.map((token) => token.item.id)));
-  });
-
-  const viewabilityConfigCallbackPairs = useRef([
-    {
-      viewabilityConfig: HORIZONTAL_VIEWABILITY,
-      onViewableItemsChanged: (info) => onViewableItemsChangedRef.current(info),
-    },
-  ]).current;
-
-  const isTileActive = (styleId, index) => {
-    if (!isRowActive) return false;
-    if (!hasCuratedComparisonPair({ id: styleId })) return false;
-    if (!viewableIds) return index < 3;
-    return viewableIds.has(styleId);
-  };
-
-  const listExtraData = `${isRowActive}:${viewableIds ? [...viewableIds].join(',') : 'pending'}`;
+  const { rowRef, onRowLayout } = useCategoryRowFocus(category.id, rowIndex);
 
   return (
     <View ref={rowRef} onLayout={onRowLayout}>
       <Animated.View
-        entering={FadeInDown.delay(rowIndex * ROW_ENTRANCE_STAGGER).duration(320)}
+        entering={
+          rowIndex < MAX_ENTRANCE_ROWS
+            ? FadeInDown.delay(rowIndex * ROW_ENTRANCE_STAGGER).duration(260)
+            : undefined
+        }
         style={styles.styleRowSection}
       >
         <View style={styles.styleRowHeader}>
@@ -329,23 +328,18 @@ function CategoryRow({
           data={visibleStyles}
           horizontal
           keyExtractor={(item) => item.id}
-          extraData={listExtraData}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.styleRowList}
-          viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs}
-          renderItem={({ item, index }) => (
-            <PressScale
-              onPress={() => onSelect(item)}
-              style={styles.styleRowCard}
-            >
-              <MediaTile
-                imageSource={getStyleImage(item)}
-                comparisonPair={hasCuratedComparisonPair(item) ? getComparisonPair(item) : null}
-                isSelected={selectedStyle?.id === item.id}
-                variant="discovery"
-                comparisonActive={isTileActive(item.id, index)}
-              />
-            </PressScale>
+          initialNumToRender={3}
+          maxToRenderPerBatch={2}
+          windowSize={3}
+          removeClippedSubviews={false}
+          renderItem={({ item }) => (
+            <StylePickerTileMemo
+              item={item}
+              selectedStyle={selectedStyle}
+              onSelect={onSelect}
+            />
           )}
           ListFooterComponent={
             hasOverflow ? (

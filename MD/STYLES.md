@@ -1,7 +1,7 @@
 # FunnyFy — Enabled Styles Reference
 
-**Last updated:** June 2026  
-**App version:** `1.0.59` (`apps/mobile/version.json`)  
+**Last updated:** July 2026  
+**App version:** see [`apps/mobile/version.json`](../apps/mobile/version.json) (single source of truth — do not hardcode semver here)  
 **Source of truth (prompts + enable flag):** `api/_utils/styles-config.ts` → `LEGACY_STYLES`  
 **Staging API:** `GET https://funnyfy-staging.vercel.app/api/styles`
 
@@ -11,15 +11,34 @@ The app shows **only styles returned by `/api/styles`** on a successful fetch. P
 
 ## Quick workflow — add or update a style
 
-1. **Server** — Add or edit an entry in `LEGACY_STYLES` in `api/_utils/styles-config.ts` (`enabled: true`, `prompt`, `model`, `categoryId`).
-2. **Deploy staging** — `npx vercel deploy --prod --yes` from repo root (uses `.vercelignore` to exclude mobile assets from the API bundle).
-3. **Mobile thumbnail** — Map `id` → image in `getStyleImage()` in `apps/mobile/constants.js` (often the comparison `after` image).
-4. **Comparison pair** (optional) — Add `before` / `after` in `apps/mobile/data/comparisonPairs.js` → `CURATED_PAIRS`.
-5. **Offline fallback** — Add to `DEFAULT_ENABLED_STYLES` and `CATEGORY_BY_STYLE_ID` in `apps/mobile/data/styleCatalog.js`.
-6. **Bump version** — `apps/mobile/version.json`.
-7. **Reload app** — Shake device → Reload, or `npx expo start --clear`.
+### You (before prompting)
 
-See also: `MD/ADDING_MORE_STYLES_GUIDE.md`, `To do/COMPARISON_ASSETS.md`.
+1. Drop **full-size** before + after files in `apps/mobile/assets/comparisons/source/` (see folder layout below).
+2. Prompt the new style (name, category, model, prompt, and which before/after files you used).
+
+### Agent (when you prompt)
+
+1. **Server** — Add entry in `LEGACY_STYLES` (`api/_utils/styles-config.ts`): `enabled: true`, `prompt`, `model`, `categoryId`.
+2. **Deploy staging** — `npx vercel deploy --prod --yes` from repo root.
+3. **Mobile** — Register `CURATED_PAIR_PATHS` in `comparisonPairs.js` (paths relative to `assets/comparisons/source/`).
+4. **Thumbnail** — Map style id → tile `after` image in `constants.js` → `getStyleImage()`.
+5. **Offline fallback** — `DEFAULT_ENABLED_STYLES` + `CATEGORY_BY_STYLE_ID` in `styleCatalog.js`.
+6. **Build assets** — `npm run build-comparison-assets` (generates `tiles/` + `hero/` from your originals).
+7. **Bump version** — `apps/mobile/version.json`.
+8. **Update this doc** — add row to the enabled-styles table.
+
+You do **not** need to run the conversion script or edit generated files — only place originals in `assets/comparisons/source/`.
+
+**Source folders (originals, not bundled):**
+
+```
+apps/mobile/assets/comparisons/source/before/<photo>.png
+apps/mobile/assets/comparisons/source/after/<categoryFolder>/<styled>.jpg
+```
+
+Category folders: `caricature`, `cartoons`, `3d`, `Paintings`, `Art` (capital A for Art/Paintings).
+
+See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets/comparisons/source/README.md`, `To do/COMPARISON_ASSETS.md`.
 
 ---
 
@@ -35,7 +54,7 @@ See also: `MD/ADDING_MORE_STYLES_GUIDE.md`, `To do/COMPARISON_ASSETS.md`.
 
 ---
 
-## Enabled styles (64)
+## Enabled styles (69)
 
 | Id | Label | Category | Model | Comparison pair |
 |----|-------|----------|-------|-----------------|
@@ -46,11 +65,16 @@ See also: `MD/ADDING_MORE_STYLES_GUIDE.md`, `To do/COMPARISON_ASSETS.md`.
 | `saturday-v1` | Saturday V1 | cartoons | nano-banana | ✅ |
 | `saturday-v2` | Saturday V2 | cartoons | seedream-4 | ✅ |
 | `comic` | Comic | cartoons | seedream-4.5 | ✅ |
+| `comic-v1` | Comic V1 | cartoons | flux-kontext-pro | ✅ |
+| `comic-v2` | Comic V2 | cartoons | seedream-4.5 | ✅ |
 | `cute` | Cute | cartoons | seedream-4.5 | ✅ |
 | `dc` | DC | cartoons | flux-kontext-pro | ✅ |
 | `cyberpunk-v1` | Cyberpunk V1 | cartoons | seedream-4.5 | ✅ |
 | `cyberpunk-v2` | Cyberpunk V2 | cartoons | nano-banana-2 | ✅ |
 | `disney` | Disney | cartoons | nano-banana-2 | ✅ |
+| `pixel` | Pixel | cartoons | seedream-4.5 | ✅ |
+| `3d-render-v1` | 3D Render V1 | cartoons | flux-kontext-pro | ✅ |
+| `3d-render-v2` | 3D Render V2 | cartoons | seedream-4.5 | ✅ |
 | `neon` | Neon | art | flux-kontext-pro | ✅ |
 | `anime` | Anime | anime-manga | flux-kontext-pro | — |
 | `custom1` | Custom 1 | trending | flux-kontext-pro | — |
@@ -112,15 +136,17 @@ See also: `MD/ADDING_MORE_STYLES_GUIDE.md`, `To do/COMPARISON_ASSETS.md`.
 
 | Id | Label | Category | Blocker |
 |----|-------|----------|---------|
-| `coloured_pencil` | coloured_pencil | caricatures | Missing `assets/comparisons/after/caricature/colouredp.jpg` (or `.jpeg`); set `enabled: true` after asset + mobile wiring |
+| `coloured_pencil` | coloured_pencil | caricatures | Missing `source/after/caricature/colouredp.jpg`; set `enabled: true` after asset + mobile wiring |
 
 160 catalog placeholders remain `enabled: false` until prompts and art are ready.
 
 ---
 
-## Comparison pairs (`CURATED_PAIRS`)
+## Comparison pairs (`CURATED_PAIR_PATHS`)
 
-Assets live under `apps/mobile/assets/comparisons/`. Folder name on disk is `Art/` (capital A).
+**Originals (not bundled):** `apps/mobile/assets/comparisons/source/before|after/`  
+**Bundled:** `apps/mobile/assets/comparisons/tiles/` (picker) and `hero/` (upload).  
+Run `npm run build-comparison-assets` after adding or replacing source files. Folder name on disk is `Art/` (capital A).
 
 | styleId | before | after |
 |---------|--------|--------|
@@ -136,11 +162,16 @@ Assets live under `apps/mobile/assets/comparisons/`. Folder name on disk is `Art
 | `saturday-v1` | `before/dude2.png` | `after/cartoons/smv1.jpeg` |
 | `saturday-v2` | `before/dude2.png` | `after/cartoons/smv2.jpg` |
 | `comic` | `before/3dclay.png` | `after/cartoons/comic.jpg` |
+| `comic-v1` | `before/man7.png` | `after/cartoons/comic-v1.jpg` |
+| `comic-v2` | `before/man7.png` | `after/cartoons/comic-v2.jpg` |
 | `cute` | `before/hdd.png` | `after/cartoons/cute.jpg` |
 | `dc` | `before/man3.png` | `after/cartoons/dc.jpg` |
 | `cyberpunk-v1` | `before/lady5.png` | `after/cartoons/cyberpunkv1.jpg` |
 | `cyberpunk-v2` | `before/dude.png` | `after/cartoons/cyberpunkv2.jpeg` |
 | `disney` | `before/lady3.png` | `after/cartoons/disney.jpg` |
+| `pixel` | `before/lady15.png` | `after/cartoons/pixel.jpg` |
+| `3d-render-v1` | `before/teen.png` | `after/cartoons/3d-renderv1.jpg` |
+| `3d-render-v2` | `before/teen.png` | `after/cartoons/3d-renderv2.jpg` |
 | `3dclay` | `before/3dclay.png` | `after/3d/3dclay.jpg` |
 | `pixar-like` | `before/pxl.png` | `after/3d/pxl.jpg` |
 | `oil-paint` | `before/lady9.png` | `after/Paintings/oilpaint.jpg` |

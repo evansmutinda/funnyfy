@@ -2,10 +2,10 @@
 
 AI caricature mobile app — React Native (Expo SDK 52) + Vercel serverless backend + Replicate.
 
-Transform photos into caricatures across **160 catalog styles** (18 enabled live), with RevenueCat subscriptions, usage quotas, NSFW moderation, and JWT auth.
+Transform photos into caricatures across **160 catalog styles** (enabled count in [`MD/STYLES.md`](MD/STYLES.md) / auto-generated [`MD/PROMPTS.md`](MD/PROMPTS.md)), with RevenueCat subscriptions, usage quotas, NSFW moderation, and JWT auth.
 
-**Status:** Feature-complete — awaiting app store submission (June 2026)  
-**Version:** 1.0.7 (`apps/mobile/version.json`)
+**Status:** Feature-complete — awaiting app store submission (July 2026)  
+**Version:** see [`apps/mobile/version.json`](apps/mobile/version.json) (single source of truth — do not hardcode semver in docs)
 
 ---
 

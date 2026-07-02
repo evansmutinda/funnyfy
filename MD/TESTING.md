@@ -194,9 +194,25 @@ cd apps/mobile
 npm run version:patch   # also: version:minor, version:major, version:bump
 ```
 
-**Dev workflow**: After user-facing mobile changes, run `node scripts/bump-version.js --patch` (see `.cursor/rules/auto-version.mdc`).
+**Dev workflow**: After user-facing mobile changes, run `node apps/mobile/scripts/bump-version.js --patch` (see `.cursor/rules/auto-version.mdc`).
 
 After a bump, commit `version.json` (and `package.json` if semver changed) before the next store upload.
+
+### Documentation
+
+- **Never hardcode** `1.0.x` in `MD/*.md` or root `README.md` headers — they go stale quickly.
+- Point readers to `apps/mobile/version.json` instead (About screen and `app.config.js` read the same file).
+- Enabled-style counts belong in `MD/STYLES.md` / generated `MD/PROMPTS.md`, not scattered across status docs.
+
+### Semver policy (FunnyFy)
+
+| Bump | When | Examples |
+|------|------|----------|
+| **Patch** `1.0.x` | Shipped mobile-visible changes, routine releases | New enabled style, thumbnail fix, UI polish, bug fix, copy change |
+| **Minor** `1.x.0` | Meaningful feature milestone, still backward-compatible | New screen or flow, paywall overhaul, large catalog UX change, new subscription tier UX |
+| **Major** `x.0.0` | Breaking change or platform reset | Expo SDK major upgrade, auth/subscription breaking change, removed APIs |
+
+During active development, default to **patch** via `node apps/mobile/scripts/bump-version.js --patch` (see `.cursor/rules/auto-version.mdc`). Reserve **minor** for deliberate milestones (e.g. formalizing `1.1.0` at store launch).
 
 ---
 

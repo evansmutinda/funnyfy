@@ -2,7 +2,7 @@
 
 ## Current Status
 
-You have **160 styles** in the catalog (from `Funnyfy_Categories_Updated.xlsx`) across **16 categories**. **64 legacy styles** are enabled with real prompts and thumbnails. The rest are placeholders (`enabled: false`) until you add prompts and tile art.
+You have **160 styles** in the catalog (from `Funnyfy_Categories_Updated.xlsx`) across **16 categories**. Enabled count and ids live in `MD/STYLES.md` / generated `MD/PROMPTS.md`. The rest are placeholders (`enabled: false`) until you add prompts and tile art.
 
 **Canonical list:** see `MD/STYLES.md` for all enabled ids, models, comparison pairs, and deploy checklist.
 
@@ -16,7 +16,7 @@ You have **160 styles** in the catalog (from `Funnyfy_Categories_Updated.xlsx`) 
 |-------|------|---------|
 | **Full catalog** | `api/_utils/style-catalog.ts`, `apps/mobile/data/styleCatalog.js` | All 160 styles + categories (generated) |
 | **Live config** | `api/_utils/styles-config.ts` (`LEGACY_STYLES`) | Prompts, models, `enabled: true/false` |
-| **Tile thumbnails** | `apps/mobile/constants.js` → `getStyleImage()` | Maps style id/label → `assets/*.jpg` |
+| **Tile thumbnails** | `apps/mobile/constants.js` → `getStyleImage()` | Maps style id → `assets/comparisons/tiles/after/...` |
 
 ### Regenerate catalog from spreadsheet
 
@@ -32,7 +32,7 @@ Outputs:
 
 1. Set `enabled: true` and a real `prompt` in `api/_utils/styles-config.ts` (`LEGACY_STYLES`)
 2. Add thumbnail mapping in `getStyleImage()` in `apps/mobile/constants.js`
-3. Add comparison pair in `comparisonPairs.js` (optional)
+3. Add comparison pair in `comparisonPairs.js` + run `npm run build-comparison-assets` (optional)
 4. Add to `DEFAULT_ENABLED_STYLES` in `styleCatalog.js` (offline fallback only)
 5. Deploy API to Vercel — app reads styles from `/api/styles` only (no local merge on success)
 6. Update `MD/STYLES.md`

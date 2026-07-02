@@ -40,9 +40,10 @@ FunnyFy is a React Native mobile app (Android & iOS) that transforms user photos
 |------|---------|
 | `STATUS.md` | **Current app status and launch checklist** ⭐ |
 | `STYLES.md` | **Enabled styles, models, comparison pairs, deploy checklist** ⭐ |
+| `PROMPTS.md` | **All enabled style prompts (auto-generated)** ⭐ |
 | `UI_REDESIGN_2026_06.md` | **June 2026 mobile UI redesign reference** |
 | `CHANGELOG.md` | Version history |
-| `TESTING.md` | API, mobile, and versioning test guide |
+| `TESTING.md` | API, mobile, **versioning policy**, and test guide |
 | `DEVELOPMENT_PLAN.md` | Architecture and phases |
 | `ADDING_MORE_STYLES_GUIDE.md` | Enable catalog styles + thumbnails (see also `STYLES.md`) |
 | `BUILD_APK_GUIDE.md` | EAS and local APK builds (preferred over Expo Go) |
@@ -56,11 +57,11 @@ FunnyFy is a React Native mobile app (Android & iOS) that transforms user photos
 
 **✅ Production-Ready – Awaiting App Store Submission**
 
-**Version**: 1.0.7 (`apps/mobile/version.json`) — auto-bumps on dev changes and APK builds
+**Version**: see [`apps/mobile/version.json`](../apps/mobile/version.json) — auto-bumps on dev changes and APK builds
 
 ### Implemented Features
 - ✅ React Native mobile app (Expo SDK 52)
-- ✅ **160-style catalog**, **18 enabled** live styles across 16 categories
+- ✅ **160-style catalog**; enabled count in [`MD/STYLES.md`](STYLES.md) / [`MD/PROMPTS.md`](PROMPTS.md)
 - ✅ **Netflix-style style picker**: dark `#0B0F19`, category rows + horizontal style carousels, "See all" grid
 - ✅ **Upload → Review** two-screen flow with `UploadFlowHeader` (back + style pill left + usage pill right)
 - ✅ **Photo tips**: auto-opens on Upload per style; "Do not show again" per style; OS crop via `expo-image-picker`

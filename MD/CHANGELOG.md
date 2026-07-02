@@ -6,6 +6,19 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **`pixel` style** — cartoons category, model `bytedance/seedream-4.5`, prompt `make this a pixel cartoon`, curated comparison pair (`lady15.png` → `pixel.jpg`)
+- **`comic-v1` style** — cartoons category, model `black-forest-labs/flux-kontext-pro`, prompt `make this a Comic Book Style cartoon`, curated comparison pair (`man7.png` → `comic-v1.jpg`)
+- **`comic-v2` style** — cartoons category, model `bytedance/seedream-4.5`, prompt `make this a Comic Book Style cartoon`, curated comparison pair (`man7.png` → `comic-v2.jpg`)
+- **`3d-render-v1` / `3d-render-v2` styles** — cartoons category, curated comparison pairs (`teen.png` → `3d-renderv1.jpg` / `3d-renderv2.jpg`)
+- **Comparison asset pipeline** — `scripts/build-comparison-assets.js`, `scripts/generate-prompts-md.js`, `scripts/verify-style-thumbs.js`; generated `comparisonPairAssets.generated.js`
+- **`MD/PROMPTS.md`** — generated prompts reference from `api/_utils/styles-config.ts`
+
+### Changed
+- **Comparison asset layout** — originals under `apps/mobile/assets/comparisons/source/`; bundled app uses generated `tiles/` (~400px) and `hero/` (~832px) only
+- **Style picker thumbnails** — static `after` tile images via `getStyleImage()` (fixes Android decoder exhaustion / missing comic tiles)
+- **Documentation versioning** — `README.md`, `MD/STATUS.md`, `MD/STYLES.md` reference `apps/mobile/version.json` instead of hardcoded semver; semver policy in `MD/TESTING.md`
+
 ---
 
 ## [1.0.59] - 2026-06-30
@@ -219,7 +232,7 @@ All notable changes to this project will be documented in this file.
 - **Catalog generator**: `scripts/generate-style-catalog.py` → `apps/mobile/data/styleCatalog.js` + `api/_utils/style-catalog.ts`
 - **Two-level style picker**: Home shows category tiles only; tap a category → 2-column style grid
 - **Category tile layout**: Alternating full-width + two half-width cards (`index % 3 === 0` → wide)
-- **Auto versioning**: `apps/mobile/version.json`, `scripts/bump-version.js`, auto-bump in `build-apk-local.ps1` / `build-apk.ps1`
+- **Auto versioning**: `apps/mobile/version.json`, `apps/mobile/scripts/bump-version.js`, auto-bump in `build-apk-local.ps1` / `build-apk.ps1`
 - **Paywall marquee**: `PaywallStyleMarquee.js` — scrolling style preview strip on subscription hero
 - **Runtime app version**: About screen reads version from `expo-constants` (falls back to `version.json`)
 - **Plus Jakarta Sans on style cards**: `@expo-google-fonts/plus-jakarta-sans` + `expo-font`; `constants/fonts.js`

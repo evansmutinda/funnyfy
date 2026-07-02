@@ -1,7 +1,7 @@
 # FunnyFy App - Current Status
 
-**Last Updated**: June 2026  
-**Version**: 1.0.59 (`apps/mobile/version.json`)  
+**Last Updated**: July 2026  
+**Version**: see [`apps/mobile/version.json`](../apps/mobile/version.json) (single source of truth — do not hardcode semver in docs)  
 **Status**: Feature-Complete – Ready for App Store Submission
 
 ---
@@ -19,7 +19,7 @@ FunnyFy is a React Native mobile application that transforms user photos into AI
 - ✅ **Native splash** (`expo-splash-screen`): solid `#0B0F19` until fonts + auth; no in-app splash component
 - ✅ **Netflix-style style picker**: category rows + horizontal tiles + "See all" grid; dark `#0B0F19` shell
 - ✅ **Discovery tiles** (`MediaTile`): image-only on style picker; **curated before/after crossfade** on 55 styles; row-focus sequencing on home and **See all** category grid
-- ✅ **64 enabled styles** (160 in catalog; placeholders disabled until prompts/thumbnails ready) — see `MD/STYLES.md`
+- ✅ **Enabled styles** (160 in catalog; see [`MD/STYLES.md`](STYLES.md) / [`MD/PROMPTS.md`](PROMPTS.md) for current count)
 - ✅ **Two-step upload flow**: UploadScreen (comparison fade + Gallery/Camera) → PhotoReviewScreen (confirm + Generate); OS crop via `expo-image-picker`
 - ✅ **Upload/Review header** (`UploadFlowHeader.js`): back + **style pill** (left) + **usage pill** (right); no Photo tips chip
 - ✅ **Photo tips sheet**: auto-opens on Upload per style; "Do not show again" per style; pictorial placeholders
@@ -73,7 +73,7 @@ FunnyFy is a React Native mobile application that transforms user photos into AI
 - ✅ Queue worker (`/api/cron/process-queue`) via `api/process-job.ts` — scheduled externally by [cron-job.org](https://cron-job.org/) (moved off Vercel cron)
 - ✅ User subscription API (`/api/user/subscription`)
 - ✅ Sync subscription, RevenueCat webhook handling
-- ✅ **160 styles in catalog**; **30 enabled** with protected prompts — `MD/STYLES.md`
+- ✅ **160 styles in catalog**; enabled count in [`MD/STYLES.md`](STYLES.md) — protected prompts on server
 - ✅ Usage tracking, quota enforcement, **idempotent per-job credits** (`job_usage_credits`)
 - ✅ Queue worker: **atomic job claim** (`FOR UPDATE SKIP LOCKED`)
 - ✅ **JWT auth** (`/api/auth/token`)
@@ -190,7 +190,7 @@ Full table (ids, models, comparison pairs, deploy steps): **`MD/STYLES.md`**
 
 - **App name**: FunnyFy
 - **Package**: `com.evansks.funnyfyapp`
-- **Version source**: `apps/mobile/version.json` (bump via `scripts/bump-version.js` or build scripts)
+- **Version source**: [`apps/mobile/version.json`](../apps/mobile/version.json) (bump via `apps/mobile/scripts/bump-version.js` or build scripts)
 - **Staging**: `https://funnyfy-staging.vercel.app`
 - **Production**: `https://funnyfyapp.vercel.app`
 - **Expo SDK**: 52 (not upgraded to 53/54 — breaking changes)

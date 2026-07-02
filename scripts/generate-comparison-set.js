@@ -8,10 +8,11 @@
  * via the existing /api/enqueue + /api/job pipeline, downloads the
  * results, and saves them as bundled mobile assets:
  *
- *   apps/mobile/assets/comparisons/after/<categoryFolder>/<afterBase>.jpg
+ *   apps/mobile/assets/comparisons/source/after/<categoryFolder>/<afterBase>.jpg
  *
  * After it finishes, register the curated pairs in
- *   apps/mobile/data/comparisonPairs.js  →  CURATED_PAIRS
+ *   apps/mobile/data/comparisonPairs.js  →  CURATED_PAIR_PATHS
+ * then run: npm run build-comparison-assets
  *
  * Usage:
  *   node scripts/generate-comparison-set.js
@@ -21,8 +22,8 @@
  *   AUTH_TOKEN     JWT for an account that has quota
  *
  * Optional:
- *   BEFORE_DIR     Default: apps/mobile/assets/comparisons/before
- *   OUTPUT_DIR     Default: apps/mobile/assets/comparisons
+ *   BEFORE_DIR     Default: apps/mobile/assets/comparisons/source/before
+ *   OUTPUT_DIR     Default: apps/mobile/assets/comparisons/source/after
  *   STYLE_FILTER   Comma-separated style ids to limit the run
  *   CONCURRENCY    Default: 2 (don't push this hard — you'll hit rate limits)
  *   POLL_TIMEOUT_S Default: 120 (per job)
@@ -38,8 +39,8 @@ const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..');
 const DEFAULTS = {
-  BEFORE_DIR: path.join(ROOT, 'apps/mobile/assets/comparisons/before'),
-  OUTPUT_DIR: path.join(ROOT, 'apps/mobile/assets/comparisons/after'),
+  BEFORE_DIR: path.join(ROOT, 'apps/mobile/assets/comparisons/source/before'),
+  OUTPUT_DIR: path.join(ROOT, 'apps/mobile/assets/comparisons/source/after'),
   CONCURRENCY: 2,
   POLL_INTERVAL_MS: 2000,
   POLL_TIMEOUT_S: 120,
@@ -66,11 +67,16 @@ const STYLE_AFTER_BASENAME = {
   'saturday-v1': 'smv1',
   'saturday-v2': 'smv2',
   comic: 'comic',
+  'comic-v1': 'comic-v1',
+  'comic-v2': 'comic-v2',
   cute: 'cute',
   dc: 'dc',
   'cyberpunk-v1': 'cyberpunkv1',
   'cyberpunk-v2': 'cyberpunkv2',
   disney: 'disney',
+  pixel: 'pixel',
+  '3d-render-v1': '3d-renderv1',
+  '3d-render-v2': '3d-renderv2',
   '3dclay': '3dclay',
   'pixar-like': 'pxl',
   'oil-paint': 'oilpaint',
@@ -348,8 +354,8 @@ async function main() {
   }
 
   console.log(
-    '\nNext: open apps/mobile/data/comparisonPairs.js and register the new pairs in CURATED_PAIRS,\n' +
-      'then rebuild the APK to ship the assets.',
+    '\nNext: open apps/mobile/data/comparisonPairs.js and register the new pairs in CURATED_PAIR_PATHS,\n' +
+      'then run npm run build-comparison-assets and rebuild the APK.',
   );
 }
 

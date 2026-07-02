@@ -10,13 +10,13 @@ This document outlines the development plan and current status of FunnyFy — a 
 ### ✅ Completed (Feature-Complete)
 - **Mobile App**: React Native (Expo SDK 52) — Android & iOS compatible
 - **Backend**: Vercel serverless functions (Node.js/TypeScript)
-- **Styles**: 160 in catalog; **18 enabled** legacy styles with live prompts
+- **Styles**: 160 in catalog; enabled count in `MD/STYLES.md` / `MD/PROMPTS.md`
 - **Style UX**: Netflix-style category rows on dark background; image-only `MediaTile` on picker (category headers only)
 - **Core Features**: Image upload, style selection, generation, save/share, gallery, restyle
 - **Upload header**: `UploadFlowHeader` — `[ ← back ] [ style pill ] ···· [ usage pill ]` on Upload + Review (see `MD/UI_REDESIGN_2026_06.md` §6)
 - **Security**: API keys and prompts protected server-side; JWT auth; NSFW moderation; image validation
 - **Subscriptions**: RevenueCat; split paywall UI (hero marquee + plans sheet)
-- **Versioning**: `version.json` + auto-bump on APK builds
+- **Versioning**: `apps/mobile/version.json` + auto-bump on APK builds (do not hardcode semver in docs)
 - **Database**: Supabase (users, subscriptions, usage_tracking, jobs, infringements, etc.)
 - **UI/UX**: Toast system, ConfirmDialog, Privacy Policy & Terms, Gallery screen
 - **Auth**: JWT-based auth service (`services/auth.js`), local UUID fallback
@@ -115,7 +115,7 @@ Key tables:
 ### ✅ Phase 1: MVP (Complete)
 - React Native app with Expo
 - Vercel serverless backend
-- 18 enabled styles (160 in catalog)
+- Enabled styles (160 in catalog) — see `MD/STYLES.md`
 - Image upload, generation, save/share
 - Replicate integration
 
@@ -154,7 +154,7 @@ Key tables:
 ## 4. Style Catalog
 
 - **160 styles** in spreadsheet catalog across **16 categories**
-- **18 enabled** legacy styles with live prompts (see `STATUS.md` for table)
+- **Enabled styles** with live prompts — see `MD/STYLES.md` (count also in generated `MD/PROMPTS.md`)
 - Models:
   - **Primary**: `black-forest-labs/flux-kontext-pro` (most styles)
   - **Secondary**: `google/nano-banana` (custom2, neand3d, handd, superhero, villain, cyborg)
