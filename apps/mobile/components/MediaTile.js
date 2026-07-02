@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Image, Platform, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import ComparisonFade, {
@@ -38,17 +38,8 @@ export default function MediaTile({
   const labelBelowImage = isDiscovery;
   const showComparison = Boolean(comparisonPair?.before && comparisonPair?.after);
   const appForeground = useAppForeground();
-  const comparisonPausedRaw = !showComparison || !comparisonActive || !appForeground;
-  const [comparisonPaused, setComparisonPaused] = useState(comparisonPausedRaw);
-
-  useEffect(() => {
-    if (!comparisonPausedRaw) {
-      setComparisonPaused(false);
-      return undefined;
-    }
-    const timeoutId = setTimeout(() => setComparisonPaused(true), 120);
-    return () => clearTimeout(timeoutId);
-  }, [comparisonPausedRaw]);
+  const comparisonPaused =
+    !showComparison || !comparisonActive || !appForeground;
 
   const imageWrapperStyle = isDiscovery
     ? [

@@ -187,16 +187,30 @@ export function RowFocusProvider({ children, scrollTick }) {
 export function useCategoryRowFocus(rowId, rowIndex) {
   const ctx = useContext(RowFocusContext);
   const rowRef = useRef(null);
+  const layoutMeasureTimerRef = useRef(null);
 
   useEffect(() => {
     if (!ctx) return undefined;
     return ctx.registerRow(rowId, rowRef, rowIndex);
   }, [ctx, rowId, rowIndex]);
 
+  useEffect(() => () => {
+    if (layoutMeasureTimerRef.current != null) {
+      clearTimeout(layoutMeasureTimerRef.current);
+    }
+  }, []);
+
   const isRowActive = ctx?.activeRowId === rowId;
 
   const onRowLayout = useCallback(() => {
-    ctx?.measureRows(false);
+    if (!ctx) return;
+    if (layoutMeasureTimerRef.current != null) {
+      clearTimeout(layoutMeasureTimerRef.current);
+    }
+    // Entrance animations fire many layout events — debounce to avoid row-focus churn.
+    layoutMeasureTimerRef.current = setTimeout(() => {
+      ctx.measureRows(false);
+    }, 150);
   }, [ctx]);
 
   return { rowRef, isRowActive, onRowLayout };

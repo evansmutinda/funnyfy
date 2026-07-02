@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 import Animated, {
   cancelAnimation,
@@ -35,15 +35,19 @@ export default function ComparisonFade({
   maxCycles,
 }) {
   const opacity = useSharedValue(1);
+  // Lazy-load the before image only while animating to save decoders on idle tiles.
+  const [showBefore, setShowBefore] = useState(!paused);
 
   useEffect(() => {
     cancelAnimation(opacity);
 
     if (paused) {
-      opacity.value = withTiming(1, { duration: 200 });
-      return undefined;
+      opacity.value = 1;
+      const timeoutId = setTimeout(() => setShowBefore(false), 50);
+      return () => clearTimeout(timeoutId);
     }
 
+    setShowBefore(true);
     opacity.value = 1;
     const ease = Easing.inOut(Easing.cubic);
 
@@ -62,16 +66,20 @@ export default function ComparisonFade({
 
   return (
     <View style={[styles.root, style]}>
-      <Image
-        source={beforeSource}
-        style={[StyleSheet.absoluteFill, styles.image, imageStyle]}
-        resizeMode="cover"
-      />
-      <Animated.Image
-        source={afterSource}
-        style={[StyleSheet.absoluteFill, styles.image, imageStyle, animatedAfterStyle]}
-        resizeMode="cover"
-      />
+      {showBefore ? (
+        <Image
+          source={beforeSource}
+          style={[StyleSheet.absoluteFill, styles.image, imageStyle]}
+          resizeMode="cover"
+        />
+      ) : null}
+      <Animated.View style={[StyleSheet.absoluteFill, animatedAfterStyle]}>
+        <Image
+          source={afterSource}
+          style={[StyleSheet.absoluteFill, styles.image, imageStyle]}
+          resizeMode="cover"
+        />
+      </Animated.View>
     </View>
   );
 }
