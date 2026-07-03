@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   BackHandler,
   FlatList,
@@ -14,11 +14,20 @@ import MediaTile from '../components/MediaTile';
 import PressScale from '../components/PressScale';
 import { BOTTOM_INSET_MIN, getStyleImage } from '../constants';
 import {
+  getTileComparisonPair,
+  hasCuratedComparisonPair,
+} from '../data/comparisonPairs';
+import {
   STYLE_CATEGORIES,
   getStyleCategory,
 } from '../utils/styleCategories';
 import { RowFocusProvider, useCategoryRowFocus } from '../hooks/useRowFocus';
 import styles from '../styles';
+
+const HORIZONTAL_VIEWABILITY = {
+  itemVisiblePercentThreshold: 50,
+  minimumViewTime: 0,
+};
 
 function resolveStyleCategory(style) {
   return style?.categoryId || getStyleCategory(style?.id);
@@ -50,6 +59,7 @@ function StyleScreenContent({
   onOpenMenu,
   restyleMode = false,
   onCancelRestyle,
+  interactionPaused = false,
   initialActiveCategory = null,
 }) {
   const insets = useSafeAreaInsets();
@@ -89,6 +99,10 @@ function StyleScreenContent({
     setCategoryScrollTick((tick) => tick + 1);
   }, []);
 
+  const onCategoryScrollEnd = useCallback(() => {
+    setCategoryScrollTick((tick) => tick + 1);
+  }, []);
+
   const onHomeScroll = useCallback(() => {
     setHomeScrollTick((tick) => tick + 1);
   }, []);
@@ -122,7 +136,10 @@ function StyleScreenContent({
   };
 
   return (
-    <View style={styles.styleScreenSafe}>
+    <View
+      style={styles.styleScreenSafe}
+      pointerEvents={interactionPaused ? 'none' : 'auto'}
+    >
       <StatusBar barStyle="light-content" backgroundColor="#0B0F19" />
 
       <View style={[styles.styleScreenHeader, { paddingTop: Math.max(insets.top, 8) }]}>
@@ -167,7 +184,7 @@ function StyleScreenContent({
       ) : null}
 
       {browsingHome ? (
-        <RowFocusProvider scrollTick={homeScrollTick}>
+        <RowFocusProvider scrollTick={homeScrollTick} enabled={!interactionPaused}>
           <ScrollView
             style={styles.styleScroll}
             contentContainerStyle={[
@@ -195,13 +212,14 @@ function StyleScreenContent({
                   onSelect={onNext}
                   onSeeAll={() => setActiveCategory(row.id)}
                   rowIndex={rowIndex}
+                  interactionPaused={interactionPaused}
                 />
               ))
             )}
           </ScrollView>
         </RowFocusProvider>
       ) : (
-        <RowFocusProvider key={categoryGridKey} scrollTick={categoryScrollTick}>
+        <RowFocusProvider key={categoryGridKey} scrollTick={categoryScrollTick} enabled={!interactionPaused}>
           <ScrollView
             style={styles.styleScroll}
             contentContainerStyle={[
@@ -210,6 +228,8 @@ function StyleScreenContent({
             ]}
             showsVerticalScrollIndicator={false}
             onScroll={onCategoryScroll}
+            onScrollEndDrag={onCategoryScrollEnd}
+            onMomentumScrollEnd={onCategoryScrollEnd}
             scrollEventThrottle={200}
           >
             {categoryStyles.length === 0 ? (
@@ -229,6 +249,7 @@ function StyleScreenContent({
                     styleList={rowStyles}
                     selectedStyle={selectedStyle}
                     onSelect={onNext}
+                    interactionPaused={interactionPaused}
                   />
                 ))}
               </View>
@@ -244,7 +265,10 @@ function StylePickerTile({
   item,
   selectedStyle,
   onSelect,
+  comparisonActive,
+  interactionPaused,
 }) {
+  const hasPair = hasCuratedComparisonPair(item);
   return (
     <PressScale
       onPress={() => onSelect(item)}
@@ -252,9 +276,11 @@ function StylePickerTile({
     >
       <MediaTile
         imageSource={getStyleImage(item)}
+        comparisonPair={hasPair ? getTileComparisonPair(item) : null}
         isSelected={selectedStyle?.id === item.id}
-        variant="grid"
-        comparisonActive={false}
+        variant="discoveryRow"
+        comparisonActive={comparisonActive}
+        interactionPaused={interactionPaused}
       />
     </PressScale>
   );
@@ -268,23 +294,29 @@ function DiscoveryGridRow({
   styleList,
   selectedStyle,
   onSelect,
+  interactionPaused,
 }) {
-  const { rowRef, onRowLayout } = useCategoryRowFocus(rowId, rowIndex);
+  const { rowRef, isRowActive, onRowLayout } = useCategoryRowFocus(rowId, rowIndex);
 
   return (
     <View ref={rowRef} onLayout={onRowLayout} style={styles.discoveryGridRow}>
-      {styleList.map((item) => (
-        <View key={item.id} style={styles.discoveryCard}>
-          <PressScale onPress={() => onSelect(item)} style={styles.styleCardOuter}>
-            <MediaTile
-              imageSource={getStyleImage(item)}
-              isSelected={selectedStyle?.id === item.id}
-              variant="grid"
-              comparisonActive={false}
-            />
-          </PressScale>
-        </View>
-      ))}
+      {styleList.map((item) => {
+        const hasPair = hasCuratedComparisonPair(item);
+        return (
+          <View key={item.id} style={styles.discoveryCard}>
+            <PressScale onPress={() => onSelect(item)} style={styles.styleCardOuter}>
+              <MediaTile
+                imageSource={getStyleImage(item)}
+                comparisonPair={hasPair ? getTileComparisonPair(item) : null}
+                isSelected={selectedStyle?.id === item.id}
+                variant="discovery"
+                comparisonActive={isRowActive}
+                interactionPaused={interactionPaused}
+              />
+            </PressScale>
+          </View>
+        );
+      })}
     </View>
   );
 }
@@ -296,11 +328,33 @@ function CategoryRow({
   onSelect,
   onSeeAll,
   rowIndex,
+  interactionPaused = false,
 }) {
   const hasOverflow = styleList.length > ROW_PREVIEW_COUNT;
   const visibleStyles = hasOverflow ? styleList.slice(0, ROW_PREVIEW_COUNT) : styleList;
   const showSeeAll = styleList.length > 0;
-  const { rowRef, onRowLayout } = useCategoryRowFocus(category.id, rowIndex);
+  const { rowRef, isRowActive, onRowLayout } = useCategoryRowFocus(category.id, rowIndex);
+  const [viewableIds, setViewableIds] = useState(null);
+
+  const onViewableItemsChangedRef = useRef(({ viewableItems }) => {
+    setViewableIds(new Set(viewableItems.map((token) => token.item.id)));
+  });
+
+  const viewabilityConfigCallbackPairs = useRef([
+    {
+      viewabilityConfig: HORIZONTAL_VIEWABILITY,
+      onViewableItemsChanged: (info) => onViewableItemsChangedRef.current(info),
+    },
+  ]).current;
+
+  const isTileActive = (styleId, index) => {
+    if (!isRowActive) return false;
+    if (!hasCuratedComparisonPair({ id: styleId })) return false;
+    if (!viewableIds) return index < 3;
+    return viewableIds.has(styleId);
+  };
+
+  const listExtraData = `${isRowActive}:${viewableIds ? [...viewableIds].join(',') : 'pending'}`;
 
   return (
     <View ref={rowRef} onLayout={onRowLayout}>
@@ -328,17 +382,21 @@ function CategoryRow({
           data={visibleStyles}
           horizontal
           keyExtractor={(item) => item.id}
+          extraData={listExtraData}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.styleRowList}
           initialNumToRender={3}
           maxToRenderPerBatch={2}
           windowSize={3}
           removeClippedSubviews={false}
-          renderItem={({ item }) => (
+          viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs}
+          renderItem={({ item, index }) => (
             <StylePickerTileMemo
               item={item}
               selectedStyle={selectedStyle}
               onSelect={onSelect}
+              comparisonActive={isTileActive(item.id, index)}
+              interactionPaused={interactionPaused}
             />
           )}
           ListFooterComponent={

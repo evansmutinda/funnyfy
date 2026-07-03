@@ -9,7 +9,7 @@
 | Surface | Component | Behavior |
 |---------|-----------|----------|
 | **Upload hero** | `ComparisonFade` in `UploadScreen.js` | Infinite crossfade; `holdMs=1800`, `fadeMs=1000` |
-| **Style picker tiles** | `MediaTile.js` in `StyleScreen.js` | **Static** `after` thumbnail via `getStyleImage()` (`comparisonActive={false}`) |
+| **Style picker tiles** | `ComparisonFade` via `MediaTile.js` in `StyleScreen.js` | Crossfade when curated pair exists; `holdMs=1200`, `fadeMs=1500`, **3 cycles** max; row-focus sequencing on home and **See all** |
 | **Row focus** | `hooks/useRowFocus.js` | One row animates at a time; sequences top→bottom when multiple rows are visible after scroll settles |
 | **Home category rows** | `StyleScreen.js` → `CategoryRow` | Horizontal row; up to 5 style previews per category |
 | **See all grid** | `StyleScreen.js` → `DiscoveryGridRow` | 2-column grid; same row-focus alternation as home |

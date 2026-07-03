@@ -3,7 +3,7 @@ import {
   PlusJakartaSans_400Regular,
 } from '@expo-google-fonts/plus-jakarta-sans';
 import * as ExpoSplashScreen from 'expo-splash-screen';
-import * as NavigationBar from 'expo-navigation-bar';
+import { configureAndroidNavigationBar } from './utils/androidNavigationBar';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AppState,
@@ -80,17 +80,6 @@ function withTimeout(promise, ms, label) {
 }
 
 ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
-
-async function configureAndroidNavigationBar() {
-  if (Platform.OS !== 'android') return;
-  try {
-    await NavigationBar.setBackgroundColorAsync(DARK_BG);
-    await NavigationBar.setButtonStyleAsync('light');
-    await NavigationBar.setVisibilityAsync('visible');
-  } catch (err) {
-    console.warn('[NavBar] configure failed:', err?.message || err);
-  }
-}
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -1006,6 +995,7 @@ function AppContent({ fontsLoaded }) {
           availableStyles={availableStyles}
           restyleMode={restyleMode}
           initialActiveCategory={styleReturnCategory}
+          interactionPaused={menuOpen}
           onCancelRestyle={handleCancelRestyle}
           onOpenMenu={() => setMenuOpen(true)}
           onNext={(s) => {

@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import { Image, Platform, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import ComparisonFade, {
@@ -9,7 +9,7 @@ import ComparisonFade, {
 import useAppForeground from '../hooks/useAppForeground';
 import styles from '../styles';
 
-const DISCOVERY_VARIANTS = new Set(['discovery', 'discoveryWide', 'discoveryDense']);
+const DISCOVERY_VARIANTS = new Set(['discovery', 'discoveryWide', 'discoveryDense', 'discoveryRow']);
 
 const CAPTION_MAX_LINES = {
   discovery: 3,
@@ -29,6 +29,7 @@ function MediaTile({
   variant = 'grid',
   badge,
   comparisonActive = true,
+  interactionPaused = false,
 }) {
   const showLabel = Boolean(label);
   const isHero = variant === 'hero';
@@ -38,13 +39,40 @@ function MediaTile({
   const labelBelowImage = isDiscovery;
   const resolvedPair =
     comparisonPair?.before && comparisonPair?.after ? comparisonPair : null;
-  const showComparison = Boolean(resolvedPair && comparisonActive);
+  const showComparison = Boolean(resolvedPair);
   const appForeground = useAppForeground();
-  const comparisonPaused = !showComparison || !appForeground;
+  const comparisonPausedRaw =
+    !showComparison || !comparisonActive || !appForeground;
+  const [comparisonPaused, setComparisonPaused] = useState(comparisonPausedRaw);
+
+  useEffect(() => {
+    if (interactionPaused) return undefined;
+    if (!comparisonPausedRaw) {
+      setComparisonPaused(false);
+      return undefined;
+    }
+    const timeoutId = setTimeout(() => setComparisonPaused(true), 120);
+    return () => clearTimeout(timeoutId);
+  }, [comparisonPausedRaw, interactionPaused]);
+
+  const [comparisonReady, setComparisonReady] = useState(!interactionPaused);
+  useEffect(() => {
+    if (interactionPaused) {
+      setComparisonReady(false);
+      return undefined;
+    }
+    const timeoutId = setTimeout(() => setComparisonReady(true), 280);
+    return () => clearTimeout(timeoutId);
+  }, [interactionPaused]);
+
+  // Menu overlay: skip ComparisonFade entirely so Reanimated stops immediately.
+  const useStaticComparison = interactionPaused && showComparison;
+  const runComparison = showComparison && comparisonReady && !interactionPaused;
 
   const imageWrapperStyle = isDiscovery
     ? [
-        !isWide && !isDense && styles.discoveryImageWrapper,
+        variant === 'discoveryRow' && styles.discoveryRowImageWrapper,
+        variant === 'discovery' && styles.discoveryImageWrapper,
         isWide && styles.discoveryWideImageWrapper,
         isDense && styles.discoveryDenseImageWrapper,
         styles.styleCardImageShell,
@@ -81,7 +109,7 @@ function MediaTile({
       ]}
     >
       <View style={imageWrapperStyle}>
-        {showComparison ? (
+        {runComparison ? (
           <ComparisonFade
             beforeSource={resolvedPair.before}
             afterSource={resolvedPair.after}
@@ -90,6 +118,12 @@ function MediaTile({
             holdMs={TILE_HOLD_MS}
             fadeMs={TILE_FADE_MS}
             maxCycles={DEFAULT_COMPARISON_CYCLES}
+          />
+        ) : useStaticComparison ? (
+          <Image
+            source={resolvedPair.after}
+            style={styles.styleImage}
+            resizeMode="cover"
           />
         ) : (
           <Image source={imageSource} style={styles.styleImage} resizeMode="cover" />

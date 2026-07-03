@@ -10,8 +10,10 @@ import React, {
 import { Dimensions } from 'react-native';
 import { TILE_FADE_MS, TILE_HOLD_MS } from '../components/ComparisonFade';
 
-const ELIGIBLE_RATIO = 0.35;
+const ELIGIBLE_RATIO = 0.22;
+const PARTIAL_RATIO = 0.08;
 const PRIMARY_EXCLUSIVE_RATIO = 0.52;
+const BOTTOM_BAND_START = 0.58;
 const SCROLL_SETTLE_MS = 450;
 const SCROLL_MEASURE_DEBOUNCE_MS = 120;
 
@@ -33,11 +35,23 @@ function sortByScreenPosition(a, b) {
 }
 
 function pickPrimaryRow(measurements, winH) {
+  const eligible = measurements.filter((m) => m.ratio >= ELIGIBLE_RATIO);
+  if (eligible.length === 0) return null;
+
+  const bottomEligible = eligible.filter(
+    (m) => m.y + m.h * 0.5 >= winH * BOTTOM_BAND_START,
+  );
+  if (bottomEligible.length) {
+    return bottomEligible.reduce((best, m) => {
+      if (!best || m.y > best.y || (m.y === best.y && m.ratio > best.ratio)) return m;
+      return best;
+    }, null);
+  }
+
   const centerY = winH / 2;
   let best = null;
 
-  measurements.forEach((m) => {
-    if (m.ratio < ELIGIBLE_RATIO) return;
+  eligible.forEach((m) => {
     const centerDistance = Math.abs(m.y + m.h / 2 - centerY);
     if (
       !best
@@ -51,12 +65,37 @@ function pickPrimaryRow(measurements, winH) {
   return best;
 }
 
-export function RowFocusProvider({ children, scrollTick }) {
+function pickSequenceRows(eligible, winH) {
+  if (eligible.length < 2) return eligible.map((m) => m.rowId);
+
+  const bottomMost = eligible.reduce((best, m) => (!best || m.y > best.y ? m : best), null);
+  const inLowerBand = bottomMost
+    && bottomMost.y + bottomMost.h * 0.5 >= winH * BOTTOM_BAND_START;
+
+  if (inLowerBand) {
+    const partner = [...eligible]
+      .filter((m) => m.rowId !== bottomMost.rowId)
+      .sort((a, b) => b.ratio - a.ratio)[0];
+    if (partner) {
+      return [bottomMost, partner].sort(sortByScreenPosition).map((m) => m.rowId);
+    }
+  }
+
+  return [...eligible]
+    .sort((a, b) => b.ratio - a.ratio)
+    .slice(0, 2)
+    .sort(sortByScreenPosition)
+    .map((m) => m.rowId);
+}
+
+export function RowFocusProvider({ children, scrollTick, enabled = true }) {
   const registryRef = useRef(new Map());
   const [activeRowId, setActiveRowId] = useState(null);
   const sequenceIndexRef = useRef(0);
   const sequenceTimerRef = useRef(null);
   const measuringRef = useRef(false);
+  const enabledRef = useRef(enabled);
+  enabledRef.current = enabled;
 
   const clearSequenceTimer = useCallback(() => {
     if (sequenceTimerRef.current != null) {
@@ -88,6 +127,7 @@ export function RowFocusProvider({ children, scrollTick }) {
   }, []);
 
   const measureRows = useCallback((enableSequence) => {
+    if (!enabledRef.current) return;
     if (measuringRef.current) return;
     measuringRef.current = true;
 
@@ -111,6 +151,14 @@ export function RowFocusProvider({ children, scrollTick }) {
         .sort(sortByScreenPosition);
 
       if (eligible.length === 0) {
+        const partial = measurements
+          .filter((m) => m.ratio >= PARTIAL_RATIO)
+          .sort((a, b) => b.ratio - a.ratio);
+        if (partial.length > 0) {
+          clearSequenceTimer();
+          setActiveRowIfChanged(partial[0].rowId);
+          return;
+        }
         setActiveRowIfChanged(null);
         clearSequenceTimer();
         return;
@@ -127,12 +175,7 @@ export function RowFocusProvider({ children, scrollTick }) {
       }
 
       if (enableSequence && eligible.length >= 2) {
-        const topTwo = [...eligible]
-          .sort((a, b) => b.ratio - a.ratio)
-          .slice(0, 2)
-          .sort(sortByScreenPosition)
-          .map((m) => m.rowId);
-        startSequence(topTwo);
+        startSequence(pickSequenceRows(eligible, winH));
         return;
       }
 
@@ -164,32 +207,39 @@ export function RowFocusProvider({ children, scrollTick }) {
   }, [clearSequenceTimer, setActiveRowIfChanged, startSequence]);
 
   useEffect(() => {
+    if (!enabled) {
+      setActiveRowId(null);
+      clearSequenceTimer();
+      return undefined;
+    }
     const scrollMeasureTimer = setTimeout(() => {
       measureRows(false);
     }, SCROLL_MEASURE_DEBOUNCE_MS);
 
     return () => clearTimeout(scrollMeasureTimer);
-  }, [scrollTick, measureRows]);
+  }, [scrollTick, measureRows, enabled, clearSequenceTimer]);
 
   useEffect(() => {
+    if (!enabled) return undefined;
     const settleTimer = setTimeout(() => {
       measureRows(true);
     }, SCROLL_SETTLE_MS);
 
     return () => clearTimeout(settleTimer);
-  }, [scrollTick, measureRows]);
+  }, [scrollTick, measureRows, enabled]);
 
   useEffect(() => {
+    if (!enabled) return undefined;
     const mountTimer = setTimeout(() => measureRows(false), 100);
     return () => {
       clearSequenceTimer();
       clearTimeout(mountTimer);
     };
-  }, [measureRows, clearSequenceTimer]);
+  }, [measureRows, clearSequenceTimer, enabled]);
 
   const value = useMemo(
-    () => ({ registerRow, activeRowId, measureRows }),
-    [registerRow, activeRowId, measureRows],
+    () => ({ registerRow, activeRowId, measureRows, enabled }),
+    [registerRow, activeRowId, measureRows, enabled],
   );
 
   return (
@@ -215,10 +265,10 @@ export function useCategoryRowFocus(rowId, rowIndex) {
     }
   }, []);
 
-  const isRowActive = ctx?.activeRowId === rowId;
+  const isRowActive = ctx?.enabled && ctx?.activeRowId === rowId;
 
   const onRowLayout = useCallback(() => {
-    if (!ctx) return;
+    if (!ctx?.enabled) return;
     if (layoutMeasureTimerRef.current != null) {
       clearTimeout(layoutMeasureTimerRef.current);
     }

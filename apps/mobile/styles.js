@@ -108,6 +108,17 @@ const styles = StyleSheet.create({
   },
 
   
+  discoveryRowImageWrapper: {
+    width: '100%',
+    aspectRatio: 0.72,
+    borderRadius: 18,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
+  },
+
+  
   discoveryWideImageWrapper: {
     aspectRatio: 2.15,
     borderRadius: 24,
@@ -1220,7 +1231,7 @@ const styles = StyleSheet.create({
     paddingBottom: 0,
     flexGrow: 1,
     backgroundColor: DARK_BG,
-    gap: 4,
+    gap: 20,
   },
 
   
@@ -1270,18 +1281,18 @@ const styles = StyleSheet.create({
   
     styleRowList: {
     paddingHorizontal: 16,
-    gap: 12,
+    gap: 10,
   },
 
   
     styleRowCard: {
-    width: 130,
+    width: 110,
   },
 
   
     styleRowSeeAllTile: {
-    width: 130,
-    borderRadius: 24,
+    width: 110,
+    borderRadius: 20,
     backgroundColor: DARK_CHIP,
     borderWidth: 1,
     borderColor: DARK_BORDER,
@@ -1299,7 +1310,7 @@ const styles = StyleSheet.create({
   
     styleRowSeeAllTileText: {
     fontFamily: FONT_PLUS_JAKARTA,
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
     color: PAPER,
     letterSpacing: -0.2,
@@ -2000,7 +2011,7 @@ const styles = StyleSheet.create({
 
   
     pwdPlansBottom: {
-    marginBottom: 10,
+    gap: 9,
   },
 
   
@@ -2035,20 +2046,20 @@ const styles = StyleSheet.create({
 
   
     pwdTierCardCompact: {
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    marginBottom: 6,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    marginBottom: 0,
   },
 
   
     pwdTierMetaCompact: {
-    marginTop: 2,
-    fontSize: 10.5,
+    marginTop: 3,
+    fontSize: 12,
   },
 
   
     pwdBottomBarCompact: {
-    paddingTop: 6,
+    paddingTop: 10,
   },
 
   
@@ -2430,7 +2441,7 @@ const styles = StyleSheet.create({
   
     pwdTierName: {
     fontFamily: FONT_PLUS_JAKARTA,
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: '700',
     color: '#FFFFFF',
     letterSpacing: -0.2,
@@ -2457,7 +2468,7 @@ const styles = StyleSheet.create({
   
     pwdTierBadgePopularText: {
     fontFamily: FONT_PLUS_JAKARTA,
-    fontSize: 8.5,
+    fontSize: 9.5,
     fontWeight: '800',
     color: '#FFFFFF',
     letterSpacing: 0.4,
@@ -2479,7 +2490,7 @@ const styles = StyleSheet.create({
   
     pwdTierBadgeCurrentText: {
     fontFamily: FONT_PLUS_JAKARTA,
-    fontSize: 8.5,
+    fontSize: 9.5,
     fontWeight: '800',
     color: '#10B981',
     letterSpacing: 0.4,
@@ -2495,7 +2506,7 @@ const styles = StyleSheet.create({
   
     pwdTierPrice: {
     fontFamily: FONT_PLUS_JAKARTA,
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '800',
     color: '#FFFFFF',
     letterSpacing: -0.2,
@@ -2509,7 +2520,7 @@ const styles = StyleSheet.create({
   
     pwdTierPriceUnit: {
     fontFamily: FONT_PLUS_JAKARTA,
-    fontSize: 10.5,
+    fontSize: 12,
     fontWeight: '600',
     color: 'rgba(255,255,255,0.55)',
     letterSpacing: -0.1,
@@ -2522,9 +2533,9 @@ const styles = StyleSheet.create({
 
   
     pwdTierRadio: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     borderWidth: 1.5,
     borderColor: 'rgba(255,255,255,0.30)',
     alignItems: 'center',
@@ -2545,16 +2556,16 @@ const styles = StyleSheet.create({
 
   
     pwdTierRadioDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     backgroundColor: '#FFFFFF',
   },
 
   
     pwdTierMeta: {
     fontFamily: FONT_PLUS_JAKARTA,
-    fontSize: 11.5,
+    fontSize: 12.5,
     fontWeight: '500',
     color: 'rgba(255,255,255,0.55)',
     marginTop: 4,
@@ -2569,9 +2580,9 @@ const styles = StyleSheet.create({
   
     pwdBottomBar: {
     paddingHorizontal: 20,
-    paddingTop: 6,
+    paddingTop: 10,
     backgroundColor: '#0B0F19',
-    gap: 6,
+    gap: 12,
   },
 
   
@@ -2604,15 +2615,19 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: 'rgba(255,255,255,0.5)',
     textAlign: 'center',
-    marginBottom: 8,
     letterSpacing: -0.05,
+  },
+
+    pwdFooterActionSlot: {
+    minHeight: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   
     pwdFooterLinksRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 8,
   },
 
   
@@ -2669,7 +2684,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     minHeight: 32,
     justifyContent: 'center',
-    marginBottom: 8,
   },
 
   

@@ -190,7 +190,7 @@ export default function SubscriptionScreen({
                     </Text>
                     {isCurrent ? (
                       <View style={[styles.pwdTierRadio, styles.pwdTierRadioCurrent]}>
-                        <Feather name="check" size={11} color="#FFFFFF" />
+                        <Feather name="check" size={12} color="#FFFFFF" />
                       </View>
                     ) : (
                       <View
@@ -219,25 +219,29 @@ export default function SubscriptionScreen({
         </View>
 
         {!showManageLink ? (
-          <Text style={styles.pwdFooterHint}>Cancel anytime.</Text>
+          <View style={styles.pwdFooterActionSlot}>
+            <Text style={styles.pwdFooterHint}>Cancel anytime.</Text>
+          </View>
         ) : (
-          <PressScale
-            onPress={onManageSubscription}
-            disabled={subscribeLoading}
-            style={styles.pwdManageLink}
-            hitSlop={{ top: 6, bottom: 6, left: 16, right: 16 }}
-          >
-            <Text
-              style={[
-                styles.pwdManageLinkText,
-                isCanceling && styles.pwdManageLinkTextCancel,
-              ]}
+          <View style={styles.pwdFooterActionSlot}>
+            <PressScale
+              onPress={onManageSubscription}
+              disabled={subscribeLoading}
+              style={styles.pwdManageLink}
+              hitSlop={{ top: 6, bottom: 6, left: 16, right: 16 }}
             >
-              {isCanceling
-                ? `Subscription canceling · manage in ${storeSubscriptionLabel}`
-                : `Manage or cancel in ${storeSubscriptionLabel}`}
-            </Text>
-          </PressScale>
+              <Text
+                style={[
+                  styles.pwdManageLinkText,
+                  isCanceling && styles.pwdManageLinkTextCancel,
+                ]}
+              >
+                {isCanceling
+                  ? `Subscription canceling · manage in ${storeSubscriptionLabel}`
+                  : `Manage or cancel in ${storeSubscriptionLabel}`}
+              </Text>
+            </PressScale>
+          </View>
         )}
         <PressScale
           onPress={() => onSubscribe(selectedTier)}

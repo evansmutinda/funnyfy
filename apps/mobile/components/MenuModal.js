@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react';
-import { BackHandler, Modal, Pressable, Text, View } from 'react-native';
+import { BackHandler, Modal, Platform, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import PressScale from './PressScale';
+import { configureAndroidNavigationBar } from '../utils/androidNavigationBar';
 import styles from '../styles';
 
 const ITEMS = [
@@ -21,6 +22,9 @@ export default function MenuModal({ visible, onClose, onSelect }) {
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
+    if (Platform.OS === 'android') {
+      configureAndroidNavigationBar();
+    }
     if (!visible) return undefined;
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
       onClose();
@@ -33,8 +37,11 @@ export default function MenuModal({ visible, onClose, onSelect }) {
     <Modal
       visible={visible}
       transparent
-      animationType="slide"
+      animationType="fade"
       onRequestClose={onClose}
+      onShow={() => {
+        if (Platform.OS === 'android') configureAndroidNavigationBar();
+      }}
     >
       <View style={styles.menuBackdrop}>
         <Pressable style={styles.menuDismissArea} onPress={onClose} accessibilityLabel="Close menu" />
