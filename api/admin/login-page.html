@@ -221,7 +221,7 @@
 
             try {
                 // Try relative URL first, fallback to absolute
-                const loginUrl = '/api/admin/login';
+                const loginUrl = '/api/admin?resource=login';
                 const fullUrl = `${API_BASE}${loginUrl}`;
                 console.log('Fetching:', fullUrl);
                 console.log('Body:', JSON.stringify({ userId }));
@@ -253,9 +253,9 @@
                     localStorage.setItem('admin_token', data.token);
                     showSuccess('Login successful! Redirecting...');
                     
-                    // Redirect to dashboard (we'll create this next)
+                    // Redirect to dashboard
                     setTimeout(() => {
-                        window.location.href = '/admin/dashboard.html';
+                        window.location.href = '/admin/dashboard';
                     }, 1000);
                 } else {
                     showError(data.error || data.message || 'Login failed');
@@ -298,7 +298,7 @@
                 const exp = payload.exp * 1000;
                 if (exp > Date.now()) {
                     // Token is valid, redirect to dashboard
-                    window.location.href = '/admin/dashboard.html';
+                    window.location.href = '/admin/dashboard';
                 }
             } catch (e) {
                 // Invalid token, clear it

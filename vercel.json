@@ -22,11 +22,11 @@
   "rewrites": [
     {
       "source": "/admin/login",
-      "destination": "/login.html"
+      "destination": "/api/admin?page=login"
     },
     {
       "source": "/admin/dashboard",
-      "destination": "/dashboard.html"
+      "destination": "/api/admin?page=dashboard"
     }
   ]
 }

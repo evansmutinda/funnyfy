@@ -2,7 +2,7 @@
 // All admin operations go through this single function to stay within
 // the Hobby plan's serverless function limit.
 //
-//   GET  /api/admin?resource=login    (POST actually)
+//   GET  /api/admin?page=login|dashboard   (admin UI HTML)
 //   POST /api/admin?resource=login          { userId }
 //   GET  /api/admin?resource=stats
 //   GET  /api/admin?resource=queue-stats
@@ -13,6 +13,8 @@
 //   POST /api/admin?resource=jobs&action=retry|cancel
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import fs from 'fs';
+import path from 'path';
 import jwt from 'jsonwebtoken';
 import { query } from '../_utils/db';
 import { applyMiddleware } from '../_utils/middleware';
@@ -36,10 +38,37 @@ function currentMonthDate(): string {
   return new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10);
 }
 
+const ADMIN_PAGE_FILES: Record<string, string> = {
+  login: 'login-page.html',
+  dashboard: 'dashboard.html',
+};
+
+function serveAdminPage(res: VercelResponse, page: string): boolean {
+  const fileName = ADMIN_PAGE_FILES[page];
+  if (!fileName) return false;
+  try {
+    const html = fs.readFileSync(path.join(__dirname, fileName), 'utf8');
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+    res.status(200).send(html);
+    return true;
+  } catch (err) {
+    console.error('[admin] page serve failed:', page, err);
+    safeErrorResponse(res, 500, 'PAGE_ERROR', 'Admin page not available');
+    return true;
+  }
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!applyMiddleware(req, res, ['GET', 'POST', 'OPTIONS'])) return;
 
   const resource = (req.query.resource as string) || '';
+  const page = (req.query.page as string) || '';
+
+  if (req.method === 'GET' && page && !resource) {
+    serveAdminPage(res, page);
+    return;
+  }
 
   // ── LOGIN (no auth required) ───────────────────────────────────────────────
   if (resource === 'login') {
