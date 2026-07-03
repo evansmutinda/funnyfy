@@ -62,11 +62,22 @@ $env:JAVA_HOME = "C:\Program Files\Java\jdk-17"
 
 ---
 
-## Release builds (later)
+## Release builds (EAS)
 
-- Set `SENTRY_AUTH_TOKEN` in EAS / CI for source map upload
-- Use separate Sentry environments or projects for staging vs production
-- Do **not** attach photos, base64, or JWTs (`beforeSend` scrubs sensitive headers)
+Release builds auto-upload source maps via the `@sentry/react-native/expo` plugin. **You must set `SENTRY_AUTH_TOKEN` as an EAS secret** or Gradle fails during `createBundleReleaseJsAndAssets_SentryUpload_*`.
+
+1. Sentry → **Settings** → **Auth Tokens** → create token (`project:releases`, `org:read`)
+2. From `apps/mobile`:
+
+```bash
+eas secret:create --scope project --name SENTRY_AUTH_TOKEN --value "YOUR_TOKEN" --type string
+```
+
+3. Re-run `eas build --platform android --profile production`
+
+`SENTRY_ORG` / `SENTRY_PROJECT` are in `eas.json`. Also add `EXPO_PUBLIC_SENTRY_DSN`, `EXPO_PUBLIC_SENTRY_ENV`, and `EXPO_PUBLIC_SENTRY_ENABLED` as EAS secrets so runtime error reporting works in release APKs/AABs.
+
+**Temporary:** set `SENTRY_DISABLE_AUTO_UPLOAD=true` in the build profile `env` to skip uploads (build passes, stack traces stay minified in Sentry).
 
 ---
 

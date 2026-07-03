@@ -88,6 +88,27 @@ eas secret:create --scope project --name EXPO_PUBLIC_REVENUECAT_ANDROID_KEY --va
 eas secret:create --scope project --name EXPO_PUBLIC_REVENUECAT_IOS_KEY --value "prod_ios_key" --type string --environment production
 ```
 
+### Sentry source maps (required for EAS release builds)
+
+Release builds upload source maps via `sentry-cli` during Gradle. Without an auth token the build fails with:
+
+`Auth token is required for this request`
+
+1. Sentry → **Settings** → **Auth Tokens** → Create token with scopes `project:releases` and `org:read`
+2. Add as an EAS secret (project scope, all environments):
+
+```bash
+eas secret:create --scope project --name SENTRY_AUTH_TOKEN --value "YOUR_SENTRY_AUTH_TOKEN" --type string
+```
+
+`SENTRY_ORG` and `SENTRY_PROJECT` are set in `eas.json` (`funnyfy` / `react-native`). Also set `EXPO_PUBLIC_SENTRY_DSN` (and related `EXPO_PUBLIC_SENTRY_*` vars) as EAS secrets if not already — see `To do/SENTRY_INTEGRATION.md`.
+
+**Temporary workaround** (build succeeds but no source maps in Sentry): add to the build profile in `eas.json`:
+
+```json
+"env": { "SENTRY_DISABLE_AUTO_UPLOAD": "true" }
+```
+
 **Note:** EAS secrets are automatically injected into your builds. For staging, use the `development` or `preview` build profiles. For production, use the `production` profile.
 
 ## Getting Your RevenueCat Keys

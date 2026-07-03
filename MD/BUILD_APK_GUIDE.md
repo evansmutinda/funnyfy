@@ -172,7 +172,7 @@ Required variables:
 | JDK errors | Install JDK 17; set `JAVA_HOME` |
 | SDK not found | Install Android SDK via Android Studio |
 | Release build fails | Use `assembleDebug` for testing |
-| EAS quota exhausted | Use **Option A** (local build) |
+| EAS build fails on Sentry upload | Add `SENTRY_AUTH_TOKEN` EAS secret — see `apps/mobile/README-ENV.md` |
 | Wrong API in APK | Update `.env` and rebuild |
 
 ---

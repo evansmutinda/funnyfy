@@ -10,11 +10,19 @@
     },
     "preview": {
       "distribution": "internal",
+      "env": {
+        "SENTRY_ORG": "funnyfy",
+        "SENTRY_PROJECT": "react-native"
+      },
       "android": {
         "buildType": "apk"
       }
     },
     "production": {
+      "env": {
+        "SENTRY_ORG": "funnyfy",
+        "SENTRY_PROJECT": "react-native"
+      },
       "android": {
         "buildType": "app-bundle"
       }
