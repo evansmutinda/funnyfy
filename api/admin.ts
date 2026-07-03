@@ -16,16 +16,22 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import fs from 'fs';
 import path from 'path';
 import jwt from 'jsonwebtoken';
-import { query } from '../_utils/db';
-import { applyMiddleware } from '../_utils/middleware';
-import { safeErrorResponse, verifyJWT, getClientIp } from '../_utils/security';
-import { getQueueStats } from '../_utils/queue-stats';
-import { getTodaySpending, getSpendingStats, shouldPauseQueue } from '../_utils/cost-protection';
-import { getRecentSecurityEvents, logSecurityEvent } from '../_utils/security-logging';
-import { checkAdminLoginRateLimit } from '../_utils/ratelimit';
+import { query } from './_utils/db';
+import { applyMiddleware } from './_utils/middleware';
+import { safeErrorResponse, verifyJWT, getClientIp } from './_utils/security';
+import { getQueueStats } from './_utils/queue-stats';
+import { getTodaySpending, getSpendingStats, shouldPauseQueue } from './_utils/cost-protection';
+import { getRecentSecurityEvents, logSecurityEvent } from './_utils/security-logging';
+import { checkAdminLoginRateLimit } from './_utils/ratelimit';
 
 const JWT_SECRET = process.env.JWT_SECRET || process.env.AUTH_SECRET;
 const ADMIN_USER_IDS = (process.env.ADMIN_USER_IDS || '').split(',').filter(Boolean);
+const ADMIN_PAGES_DIR = path.join(__dirname, '_utils', 'admin-pages');
+
+const ADMIN_PAGE_FILES: Record<string, string> = {
+  login: 'login-page.html',
+  dashboard: 'dashboard.html',
+};
 
 function requireAdminAuth(req: VercelRequest): string | null {
   const authHeader = req.headers['authorization'];
@@ -38,16 +44,11 @@ function currentMonthDate(): string {
   return new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10);
 }
 
-const ADMIN_PAGE_FILES: Record<string, string> = {
-  login: 'login-page.html',
-  dashboard: 'dashboard.html',
-};
-
 function serveAdminPage(res: VercelResponse, page: string): boolean {
   const fileName = ADMIN_PAGE_FILES[page];
   if (!fileName) return false;
   try {
-    const html = fs.readFileSync(path.join(__dirname, fileName), 'utf8');
+    const html = fs.readFileSync(path.join(ADMIN_PAGES_DIR, fileName), 'utf8');
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
     res.status(200).send(html);
