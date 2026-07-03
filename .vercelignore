@@ -3,7 +3,6 @@ admin/
 _archive/
 MD/
 ToDo/
-public/
 scripts/
 build-apk-local.ps1
 build-apk.ps1
