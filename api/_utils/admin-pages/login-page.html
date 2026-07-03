@@ -177,6 +177,20 @@
         const errorDiv = document.getElementById('error');
         const successDiv = document.getElementById('success');
 
+        const ERROR_MESSAGES = {
+            ACCESS_DENIED: 'This user ID is not authorized for admin access. Add it to ADMIN_USER_IDS in Vercel (funnyfy-staging project), then redeploy.',
+            INVALID_CREDENTIALS: 'User ID not found in the database. Open the app once against staging so your account is created, or use an ID from the staging database.',
+            RATE_LIMITED: 'Too many login attempts. Wait 15 minutes and try again.',
+            AUTH_CONFIG_ERROR: 'Server auth is not configured (JWT_SECRET missing on Vercel).',
+            INVALID_USER_ID: 'User ID must be a valid UUID (e.g. d0f0c851-fdd8-4b9b-a1bd-b942d9160638).',
+        };
+
+        function formatError(data, status) {
+            const code = data?.error || '';
+            if (ERROR_MESSAGES[code]) return ERROR_MESSAGES[code];
+            return data?.message || code || `Error: ${status}`;
+        }
+
         function showError(message) {
             errorDiv.textContent = message;
             errorDiv.classList.add('show');
@@ -241,7 +255,7 @@
                 // Check if response is ok
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-                    showError(errorData.error || errorData.message || `Error: ${response.status} ${response.statusText}`);
+                    showError(formatError(errorData, response.status));
                     setLoading(false);
                     return;
                 }
@@ -258,7 +272,7 @@
                         window.location.href = '/admin/dashboard';
                     }, 1000);
                 } else {
-                    showError(data.error || data.message || 'Login failed');
+                    showError(formatError(data, 0) || 'Login failed');
                     setLoading(false);
                 }
             } catch (err) {
