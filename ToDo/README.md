@@ -1,6 +1,6 @@
 # ToDo
 
-Single backlog folder for FunnyFy. (Previously split across `ToDo/` and `To do/` — merged July 2026.)
+Actionable backlog for FunnyFy — integration checklists, deferred security, and setup guides.
 
 | File | Topic |
 |------|--------|
@@ -13,4 +13,4 @@ Single backlog folder for FunnyFy. (Previously split across `ToDo/` and `To do/`
 | [ENTRY_INTEGRATION.md](./ENTRY_INTEGRATION.md) | App entry / navigation integration notes |
 | [COMPARISON_ASSETS.md](./COMPARISON_ASSETS.md) | Style tile before/after comparison assets |
 
-**Canonical docs:** `MD/STATUS.md`, `MD/DISASTER_RECOVERY.md`, `MD/SECURITY_AUDIT.md`
+**Canonical docs:** `MD/STATUS.md`, `MD/FUNNYFY_FLOW.md`, `MD/DISASTER_RECOVERY.md`, `MD/SECURITY_AUDIT.md`

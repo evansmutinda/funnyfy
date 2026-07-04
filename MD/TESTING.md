@@ -6,7 +6,7 @@
 |-------------|-----|
 | Staging | `https://funnyfy-staging.vercel.app` |
 | Production | `https://funnyfyapp.vercel.app` |
-| Admin | `<env-url>/admin/login` |
+| Admin | `<env-url>/admin/login` — setup: `ToDo/ADMIN_DASHBOARD_SETUP.md` |
 
 **Note**: The mobile app `.env` file sets which backend it connects to. Default for testing is staging.
 
@@ -286,6 +286,26 @@ Real errors (e.g. failed generation) appear via `captureAppError` in `App.js`.
 
 ---
 
+## Admin dashboard
+
+**URL:** `https://funnyfy-staging.vercel.app/admin/login` (staging) or production `/admin/login`
+
+**Setup:** `ADMIN_USER_IDS` in Vercel + user UUID — see `ToDo/ADMIN_DASHBOARD_SETUP.md`
+
+**Smoke test**
+1. Log in with admin user UUID → lands on Overview
+2. Open **Finance** — MRR, cost MTD, tier economics, model costs load
+3. Open **Growth** — MAU, ARR, churn rate load
+4. Toggle **USD / KES** — money figures convert
+5. **Users** — search, open user panel
+6. **Jobs** — list loads; retry/cancel on failed job (optional)
+
+**API resources** (Bearer admin JWT): `stats`, `finance`, `growth`, `queue-stats`, `users`, `jobs`, `moderation`, `security-logs`, `exchange-rate`
+
+**Architecture:** `MD/FUNNYFY_FLOW.md` · diagrams: `MD/FUNNYFY_FLOW.html`
+
+---
+
 ## Troubleshooting
 
 | Symptom | Fix |
@@ -328,6 +348,7 @@ Real errors (e.g. failed generation) appear via `captureAppError` in `App.js`.
 - [ ] Offline banner shows in airplane mode; Generate disabled on Upload
 - [ ] Back online: banner clears; styles/subscription refresh
 - [ ] Sentry receives events (staging) — see **Sentry** section above
+- [ ] Admin login works; Finance + Growth pages show data (`ToDo/ADMIN_DASHBOARD_SETUP.md`)
 
 ---
 

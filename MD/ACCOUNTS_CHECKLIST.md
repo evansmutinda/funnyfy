@@ -90,12 +90,13 @@ Version: see `MD/STATUS.md`
 
 | Item | URL / path | Note |
 |------|------------|------|
-| Admin dashboard | `https://funnyfy-staging.vercel.app/admin/login` | Staging only for now |
+| Admin dashboard | `https://funnyfy-staging.vercel.app/admin/login` | Finance, Growth, Users, Jobs — see `ToDo/ADMIN_DASHBOARD_SETUP.md` |
+| System flowcharts | `MD/FUNNYFY_FLOW.html` | Architecture reference |
 | API base (staging) | `https://funnyfy-staging.vercel.app` | Default for dev |
 | API base (production) | `https://funnyfyapp.vercel.app` | Verify env before release |
 | Error monitoring | — | ⬜ Add at launch (Vercel / Supabase alerts) |
 
-See also: `MD/STATUS.md` (admin at `/admin/login`), `MD/JWT_AUTHENTICATION.md`, set `ADMIN_USER_IDS` in Vercel
+See also: `MD/STATUS.md`, `ToDo/ADMIN_DASHBOARD_SETUP.md`, `MD/FUNNYFY_FLOW.md`, set `ADMIN_USER_IDS` in Vercel
 
 ---
 

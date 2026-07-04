@@ -7,6 +7,10 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Admin Finance page** — MRR, generation costs by model/tier, trial spend, USD/KES toggle (`api/admin.ts?resource=finance`)
+- **Admin Growth page** — MAU, total users, MRR, ARR, churn + 6-month trends (`api/admin.ts?resource=growth`)
+- **`MD/FUNNYFY_FLOW.md`** + **`MD/FUNNYFY_FLOW.html`** + **`MD/diagrams/`** — system flowcharts (rendered SVG/PNG)
+- **Per-job generation cost** — `jobs.cost_usd`, `jobs.model_version`, `api/migrations-job-cost.sql`
 - **`pixel` style** — cartoons category, model `bytedance/seedream-4.5`, prompt `make this a pixel cartoon`, curated comparison pair (`lady15.png` → `pixel.jpg`)
 - **`comic-v1` style** — cartoons category, model `black-forest-labs/flux-kontext-pro`, prompt `make this a Comic Book Style cartoon`, curated comparison pair (`man7.png` → `comic-v1.jpg`)
 - **`comic-v2` style** — cartoons category, model `bytedance/seedream-4.5`, prompt `make this a Comic Book Style cartoon`, curated comparison pair (`man7.png` → `comic-v2.jpg`)
@@ -15,11 +19,21 @@ All notable changes to this project will be documented in this file.
 - **`MD/PROMPTS.md`** — generated prompts reference from `api/_utils/styles-config.ts`
 
 ### Changed
+- **Admin dashboard** — dark theme; consolidated `api/admin.ts` + `api/_utils/admin-pages/` (Overview, Finance, Growth, Users, Jobs, Queue, Moderation, Security)
+- **ToDo backlog** — merged `To do/` into single `ToDo/` folder; updated cross-references
+- **Documentation** — `MD/SECURITY_AUDIT.md` paths fixed (`api/admin.ts`); stale admin/archive references removed
 - **Content moderation UX (v1.0.74)** — softer policy dialog; E005/Replicate rejections surfaced as content blocks; `contentPolicyBlocked` + `infringementCount` on GET `/api/job`; local violation log + Sentry info events
 - **Style picker row focus** — all sufficiently visible rows animate (no alternate-row skip)
 - **Comparison asset layout** — originals under `apps/mobile/assets/comparisons/source/`; bundled app uses generated `tiles/` (~400px) and `hero/` (~832px) only
 - **Style picker thumbnails** — static `after` tile images via `getStyleImage()` (fixes Android decoder exhaustion / missing comic tiles)
 - **Documentation versioning** — `README.md`, `MD/STATUS.md`, `MD/STYLES.md` reference `apps/mobile/version.json` instead of hardcoded semver; semver policy in `MD/TESTING.md`
+
+### Removed
+- **`_archive/`** — superseded API copies (history in git)
+- **`admin/`** — unused Next.js admin app (live UI is `api/_utils/admin-pages/`)
+- **`public/login.html`**, **`public/dashboard.html`** — old admin HTML
+- **`api/_utils/admin-auth.ts`**, **`apps/mobile/api/test.ts`** — unused
+- **`CREATE_ADMIN_USER.txt`**, **`scripts/create-admin-user.*`**, **`scripts/test-cancel-renew.ps1`**, **`scripts/test-subscription-flow.ps1`** — pointed at removed endpoints
 
 ---
 
@@ -211,7 +225,7 @@ All notable changes to this project will be documented in this file.
 - **`PhotoChooserScreen.js`** — unused; gallery pick uses OS picker from Upload/Review.
 - **`processPickedImage.js`**, **`apps/mobile/api/test.ts`** — dead code.
 - **`SplashScreen.js`** (in-app JS splash with 2s timer) — replaced by native splash + `expo-splash-screen`.
-- `ToDo/` folder (architectural plans from 2025 — superseded by `MD/STATUS.md`, `MD/DEVELOPMENT_PLAN.md`, and `MD/CHANGELOG.md`). Splash deferral notes live in **`ToDo/SPLASH_ASSET.md`**.
+- `ToDo/` backlog folder — integration checklists + security deferred items (see `ToDo/README.md`). Splash deferral: **`ToDo/SPLASH_ASSET.md`**.
 
 ### Deprecated (superseded — kept in git history only)
 - Earlier **[Unreleased]** notes describing `react-native-image-crop-picker` for dev/APK — replaced by `expo-image-picker` in all builds.

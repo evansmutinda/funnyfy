@@ -48,6 +48,10 @@ This document outlines the development plan and current status of FunnyFy — a 
   - `POST /api/auth/token` – JWT auth (creates user in Supabase, issues token)
   - `POST /api/cancel-subscription` – cancel active subscription
   - `POST /api/webhooks/revenuecat` – RevenueCat event handler
+  - `GET/POST /api/admin?resource=…` – Admin API (stats, finance, growth, users, jobs, moderation, security-logs, queue-stats)
+  - `GET /api/admin?page=login|dashboard` – Admin UI HTML/JS
+  - `GET /api/health` – Public uptime check
+  - `GET /api/db-test` – DB connectivity (requires `CRON_SECRET`)
 
 ### 1.2 Mobile App
 - **Framework**: React Native (Expo SDK 52)
@@ -133,7 +137,7 @@ Key tables:
 - Full Privacy Policy & Terms in-app
 - Restore Purchases + Refresh buttons
 - Subscription cancellation (production-ready)
-- Admin dashboard
+- **Admin dashboard** — `api/admin.ts` + `api/_utils/admin-pages/` (Overview, Finance, Growth, Users, Jobs, Queue, Moderation, Security)
 - **Mobile UI polish (v1.0.3–1.0.4)**: MediaTile tiles, two-level categories, restyle flow, subscription marquee, auto versioning, offline UX
 - versionCode: 5
 

@@ -16,6 +16,8 @@ Transform photos into caricatures across **160 catalog styles** (enabled count i
 | Staging API | https://funnyfy-staging.vercel.app |
 | Production API | https://funnyfyapp.vercel.app |
 | Health check | `GET /api/health` |
+| Admin (staging) | `https://funnyfy-staging.vercel.app/admin/login` |
+| System flowcharts | [`MD/FUNNYFY_FLOW.html`](MD/FUNNYFY_FLOW.html) |
 | Current status | [`MD/STATUS.md`](MD/STATUS.md) |
 | Testing guide | [`MD/TESTING.md`](MD/TESTING.md) |
 | Local APK build | [`MD/BUILD_APK_GUIDE.md`](MD/BUILD_APK_GUIDE.md) |
@@ -27,8 +29,10 @@ Transform photos into caricatures across **160 catalog styles** (enabled count i
 ```
 apps/mobile/     React Native app (Expo SDK 52)
 api/             Vercel serverless functions (TypeScript)
+api/_utils/admin-pages/   Admin dashboard HTML/JS (served via api/admin.ts)
 MD/              Documentation
-ToDo/            Backlog & deferred security items
+ToDo/            Backlog & integration checklists
+scripts/         Build/catalog utilities (see MD/ADDING_MORE_STYLES_GUIDE.md)
 build-apk-local.ps1   Local debug APK (no EAS quota)
 ```
 
@@ -82,7 +86,7 @@ Deploy via Vercel. See `MD/ENV_SETUP.md` and `MD/SETUP_VERCEL_ENV.md` for enviro
 - Gallery (**`DCIM/Funnyfy`** saves), save/share, restyle from result
 - RevenueCat paywall + backend subscription sync
 - Offline banner + generate guards
-- Admin dashboard, cron queue worker, webhook idempotency
+- Admin dashboard (Overview, Finance, Growth, Users, Jobs, Queue, Moderation, Security)
 - Infra: `/api/health`, CI typecheck, disaster recovery runbook
 
 ---
@@ -98,6 +102,9 @@ Deploy via Vercel. See `MD/ENV_SETUP.md` and `MD/SETUP_VERCEL_ENV.md` for enviro
 | [`MD/DEVELOPMENT_PLAN.md`](MD/DEVELOPMENT_PLAN.md) | Architecture & phases |
 | [`MD/SECURITY_AUDIT.md`](MD/SECURITY_AUDIT.md) | Security findings |
 | [`MD/DISASTER_RECOVERY.md`](MD/DISASTER_RECOVERY.md) | RTO/RPO & runbooks |
+| [`MD/FUNNYFY_FLOW.md`](MD/FUNNYFY_FLOW.md) | **System architecture & flowcharts** ⭐ |
+| [`MD/FUNNYFY_FLOW.html`](MD/FUNNYFY_FLOW.html) | **Rendered diagrams (open in browser)** |
+| [`ToDo/README.md`](../ToDo/README.md) | Backlog & integration checklists |
 | [`ToDo/SENTRY_INTEGRATION.md`](ToDo/SENTRY_INTEGRATION.md) | Mobile Sentry setup (live) |
 | [`ToDo/security-deferred.md`](ToDo/security-deferred.md) | Remaining hardening backlog |
 

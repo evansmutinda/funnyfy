@@ -1,6 +1,6 @@
 # Disaster recovery & operations
 
-**Last updated:** June 2026  
+**Last updated:** July 2026  
 **Scope:** FunnyFy API (Vercel) + Supabase Postgres + mobile app (Expo)
 
 ---
@@ -20,7 +20,7 @@ Adjust after you confirm Supabase backup settings in the dashboard.
 
 | Component | Provider | Recovery lever |
 |-----------|----------|----------------|
-| API / admin static HTML | Vercel | Redeploy or **Promote** previous deployment |
+| API + admin UI (`api/admin.ts`, `api/_utils/admin-pages/`) | Vercel | Redeploy or **Promote** previous deployment |
 | Postgres | Supabase | Dashboard backup / restore / PITR |
 | Job queue worker | cron-job.org → `/api/cron/process-queue` | Re-enable cron; check `CRON_SECRET` |
 | AI generation | Replicate | No local queue persistence beyond `jobs` table |

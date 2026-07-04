@@ -275,34 +275,46 @@
 
 ## 📊 Admin Dashboard Testing
 
+**Entry:** `<env-url>/admin/login` · **Setup:** `ToDo/ADMIN_DASHBOARD_SETUP.md` · **Flow reference:** `MD/FUNNYFY_FLOW.md`
+
 ### Dashboard Access
-- [ ] Access admin login page
-- [ ] Login with valid admin credentials
-- [ ] Verify JWT token issued and stored
-- [ ] Access protected admin endpoints
-- [ ] Verify logout works correctly
+- [ ] Open `/admin/login` (dark theme)
+- [ ] Login with UUID in `ADMIN_USER_IDS`
+- [ ] JWT stored in `localStorage`; Overview loads
+- [ ] Sign out clears session
 
-### Queue Stats Viewing
-- [ ] View queue statistics
-  - [ ] Verify pending count is accurate
-  - [ ] Verify processing count is accurate
-  - [ ] Verify completed/failed counts are accurate
-  - [ ] Verify priority breakdown is accurate
-  - [ ] Verify average wait time is displayed
-- [ ] Refresh stats and verify updates
+### Overview
+- [ ] User/job/MRR stats match expectations
+- [ ] Tier breakdown table populates
+- [ ] Jobs last 7 days trend loads
+- [ ] Alerts show when queue paused or spend high
 
-### Security Logs Viewing
-- [ ] View security logs
-  - [ ] Verify recent events are displayed
-  - [ ] Verify filtering works (if implemented)
-  - [ ] Verify pagination works (if implemented)
-  - [ ] Verify event details are shown correctly
+### Finance
+- [ ] MRR, cost MTD, est. net display
+- [ ] Tier economics table (trial cost called out)
+- [ ] Model cost breakdown MTD
+- [ ] USD/KES toggle converts figures
+- [ ] 7d / 30d spend tables load
 
-### User Management (if implemented)
-- [ ] View user list
-- [ ] View user details
-- [ ] Search/filter users
-- [ ] View user subscription history
+### Growth
+- [ ] MAU, total users, MRR, ARR, churn rate display
+- [ ] 6-month MAU / signup / churn trends load
+- [ ] Active subs by tier table matches Finance
+
+### Users & Jobs
+- [ ] User search, filter by tier/status
+- [ ] User panel: ban, quota, tier actions (staging)
+- [ ] Jobs list paginates; retry failed job; cancel pending job
+
+### Queue & Security
+- [ ] Queue page: pending/processing, spend vs cap
+- [ ] Security logs: recent auth/rate-limit events
+- [ ] Moderation: infringements list
+
+### API spot-check (optional)
+- [ ] `GET /api/admin?resource=stats` with Bearer token
+- [ ] `GET /api/admin?resource=finance`
+- [ ] `GET /api/admin?resource=growth`
 
 ---
 

@@ -79,11 +79,12 @@ FunnyFy is a React Native mobile application that transforms user photos into AI
 - ✅ **JWT auth** (`/api/auth/token`)
 - ✅ **NSFW moderation** (Sightengine) in `api/process-job.ts`
 - ✅ **Image upload validation** in `api/enqueue.ts`
-- ✅ **Admin dashboard** (`/admin/login`)
+- ✅ **Admin dashboard** (`/admin/login`) — dark UI via `api/_utils/admin-pages/`; pages: Overview, Finance, Growth, Users, Jobs, Queue, Moderation, Security; API `GET/POST /api/admin?resource=…`
 
 ### Database (Supabase)
-- ✅ `users`, `subscriptions`, `usage_tracking`, `job_usage_credits`, `jobs`
+- ✅ `users`, `subscriptions`, `usage_tracking`, `job_usage_credits`, `jobs` (incl. `cost_usd`, `model_version` for Finance)
 - ✅ `rate_limits`, `infringements`, `subscription_history`, `cost_tracking`, `security_logs`
+- ⬜ Run `api/migrations-job-cost.sql` on staging/prod if Finance cost columns missing
 
 ### Styles — Enabled (30)
 
@@ -99,7 +100,17 @@ Full table (ids, models, comparison pairs, deploy steps): **`MD/STYLES.md`**
 
 ---
 
-## 📱 Recent Changes (June 2026)
+## 📱 Recent Changes
+
+### July 2026
+| Change | Description |
+|--------|-------------|
+| **Admin Finance + Growth** | MRR/ARR, MAU, churn, per-model gen costs, USD/KES toggle |
+| **Repo cleanup** | Removed `_archive/`, legacy `admin/` Next app, obsolete scripts |
+| **Flow docs** | `MD/FUNNYFY_FLOW.md` + rendered diagrams |
+| **ToDo merge** | Single `ToDo/` backlog folder |
+
+### June 2026
 
 | Change | Description |
 |--------|-------------|

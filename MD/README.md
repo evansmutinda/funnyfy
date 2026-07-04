@@ -31,6 +31,9 @@ FunnyFy is a React Native mobile app (Android & iOS) that transforms user photos
 - `api/_utils/style-catalog.ts` - Full catalog from spreadsheet
 - `scripts/generate-style-catalog.py` - Regenerate catalog from xlsx
 - `api/` - Vercel serverless functions
+- `api/_utils/admin-pages/` - Admin dashboard UI (HTML/JS; served by `api/admin.ts`)
+- `api/admin.ts` - Consolidated admin API + page router
+- `ToDo/` - Backlog, integration checklists, deferred security items
 - `build-apk.ps1` - EAS cloud APK build (`apps/mobile/`)
 - `build-apk-local.ps1` - Local Gradle APK build (repo root)
 - `MD/` - Development documentation
@@ -56,6 +59,15 @@ FunnyFy is a React Native mobile app (Android & iOS) that transforms user photos
 | `REVENUECAT_SETUP.md` | RevenueCat SDK + webhook |
 | `SECURITY_AUDIT.md` | Security audit findings + checklist |
 | `SECURITY.md` | Security implementation reference |
+| `ToDo/README.md` | Backlog index (integration + security deferred) |
+
+## Repo layout (docs only)
+
+| Path | Purpose |
+|------|---------|
+| `MD/` | Canonical documentation |
+| `ToDo/` | Actionable backlog & setup checklists |
+| `scripts/` | Style catalog, comparison assets, env helpers |
 
 ## Current Status
 
@@ -72,7 +84,7 @@ FunnyFy is a React Native mobile app (Android & iOS) that transforms user photos
 - ✅ Before/after compare on result (no Before/After badges); **Try another style** restyle flow; **Try another photo** on result
 - ✅ Menu **Contact us**, **Share app**, **Request a style**; Gallery, save/share, toast notifications (`warning` = orange for offline), ConfirmDialog
 - ✅ RevenueCat subscriptions + backend sync
-- ✅ Usage quota, NSFW moderation, JWT auth, admin dashboard
+- ✅ Usage quota, NSFW moderation, JWT auth, **admin dashboard** (Finance, Growth, dark theme)
 - ✅ **Auto versioning** on local/EAS builds
 - ✅ **Sentry** mobile error tracking (staging)
 - ✅ **Offline UX**: orange global overlay banner; gallery/styles browse offline; generation blocked until online
@@ -99,7 +111,9 @@ Use a **local debug APK** (`.\build-apk-local.ps1`) instead of **Expo Go** when 
 ### Backend
 - **Staging**: `https://funnyfy-staging.vercel.app`
 - **Production**: `https://funnyfyapp.vercel.app`
+- **Admin**: `<env-url>/admin/login` — see `ToDo/ADMIN_DASHBOARD_SETUP.md`
 - **Styles API**: `GET /api/styles` returns enabled styles + `categories`
+- **Architecture**: `MD/FUNNYFY_FLOW.md` (diagrams: `MD/FUNNYFY_FLOW.html`)
 
 ### Pricing
 - Starter $5 / Popular $10 / Pro $25 per month

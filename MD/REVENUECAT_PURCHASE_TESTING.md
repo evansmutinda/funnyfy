@@ -80,7 +80,7 @@ curl -X POST https://funnyfy-staging.vercel.app/api/sync-subscription \
 
 Then refresh subscription in the app.
 
-> **Note:** The archived `/api/test-revenuecat-webhook` endpoint is not active. Use `/api/sync-subscription` or the live webhook.
+> **Note:** Legacy test webhook scripts and `/api/test-revenuecat-webhook` were removed. Use `/api/sync-subscription`, RevenueCat sandbox purchases, or the live webhook.
 
 ### Method 3: Manual Database Update (For Debugging)
 

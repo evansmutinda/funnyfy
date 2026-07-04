@@ -131,7 +131,7 @@ DAILY_SPENDING_CAP=100
 - [x] HTTPS enforcement (mobile)
 - [x] Rate limiting
 - [x] Security logging (Supabase security_logs table)
-- [ ] JWT token generation for admin (in progress)
+- [x] Admin dashboard auth (JWT via `/api/admin?resource=login`, `ADMIN_USER_IDS` allowlist, rate limiting)
 - [ ] Redis-based rate limiting (planned)
 - [ ] Formal security audit (pre-launch)
 
@@ -149,4 +149,4 @@ DAILY_SPENDING_CAP=100
 
 ---
 
-**Last Updated**: June 2026
+**Last Updated**: July 2026

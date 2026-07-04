@@ -13,6 +13,9 @@ PostgreSQL schema for FunnyFy (Supabase / Vercel Postgres). Run migrations in or
 5. `api/migrations-infringements.sql` — Infringements + user bans
 6. `api/migrations-pending-tier.sql` — Pending tier for deferred plan changes
 7. `api/migrations/004-job-usage-credits.sql` — Idempotent per-job usage credits (also in `migrations-master.sql`)
+8. `api/migrations-job-cost.sql` — `jobs.cost_usd`, `jobs.model_version`, cost_tracking unique index
+
+**Full reference:** `api/migrations-master.sql`
 
 ---
 
@@ -117,6 +120,8 @@ Image generation jobs (queue).
 | `created_at` | TIMESTAMPTZ | DEFAULT NOW() | |
 | `started_at` | TIMESTAMPTZ | | |
 | `completed_at` | TIMESTAMPTZ | | |
+| `cost_usd` | NUMERIC(10,6) | NOT NULL, DEFAULT 0 | Replicate cost snapshot (failed = 0) |
+| `model_version` | VARCHAR(255) | | Replicate model used for billing |
 
 **Indexes:**  
 - `idx_jobs_status_priority` on `(status, priority DESC, created_at)`  
