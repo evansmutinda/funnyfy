@@ -11,6 +11,7 @@
   const PAGE_TITLES = {
     overview: 'Overview',
     finance: 'Finance',
+    growth: 'Growth',
     users: 'Users',
     jobs: 'Jobs',
     queue: 'Queue',
@@ -21,6 +22,7 @@
   const LOADERS = {
     overview: loadOverview,
     finance: loadFinance,
+    growth: loadGrowth,
     users: loadUsers,
     jobs: loadJobs,
     queue: loadQueue,
@@ -33,6 +35,7 @@
   let fxAsOf = '';
   let fxSource = '';
   let lastFinanceData = null;
+  let lastGrowthData = null;
   let lastOverviewStats = null;
   let lastOverviewQueue = null;
   let lastQueueData = null;
@@ -112,6 +115,7 @@
       refreshOverviewAlerts();
     }
     if (lastFinanceData) renderFinance(lastFinanceData);
+    if (lastGrowthData) renderGrowth(lastGrowthData);
     if (lastQueueData) renderQueueMoney(lastQueueData);
   }
 
@@ -343,6 +347,146 @@
       });
     }
     renderAlerts('overview-alerts', alerts);
+  }
+
+  function fmtPct(n, decimals) {
+    const v = Number(n) || 0;
+    const d = decimals == null ? 1 : decimals;
+    return v.toFixed(d) + '%';
+  }
+
+  function fmtMonth(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso + (iso.length === 10 ? 'T00:00:00' : ''));
+    if (isNaN(d.getTime())) return iso.slice(0, 7);
+    return d.toLocaleString(undefined, { month: 'short', year: 'numeric' });
+  }
+
+  // ── Growth ────────────────────────────────────────────────────────────────
+  async function loadGrowth() {
+    try {
+      const d = await apiFetch('/api/admin?resource=growth');
+      if (!d.ok) return;
+
+      if (d.meta && d.meta.exchange && d.meta.exchange.usdToKes) {
+        usdToKes = Number(d.meta.exchange.usdToKes);
+        fxAsOf = d.meta.exchange.asOf || '';
+        fxSource = d.meta.exchange.source || '';
+        updateFxLabel();
+      }
+
+      lastGrowthData = d;
+      renderGrowth(d);
+      setRefreshed();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function renderGrowth(d) {
+    const s = d.snapshot || {};
+    setText('gr-mau', String(s.mau ?? '—'));
+    setText('gr-total', String(s.totalUsers ?? '—'));
+    setText('gr-mrr', fmtMoney(s.mrrUsd, 0));
+    setText('gr-arr', fmtMoney(s.arrUsd, 0));
+    setText('gr-churn', fmtPct(s.churnRatePercent, 1));
+
+    setText(
+      'gr-mau-hint',
+      s.mauPercentOfTotal != null
+        ? s.mauPercentOfTotal + '% of total users generated this month'
+        : 'Users with ≥1 generation this month'
+    );
+    setText('gr-mrr-hint', (s.activePaidSubs || 0) + ' active paid subscriptions');
+    setText(
+      'gr-churn-hint',
+      d.churn && d.churn.ratePercentLastMonth != null
+        ? 'Last month: ' + fmtPct(d.churn.ratePercentLastMonth, 1)
+        : 'Paid subs lost this month'
+    );
+
+    setText('gr-active-paid', String(s.activePaidSubs ?? '—'));
+    setText('gr-new-users', String(s.newUsersMtd ?? '—'));
+    setText('gr-new-paid', String(s.newPaidSubsMtd ?? '—'));
+    setText('gr-churned', String(s.churnedSubsMtd ?? '—'));
+
+    const totalUsers = Number(s.totalUsers) || 0;
+    const mauRows = (d.trends && d.trends.mauByMonth) || [];
+    const mauEl = document.getElementById('gr-mau-trend');
+    if (mauEl) {
+      mauEl.innerHTML =
+        mauRows
+          .map(function (r) {
+            const pct = totalUsers > 0 ? ((Number(r.mau) / totalUsers) * 100).toFixed(1) : '0.0';
+            return (
+              '<tr><td>' +
+              fmtMonth(r.month) +
+              '</td><td><strong>' +
+              r.mau +
+              '</strong></td><td>' +
+              pct +
+              '%</td></tr>'
+            );
+          })
+          .join('') || '<tr><td colspan="3" class="empty">No MAU data yet</td></tr>';
+    }
+
+    const signupEl = document.getElementById('gr-signup-trend');
+    if (signupEl) {
+      const signups = (d.trends && d.trends.newUsersByMonth) || [];
+      signupEl.innerHTML =
+        signups
+          .map(function (r) {
+            return (
+              '<tr><td>' +
+              fmtMonth(r.month) +
+              '</td><td><strong>' +
+              r.new_users +
+              '</strong></td></tr>'
+            );
+          })
+          .join('') || '<tr><td colspan="2" class="empty">No signup data yet</td></tr>';
+    }
+
+    const churnEl = document.getElementById('gr-churn-trend');
+    if (churnEl) {
+      const churnRows = (d.trends && d.trends.churnByMonth) || [];
+      churnEl.innerHTML =
+        churnRows
+          .map(function (r) {
+            return (
+              '<tr><td>' +
+              fmtMonth(r.month) +
+              '</td><td><strong>' +
+              r.churned +
+              '</strong></td></tr>'
+            );
+          })
+          .join('') || '<tr><td colspan="2" class="empty">No churn history yet</td></tr>';
+    }
+
+    const tierEl = document.getElementById('gr-tier-table');
+    if (tierEl) {
+      const tiers = (d.revenue && d.revenue.activeByTier) || [];
+      tierEl.innerHTML =
+        tiers
+          .map(function (r) {
+            return (
+              '<tr><td>' +
+              cap(r.tier) +
+              '</td><td>' +
+              r.count +
+              '</td><td>' +
+              fmtMoney(r.unitPriceUsd, 0) +
+              '</td><td><strong>' +
+              fmtMoney(r.subtotalUsd, 0) +
+              '</strong></td></tr>'
+            );
+          })
+          .join('') || '<tr><td colspan="4" class="empty">No active paid subs</td></tr>';
+    }
+
+    setText('gr-disclaimer', d.meta && d.meta.disclaimer ? d.meta.disclaimer : '');
   }
 
   // ── Finance ───────────────────────────────────────────────────────────────
@@ -1145,5 +1289,6 @@
     if (currentPage === 'overview') loadOverview();
     if (currentPage === 'queue') loadQueue();
     if (currentPage === 'finance') loadFinance();
+    if (currentPage === 'growth') loadGrowth();
   }, 60000);
 })();

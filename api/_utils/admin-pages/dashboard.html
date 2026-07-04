@@ -360,6 +360,7 @@
       margin-bottom: 20px;
     }
     @media (max-width: 768px) { .finance-hero { grid-template-columns: 1fr; } }
+    .growth-hero { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
     .finance-card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -468,6 +469,7 @@
       <div class="nav-item" data-page="security"><span class="nav-dot"></span> Security</div>
       <div class="nav-section">Business</div>
       <div class="nav-item" data-page="finance"><span class="nav-dot"></span> Finance</div>
+      <div class="nav-item" data-page="growth"><span class="nav-dot"></span> Growth</div>
       <div class="nav-item" data-page="users"><span class="nav-dot"></span> Users</div>
       <div class="nav-section">Operations</div>
       <div class="nav-item" data-page="jobs"><span class="nav-dot"></span> Jobs</div>
@@ -616,6 +618,79 @@
         </div>
       </div>
 
+      <div class="page" id="page-growth">
+        <div class="finance-hero growth-hero">
+          <div class="finance-card">
+            <div class="label">MAU</div>
+            <div class="value" id="gr-mau">—</div>
+            <div class="hint" id="gr-mau-hint">Monthly active users</div>
+          </div>
+          <div class="finance-card">
+            <div class="label">Total Users</div>
+            <div class="value" id="gr-total">—</div>
+            <div class="hint" id="gr-total-hint">All registered accounts</div>
+          </div>
+          <div class="finance-card">
+            <div class="label">MRR</div>
+            <div class="value" id="gr-mrr">—</div>
+            <div class="hint" id="gr-mrr-hint">Estimated monthly revenue</div>
+          </div>
+          <div class="finance-card">
+            <div class="label">ARR</div>
+            <div class="value" id="gr-arr">—</div>
+            <div class="hint" id="gr-arr-hint">MRR × 12</div>
+          </div>
+          <div class="finance-card">
+            <div class="label">Churn Rate</div>
+            <div class="value" id="gr-churn">—</div>
+            <div class="hint" id="gr-churn-hint">Paid subs lost MTD</div>
+          </div>
+        </div>
+
+        <div class="stats-row" style="grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); margin-bottom: 20px;">
+          <div class="stat"><div class="stat-label">Active Paid Subs</div><div class="stat-value" id="gr-active-paid" style="font-size:22px">—</div></div>
+          <div class="stat"><div class="stat-label">New Users MTD</div><div class="stat-value" id="gr-new-users" style="font-size:22px">—</div></div>
+          <div class="stat"><div class="stat-label">New Paid MTD</div><div class="stat-value" id="gr-new-paid" style="font-size:22px">—</div></div>
+          <div class="stat"><div class="stat-label">Churned MTD</div><div class="stat-value" id="gr-churned" style="font-size:22px">—</div></div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head"><h3>MAU — last 6 months</h3><button class="btn btn-ghost btn-sm" type="button" data-refresh="growth">Refresh</button></div>
+            <table>
+              <thead><tr><th>Month</th><th>Active users</th><th>% of total</th></tr></thead>
+              <tbody id="gr-mau-trend"><tr><td colspan="3" class="empty"><span class="spinner"></span></td></tr></tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>New signups — last 6 months</h3></div>
+            <table>
+              <thead><tr><th>Month</th><th>New users</th></tr></thead>
+              <tbody id="gr-signup-trend"><tr><td colspan="2" class="empty"><span class="spinner"></span></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head"><h3>Churn — last 6 months</h3></div>
+            <table>
+              <thead><tr><th>Month</th><th>Churned subs</th></tr></thead>
+              <tbody id="gr-churn-trend"><tr><td colspan="2" class="empty"><span class="spinner"></span></td></tr></tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Active subs by tier</h3></div>
+            <table>
+              <thead><tr><th>Tier</th><th>Active</th><th>Unit</th><th>MRR share</th></tr></thead>
+              <tbody id="gr-tier-table"><tr><td colspan="4" class="empty"><span class="spinner"></span></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card-note" id="gr-disclaimer" style="margin-top:8px">—</div>
+      </div>
+
       <div class="page" id="page-users">
         <div class="controls">
           <input type="text" id="user-search" placeholder="Search by ID, email…" style="width:240px">
@@ -733,6 +808,6 @@
   <div class="panel-body" id="user-panel-body">Loading…</div>
 </div>
 
-<script src="/admin/dashboard-page.js?v=20260707" defer></script>
+<script src="/admin/dashboard-page.js?v=20260708" defer></script>
 </body>
 </html>

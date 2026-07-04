@@ -10,6 +10,7 @@
 //   GET  /api/admin?resource=users
 //   POST /api/admin?resource=users&action=ban|unban|quota|tier
 //   GET  /api/admin?resource=finance
+//   GET  /api/admin?resource=growth
 //   GET  /api/admin?resource=moderation
 //   GET  /api/admin?resource=exchange-rate
 
@@ -609,6 +610,162 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           modelCosts: MODEL_COST_USD,
           disclaimer:
             'MRR uses rounded tier prices ($5/$10/$25). Generation costs from jobs.cost_usd. Trial spend has $0 revenue.',
+          exchange: await getUsdToKesRate(),
+        },
+      });
+    }
+
+    // ── GROWTH ─────────────────────────────────────────────────────────────────
+    if (resource === 'growth') {
+      const monthStart = `date_trunc('month', CURRENT_DATE)`;
+      const [
+        totalUsers,
+        mauMtd,
+        activePaid,
+        mrrRow,
+        newUsersMtd,
+        churnedMtd,
+        churnedLastMonth,
+        newPaidMtd,
+        mauByMonth,
+        newUsersByMonth,
+        churnByMonth,
+        activeByTier,
+      ] = await Promise.all([
+        safeCount(`SELECT COUNT(*)::int AS count FROM users`),
+        safeCount(
+          `SELECT COUNT(DISTINCT user_id)::int AS count FROM (
+             SELECT user_id FROM jobs
+             WHERE user_id IS NOT NULL AND created_at >= ${monthStart}
+             UNION
+             SELECT user_id FROM usage_tracking
+             WHERE month = ${monthStart}::date AND count > 0
+           ) active_users`
+        ),
+        safeCount(
+          `SELECT COUNT(*)::int AS count FROM users
+           WHERE subscription_status = 'active' AND subscription_tier IN ('starter','popular','pro')`
+        ),
+        query<{ mrr: number }>(
+          `SELECT COALESCE(SUM(CASE subscription_tier
+             WHEN 'starter' THEN 5 WHEN 'popular' THEN 10 WHEN 'pro' THEN 25 ELSE 0 END), 0)::numeric AS mrr
+           FROM users WHERE subscription_status = 'active' AND subscription_tier IN ('starter','popular','pro')`
+        ).catch(() => ({ rows: [{ mrr: 0 }] })),
+        safeCount(`SELECT COUNT(*)::int AS count FROM users WHERE created_at >= ${monthStart}`),
+        safeCount(
+          `SELECT COUNT(DISTINCT user_id)::int AS count FROM subscription_history
+           WHERE event_type IN ('canceled', 'expired')
+             AND from_status = 'active'
+             AND created_at >= ${monthStart}`
+        ),
+        safeCount(
+          `SELECT COUNT(DISTINCT user_id)::int AS count FROM subscription_history
+           WHERE event_type IN ('canceled', 'expired')
+             AND from_status = 'active'
+             AND created_at >= ${monthStart} - INTERVAL '1 month'
+             AND created_at < ${monthStart}`
+        ),
+        safeCount(
+          `SELECT COUNT(DISTINCT user_id)::int AS count FROM subscription_history
+           WHERE event_type = 'created' AND to_status = 'active'
+             AND created_at >= ${monthStart}`
+        ),
+        query<{ month: string; mau: number }>(
+          `WITH months AS (
+             SELECT generate_series(
+               ${monthStart} - INTERVAL '5 months',
+               ${monthStart},
+               INTERVAL '1 month'
+             )::date AS month
+           )
+           SELECT m.month::text AS month,
+             COALESCE((
+               SELECT COUNT(DISTINCT user_id)::int FROM (
+                 SELECT user_id FROM jobs
+                 WHERE user_id IS NOT NULL
+                   AND created_at >= m.month
+                   AND created_at < m.month + INTERVAL '1 month'
+                 UNION
+                 SELECT user_id FROM usage_tracking
+                 WHERE month = m.month AND count > 0
+               ) u
+             ), 0) AS mau
+           FROM months m ORDER BY m.month`
+        ).catch(() => ({ rows: [] })),
+        query<{ month: string; new_users: number }>(
+          `SELECT date_trunc('month', created_at)::date::text AS month,
+                  COUNT(*)::int AS new_users
+           FROM users
+           WHERE created_at >= ${monthStart} - INTERVAL '5 months'
+           GROUP BY 1 ORDER BY 1`
+        ).catch(() => ({ rows: [] })),
+        query<{ month: string; churned: number }>(
+          `SELECT date_trunc('month', created_at)::date::text AS month,
+                  COUNT(DISTINCT user_id)::int AS churned
+           FROM subscription_history
+           WHERE event_type IN ('canceled', 'expired')
+             AND from_status = 'active'
+             AND created_at >= ${monthStart} - INTERVAL '5 months'
+           GROUP BY 1 ORDER BY 1`
+        ).catch(() => ({ rows: [] })),
+        query<{ tier: string; count: number }>(
+          `SELECT subscription_tier AS tier, COUNT(*)::int AS count
+           FROM users
+           WHERE subscription_status = 'active' AND subscription_tier IN ('starter','popular','pro')
+           GROUP BY subscription_tier ORDER BY count DESC`
+        ).catch(() => ({ rows: [] })),
+      ]);
+
+      const mrr = Number(mrrRow.rows[0]?.mrr ?? 0);
+      const arr = Number((mrr * 12).toFixed(2));
+      const churnDenom = activePaid + churnedMtd;
+      const churnRate =
+        churnDenom > 0 ? Number(((churnedMtd / churnDenom) * 100).toFixed(2)) : 0;
+      const churnDenomLast = activePaid + churnedLastMonth + churnedMtd - newPaidMtd;
+      const churnRateLastMonth =
+        churnDenomLast > 0
+          ? Number(((churnedLastMonth / Math.max(churnDenomLast, 1)) * 100).toFixed(2))
+          : 0;
+      const mauPct = totalUsers > 0 ? Number(((mauMtd / totalUsers) * 100).toFixed(1)) : 0;
+
+      return res.status(200).json({
+        ok: true,
+        snapshot: {
+          mau: mauMtd,
+          totalUsers,
+          mrrUsd: mrr.toFixed(2),
+          arrUsd: arr.toFixed(2),
+          churnRatePercent: churnRate,
+          activePaidSubs: activePaid,
+          newUsersMtd,
+          newPaidSubsMtd: newPaidMtd,
+          churnedSubsMtd: churnedMtd,
+          mauPercentOfTotal: mauPct,
+        },
+        churn: {
+          ratePercentMtd: churnRate,
+          ratePercentLastMonth: churnRateLastMonth,
+          churnedMtd,
+          churnedLastMonth,
+          denominator: churnDenom,
+        },
+        trends: {
+          mauByMonth: mauByMonth.rows || [],
+          newUsersByMonth: newUsersByMonth.rows || [],
+          churnByMonth: churnByMonth.rows || [],
+        },
+        revenue: {
+          activeByTier: (activeByTier.rows || []).map((row: { tier: string; count: number }) => ({
+            tier: row.tier,
+            count: row.count,
+            unitPriceUsd: tierPrice(row.tier),
+            subtotalUsd: Number((row.count * tierPrice(row.tier)).toFixed(2)),
+          })),
+        },
+        meta: {
+          prices: TIER_PRICES,
+          disclaimer:
+            'MAU = users with ≥1 generation this month. MRR/ARR from active paid subs at $5/$10/$25. Churn = paid subs lost MTD ÷ (active paid + churned MTD).',
           exchange: await getUsdToKesRate(),
         },
       });
