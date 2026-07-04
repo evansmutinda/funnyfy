@@ -91,7 +91,7 @@ function serveAdminPage(res: VercelResponse, page: string): boolean {
     const isScript = fileName.endsWith('.js');
     if (isScript) {
       res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
-      res.setHeader('Cache-Control', 'public, max-age=3600');
+      res.setHeader('Cache-Control', 'public, max-age=60, must-revalidate');
     } else {
       setAdminPageSecurityHeaders(res);
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
