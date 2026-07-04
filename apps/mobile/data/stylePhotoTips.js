@@ -11,6 +11,9 @@
  *   STYLE_PHOTO_TIPS['some-style-id'] = null
  */
 
+/** Upload auto-show sheet — set true when photo tips are ready to ship again. */
+export const PHOTO_TIPS_AUTO_SHOW_ENABLED = false;
+
 export const GENERIC_STYLE_PHOTO_TIPS = {
   id: 'generic',
   lead: 'Front-facing, well-lit portraits give the AI the most to work with.',
@@ -55,6 +58,7 @@ export const GENERIC_STYLE_PHOTO_TIPS = {
 const STYLE_PHOTO_TIPS = {};
 
 export function getStylePhotoTips(styleId) {
+  if (!PHOTO_TIPS_AUTO_SHOW_ENABLED) return null;
   if (!styleId) return null;
   if (Object.prototype.hasOwnProperty.call(STYLE_PHOTO_TIPS, styleId)) {
     return STYLE_PHOTO_TIPS[styleId];

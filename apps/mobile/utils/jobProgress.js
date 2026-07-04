@@ -1,3 +1,5 @@
+import { STYLE_CATEGORIES, getStyleCategory } from './styleCategories';
+
 export const JOB_PROGRESS_PHASE_COUNT = 4;
 
 /** How long to show the moderation step once server processing starts. */
@@ -11,9 +13,35 @@ export function formatEstimatedWait(seconds) {
   return mins === 1 ? '~1 min' : `~${mins} min`;
 }
 
-function getCreatingTitle(styleLabel) {
-  const name = styleLabel || 'caricature';
+export function resolveCategoryLabel(style) {
+  if (!style) return null;
+  const categoryId = style.categoryId || getStyleCategory(style.id);
+  if (!categoryId) return null;
+  return STYLE_CATEGORIES.find((cat) => cat.id === categoryId)?.label || null;
+}
+
+function getCreatingTitle(categoryLabel) {
+  const name = categoryLabel || 'look';
   return `Creating your ${name}`;
+}
+
+function getQueueCopy(job) {
+  const ahead = job.queuePosition ?? 0;
+  const wait = formatEstimatedWait(job.estimatedWaitTime);
+
+  if (ahead <= 0) {
+    return {
+      subtitle: 'Starting soon…',
+      statusHint: wait ? `Usually begins within ${wait}` : 'Preparing to start…',
+    };
+  }
+
+  return {
+    subtitle: 'In the queue…',
+    statusHint: wait
+      ? `About ${wait} · ${ahead} job${ahead === 1 ? '' : 's'} ahead`
+      : `${ahead} job${ahead === 1 ? '' : 's'} ahead of you`,
+  };
 }
 
 function isModerationPhase(job, now = Date.now()) {
@@ -27,8 +55,8 @@ function isModerationPhase(job, now = Date.now()) {
  * Maps live job status (from /api/job poll) to user-facing loading copy.
  * phaseIndex: 0 = submit, 1 = queue, 2 = moderation, 3 = generating
  */
-export function getJobProgressCopy(job, { styleLabel, loading, now = Date.now() }) {
-  const title = getCreatingTitle(styleLabel);
+export function getJobProgressCopy(job, { categoryLabel, loading, now = Date.now() }) {
+  const title = getCreatingTitle(categoryLabel);
 
   if (!loading) {
     return { title, subtitle: '', phaseIndex: 0, statusHint: '' };
@@ -46,13 +74,12 @@ export function getJobProgressCopy(job, { styleLabel, loading, now = Date.now() 
   const status = job.status;
 
   if (status === 'pending') {
-    const ahead = job.queuePosition ?? 0;
-    const subtitle = ahead <= 0 ? "You're up next…" : 'Queued — waiting to start…';
+    const queueCopy = getQueueCopy(job);
     return {
       title,
-      subtitle,
+      subtitle: queueCopy.subtitle,
       phaseIndex: 1,
-      statusHint: 'Hang tight while we get things ready…',
+      statusHint: queueCopy.statusHint,
     };
   }
 
@@ -67,7 +94,7 @@ export function getJobProgressCopy(job, { styleLabel, loading, now = Date.now() 
     }
     return {
       title,
-      subtitle: 'Generating your caricature…',
+      subtitle: 'Generating…',
       phaseIndex: 3,
       statusHint: 'This may take a little while…',
     };

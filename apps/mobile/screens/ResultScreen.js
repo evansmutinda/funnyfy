@@ -24,6 +24,7 @@ import {
 import {
   getJobProgressCopy,
   JOB_PROGRESS_PHASE_COUNT,
+  resolveCategoryLabel,
 } from '../utils/jobProgress';
 import styles from '../styles';
 
@@ -74,13 +75,15 @@ export default function ResultScreen({
   const showCompare = hasResult && !loading && !!displayUri && !previewError;
   const showLoadingOverlay = (loading && !hasResult) || (hasResult && !displayUri && !previewError);
 
+  const categoryLabel = useMemo(() => resolveCategoryLabel(style), [style]);
+
   const progressCopy = useMemo(
     () => getJobProgressCopy(job, {
-      styleLabel: style?.label,
+      categoryLabel,
       loading: loading && !hasResult,
       now: Date.now(),
     }),
-    [job, style?.label, loading, hasResult, progressTick],
+    [job, categoryLabel, loading, hasResult, progressTick],
   );
 
   useEffect(() => {

@@ -237,6 +237,39 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
 
+  styleLoadingIconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+
+  styleLoadingBarTrack: {
+    width: '100%',
+    maxWidth: 220,
+    height: 4,
+    borderRadius: 999,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    overflow: 'hidden',
+    marginTop: 12,
+  },
+
+  styleLoadingBarFill: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: '40%',
+    borderRadius: 999,
+    backgroundColor: PAPER,
+    opacity: 0.92,
+  },
+
   
   styleHeroImageWrapper: {
     aspectRatio: 16 / 9,

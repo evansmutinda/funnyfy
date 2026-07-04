@@ -22,6 +22,7 @@ import {
   getStyleCategory,
 } from '../utils/styleCategories';
 import { RowFocusProvider, useCategoryRowFocus } from '../hooks/useRowFocus';
+import StyleLoadingEmptyState from '../components/StyleLoadingEmptyState';
 import styles from '../styles';
 
 const HORIZONTAL_VIEWABILITY = {
@@ -55,6 +56,7 @@ export default function StyleScreen(props) {
 function StyleScreenContent({
   selectedStyle,
   availableStyles,
+  stylesLoading = false,
   onNext,
   onOpenMenu,
   restyleMode = false,
@@ -196,12 +198,16 @@ function StyleScreenContent({
             scrollEventThrottle={200}
           >
             {categoryRows.length === 0 ? (
-              <View style={styles.styleEmptyState}>
-                <Text style={styles.styleEmptyStateTitle}>Coming soon</Text>
-                <Text style={styles.styleEmptyStateText}>
-                  We're loading styles. Pull down to refresh in a moment.
-                </Text>
-              </View>
+              stylesLoading && styleList.length === 0 ? (
+                <StyleLoadingEmptyState />
+              ) : (
+                <View style={styles.styleEmptyState}>
+                  <Text style={styles.styleEmptyStateTitle}>Coming soon</Text>
+                  <Text style={styles.styleEmptyStateText}>
+                    New styles are on the way. Pull down to refresh in a moment.
+                  </Text>
+                </View>
+              )
             ) : (
               categoryRows.map((row, rowIndex) => (
                 <CategoryRow
@@ -233,12 +239,16 @@ function StyleScreenContent({
             scrollEventThrottle={200}
           >
             {categoryStyles.length === 0 ? (
-              <View style={styles.styleEmptyState}>
-                <Text style={styles.styleEmptyStateTitle}>Coming soon</Text>
-                <Text style={styles.styleEmptyStateText}>
-                  New styles for this category are on the way.
-                </Text>
-              </View>
+              stylesLoading && styleList.length === 0 ? (
+                <StyleLoadingEmptyState />
+              ) : (
+                <View style={styles.styleEmptyState}>
+                  <Text style={styles.styleEmptyStateTitle}>Coming soon</Text>
+                  <Text style={styles.styleEmptyStateText}>
+                    New styles for this category are on the way.
+                  </Text>
+                </View>
+              )
             ) : (
               <View style={styles.discoveryGrid}>
                 {categoryGridRows.map((rowStyles, rowIndex) => (

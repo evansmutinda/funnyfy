@@ -125,6 +125,7 @@ function AppContent({ fontsLoaded }) {
   const [pendingJobId, setPendingJobId] = useState(null);
   const [job, setJob] = useState(null);
   const [availableStyles, setAvailableStyles] = useState([]);
+  const [stylesLoading, setStylesLoading] = useState(true);
   const [subscribeLoading, setSubscribeLoading] = useState(false);
   const [hasRcKey, setHasRcKey] = useState(false);
   const [subscriptionInfo, setSubscriptionInfo] = useState(null);
@@ -475,6 +476,7 @@ function AppContent({ fontsLoaded }) {
   };
 
   const fetchStyles = useCallback(async () => {
+    setStylesLoading(true);
     try {
       const res = await fetch(`${API_BASE}/api/styles`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -496,6 +498,8 @@ function AppContent({ fontsLoaded }) {
       console.error('Failed to fetch styles from server:', err);
       serverStyleIdsRef.current = null;
       setAvailableStyles(mergeServerStyles([]));
+    } finally {
+      setStylesLoading(false);
     }
   }, []);
 
@@ -1026,6 +1030,7 @@ function AppContent({ fontsLoaded }) {
         <StyleScreen
           selectedStyle={style}
           availableStyles={availableStyles}
+          stylesLoading={stylesLoading}
           restyleMode={restyleMode}
           initialActiveCategory={styleReturnCategory}
           interactionPaused={menuOpen}
@@ -1216,15 +1221,19 @@ function AppContent({ fontsLoaded }) {
         backHandlerRef={resultBackHandlerRef}
         style={style}
         onBack={() => {
-          // From Result, prefer landing back on the review screen if
-          // the user's picked photo is still in memory (so they can
-          // hit Generate again immediately); otherwise fall back to
-          // the empty upload screen.
-          setScreen(pickedImage ? 'review' : 'upload');
+          setRestyleMode(false);
+          setStyleReturnCategory(style?.categoryId || getStyleCategory(style?.id) || null);
+          setScreen('style');
           setError('');
           setFailedAttempts(0);
         }}
-        onHome={() => { setRestyleMode(false); setScreen('style'); }}
+        onHome={() => {
+          setRestyleMode(false);
+          setStyleReturnCategory(null);
+          setScreen('style');
+          setError('');
+          setFailedAttempts(0);
+        }}
         onOpenUsage={() => setScreen('usage')}
         onOpenGallery={() => setScreen('gallery')}
         onTryAnotherStyle={handleTryAnotherStyle}
