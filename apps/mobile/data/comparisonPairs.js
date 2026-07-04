@@ -1,5 +1,5 @@
 // Comparison pairs (before → styled after) for UploadScreen + style tile crossfades.
-// Asset spec: To do/COMPARISON_ASSETS.md
+// Asset spec: ToDo/COMPARISON_ASSETS.md
 //
 // Layout:
 //   assets/comparisons/source/before|after/  (originals — not bundled)

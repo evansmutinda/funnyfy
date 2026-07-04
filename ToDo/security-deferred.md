@@ -7,14 +7,14 @@
 
 ## Error tracking — Sentry
 
-- [x] **Mobile Sentry** — org `funnyfy`, project `react-native`; see `To do/SENTRY_INTEGRATION.md`
+- [x] **Mobile Sentry** — org `funnyfy`, project `react-native`; see `ToDo/SENTRY_INTEGRATION.md`
 - [ ] **API Sentry** (optional) — `@sentry/node` on Vercel for server-side errors
 
 ---
 
 ## Security — launch blockers
 
-- [ ] **Admin dashboard** — set `ADMIN_USER_IDS` on staging (+ prod); see `To do/ADMIN_DASHBOARD_SETUP.md`
+- [ ] **Admin dashboard** — set `ADMIN_USER_IDS` on staging (+ prod); see `ToDo/ADMIN_DASHBOARD_SETUP.md`
 - [ ] **Production release keystore** — replace debug signing for `release` APK builds
 - [ ] **JWT → `expo-secure-store`** — migrate `apps/mobile/services/auth.js`
 - [ ] **Cron queue hardening** — per-user rate limit + scope JWT kick to caller’s pending job

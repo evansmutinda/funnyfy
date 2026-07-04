@@ -280,7 +280,7 @@ Mobile Sentry is live for staging. After installing a debug APK:
 
 1. Open [sentry.io](https://sentry.io) → org **funnyfy** → project **react-native** → **Issues**
 2. Filter environment **staging**
-3. Optional one-time ping: set `EXPO_PUBLIC_SENTRY_TEST=true` in `.env`, rebuild APK (see `To do/SENTRY_INTEGRATION.md`)
+3. Optional one-time ping: set `EXPO_PUBLIC_SENTRY_TEST=true` in `.env`, rebuild APK (see `ToDo/SENTRY_INTEGRATION.md`)
 
 Real errors (e.g. failed generation) appear via `captureAppError` in `App.js`.
 

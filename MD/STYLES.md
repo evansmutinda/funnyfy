@@ -38,7 +38,7 @@ apps/mobile/assets/comparisons/source/after/<categoryFolder>/<styled>.jpg
 
 Category folders: `caricature`, `cartoons`, `3d`, `Paintings`, `Art` (capital A for Art/Paintings).
 
-See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets/comparisons/source/README.md`, `To do/COMPARISON_ASSETS.md`.
+See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets/comparisons/source/README.md`, `ToDo/COMPARISON_ASSETS.md`.
 
 ---
 

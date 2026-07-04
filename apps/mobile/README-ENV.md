@@ -17,7 +17,7 @@ The app uses environment variables from `.env` file in this directory (`apps/mob
 - `EXPO_PUBLIC_SENTRY_ENV` - Sentry environment label (`staging` or `production`)
 - `EXPO_PUBLIC_SENTRY_ENABLED` - Set `true` so debug APKs send events (`__DEV__` builds skip Sentry otherwise)
 
-See `To do/SENTRY_INTEGRATION.md` for testing and optional `EXPO_PUBLIC_SENTRY_TEST`.
+See `ToDo/SENTRY_INTEGRATION.md` for testing and optional `EXPO_PUBLIC_SENTRY_TEST`.
 
 ### Setup Steps
 
@@ -101,7 +101,7 @@ Release builds upload source maps via `sentry-cli` during Gradle. Without an aut
 eas secret:create --scope project --name SENTRY_AUTH_TOKEN --value "YOUR_SENTRY_AUTH_TOKEN" --type string
 ```
 
-`SENTRY_ORG` and `SENTRY_PROJECT` are set in `eas.json` (`funnyfy` / `react-native`). Also set `EXPO_PUBLIC_SENTRY_DSN` (and related `EXPO_PUBLIC_SENTRY_*` vars) as EAS secrets if not already — see `To do/SENTRY_INTEGRATION.md`.
+`SENTRY_ORG` and `SENTRY_PROJECT` are set in `eas.json` (`funnyfy` / `react-native`). Also set `EXPO_PUBLIC_SENTRY_DSN` (and related `EXPO_PUBLIC_SENTRY_*` vars) as EAS secrets if not already — see `ToDo/SENTRY_INTEGRATION.md`.
 
 **Temporary workaround** (build succeeds but no source maps in Sentry): add to the build profile in `eas.json`:
 

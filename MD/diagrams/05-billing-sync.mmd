@@ -1,0 +1,10 @@
+flowchart LR
+  App[Mobile App] --> RCSDK[RevenueCat SDK]
+  RCSDK --> Stores[App Store / Play Store]
+  Stores --> RC[RevenueCat]
+  RC --> WH["/api/webhooks/revenuecat"]
+  WH --> U[(users)]
+  WH --> S[(subscriptions)]
+  WH --> H[(subscription_history)]
+  App --> Sync["/api/sync-subscription"]
+  Sync --> U

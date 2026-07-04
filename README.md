@@ -98,7 +98,7 @@ Deploy via Vercel. See `MD/ENV_SETUP.md` and `MD/SETUP_VERCEL_ENV.md` for enviro
 | [`MD/DEVELOPMENT_PLAN.md`](MD/DEVELOPMENT_PLAN.md) | Architecture & phases |
 | [`MD/SECURITY_AUDIT.md`](MD/SECURITY_AUDIT.md) | Security findings |
 | [`MD/DISASTER_RECOVERY.md`](MD/DISASTER_RECOVERY.md) | RTO/RPO & runbooks |
-| [`To do/SENTRY_INTEGRATION.md`](To%20do/SENTRY_INTEGRATION.md) | Mobile Sentry setup (live) |
+| [`ToDo/SENTRY_INTEGRATION.md`](ToDo/SENTRY_INTEGRATION.md) | Mobile Sentry setup (live) |
 | [`ToDo/security-deferred.md`](ToDo/security-deferred.md) | Remaining hardening backlog |
 
 Full doc index: [`MD/README.md`](MD/README.md)

@@ -14,11 +14,8 @@ node_modules
 
 # --- Monorepo: not needed for the mobile app build ---
 /api
-/admin
 /MD
 /scripts
-/_archive
-/To do
 /ToDo
 /graphify-out
 /public

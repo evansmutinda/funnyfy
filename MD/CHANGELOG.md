@@ -39,7 +39,7 @@ All notable changes to this project will be documented in this file.
 - **Oil paint** — before image `lady9.png`; comparison asset under `Paintings/oilpaint.jpg`
 
 ### Docs
-- `MD/STYLES.md`, `MD/STATUS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `To do/COMPARISON_ASSETS.md` updated (64 enabled, 55 curated pairs)
+- `MD/STYLES.md`, `MD/STATUS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `ToDo/COMPARISON_ASSETS.md` updated (64 enabled, 55 curated pairs)
 
 ---
 
@@ -60,7 +60,7 @@ All notable changes to this project will be documented in this file.
 - **Staging default** in `constants.js` when env unset
 
 ### Docs
-- `MD/STYLES.md`, `MD/STATUS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `To do/COMPARISON_ASSETS.md` updated
+- `MD/STYLES.md`, `MD/STATUS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `ToDo/COMPARISON_ASSETS.md` updated
 
 ### Pending
 - `coloured_pencil` disabled until `colouredp.jpg` asset is added
@@ -78,7 +78,7 @@ All notable changes to this project will be documented in this file.
 - **Replicate job input** — Seedream-4 uses `image_input`, `match_input_image`, single-image mode (`process-job.ts`)
 
 ### Docs
-- `MD/STATUS.md`, `To do/COMPARISON_ASSETS.md` — eight curated pairs, `carc1`, asset layout
+- `MD/STATUS.md`, `ToDo/COMPARISON_ASSETS.md` — eight curated pairs, `carc1`, asset layout
 
 ---
 
@@ -95,7 +95,7 @@ All notable changes to this project will be documented in this file.
 - **See all grid**: first two curated tiles animate; home rows use horizontal viewability + `extraData` for focus updates
 
 ### Docs
-- `To do/COMPARISON_ASSETS.md`, `MD/STATUS.md`, `MD/UI_REDESIGN_2026_06.md` — comparison tile behavior and asset checklist
+- `ToDo/COMPARISON_ASSETS.md`, `MD/STATUS.md`, `MD/UI_REDESIGN_2026_06.md` — comparison tile behavior and asset checklist
 
 ---
 
@@ -145,7 +145,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased] - 2026-06-21
 
 ### Added
-- **Sentry (mobile)** — `@sentry/react-native`, `utils/sentry.js`, staging environment; see `To do/SENTRY_INTEGRATION.md`
+- **Sentry (mobile)** — `@sentry/react-native`, `utils/sentry.js`, staging environment; see `ToDo/SENTRY_INTEGRATION.md`
 - **`UsageScreen`** (`screens/UsageScreen.js`): usage card, refresh, link to subscription — split from paywall.
 - **`PaywallStyleFade`** (`components/PaywallStyleFade.js`): subscription hero cycles style previews via the same two-layer crossfade technique as `ComparisonFade`.
 - **`utils/usageQuota.js`**: shared low-quota threshold (≤10% remaining) for header pill + usage card amber styling.
@@ -183,7 +183,7 @@ All notable changes to this project will be documented in this file.
 - **`utils/jobProgress.js`**: four-phase result loading copy — submit → queue → **content moderation** ("Checking content guidelines…") → generate; title **Creating your {style}**; 4 step dots; moderation phase timed from job `startedAt` (~6s).
 - **`utils/contentErrors.js`**: maps `CONTENT_NOT_ALLOWED` / NSFW API errors to human copy; infringement dialog constants (`NSFW_REJECT_DIALOG`, `humanizeApiError()`).
 - **Native splash via `expo-splash-screen`**: custom entry `apps/mobile/index.js` + `polyfills.js`; solid `#0B0F19` native splash (no image) held until fonts + auth finish; in-app `SplashScreen.js` removed.
-- **`To do/SPLASH_ASSET.md`**: deferred checklist for when a branded splash PNG is ready.
+- **`ToDo/SPLASH_ASSET.md`**: deferred checklist for when a branded splash PNG is ready.
 
 ### Changed
 - **Upload / Review header pills** (`UploadFlowHeader.js`): single row `[ ← back ] [ style pill ] ···· [ usage pill ]` on Upload and Generate screens. Usage pill always on the **right**; style pill truncates. **Removed** Photo tips header chip on both screens.
@@ -211,7 +211,7 @@ All notable changes to this project will be documented in this file.
 - **`PhotoChooserScreen.js`** — unused; gallery pick uses OS picker from Upload/Review.
 - **`processPickedImage.js`**, **`apps/mobile/api/test.ts`** — dead code.
 - **`SplashScreen.js`** (in-app JS splash with 2s timer) — replaced by native splash + `expo-splash-screen`.
-- `ToDo/` folder (architectural plans from 2025 — superseded by `MD/STATUS.md`, `MD/DEVELOPMENT_PLAN.md`, and `MD/CHANGELOG.md`). Splash deferral notes live in **`To do/SPLASH_ASSET.md`**.
+- `ToDo/` folder (architectural plans from 2025 — superseded by `MD/STATUS.md`, `MD/DEVELOPMENT_PLAN.md`, and `MD/CHANGELOG.md`). Splash deferral notes live in **`ToDo/SPLASH_ASSET.md`**.
 
 ### Deprecated (superseded — kept in git history only)
 - Earlier **[Unreleased]** notes describing `react-native-image-crop-picker` for dev/APK — replaced by `expo-image-picker` in all builds.
@@ -221,7 +221,7 @@ All notable changes to this project will be documented in this file.
 - Run `npm run generate-comparisons` (requires `API_BASE` + `AUTH_TOKEN` env vars + 4-8 reference faces in `apps/mobile/assets/comparisons/before/`). Then register pairs in `COMPARISON_OVERRIDES` in `data/comparisonPairs.js`.
 - (Optional) Replace Photo Tips placeholders with real example photos in `data/stylePhotoTips.js` — drop assets into `apps/mobile/assets/tips/` and set `image:` on each example item.
 - Set Android navigation bar color at runtime in Expo Go if needed (`expo-navigation-bar` installed; `app.config.js` already uses `#0B0F19` for native builds).
-- Branded splash PNG — see `To do/SPLASH_ASSET.md` (native `#0B0F19` splash works today).
+- Branded splash PNG — see `ToDo/SPLASH_ASSET.md` (native `#0B0F19` splash works today).
 - Design Section 3 (Wait / Perceived Performance) — optional further narrative polish beyond moderation + generate steps (see `MD/UI_REDESIGN_2026_06.md` §9).
 
 ---

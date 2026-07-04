@@ -1,6 +1,4 @@
 apps/mobile/
-admin/
-_archive/
 MD/
 ToDo/
 scripts/
@@ -10,4 +8,3 @@ sync-changes.ps1
 test-api.ps1
 *.ps1
 *.md
-CREATE_ADMIN_USER.txt

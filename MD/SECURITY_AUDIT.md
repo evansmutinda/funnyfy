@@ -30,15 +30,16 @@ Note: an earlier pass of this audit flagged hardcoded secrets in `.env.local` an
 
 ## 🟠 High
 
-### 2. Admin login has no rate limiting and weak role check
-- **File:** [api/admin/index.ts:43-85](../api/admin/index.ts#L43)
-- **Issue:** No throttling on `/api/admin?resource=login` attempts. Admin check (`api/admin/index.ts:68`) is `ADMIN_USER_IDS.includes(userId)` — if `ADMIN_USER_IDS` is empty or misconfigured, behavior is unsafe.
-- **Recommendation:** Add rate limiting (e.g. 5 attempts/IP/min), log all admin login attempts, and fail closed (deny) when `ADMIN_USER_IDS` is empty rather than relying on absence-of-check.
+### 2. Admin login — rate limiting added; fail-closed still open
+- **File:** [api/admin.ts:126-175](../api/admin.ts#L126)
+- **Original issue:** No throttling on `/api/admin?resource=login`; weak behavior when `ADMIN_USER_IDS` is empty.
+- **Remediated:** Rate limiting + security logging on admin login (`checkAdminLoginRateLimit`, `logSecurityEvent`).
+- **Still open:** Fail-closed when `ADMIN_USER_IDS` is empty (see [ToDo/security-deferred.md](../ToDo/security-deferred.md)).
 
-### 3. Unauthenticated diagnostic endpoint
-- **File:** [api/db-test.ts:12-65](../api/db-test.ts#L12)
-- **Issue:** `/api/db-test` returns DB connection status and query examples with no auth check.
-- **Recommendation:** Require JWT auth, or remove the route entirely from production builds.
+### 3. Diagnostic endpoint — remediated
+- **File:** [api/db-test.ts:26-37](../api/db-test.ts#L26)
+- **Original issue:** `/api/db-test` exposed DB status without auth.
+- **Remediated:** Requires `Authorization: Bearer <CRON_SECRET>`.
 
 ### 4. Cron queue endpoint accepts any user JWT, not just the cron secret
 - **File:** [api/cron/process-queue.ts:27-37](../api/cron/process-queue.ts#L27)
@@ -70,10 +71,10 @@ Note: an earlier pass of this audit flagged hardcoded secrets in `.env.local` an
 
 ## 🟡 Medium
 
-### 9. Template-literal LIMIT/OFFSET in admin SQL queries
-- **File:** [api/admin/index.ts:257, 307](../api/admin/index.ts#L257)
-- **Issue:** `LIMIT ${limit} OFFSET ${offset}` interpolated directly rather than parameterized. Currently safe because values are `Number()`-cast first, but it's a fragile pattern.
-- **Recommendation:** Pass `limit`/`offset` as bound parameters (`$N`) consistent with the rest of the query.
+### 9. Template-literal LIMIT/OFFSET in admin SQL queries — remediated
+- **File:** [api/admin.ts:357-365](../api/admin.ts#L357)
+- **Original issue:** `LIMIT`/`OFFSET` interpolated directly in SQL strings.
+- **Remediated:** Passed as bound parameters (`$N`) in users/jobs list queries.
 
 ### 10. Permissive CORS in staging
 - **File:** `apps/mobile/.env.local` — `ALLOWED_ORIGIN="*"`
@@ -102,7 +103,7 @@ Note: an earlier pass of this audit flagged hardcoded secrets in `.env.local` an
 ## Immediate Action Checklist
 
 - [ ] Set `rejectUnauthorized: true` in [api/_utils/db.ts](../api/_utils/db.ts) — **done** (default true; set `DATABASE_SSL_REJECT_UNAUTHORIZED=false` to roll back)
-- [x] Add rate limiting + security logging on admin login in [api/admin/index.ts](../api/admin/index.ts)
+- [x] Add rate limiting + security logging on admin login in [api/admin.ts](../api/admin.ts)
 - [x] Auth-gate [api/db-test.ts](../api/db-test.ts) with `CRON_SECRET`
 - [ ] Restrict [api/cron/process-queue.ts](../api/cron/process-queue.ts) to scoped user kick + `CRON_SECRET` (see [ToDo/06-security-audit-followups.md](../ToDo/06-security-audit-followups.md))
 - [ ] Migrate mobile token storage to `expo-secure-store`
@@ -115,7 +116,7 @@ Note: an earlier pass of this audit flagged hardcoded secrets in `.env.local` an
 - [ ] Run `npm audit`
 - [ ] (Precautionary) Rotate `.env.local` / `apps/mobile/.env` secrets if the files were ever shared outside this machine
 
-**Deferred detail:** [ToDo/06-security-audit-followups.md](../ToDo/06-security-audit-followups.md) · [todo/security-deferred.md](../todo/security-deferred.md)
+**Deferred detail:** [ToDo/06-security-audit-followups.md](../ToDo/06-security-audit-followups.md) · [ToDo/security-deferred.md](../ToDo/security-deferred.md)
 
 ---
 
@@ -170,7 +171,7 @@ A second pass organized by infra category, covering areas not fully broken out a
 - Queue worker processes jobs one at a time per cron tick despite `MAX_CONCURRENT_JOBS=10` being configured — throughput-limited. **Medium.** *Recommendation:* batch-process up to the concurrency limit per invocation.
 
 ### 11. Error Tracking & Logs
-- **Mobile:** Sentry integrated (`@sentry/react-native`, org `funnyfy`, project `react-native`) — see `To do/SENTRY_INTEGRATION.md`. API backend Sentry still optional.
+- **Mobile:** Sentry integrated (`@sentry/react-native`, org `funnyfy`, project `react-native`) — see `ToDo/SENTRY_INTEGRATION.md`. API backend Sentry still optional.
 - Logging is unstructured `console.log`/`console.error` calls rather than structured JSON — harder to query/alert on at scale. **Medium.**
 - Mobile `console.log` of sensitive data — already tracked as High #8 above (now `__DEV__`-gated per checklist).
 
@@ -186,13 +187,13 @@ A second pass organized by infra category, covering areas not fully broken out a
 - [x] Write disaster-recovery doc — `MD/DISASTER_RECOVERY.md`
 - [x] Postgres pool `max: 1` per serverless instance (`DATABASE_POOL_MAX` override); SSL verify on (`DATABASE_SSL_REJECT_UNAUTHORIZED=false` escape hatch)
 - [ ] Add baseline Supabase RLS policies as defense-in-depth
-- [ ] Optional API Sentry (`@sentry/node` on Vercel) — see `To do/SENTRY_INTEGRATION.md` + `todo/security-deferred.md`
+- [ ] Optional API Sentry (`@sentry/node` on Vercel) — see `ToDo/SENTRY_INTEGRATION.md` + `ToDo/security-deferred.md`
 - [x] Scheduled cleanup of stale `rate_limits` rows (cron worker)
 - [ ] Add a circuit breaker around Replicate API failures
 - [x] Webhook idempotency fallback uses `crypto.randomUUID()` (not `Date.now()`)
 - [x] Rate-limit fail-open logged to `security_logs` (`rate_limit_fail_open`)
 
-**Deferred:** [todo/security-deferred.md](../todo/security-deferred.md)
+**Deferred:** [ToDo/security-deferred.md](../ToDo/security-deferred.md)
 
 ---
 

@@ -123,7 +123,7 @@ Full table (ids, models, comparison pairs, deploy steps): **`MD/STYLES.md`**
 ## 🚧 Deferred / Future
 
 - [ ] Enable more catalog styles (thumbnails + prompts per style)
-- [ ] Remaining style tile comparison pairs (8 of 19 enabled styles have curated assets — see `To do/COMPARISON_ASSETS.md`)
+- [ ] Remaining style tile comparison pairs (8 of 19 enabled styles have curated assets — see `ToDo/COMPARISON_ASSETS.md`)
 - [ ] E003 high-demand error: friendly "generators busy" message
 - [ ] Analytics
 - [ ] Subscription trial (time-based 3-day trial via Play Store)
@@ -139,7 +139,7 @@ Full table (ids, models, comparison pairs, deploy steps): **`MD/STYLES.md`**
 - [x] NSFW moderation (Sightengine)
 - [x] JWT authentication
 - [x] Auto versioning for builds
-- [x] Error tracking (Sentry mobile — `To do/SENTRY_INTEGRATION.md`)
+- [x] Error tracking (Sentry mobile — `ToDo/SENTRY_INTEGRATION.md`)
 - [ ] Analytics
 
 ### Business
