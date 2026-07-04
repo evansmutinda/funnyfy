@@ -1,5 +1,8 @@
 {
   "functions": {
+    "api/admin.ts": {
+      "includeFiles": "api/_utils/admin-pages/**"
+    },
     "api/enqueue.ts": {
       "maxDuration": 10
     },

@@ -11,14 +11,7 @@ export function setSecurityHeaders(res: VercelResponse) {
   res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
   
   // Content Security Policy
-  res.setHeader(
-    'Content-Security-Policy',
-    "default-src 'self'; " +
-    "img-src 'self' data: https:; " +
-    "script-src 'self'; " +
-    "style-src 'self' 'unsafe-inline'; " +
-    "connect-src 'self' https:;"
-  );
+  res.setHeader('Content-Security-Policy', buildContentSecurityPolicy());
   
   // Prevent MIME type sniffing
   res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -31,6 +24,23 @@ export function setSecurityHeaders(res: VercelResponse) {
   
   // Permissions policy
   res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+}
+
+function buildContentSecurityPolicy(options?: { allowInlineScripts?: boolean }): string {
+  const scriptSrc = options?.allowInlineScripts ? "script-src 'self' 'unsafe-inline'; " : "script-src 'self'; ";
+  return (
+    "default-src 'self'; " +
+    "img-src 'self' data: https:; " +
+    scriptSrc +
+    "style-src 'self' 'unsafe-inline'; " +
+    "connect-src 'self' https:;"
+  );
+}
+
+/** Admin login/dashboard HTML embed inline scripts; allow them on those pages only. */
+export function setAdminPageSecurityHeaders(res: VercelResponse) {
+  setSecurityHeaders(res);
+  res.setHeader('Content-Security-Policy', buildContentSecurityPolicy({ allowInlineScripts: true }));
 }
 
 // Set CORS headers (with security)

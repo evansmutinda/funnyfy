@@ -18,19 +18,48 @@ import path from 'path';
 import jwt from 'jsonwebtoken';
 import { query } from './_utils/db';
 import { applyMiddleware } from './_utils/middleware';
-import { safeErrorResponse, verifyJWT, getClientIp } from './_utils/security';
+import { safeErrorResponse, verifyJWT, getClientIp, setAdminPageSecurityHeaders } from './_utils/security';
 import { getQueueStats } from './_utils/queue-stats';
 import { getTodaySpending, getSpendingStats, shouldPauseQueue } from './_utils/cost-protection';
 import { getRecentSecurityEvents, logSecurityEvent } from './_utils/security-logging';
 import { checkAdminLoginRateLimit } from './_utils/ratelimit';
 
 const JWT_SECRET = process.env.JWT_SECRET || process.env.AUTH_SECRET;
-const ADMIN_USER_IDS = (process.env.ADMIN_USER_IDS || '').split(',').filter(Boolean);
+const ADMIN_USER_IDS = (process.env.ADMIN_USER_IDS || '')
+  .split(',')
+  .map((id) => id.trim())
+  .filter(Boolean);
 const ADMIN_PAGES_DIR = path.join(__dirname, '_utils', 'admin-pages');
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Avoid `varchar = uuid` errors when looking up by UUID (revenuecat_user_id is text). */
+async function lookupUserByLoginId(loginId: string): Promise<string | null> {
+  const trimmed = loginId.trim();
+  const userResult = await query<{ id: string }>(
+    UUID_REGEX.test(trimmed)
+      ? `SELECT id FROM users WHERE id = $1::uuid LIMIT 1`
+      : `SELECT id FROM users WHERE revenuecat_user_id = $1 LIMIT 1`,
+    [trimmed]
+  );
+  return userResult.rows[0]?.id ?? null;
+}
+
+async function safeCount(sql: string, params: any[] = []): Promise<number> {
+  try {
+    const result = await query<{ count: number }>(sql, params);
+    return result.rows[0]?.count ?? 0;
+  } catch (err) {
+    console.warn('[admin] count query failed:', err);
+    return 0;
+  }
+}
 
 const ADMIN_PAGE_FILES: Record<string, string> = {
   login: 'login-page.html',
   dashboard: 'dashboard.html',
+  'login-page.js': 'login-page.js',
+  'dashboard-page.js': 'dashboard-page.js',
 };
 
 function requireAdminAuth(req: VercelRequest): string | null {
@@ -49,8 +78,15 @@ function serveAdminPage(res: VercelResponse, page: string): boolean {
   if (!fileName) return false;
   try {
     const html = fs.readFileSync(path.join(ADMIN_PAGES_DIR, fileName), 'utf8');
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+    const isScript = fileName.endsWith('.js');
+    if (isScript) {
+      res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+    } else {
+      setAdminPageSecurityHeaders(res);
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+    }
     res.status(200).send(html);
     return true;
   } catch (err) {
@@ -84,29 +120,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return safeErrorResponse(res, 429, 'RATE_LIMITED', loginLimit.error);
     }
 
-    const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
-    const { userId } = body as { userId?: string };
+    let body: { userId?: string } = {};
+    try {
+      body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
+    } catch {
+      return safeErrorResponse(res, 400, 'INVALID_JSON', 'Invalid JSON in request body');
+    }
+    const userId = body.userId?.trim();
 
     if (!userId) return safeErrorResponse(res, 400, 'MISSING_USER_ID', 'User ID is required');
     if (!JWT_SECRET) return safeErrorResponse(res, 500, 'AUTH_CONFIG_ERROR', 'Authentication not configured');
 
     try {
       let finalUserId = userId;
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
       if (ADMIN_USER_IDS.length === 0) {
-        if (!uuidRegex.test(userId)) {
+        if (!UUID_REGEX.test(userId)) {
           return safeErrorResponse(res, 400, 'INVALID_USER_ID', 'User ID must be a valid UUID format');
         }
       } else {
-        const userResult = await query<{ id: string }>(
-          `SELECT id FROM users WHERE id = $1 OR revenuecat_user_id = $1 LIMIT 1`,
-          [userId]
-        );
-        if (userResult.rows.length === 0) {
+        const dbUserId = await lookupUserByLoginId(userId);
+        if (!dbUserId) {
           return safeErrorResponse(res, 401, 'INVALID_CREDENTIALS', 'Invalid user ID');
         }
-        finalUserId = userResult.rows[0].id;
+        finalUserId = dbUserId;
         const isAdmin = ADMIN_USER_IDS.includes(userId) || ADMIN_USER_IDS.includes(finalUserId);
         if (!isAdmin) {
           await logSecurityEvent({
@@ -143,39 +180,44 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const cm = currentMonthDate();
       const [userTotals, newToday, newWeek, tierBreakdown, usageByTier, mrr, totalJobs, jobsToday, banned, infringements] =
         await Promise.all([
-          query<{ count: number }>(`SELECT COUNT(*)::int AS count FROM users`),
-          query<{ count: number }>(`SELECT COUNT(*)::int AS count FROM users WHERE DATE(created_at) = CURRENT_DATE`),
-          query<{ count: number }>(`SELECT COUNT(*)::int AS count FROM users WHERE created_at >= NOW() - INTERVAL '7 days'`),
-          query<any>(`SELECT subscription_tier, subscription_status, COUNT(*)::int AS count FROM users GROUP BY subscription_tier, subscription_status ORDER BY count DESC`),
-          query<any>(`SELECT u.subscription_tier, SUM(ut.count)::int AS total_usage, ROUND(AVG(ut.count),1) AS avg_usage FROM users u JOIN usage_tracking ut ON ut.user_id = u.id AND ut.month = $1 GROUP BY u.subscription_tier`, [cm]),
-          query<{ mrr: number }>(`SELECT COALESCE(SUM(CASE subscription_tier WHEN 'starter' THEN 4.99 WHEN 'popular' THEN 9.99 WHEN 'pro' THEN 24.99 ELSE 0 END),0)::numeric AS mrr FROM users WHERE subscription_status = 'active'`),
-          query<{ count: number }>(`SELECT COUNT(*)::int AS count FROM jobs`),
-          query<{ count: number }>(`SELECT COUNT(*)::int AS count FROM jobs WHERE DATE(created_at) = CURRENT_DATE`),
-          query<{ count: number }>(`SELECT COUNT(*)::int AS count FROM users WHERE banned_at IS NOT NULL`),
-          query<{ count: number }>(`SELECT COUNT(*)::int AS count FROM infringements`),
+          safeCount(`SELECT COUNT(*)::int AS count FROM users`),
+          safeCount(`SELECT COUNT(*)::int AS count FROM users WHERE DATE(created_at) = CURRENT_DATE`),
+          safeCount(`SELECT COUNT(*)::int AS count FROM users WHERE created_at >= NOW() - INTERVAL '7 days'`),
+          query<any>(`SELECT subscription_tier, subscription_status, COUNT(*)::int AS count FROM users GROUP BY subscription_tier, subscription_status ORDER BY count DESC`).catch(() => ({ rows: [] })),
+          query<any>(`SELECT u.subscription_tier, SUM(ut.count)::int AS total_usage, ROUND(AVG(ut.count),1) AS avg_usage FROM users u JOIN usage_tracking ut ON ut.user_id = u.id AND ut.month = $1 GROUP BY u.subscription_tier`, [cm]).catch(() => ({ rows: [] })),
+          query<{ mrr: number }>(`SELECT COALESCE(SUM(CASE subscription_tier WHEN 'starter' THEN 4.99 WHEN 'popular' THEN 9.99 WHEN 'pro' THEN 24.99 ELSE 0 END),0)::numeric AS mrr FROM users WHERE subscription_status = 'active'`).catch(() => ({ rows: [{ mrr: 0 }] })),
+          safeCount(`SELECT COUNT(*)::int AS count FROM jobs`),
+          safeCount(`SELECT COUNT(*)::int AS count FROM jobs WHERE DATE(created_at) = CURRENT_DATE`),
+          safeCount(`SELECT COUNT(*)::int AS count FROM users WHERE banned_at IS NOT NULL`),
+          safeCount(`SELECT COUNT(*)::int AS count FROM infringements`),
         ]);
 
-      const jobsTrend = await query<any>(
-        `SELECT DATE(created_at) AS date,
-                COUNT(*) FILTER (WHERE status = 'completed')::int AS completed,
-                COUNT(*) FILTER (WHERE status = 'failed')::int AS failed
-         FROM jobs WHERE created_at >= NOW() - INTERVAL '7 days'
-         GROUP BY DATE(created_at) ORDER BY date ASC`
-      );
+      let jobsTrend = { rows: [] as any[] };
+      try {
+        jobsTrend = await query<any>(
+          `SELECT DATE(created_at) AS date,
+                  COUNT(*) FILTER (WHERE status = 'completed')::int AS completed,
+                  COUNT(*) FILTER (WHERE status = 'failed')::int AS failed
+           FROM jobs WHERE created_at >= NOW() - INTERVAL '7 days'
+           GROUP BY DATE(created_at) ORDER BY date ASC`
+        );
+      } catch (err) {
+        console.warn('[admin/stats] jobs trend query failed:', err);
+      }
 
       return res.status(200).json({
         ok: true,
         users: {
-          total: userTotals.rows[0]?.count ?? 0,
-          newToday: newToday.rows[0]?.count ?? 0,
-          newThisWeek: newWeek.rows[0]?.count ?? 0,
-          banned: banned.rows[0]?.count ?? 0,
+          total: userTotals,
+          newToday: newToday,
+          newThisWeek: newWeek,
+          banned: banned,
           byTier: tierBreakdown.rows,
         },
         revenue: { mrrEstimateUsd: Number(mrr.rows[0]?.mrr ?? 0).toFixed(2) },
         usage: { thisMonth: usageByTier.rows },
-        jobs: { total: totalJobs.rows[0]?.count ?? 0, today: jobsToday.rows[0]?.count ?? 0, last7Days: jobsTrend.rows },
-        moderation: { totalInfringements: infringements.rows[0]?.count ?? 0 },
+        jobs: { total: totalJobs, today: jobsToday, last7Days: jobsTrend.rows },
+        moderation: { totalInfringements: infringements },
       });
     }
 
