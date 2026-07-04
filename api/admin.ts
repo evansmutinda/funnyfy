@@ -9,8 +9,8 @@
 //   GET  /api/admin?resource=security-logs
 //   GET  /api/admin?resource=users
 //   POST /api/admin?resource=users&action=ban|unban|quota|tier
-//   GET  /api/admin?resource=jobs
-//   POST /api/admin?resource=jobs&action=retry|cancel
+//   GET  /api/admin?resource=finance
+//   GET  /api/admin?resource=moderation
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import fs from 'fs';
@@ -53,6 +53,16 @@ async function safeCount(sql: string, params: any[] = []): Promise<number> {
     console.warn('[admin] count query failed:', err);
     return 0;
   }
+}
+
+const TIER_PRICES: Record<string, number> = {
+  starter: 4.99,
+  popular: 9.99,
+  pro: 24.99,
+};
+
+function tierPrice(tier: string): number {
+  return TIER_PRICES[(tier || '').toLowerCase()] ?? 0;
 }
 
 const ADMIN_PAGE_FILES: Record<string, string> = {
@@ -409,6 +419,90 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         total: countResult.rows[0]?.count ?? 0,
         page, limit,
         pages: Math.ceil((countResult.rows[0]?.count ?? 0) / limit),
+      });
+    }
+
+    // ── FINANCE ────────────────────────────────────────────────────────────────
+    if (resource === 'finance') {
+      const [activeByTier, spending30, spending7, todaySpend, pauseCheck, monthCost] = await Promise.all([
+        query<any>(
+          `SELECT subscription_tier AS tier, COUNT(*)::int AS count
+           FROM users WHERE subscription_status = 'active' AND subscription_tier IN ('starter','popular','pro')
+           GROUP BY subscription_tier ORDER BY count DESC`
+        ).catch(() => ({ rows: [] })),
+        getSpendingStats(30),
+        getSpendingStats(7),
+        getTodaySpending(),
+        shouldPauseQueue(),
+        query<{ total: number }>(
+          `SELECT COALESCE(SUM(cost_usd), 0)::numeric AS total FROM cost_tracking
+           WHERE date >= date_trunc('month', CURRENT_DATE)::date`
+        ).catch(() => ({ rows: [{ total: 0 }] })),
+      ]);
+
+      const revenueRows = (activeByTier.rows || []).map((row: { tier: string; count: number }) => {
+        const unit = tierPrice(row.tier);
+        return {
+          tier: row.tier,
+          count: row.count,
+          unitPriceUsd: unit,
+          subtotalUsd: Number((row.count * unit).toFixed(2)),
+        };
+      });
+      const mrr = revenueRows.reduce((sum: number, r: { subtotalUsd: number }) => sum + r.subtotalUsd, 0);
+      const costMonth = Number(monthCost.rows[0]?.total ?? 0);
+
+      return res.status(200).json({
+        ok: true,
+        revenue: {
+          mrrEstimateUsd: mrr.toFixed(2),
+          activeByTier: revenueRows,
+          totalActiveSubs: revenueRows.reduce((s: number, r: { count: number }) => s + r.count, 0),
+        },
+        costs: {
+          today: {
+            costUsd: todaySpend.totalCost,
+            jobs: todaySpend.jobCount,
+            capUsd: pauseCheck.cap,
+            capPercent: pauseCheck.cap > 0 ? Math.round((todaySpend.totalCost / pauseCheck.cap) * 100) : 0,
+            queuePaused: pauseCheck.paused,
+            pauseReason: pauseCheck.reason,
+          },
+          last7: spending7,
+          last30: spending30,
+          monthToDateUsd: costMonth,
+        },
+        margin: {
+          mrrEstimateUsd: mrr,
+          costMonthToDateUsd: costMonth,
+          estimatedNetUsd: Number((mrr - costMonth).toFixed(2)),
+        },
+        meta: {
+          prices: TIER_PRICES,
+          disclaimer: 'MRR estimated from active DB tiers. Costs from Replicate cost_tracking. Not accounting-grade.',
+        },
+      });
+    }
+
+    // ── MODERATION ─────────────────────────────────────────────────────────────
+    if (resource === 'moderation') {
+      const limit = Math.min(Number(req.query.limit) || 50, 200);
+      const [total, recent] = await Promise.all([
+        safeCount(`SELECT COUNT(*)::int AS count FROM infringements`),
+        query<any>(
+          `SELECT i.id, i.user_id, i.infringement_type, i.details, i.created_at,
+                  u.subscription_tier, u.email, u.banned_at
+           FROM infringements i
+           LEFT JOIN users u ON u.id = i.user_id
+           ORDER BY i.created_at DESC LIMIT $1`,
+          [limit]
+        ).catch(() => ({ rows: [] })),
+      ]);
+
+      return res.status(200).json({
+        ok: true,
+        total,
+        recent: recent.rows,
       });
     }
 

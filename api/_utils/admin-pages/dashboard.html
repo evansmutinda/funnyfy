@@ -7,105 +7,437 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --bg: #f0f2f5; --surface: #fff; --border: #e4e7ec;
-      --text: #111827; --muted: #6b7280; --accent: #6366f1;
-      --green: #10b981; --red: #ef4444; --amber: #f59e0b;
-      --radius: 10px; --shadow: 0 1px 4px rgba(0,0,0,.08);
+      --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+      --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+      --bg: #f4f5f7;
+      --surface: #fff;
+      --surface-2: #fafbfc;
+      --border: #e8eaed;
+      --text: #0f172a;
+      --muted: #64748b;
+      --accent: #4f46e5;
+      --accent-soft: #eef2ff;
+      --sidebar: #111827;
+      --sidebar-text: #94a3b8;
+      --sidebar-active: #fff;
+      --green: #059669;
+      --green-soft: #d1fae5;
+      --red: #dc2626;
+      --red-soft: #fee2e2;
+      --amber: #d97706;
+      --amber-soft: #fef3c7;
+      --radius: 12px;
+      --shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 4px 12px rgba(15, 23, 42, 0.04);
     }
-    body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background: var(--bg); color: var(--text); font-size: 14px; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
 
-    /* Layout */
     .layout { display: flex; min-height: 100vh; }
-    .sidebar { width: 220px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: fixed; top: 0; bottom: 0; }
-    .sidebar-logo { padding: 20px 16px; font-weight: 700; font-size: 18px; border-bottom: 1px solid var(--border); color: var(--accent); }
-    .sidebar nav { flex: 1; padding: 12px 8px; }
-    .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 7px; cursor: pointer; color: var(--muted); font-weight: 500; margin-bottom: 2px; transition: all .15s; }
-    .nav-item:hover, .nav-item.active { background: #eef2ff; color: var(--accent); }
-    .nav-item span.icon { font-size: 16px; width: 20px; text-align: center; }
-    .sidebar-footer { padding: 12px 8px; border-top: 1px solid var(--border); }
-    .main { margin-left: 220px; flex: 1; }
-    .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10; }
-    .topbar-title { font-weight: 600; font-size: 16px; }
+    .sidebar {
+      width: 232px;
+      background: var(--sidebar);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; bottom: 0; left: 0;
+      z-index: 20;
+    }
+    .sidebar-logo {
+      padding: 22px 20px 18px;
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: -0.02em;
+      color: var(--sidebar-active);
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .sidebar-logo span { color: var(--accent); font-weight: 800; }
+    .sidebar nav { flex: 1; padding: 12px 10px; overflow-y: auto; }
+    .nav-section {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #475569;
+      padding: 12px 12px 6px;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--sidebar-text);
+      font-weight: 500;
+      font-size: 13px;
+      margin-bottom: 2px;
+      transition: background-color 140ms var(--ease-out), color 140ms var(--ease-out);
+      user-select: none;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .nav-item:hover { background: rgba(255,255,255,.06); color: #cbd5e1; }
+    }
+    .nav-item.active { background: rgba(79, 70, 229, .22); color: var(--sidebar-active); }
+    .nav-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: .35;
+      flex-shrink: 0;
+    }
+    .nav-item.active .nav-dot { opacity: 1; background: #818cf8; }
+    .sidebar-footer { padding: 12px 10px 16px; border-top: 1px solid rgba(255,255,255,.06); }
+
+    .main { margin-left: 232px; flex: 1; min-width: 0; }
+    .topbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(8px);
+    }
+    .topbar-title { font-weight: 600; font-size: 16px; letter-spacing: -0.02em; }
     .topbar-right { display: flex; align-items: center; gap: 12px; }
-    .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; }
-    .badge-green { background: #d1fae5; color: #065f46; }
-    .badge-red { background: #fee2e2; color: #991b1b; }
-    .badge-amber { background: #fef3c7; color: #92400e; }
-    .badge-gray { background: #f3f4f6; color: #374151; }
-    .badge-indigo { background: #eef2ff; color: #3730a3; }
-    .content { padding: 24px; }
+    .content { padding: 28px; max-width: 1280px; }
     .page { display: none; }
     .page.active { display: block; }
 
-    /* Cards */
-    .stats-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
-    .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; }
-    .stat-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
-    .stat-value { font-size: 28px; font-weight: 700; color: var(--text); }
-    .stat-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }
+    .badge-green { background: var(--green-soft); color: #065f46; }
+    .badge-red { background: var(--red-soft); color: #991b1b; }
+    .badge-amber { background: var(--amber-soft); color: #92400e; }
+    .badge-gray { background: #f1f5f9; color: #475569; }
+    .badge-indigo { background: var(--accent-soft); color: #3730a3; }
 
-    /* Tables */
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 20px; }
-    .card-head { padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
-    .card-head h3 { font-size: 15px; font-weight: 600; }
+    .alerts { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+    .alert {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateY(6px);
+      animation: alertIn 220ms var(--ease-out) forwards;
+    }
+    .alert-warn { border-color: #fcd34d; background: #fffbeb; }
+    .alert-danger { border-color: #fca5a5; background: #fef2f2; }
+    .alert-ok { border-color: #86efac; background: #f0fdf4; }
+    .alert-title { font-weight: 600; font-size: 13px; }
+    .alert-body { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    @keyframes alertIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .alert { animation: none; opacity: 1; transform: none; }
+      .stat { animation: none !important; opacity: 1 !important; transform: none !important; }
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+    .stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateY(8px);
+      animation: statIn 240ms var(--ease-out) forwards;
+    }
+    .stats-row .stat:nth-child(1) { animation-delay: 0ms; }
+    .stats-row .stat:nth-child(2) { animation-delay: 40ms; }
+    .stats-row .stat:nth-child(3) { animation-delay: 80ms; }
+    .stats-row .stat:nth-child(4) { animation-delay: 120ms; }
+    .stats-row .stat:nth-child(5) { animation-delay: 160ms; }
+    .stats-row .stat:nth-child(6) { animation-delay: 200ms; }
+    .stats-row .stat:nth-child(7) { animation-delay: 240ms; }
+    .stats-row .stat:nth-child(8) { animation-delay: 280ms; }
+    @keyframes statIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .stat-label {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    .stat-value { font-size: 26px; font-weight: 700; letter-spacing: -0.03em; color: var(--text); }
+    .stat-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+    @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+    }
+    .card-head {
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface-2);
+    }
+    .card-head h3 { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
+    .card-note {
+      padding: 14px 20px;
+      font-size: 12px;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+      background: var(--surface-2);
+    }
+
     table { width: 100%; border-collapse: collapse; }
-    th { padding: 10px 16px; text-align: left; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; background: #f9fafb; border-bottom: 1px solid var(--border); }
-    td { padding: 10px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    th {
+      padding: 10px 16px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+    }
+    td { padding: 11px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
     tr:last-child td { border-bottom: none; }
-    tr:hover td { background: #fafafa; }
-    .mono { font-family: monospace; font-size: 12px; }
+    @media (hover: hover) and (pointer: fine) {
+      tbody tr:hover td { background: #f8fafc; }
+    }
+    .mono { font-family: ui-monospace, 'SF Mono', monospace; font-size: 12px; }
 
-    /* Controls */
     .controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
-    input[type=text], select { padding: 7px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; outline: none; background: var(--surface); }
-    input[type=text]:focus, select:focus { border-color: var(--accent); }
-    .btn { padding: 7px 14px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: opacity .15s; }
-    .btn:hover { opacity: .85; }
+    input[type=text], select {
+      padding: 8px 11px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      outline: none;
+      background: var(--surface);
+      transition: border-color 140ms var(--ease-out), box-shadow 140ms var(--ease-out);
+    }
+    input[type=text]:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, .12);
+    }
+
+    .btn {
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: transform 140ms var(--ease-out), opacity 140ms var(--ease-out), background-color 140ms var(--ease-out);
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+    @media (hover: hover) and (pointer: fine) {
+      .btn-primary:hover { background: #4338ca; }
+      .btn-danger:hover { background: #b91c1c; }
+      .btn-success:hover { background: #047857; }
+      .btn-ghost:hover { background: #f8fafc; }
+    }
     .btn-primary { background: var(--accent); color: #fff; }
     .btn-danger { background: var(--red); color: #fff; }
     .btn-success { background: var(--green); color: #fff; }
-    .btn-sm { padding: 4px 10px; font-size: 12px; }
+    .btn-sm { padding: 5px 10px; font-size: 12px; }
     .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
-    .logout-btn { background: none; border: 1px solid var(--border); color: var(--muted); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; }
-    .logout-btn:hover { color: var(--red); border-color: var(--red); }
-    .pagination { display: flex; gap: 6px; align-items: center; padding: 12px 16px; }
+    .logout-btn {
+      width: 100%;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,.12);
+      color: var(--sidebar-text);
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: transform 140ms var(--ease-out), color 140ms var(--ease-out), border-color 140ms var(--ease-out);
+    }
+    .logout-btn:active { transform: scale(0.97); }
+    @media (hover: hover) and (pointer: fine) {
+      .logout-btn:hover { color: #fca5a5; border-color: rgba(252,165,165,.4); }
+    }
+
+    .pagination { display: flex; gap: 8px; align-items: center; padding: 12px 16px; }
     .refresh-indicator { color: var(--muted); font-size: 12px; }
 
-    /* User detail panel */
-    .detail-panel { position: fixed; right: 0; top: 0; bottom: 0; width: 480px; background: var(--surface); border-left: 1px solid var(--border); z-index: 100; overflow-y: auto; transform: translateX(100%); transition: transform .2s; }
+    .cap-track {
+      height: 6px;
+      background: #e2e8f0;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+    .cap-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent), #818cf8);
+      transform-origin: left center;
+      transform: scaleX(0);
+      transition: transform 220ms var(--ease-out);
+    }
+    .cap-fill.warn { background: linear-gradient(90deg, var(--amber), #fbbf24); }
+    .cap-fill.danger { background: linear-gradient(90deg, var(--red), #f87171); }
+
+    .finance-hero {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 768px) { .finance-hero { grid-template-columns: 1fr; } }
+    .finance-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+    .finance-card .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+    .finance-card .value { font-size: 32px; font-weight: 700; letter-spacing: -0.03em; margin-top: 6px; }
+    .finance-card .hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+    .placeholder-block {
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 32px 24px;
+      text-align: center;
+      color: var(--muted);
+      background: var(--surface-2);
+    }
+    .placeholder-block strong { display: block; color: var(--text); margin-bottom: 6px; font-size: 14px; }
+
+    .detail-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(15, 23, 42, .35);
+      z-index: 90;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 200ms var(--ease-out);
+    }
+    .detail-backdrop.open { opacity: 1; pointer-events: auto; }
+    .detail-panel {
+      position: fixed; right: 0; top: 0; bottom: 0;
+      width: min(480px, 100vw);
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      z-index: 100;
+      overflow-y: auto;
+      transform: translateX(100%);
+      transition: transform 220ms var(--ease-out);
+      box-shadow: -8px 0 24px rgba(15, 23, 42, .08);
+    }
     .detail-panel.open { transform: translateX(0); }
-    .panel-head { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .panel-head {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      background: var(--surface);
+      z-index: 1;
+    }
     .panel-body { padding: 20px; }
-    .field-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f3f4f6; }
-    .field-label { color: var(--muted); font-size: 13px; }
-    .field-value { font-size: 13px; font-weight: 500; max-width: 60%; text-align: right; word-break: break-all; }
+    .field-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 9px 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .field-label { color: var(--muted); font-size: 13px; flex-shrink: 0; }
+    .field-value { font-size: 13px; font-weight: 500; text-align: right; word-break: break-all; }
     .panel-actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
-    .section-title { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin: 20px 0 10px; }
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin: 20px 0 10px;
+    }
 
     .empty { text-align: center; padding: 40px; color: var(--muted); }
-    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid #ccc; border-top-color: var(--accent); border-radius: 50%; animation: spin .6s linear infinite; }
+    .spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid #e2e8f0;
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .55s linear infinite;
+    }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .error-msg { background: #fee2e2; color: #991b1b; padding: 10px 14px; border-radius: 6px; margin-bottom: 12px; font-size: 13px; }
+    @media (prefers-reduced-motion: reduce) {
+      .spinner { animation-duration: 1.2s; }
+    }
+    .error-msg {
+      background: var(--red-soft);
+      color: #991b1b;
+      padding: 10px 14px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      font-size: 13px;
+    }
   </style>
 </head>
 <body>
 <div class="layout">
-  <!-- Sidebar -->
   <aside class="sidebar">
-    <div class="sidebar-logo">🎨 FunnyFy Admin</div>
-    <nav>
-      <div class="nav-item active" onclick="showPage('overview')"><span class="icon">📊</span> Overview</div>
-      <div class="nav-item" onclick="showPage('users')"><span class="icon">👥</span> Users</div>
-      <div class="nav-item" onclick="showPage('jobs')"><span class="icon">⚡</span> Jobs</div>
-      <div class="nav-item" onclick="showPage('queue')"><span class="icon">🔄</span> Queue</div>
-      <div class="nav-item" onclick="showPage('security')"><span class="icon">🔐</span> Security</div>
+    <div class="sidebar-logo"><span>Funny</span>Fy Admin</div>
+    <nav id="sidebar-nav">
+      <div class="nav-section">Monitor</div>
+      <div class="nav-item active" data-page="overview"><span class="nav-dot"></span> Overview</div>
+      <div class="nav-item" data-page="queue"><span class="nav-dot"></span> Queue</div>
+      <div class="nav-item" data-page="security"><span class="nav-dot"></span> Security</div>
+      <div class="nav-section">Business</div>
+      <div class="nav-item" data-page="finance"><span class="nav-dot"></span> Finance</div>
+      <div class="nav-item" data-page="users"><span class="nav-dot"></span> Users</div>
+      <div class="nav-section">Operations</div>
+      <div class="nav-item" data-page="jobs"><span class="nav-dot"></span> Jobs</div>
+      <div class="nav-item" data-page="moderation"><span class="nav-dot"></span> Moderation</div>
     </nav>
     <div class="sidebar-footer">
-      <button class="logout-btn" style="width:100%" onclick="logout()">Sign out</button>
+      <button class="logout-btn" type="button" id="logout-btn">Sign out</button>
     </div>
   </aside>
 
-  <!-- Main -->
   <main class="main">
     <div class="topbar">
       <div class="topbar-title" id="pageTitle">Overview</div>
@@ -117,53 +449,121 @@
 
     <div class="content">
 
-      <!-- OVERVIEW -->
       <div class="page active" id="page-overview">
+        <div class="alerts" id="overview-alerts"></div>
         <div class="stats-row" id="overview-stats">
           <div class="stat"><div class="stat-label">Total Users</div><div class="stat-value" id="ov-users">—</div></div>
+          <div class="stat"><div class="stat-label">New Today</div><div class="stat-value" id="ov-new-today">—</div></div>
+          <div class="stat"><div class="stat-label">New This Week</div><div class="stat-value" id="ov-new-week">—</div></div>
           <div class="stat"><div class="stat-label">Active Subs</div><div class="stat-value" id="ov-active">—</div></div>
           <div class="stat"><div class="stat-label">MRR (est.)</div><div class="stat-value" id="ov-mrr">—</div></div>
           <div class="stat"><div class="stat-label">Jobs Today</div><div class="stat-value" id="ov-jobs-today">—</div></div>
-          <div class="stat"><div class="stat-label">All-Time Jobs</div><div class="stat-value" id="ov-jobs-total">—</div></div>
-          <div class="stat"><div class="stat-label">Banned Users</div><div class="stat-value" id="ov-banned">—</div></div>
+          <div class="stat"><div class="stat-label">Infringements</div><div class="stat-value" id="ov-infringements">—</div></div>
+          <div class="stat"><div class="stat-label">Banned</div><div class="stat-value" id="ov-banned">—</div></div>
         </div>
 
-        <div class="card">
-          <div class="card-head"><h3>Users by Tier & Status</h3></div>
-          <table>
-            <thead><tr><th>Tier</th><th>Status</th><th>Count</th></tr></thead>
-            <tbody id="tier-table"><tr><td colspan="3" class="empty"><span class="spinner"></span></td></tr></tbody>
-          </table>
-        </div>
-
-        <div class="card">
-          <div class="card-head"><h3>Jobs Last 7 Days</h3></div>
-          <table>
-            <thead><tr><th>Date</th><th>Completed</th><th>Failed</th></tr></thead>
-            <tbody id="jobs-trend"><tr><td colspan="3" class="empty"><span class="spinner"></span></td></tr></tbody>
-          </table>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head"><h3>Users by Tier & Status</h3></div>
+            <table>
+              <thead><tr><th>Tier</th><th>Status</th><th>Count</th></tr></thead>
+              <tbody id="tier-table"><tr><td colspan="3" class="empty"><span class="spinner"></span></td></tr></tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Jobs Last 7 Days</h3></div>
+            <table>
+              <thead><tr><th>Date</th><th>Done</th><th>Failed</th></tr></thead>
+              <tbody id="jobs-trend"><tr><td colspan="3" class="empty"><span class="spinner"></span></td></tr></tbody>
+            </table>
+          </div>
         </div>
       </div>
 
-      <!-- USERS -->
+      <div class="page" id="page-finance">
+        <div class="finance-hero">
+          <div class="finance-card">
+            <div class="label">MRR (estimated)</div>
+            <div class="value" id="fin-mrr">—</div>
+            <div class="hint" id="fin-subs-hint">Active paid subscriptions</div>
+          </div>
+          <div class="finance-card">
+            <div class="label">Cost MTD</div>
+            <div class="value" id="fin-cost-mtd">—</div>
+            <div class="hint" id="fin-margin-hint">Replicate inference spend</div>
+          </div>
+          <div class="finance-card">
+            <div class="label">Est. Net (rough)</div>
+            <div class="value" id="fin-net">—</div>
+            <div class="hint">MRR minus month-to-date costs</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3>Today's Spend vs Cap</h3>
+            <span id="fin-cap-badge" class="badge badge-gray">—</span>
+          </div>
+          <div style="padding: 16px 20px">
+            <div style="display:flex;justify-content:space-between;font-size:13px">
+              <span id="fin-today-cost">—</span>
+              <span id="fin-today-cap" style="color:var(--muted)">—</span>
+            </div>
+            <div class="cap-track"><div class="cap-fill" id="fin-cap-bar"></div></div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head"><h3>Revenue by Tier</h3></div>
+            <table>
+              <thead><tr><th>Tier</th><th>Active</th><th>Unit</th><th>Subtotal</th></tr></thead>
+              <tbody id="fin-revenue-table"><tr><td colspan="4" class="empty"><span class="spinner"></span></td></tr></tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Spend Last 7 Days</h3><button class="btn btn-ghost btn-sm" type="button" data-refresh="finance">Refresh</button></div>
+            <table>
+              <thead><tr><th>Date</th><th>Cost</th><th>Jobs</th></tr></thead>
+              <tbody id="fin-spend-7"><tr><td colspan="3" class="empty"><span class="spinner"></span></td></tr></tbody>
+            </table>
+            <div class="card-note" id="fin-7-total">—</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><h3>Spend Last 30 Days</h3></div>
+          <table>
+            <thead><tr><th>Date</th><th>Cost</th><th>Jobs</th></tr></thead>
+            <tbody id="fin-spend-30"><tr><td colspan="3" class="empty"><span class="spinner"></span></td></tr></tbody>
+          </table>
+          <div class="card-note" id="fin-30-total">—</div>
+        </div>
+
+        <div class="placeholder-block">
+          <strong>Custom finance reports</strong>
+          Placeholder for detailed breakdowns you will define next — payouts, refunds, per-style margins, and RevenueCat reconciliation.
+        </div>
+      </div>
+
       <div class="page" id="page-users">
         <div class="controls">
-          <input type="text" id="user-search" placeholder="Search by ID, email…" style="width:240px" oninput="debounceLoadUsers()">
-          <select id="user-tier" onchange="loadUsers()">
+          <input type="text" id="user-search" placeholder="Search by ID, email…" style="width:240px">
+          <select id="user-tier">
             <option value="">All tiers</option>
             <option value="trial">Trial</option>
             <option value="starter">Starter</option>
             <option value="popular">Popular</option>
             <option value="pro">Pro</option>
           </select>
-          <select id="user-status" onchange="loadUsers()">
+          <select id="user-status">
             <option value="">All statuses</option>
             <option value="trial">Trial</option>
             <option value="active">Active</option>
             <option value="canceled">Canceled</option>
             <option value="expired">Expired</option>
           </select>
-          <button class="btn btn-ghost" onclick="loadUsers()">Refresh</button>
+          <button class="btn btn-ghost" type="button" data-refresh="users">Refresh</button>
         </div>
         <div class="card">
           <table>
@@ -174,17 +574,16 @@
         </div>
       </div>
 
-      <!-- JOBS -->
       <div class="page" id="page-jobs">
         <div class="controls">
-          <select id="job-status" onchange="loadJobs()">
+          <select id="job-status">
             <option value="">All statuses</option>
             <option value="pending">Pending</option>
             <option value="processing">Processing</option>
             <option value="completed">Completed</option>
             <option value="failed">Failed</option>
           </select>
-          <button class="btn btn-ghost" onclick="loadJobs()">Refresh</button>
+          <button class="btn btn-ghost" type="button" data-refresh="jobs">Refresh</button>
         </div>
         <div class="card">
           <table>
@@ -195,18 +594,20 @@
         </div>
       </div>
 
-      <!-- QUEUE -->
       <div class="page" id="page-queue">
+        <div class="alerts" id="queue-alerts"></div>
         <div class="stats-row">
           <div class="stat"><div class="stat-label">Pending</div><div class="stat-value" id="q-pending">—</div></div>
           <div class="stat"><div class="stat-label">Processing</div><div class="stat-value" id="q-processing">—</div></div>
-          <div class="stat"><div class="stat-label">Queue Status</div><div class="stat-value" id="q-status" style="font-size:18px">—</div></div>
+          <div class="stat"><div class="stat-label">Completed</div><div class="stat-value" id="q-completed">—</div></div>
+          <div class="stat"><div class="stat-label">Failed</div><div class="stat-value" id="q-failed">—</div></div>
+          <div class="stat"><div class="stat-label">Queue</div><div class="stat-value" id="q-status" style="font-size:16px">—</div></div>
           <div class="stat"><div class="stat-label">Avg Wait</div><div class="stat-value" id="q-wait">—</div><div class="stat-sub">seconds</div></div>
           <div class="stat"><div class="stat-label">Cost Today</div><div class="stat-value" id="q-cost">—</div></div>
           <div class="stat"><div class="stat-label">Cap Usage</div><div class="stat-value" id="q-cap-pct">—</div></div>
         </div>
         <div class="card">
-          <div class="card-head"><h3>Spending Last 7 Days</h3><button class="btn btn-ghost btn-sm" onclick="loadQueue()">↻ Refresh</button></div>
+          <div class="card-head"><h3>Spending Last 7 Days</h3><button class="btn btn-ghost btn-sm" type="button" data-refresh="queue">Refresh</button></div>
           <table>
             <thead><tr><th>Date</th><th>Cost (USD)</th><th>Jobs</th></tr></thead>
             <tbody id="spending-table"><tr><td colspan="3" class="empty"><span class="spinner"></span></td></tr></tbody>
@@ -214,20 +615,32 @@
         </div>
       </div>
 
-      <!-- SECURITY -->
+      <div class="page" id="page-moderation">
+        <div class="stats-row" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">
+          <div class="stat"><div class="stat-label">Total Infringements</div><div class="stat-value" id="mod-total">—</div></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>Recent Infringements</h3><button class="btn btn-ghost btn-sm" type="button" data-refresh="moderation">Refresh</button></div>
+          <table>
+            <thead><tr><th>Time</th><th>Type</th><th>User</th><th>Tier</th><th>Details</th><th></th></tr></thead>
+            <tbody id="moderation-table"><tr><td colspan="6" class="empty"><span class="spinner"></span></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
       <div class="page" id="page-security">
         <div class="controls">
-          <select id="sec-type" onchange="loadSecurity()">
+          <select id="sec-type">
             <option value="">All events</option>
             <option value="auth_failed">Auth Failed</option>
             <option value="auth_success">Auth Success</option>
           </select>
-          <select id="sec-success" onchange="loadSecurity()">
+          <select id="sec-success">
             <option value="">All outcomes</option>
             <option value="false">Failures only</option>
             <option value="true">Successes only</option>
           </select>
-          <button class="btn btn-ghost" onclick="loadSecurity()">Refresh</button>
+          <button class="btn btn-ghost" type="button" data-refresh="security">Refresh</button>
         </div>
         <div class="card">
           <table>
@@ -237,15 +650,15 @@
         </div>
       </div>
 
-    </div><!-- /content -->
+    </div>
   </main>
 </div>
 
-<!-- User detail panel -->
+<div class="detail-backdrop" id="panel-backdrop"></div>
 <div class="detail-panel" id="user-panel">
   <div class="panel-head">
     <strong>User Detail</strong>
-    <button class="btn btn-ghost btn-sm" onclick="closePanel()">✕</button>
+    <button class="btn btn-ghost btn-sm" type="button" id="close-panel-btn">Close</button>
   </div>
   <div class="panel-body" id="user-panel-body">Loading…</div>
 </div>

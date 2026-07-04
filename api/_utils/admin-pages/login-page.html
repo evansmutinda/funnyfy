@@ -1,164 +1,181 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FunnyFy Admin - Login</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .login-container {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 40px;
-            width: 100%;
-            max-width: 400px;
-        }
-        h1 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 28px;
-            text-align: center;
-        }
-        .subtitle {
-            color: #666;
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 14px;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            color: #333;
-            font-weight: 500;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-        input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 6px;
-            font-size: 14px;
-            transition: border-color 0.3s;
-        }
-        input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        .help-text {
-            font-size: 12px;
-            color: #999;
-            margin-top: 5px;
-        }
-        .error {
-            background: #fee;
-            border: 1px solid #fcc;
-            color: #c33;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            display: none;
-        }
-        .error.show {
-            display: block;
-        }
-        .success {
-            background: #efe;
-            border: 1px solid #cfc;
-            color: #3c3;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            display: none;
-        }
-        .success.show {
-            display: block;
-        }
-        button {
-            width: 100%;
-            padding: 12px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        button:hover {
-            background: #5568d3;
-        }
-        button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-        .loading {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid #fff;
-            border-top-color: transparent;
-            border-radius: 50%;
-            animation: spin 0.6s linear infinite;
-            margin-right: 8px;
-            vertical-align: middle;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FunnyFy Admin - Login</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+      --bg: #0f172a;
+      --surface: #fff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --accent: #4f46e5;
+      --accent-hover: #4338ca;
+      --border: #e2e8f0;
+      --red-soft: #fee2e2;
+      --green-soft: #d1fae5;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      background-image:
+        radial-gradient(ellipse 80% 60% at 50% -10%, rgba(79, 70, 229, .35), transparent),
+        radial-gradient(ellipse 50% 40% at 100% 100%, rgba(99, 102, 241, .15), transparent);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      -webkit-font-smoothing: antialiased;
+    }
+    .login-container {
+      background: var(--surface);
+      border-radius: 16px;
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
+      padding: 40px 36px;
+      width: 100%;
+      max-width: 400px;
+      border: 1px solid rgba(255,255,255,.06);
+    }
+    .brand {
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    h1 {
+      color: var(--text);
+      margin-bottom: 6px;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+    .subtitle {
+      color: var(--muted);
+      margin-bottom: 28px;
+      font-size: 14px;
+    }
+    .form-group { margin-bottom: 18px; }
+    label {
+      display: block;
+      color: var(--text);
+      font-weight: 500;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+    input {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 14px;
+      transition: border-color 140ms var(--ease-out), box-shadow 140ms var(--ease-out);
+    }
+    input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, .15);
+    }
+    .help-text {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 6px;
+      line-height: 1.45;
+    }
+    .help-text a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .help-text a:hover { text-decoration: underline; }
+    }
+    .notice {
+      padding: 11px 14px;
+      border-radius: 10px;
+      margin-bottom: 18px;
+      font-size: 13px;
+      display: none;
+      line-height: 1.45;
+    }
+    .notice.show { display: block; }
+    .notice-error { background: var(--red-soft); color: #991b1b; border: 1px solid #fecaca; }
+    .notice-success { background: var(--green-soft); color: #065f46; border: 1px solid #a7f3d0; }
+    button[type=submit] {
+      width: 100%;
+      padding: 12px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 140ms var(--ease-out), background-color 140ms var(--ease-out);
+    }
+    button[type=submit]:active { transform: scale(0.97); }
+    @media (hover: hover) and (pointer: fine) {
+      button[type=submit]:hover { background: var(--accent-hover); }
+    }
+    button[type=submit]:disabled {
+      background: #cbd5e1;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .loading {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,.35);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .55s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) {
+      .loading { animation-duration: 1.2s; }
+      button[type=submit]:active { transform: none; }
+    }
+  </style>
 </head>
 <body>
-    <div class="login-container">
-        <h1>FunnyFy Admin</h1>
-        <p class="subtitle">Sign in to access the admin dashboard</p>
-        
-        <div class="error" id="error"></div>
-        <div class="success" id="success"></div>
-        
-        <form id="loginForm">
-            <div class="form-group">
-                <label for="userId">User ID</label>
-                <input 
-                    type="text" 
-                    id="userId" 
-                    name="userId" 
-                    placeholder="Enter admin user ID (UUID)"
-                    required
-                    autocomplete="off"
-                />
-                <p class="help-text">Use a valid UUID format (e.g., d0f0c851-fdd8-4b9b-a1bd-b942d9160638)</p>
-            </div>
-            
-            <button type="submit" id="submitBtn">
-                <span id="btnText">Sign in</span>
-            </button>
-        </form>
-        <p class="help-text" style="text-align:center;margin-top:16px">
-            <a href="#" id="clearStoredLogin">Clear saved login</a>
-        </p>
-    </div>
+  <div class="login-container">
+    <div class="brand">FunnyFy</div>
+    <h1>Admin</h1>
+    <p class="subtitle">Sign in with your authorized user ID</p>
 
-    <script src="/admin/login-page.js" defer></script>
+    <div class="notice notice-error" id="error"></div>
+    <div class="notice notice-success" id="success"></div>
+
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="userId">User ID</label>
+        <input
+          type="text"
+          id="userId"
+          name="userId"
+          placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+          required
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <p class="help-text">UUID from the same Supabase project as this deployment (staging vs production).</p>
+      </div>
+
+      <button type="submit" id="submitBtn">
+        <span id="btnText">Sign in</span>
+      </button>
+    </form>
+    <p class="help-text" style="text-align:center;margin-top:18px">
+      <a href="#" id="clearStoredLogin">Clear saved login</a>
+    </p>
+  </div>
+
+  <script src="/admin/login-page.js" defer></script>
 </body>
 </html>
-

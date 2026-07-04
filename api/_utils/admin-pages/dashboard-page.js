@@ -1,287 +1,940 @@
-﻿const API = '';
-let token = localStorage.getItem('admin_token');
-let currentPage = 'overview';
-let userPage = 1, jobPage = 1;
-let debounceTimer;
+﻿(function () {
+  'use strict';
 
-// â”€â”€ Auth â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-if (!token) { window.location.href = '/admin/login'; throw 0; }
-try {
-  const p = JSON.parse(atob(token.split('.')[1]));
-  document.getElementById('adminLabel').textContent = p.userId.slice(0,8) + 'â€¦';
-  if (p.exp * 1000 < Date.now()) logout();
-} catch(e) { logout(); }
+  const API = '';
+  const token = localStorage.getItem('admin_token');
+  let currentPage = 'overview';
+  let userPage = 1;
+  let jobPage = 1;
+  let debounceTimer;
 
-function logout() {
-  localStorage.removeItem('admin_token');
-  window.location.href = '/admin/login';
-}
+  const PAGE_TITLES = {
+    overview: 'Overview',
+    finance: 'Finance',
+    users: 'Users',
+    jobs: 'Jobs',
+    queue: 'Queue',
+    moderation: 'Moderation',
+    security: 'Security',
+  };
 
-async function apiFetch(path, opts = {}) {
-  const r = await fetch(API + path, {
-    ...opts,
-    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', ...(opts.headers || {}) }
+  const LOADERS = {
+    overview: loadOverview,
+    finance: loadFinance,
+    users: loadUsers,
+    jobs: loadJobs,
+    queue: loadQueue,
+    moderation: loadModeration,
+    security: loadSecurity,
+  };
+
+  // ── Auth ────────────────────────────────────────────────────────────────────
+  if (!token) {
+    window.location.href = '/admin/login';
+    return;
+  }
+
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const label = document.getElementById('adminLabel');
+    if (label) label.textContent = payload.userId.slice(0, 8) + '…';
+    if (payload.exp * 1000 < Date.now()) logout();
+  } catch (e) {
+    logout();
+    return;
+  }
+
+  function logout() {
+    localStorage.removeItem('admin_token');
+    window.location.href = '/admin/login';
+  }
+
+  async function apiFetch(path, opts) {
+    const r = await fetch(API + path, {
+      ...opts,
+      headers: {
+        Authorization: 'Bearer ' + token,
+        'Content-Type': 'application/json',
+        ...(opts && opts.headers ? opts.headers : {}),
+      },
+    });
+    if (r.status === 401) {
+      logout();
+      throw new Error('Unauthorized');
+    }
+    return r.json();
+  }
+
+  // ── Navigation ────────────────────────────────────────────────────────────
+  function showPage(name) {
+    if (!PAGE_TITLES[name]) return;
+
+    document.querySelectorAll('.page').forEach(function (p) {
+      p.classList.remove('active');
+    });
+    document.querySelectorAll('.nav-item').forEach(function (n) {
+      n.classList.remove('active');
+    });
+
+    const pageEl = document.getElementById('page-' + name);
+    const navEl = document.querySelector('.nav-item[data-page="' + name + '"]');
+    if (pageEl) pageEl.classList.add('active');
+    if (navEl) navEl.classList.add('active');
+
+    const titleEl = document.getElementById('pageTitle');
+    if (titleEl) titleEl.textContent = PAGE_TITLES[name];
+
+    currentPage = name;
+    const loader = LOADERS[name];
+    if (loader) loader();
+  }
+
+  function setRefreshed() {
+    const el = document.getElementById('lastRefresh');
+    if (el) el.textContent = 'Updated ' + new Date().toLocaleTimeString();
+  }
+
+  function renderAlerts(containerId, alerts) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    if (!alerts.length) {
+      el.innerHTML = '';
+      return;
+    }
+    el.innerHTML = alerts
+      .map(function (a) {
+        return (
+          '<div class="alert alert-' +
+          a.kind +
+          '">' +
+          '<div><div class="alert-title">' +
+          esc(a.title) +
+          '</div>' +
+          (a.body ? '<div class="alert-body">' + esc(a.body) + '</div>' : '') +
+          '</div></div>'
+        );
+      })
+      .join('');
+  }
+
+  function setCapBar(el, pct) {
+    if (!el) return;
+    const scale = Math.min(Math.max(pct / 100, 0), 1);
+    el.style.transform = 'scaleX(' + scale + ')';
+    el.classList.remove('warn', 'danger');
+    if (pct >= 90) el.classList.add('danger');
+    else if (pct >= 75) el.classList.add('warn');
+  }
+
+  // ── Overview ────────────────────────────────────────────────────────────────
+  async function loadOverview() {
+    try {
+      const [stats, queue] = await Promise.all([
+        apiFetch('/api/admin?resource=stats'),
+        apiFetch('/api/admin?resource=queue-stats'),
+      ]);
+
+      if (!stats.ok) return;
+
+      const active = (stats.users.byTier || [])
+        .filter(function (r) {
+          return r.subscription_status === 'active';
+        })
+        .reduce(function (s, r) {
+          return s + r.count;
+        }, 0);
+
+      setText('ov-users', stats.users.total.toLocaleString());
+      setText('ov-new-today', stats.users.newToday.toLocaleString());
+      setText('ov-new-week', stats.users.newThisWeek.toLocaleString());
+      setText('ov-active', active.toLocaleString());
+      setText('ov-mrr', '$' + Number(stats.revenue.mrrEstimateUsd).toLocaleString());
+      setText('ov-jobs-today', stats.jobs.today.toLocaleString());
+      setText('ov-infringements', String(stats.moderation.totalInfringements));
+      setText('ov-banned', String(stats.users.banned));
+
+      const tierBody = document.getElementById('tier-table');
+      if (tierBody) {
+        tierBody.innerHTML =
+          (stats.users.byTier || [])
+            .map(function (r) {
+              return (
+                '<tr><td>' +
+                cap(r.subscription_tier) +
+                '</td><td>' +
+                cap(r.subscription_status) +
+                '</td><td><strong>' +
+                r.count +
+                '</strong></td></tr>'
+              );
+            })
+            .join('') || '<tr><td colspan="3" class="empty">No data</td></tr>';
+      }
+
+      const trendBody = document.getElementById('jobs-trend');
+      if (trendBody) {
+        const failedToday = (stats.jobs.last7Days || []).reduce(function (s, r) {
+          return s + (r.failed || 0);
+        }, 0);
+        trendBody.innerHTML =
+          (stats.jobs.last7Days || [])
+            .map(function (r) {
+              return (
+                '<tr><td>' +
+                r.date +
+                '</td><td><span class="badge badge-green">' +
+                r.completed +
+                '</span></td><td><span class="badge badge-red">' +
+                r.failed +
+                '</span></td></tr>'
+              );
+            })
+            .join('') || '<tr><td colspan="3" class="empty">No data</td></tr>';
+
+        var alerts = [];
+        if (queue.ok) {
+          if (queue.queue.isPaused) {
+            alerts.push({
+              kind: 'danger',
+              title: 'Queue paused',
+              body: queue.queue.pauseReason || 'Daily cost cap threshold reached.',
+            });
+          } else if (queue.today.costPercent >= 80) {
+            alerts.push({
+              kind: 'warn',
+              title: 'Cost cap at ' + queue.today.costPercent + '%',
+              body: 'Today: $' + queue.today.costUsd.toFixed(2) + ' of $' + queue.today.costCap.toFixed(2),
+            });
+          } else {
+            alerts.push({
+              kind: 'ok',
+              title: 'Systems operational',
+              body:
+                'Queue active · ' +
+                queue.queue.pending +
+                ' pending · cap ' +
+                queue.today.costPercent +
+                '%',
+            });
+          }
+        }
+        if (failedToday > 0) {
+          alerts.push({
+            kind: 'warn',
+            title: failedToday + ' failed jobs (7d)',
+            body: 'Check the Jobs page for retries.',
+          });
+        }
+        if (stats.moderation.totalInfringements > 0) {
+          alerts.push({
+            kind: 'warn',
+            title: stats.moderation.totalInfringements + ' content infringements',
+            body: 'Review flagged uploads on the Moderation page.',
+          });
+        }
+        renderAlerts('overview-alerts', alerts);
+      }
+
+      setRefreshed();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  // ── Finance ───────────────────────────────────────────────────────────────
+  async function loadFinance() {
+    try {
+      const d = await apiFetch('/api/admin?resource=finance');
+      if (!d.ok) return;
+
+      setText('fin-mrr', '$' + d.revenue.mrrEstimateUsd);
+      setText('fin-cost-mtd', '$' + Number(d.costs.monthToDateUsd).toFixed(2));
+      setText(
+        'fin-net',
+        (d.margin.estimatedNetUsd >= 0 ? '$' : '-$') +
+          Math.abs(d.margin.estimatedNetUsd).toFixed(2)
+      );
+      setText(
+        'fin-subs-hint',
+        d.revenue.totalActiveSubs + ' active paid subscriptions'
+      );
+
+      const today = d.costs.today;
+      setText('fin-today-cost', '$' + Number(today.costUsd).toFixed(4) + ' spent today');
+      setText('fin-today-cap', 'Cap $' + Number(today.capUsd).toFixed(2));
+
+      const capBadge = document.getElementById('fin-cap-badge');
+      if (capBadge) {
+        if (today.queuePaused) {
+          capBadge.className = 'badge badge-red';
+          capBadge.textContent = 'Paused';
+        } else {
+          capBadge.className = 'badge badge-green';
+          capBadge.textContent = today.capPercent + '% used';
+        }
+      }
+      setCapBar(document.getElementById('fin-cap-bar'), today.capPercent);
+
+      const revTable = document.getElementById('fin-revenue-table');
+      if (revTable) {
+        revTable.innerHTML =
+          (d.revenue.activeByTier || [])
+            .map(function (r) {
+              return (
+                '<tr><td>' +
+                cap(r.tier) +
+                '</td><td>' +
+                r.count +
+                '</td><td>$' +
+                r.unitPriceUsd.toFixed(2) +
+                '</td><td><strong>$' +
+                r.subtotalUsd.toFixed(2) +
+                '</strong></td></tr>'
+              );
+            })
+            .join('') || '<tr><td colspan="4" class="empty">No active paid subs</td></tr>';
+      }
+
+      renderSpendTable('fin-spend-7', d.costs.last7.daily);
+      setText(
+        'fin-7-total',
+        '7d total: $' +
+          d.costs.last7.total.toFixed(4) +
+          ' · avg $' +
+          d.costs.last7.average.toFixed(4) +
+          '/day'
+      );
+
+      renderSpendTable('fin-spend-30', d.costs.last30.daily);
+      setText(
+        'fin-30-total',
+        '30d total: $' +
+          d.costs.last30.total.toFixed(4) +
+          ' · avg $' +
+          d.costs.last30.average.toFixed(4) +
+          '/day · ' +
+          (d.meta && d.meta.disclaimer ? d.meta.disclaimer : '')
+      );
+
+      setRefreshed();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function renderSpendTable(id, rows) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.innerHTML =
+      (rows || [])
+        .map(function (r) {
+          return (
+            '<tr><td>' +
+            r.date +
+            '</td><td>$' +
+            Number(r.cost).toFixed(4) +
+            '</td><td>' +
+            r.jobs +
+            '</td></tr>'
+          );
+        })
+        .join('') || '<tr><td colspan="3" class="empty">No spend data</td></tr>';
+  }
+
+  // ── Users ─────────────────────────────────────────────────────────────────
+  function debounceLoadUsers() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(function () {
+      userPage = 1;
+      loadUsers();
+    }, 350);
+  }
+
+  async function loadUsers() {
+    const search = document.getElementById('user-search').value.trim();
+    const tier = document.getElementById('user-tier').value;
+    const status = document.getElementById('user-status').value;
+    const qs = new URLSearchParams({ page: String(userPage), limit: '20' });
+    if (search) qs.set('search', search);
+    if (tier) qs.set('tier', tier);
+    if (status) qs.set('status', status);
+
+    document.getElementById('users-table').innerHTML =
+      '<tr><td colspan="7" class="empty"><span class="spinner"></span></td></tr>';
+
+    try {
+      const d = await apiFetch('/api/admin?resource=users&' + qs);
+      const tbody = document.getElementById('users-table');
+      if (!d.ok || !d.users.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="empty">No users found</td></tr>';
+        document.getElementById('users-pagination').innerHTML = '';
+        return;
+      }
+      tbody.innerHTML = d.users
+        .map(function (u) {
+          return (
+            '<tr>' +
+            '<td class="mono">' +
+            u.id.slice(0, 8) +
+            '…</td>' +
+            '<td>' +
+            (u.email || '<span style="color:var(--muted)">—</span>') +
+            '</td>' +
+            '<td><span class="badge ' +
+            tierBadge(u.subscription_tier) +
+            '">' +
+            cap(u.subscription_tier) +
+            '</span></td>' +
+            '<td><span class="badge ' +
+            statusBadge(u.subscription_status) +
+            '">' +
+            cap(u.subscription_status) +
+            '</span></td>' +
+            '<td>' +
+            u.usage_this_month +
+            '</td>' +
+            '<td>' +
+            fmtDate(u.created_at) +
+            '</td>' +
+            '<td><button class="btn btn-ghost btn-sm" type="button" data-user="' +
+            u.id +
+            '">View</button></td>' +
+            '</tr>'
+          );
+        })
+        .join('');
+      renderPagination('users-pagination', d.page, d.pages, function (p) {
+        userPage = p;
+        loadUsers();
+      });
+      setRefreshed();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async function openUserPanel(userId) {
+    document.getElementById('user-panel').classList.add('open');
+    document.getElementById('panel-backdrop').classList.add('open');
+    document.getElementById('user-panel-body').innerHTML = '<span class="spinner"></span>';
+
+    try {
+      const d = await apiFetch('/api/admin?resource=users&id=' + userId);
+      if (!d.ok) {
+        document.getElementById('user-panel-body').innerHTML =
+          '<div class="error-msg">Failed to load user</div>';
+        return;
+      }
+      const u = d.user;
+      const isBanned = !!u.banned_at;
+      document.getElementById('user-panel-body').innerHTML =
+        fieldRow('ID', '<span class="mono">' + esc(u.id) + '</span>') +
+        fieldRow('Email', esc(u.email || '—')) +
+        fieldRow('RevenueCat ID', '<span class="mono">' + esc(u.revenuecat_user_id || '—') + '</span>') +
+        fieldRow(
+          'Tier',
+          '<span class="badge ' + tierBadge(u.subscription_tier) + '">' + cap(u.subscription_tier) + '</span>'
+        ) +
+        fieldRow(
+          'Status',
+          '<span class="badge ' +
+            statusBadge(u.subscription_status) +
+            '">' +
+            cap(u.subscription_status) +
+            '</span>'
+        ) +
+        fieldRow('Trial Used', u.trial_generations_used + ' / 3') +
+        fieldRow('Usage This Month', String(u.usage_this_month)) +
+        fieldRow('Infringements', String(d.infringements)) +
+        fieldRow('Banned', isBanned ? esc(fmtDate(u.banned_at)) : 'No') +
+        fieldRow('Joined', fmtDate(u.created_at)) +
+        (d.subscription
+          ? '<div class="section-title">Subscription</div>' +
+            fieldRow('Platform', cap(d.subscription.platform)) +
+            fieldRow('Period End', fmtDate(d.subscription.current_period_end)) +
+            fieldRow('Cancel at End', d.subscription.cancel_at_period_end ? 'Yes' : 'No')
+          : '') +
+        '<div class="section-title">Actions</div>' +
+        '<div class="panel-actions">' +
+        (isBanned
+          ? '<button class="btn btn-success btn-sm" type="button" data-action="unban" data-user="' +
+            u.id +
+            '">Unban User</button>'
+          : '<button class="btn btn-danger btn-sm" type="button" data-action="ban" data-user="' +
+            u.id +
+            '">Ban User</button>') +
+        '<button class="btn btn-ghost btn-sm" type="button" data-action="quota" data-user="' +
+        u.id +
+        '">Adjust Quota</button>' +
+        '<button class="btn btn-ghost btn-sm" type="button" data-action="tier" data-user="' +
+        u.id +
+        '">Change Tier</button>' +
+        '</div>' +
+        '<div class="section-title">Recent Jobs (' +
+        d.recentJobs.length +
+        ')</div>' +
+        (d.recentJobs.length
+          ? '<table style="font-size:12px"><thead><tr><th>ID</th><th>Style</th><th>Status</th><th>Date</th></tr></thead><tbody>' +
+            d.recentJobs
+              .map(function (j) {
+                return (
+                  '<tr><td class="mono">' +
+                  j.id.slice(0, 8) +
+                  '…</td><td>' +
+                  esc(j.style_id) +
+                  '</td><td><span class="badge ' +
+                  statusBadge(j.status) +
+                  '">' +
+                  j.status +
+                  '</span></td><td>' +
+                  fmtDate(j.created_at) +
+                  '</td></tr>'
+                );
+              })
+              .join('') +
+            '</tbody></table>'
+          : '<div style="color:var(--muted);font-size:12px">No jobs yet</div>');
+    } catch (e) {
+      document.getElementById('user-panel-body').innerHTML =
+        '<div class="error-msg">Error loading user</div>';
+    }
+  }
+
+  function closePanel() {
+    document.getElementById('user-panel').classList.remove('open');
+    document.getElementById('panel-backdrop').classList.remove('open');
+  }
+
+  async function adminAction(action, userId) {
+    if (!confirm(cap(action) + ' this user?')) return;
+    try {
+      const d = await apiFetch('/api/admin?resource=users&action=' + action, {
+        method: 'POST',
+        body: JSON.stringify({ userId: userId }),
+      });
+      if (d.ok) {
+        openUserPanel(userId);
+        loadUsers();
+      } else alert(d.error || 'Action failed');
+    } catch (e) {
+      alert('Request failed');
+    }
+  }
+
+  async function adminAdjustQuota(userId) {
+    const val = prompt('Quota adjustment (positive to add, negative to subtract):');
+    if (val === null) return;
+    const n = parseInt(val, 10);
+    if (isNaN(n)) return alert('Enter a number');
+    const d = await apiFetch('/api/admin?resource=users&action=quota', {
+      method: 'POST',
+      body: JSON.stringify({ userId: userId, adjustment: n }),
+    });
+    if (d.ok) openUserPanel(userId);
+    else alert(d.error || 'Failed');
+  }
+
+  async function adminChangeTier(userId) {
+    const tier = prompt('New tier (trial/starter/popular/pro):');
+    if (!tier) return;
+    const d = await apiFetch('/api/admin?resource=users&action=tier', {
+      method: 'POST',
+      body: JSON.stringify({ userId: userId, tier: tier }),
+    });
+    if (d.ok) {
+      openUserPanel(userId);
+      loadUsers();
+    } else alert(d.error || 'Failed');
+  }
+
+  // ── Jobs ──────────────────────────────────────────────────────────────────
+  async function loadJobs() {
+    const status = document.getElementById('job-status').value;
+    const qs = new URLSearchParams({ page: String(jobPage), limit: '20' });
+    if (status) qs.set('status', status);
+
+    document.getElementById('jobs-table').innerHTML =
+      '<tr><td colspan="7" class="empty"><span class="spinner"></span></td></tr>';
+
+    try {
+      const d = await apiFetch('/api/admin?resource=jobs&' + qs);
+      const tbody = document.getElementById('jobs-table');
+      if (!d.ok || !d.jobs.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="empty">No jobs found</td></tr>';
+        document.getElementById('jobs-pagination').innerHTML = '';
+        return;
+      }
+      tbody.innerHTML = d.jobs
+        .map(function (j) {
+          return (
+            '<tr>' +
+            '<td class="mono">' +
+            j.id.slice(0, 8) +
+            '…</td>' +
+            '<td class="mono">' +
+            (j.user_id ? j.user_id.slice(0, 8) + '…' : '—') +
+            '</td>' +
+            '<td>' +
+            esc(j.style_id) +
+            '</td>' +
+            '<td><span class="badge ' +
+            statusBadge(j.status) +
+            '">' +
+            j.status +
+            '</span></td>' +
+            '<td>' +
+            j.priority +
+            '</td>' +
+            '<td>' +
+            fmtDate(j.created_at) +
+            '</td>' +
+            '<td style="display:flex;gap:4px">' +
+            (j.status === 'failed'
+              ? '<button class="btn btn-success btn-sm" type="button" data-job-action="retry" data-job="' +
+                j.id +
+                '">Retry</button>'
+              : '') +
+            (['pending', 'processing'].includes(j.status)
+              ? '<button class="btn btn-danger btn-sm" type="button" data-job-action="cancel" data-job="' +
+                j.id +
+                '">Cancel</button>'
+              : '') +
+            '</td>' +
+            '</tr>'
+          );
+        })
+        .join('');
+      renderPagination('jobs-pagination', d.page, d.pages, function (p) {
+        jobPage = p;
+        loadJobs();
+      });
+      setRefreshed();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async function jobAction(action, jobId) {
+    try {
+      const d = await apiFetch('/api/admin?resource=jobs&action=' + action + '&jobId=' + jobId, {
+        method: 'POST',
+      });
+      if (d.ok) loadJobs();
+      else alert(d.error || 'Action failed');
+    } catch (e) {
+      alert('Request failed');
+    }
+  }
+
+  // ── Queue ─────────────────────────────────────────────────────────────────
+  async function loadQueue() {
+    try {
+      const d = await apiFetch('/api/admin?resource=queue-stats');
+      if (!d.ok) return;
+
+      setText('q-pending', String(d.queue.pending));
+      setText('q-processing', String(d.queue.processing));
+      setText('q-completed', String(d.queue.completed));
+      setText('q-failed', String(d.queue.failed));
+      document.getElementById('q-status').innerHTML = d.queue.isPaused
+        ? '<span class="badge badge-red">Paused</span>'
+        : '<span class="badge badge-green">Active</span>';
+      setText('q-wait', d.queue.averageWaitTime + 's');
+      setText('q-cost', '$' + d.today.costUsd.toFixed(2));
+      setText('q-cap-pct', d.today.costPercent + '%');
+
+      const body = document.getElementById('spending-table');
+      if (body) {
+        body.innerHTML =
+          (d.spending7d || [])
+            .map(function (r) {
+              return (
+                '<tr><td>' +
+                r.date +
+                '</td><td>$' +
+                r.cost.toFixed(4) +
+                '</td><td>' +
+                r.jobs +
+                '</td></tr>'
+              );
+            })
+            .join('') || '<tr><td colspan="3" class="empty">No data</td></tr>';
+      }
+
+      var queueAlerts = [];
+      if (d.queue.isPaused) {
+        queueAlerts.push({
+          kind: 'danger',
+          title: 'Queue is paused',
+          body: d.queue.pauseReason || 'Cost protection triggered.',
+        });
+      } else if (d.today.costPercent >= 75) {
+        queueAlerts.push({
+          kind: 'warn',
+          title: 'Approaching daily cap',
+          body: d.today.costPercent + '% of $' + d.today.costCap.toFixed(2),
+        });
+      }
+      renderAlerts('queue-alerts', queueAlerts);
+
+      setRefreshed();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  // ── Moderation ────────────────────────────────────────────────────────────
+  async function loadModeration() {
+    document.getElementById('moderation-table').innerHTML =
+      '<tr><td colspan="6" class="empty"><span class="spinner"></span></td></tr>';
+
+    try {
+      const d = await apiFetch('/api/admin?resource=moderation&limit=50');
+      if (!d.ok) return;
+
+      setText('mod-total', String(d.total));
+
+      const tbody = document.getElementById('moderation-table');
+      if (!d.recent.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="empty">No infringements recorded</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = d.recent
+        .map(function (row) {
+          const details =
+            row.details && typeof row.details === 'object'
+              ? JSON.stringify(row.details).slice(0, 80) + '…'
+              : row.details || '—';
+          return (
+            '<tr>' +
+            '<td style="white-space:nowrap">' +
+            fmtDate(row.created_at) +
+            '</td>' +
+            '<td><span class="badge badge-amber">' +
+            esc(row.infringement_type) +
+            '</span></td>' +
+            '<td class="mono">' +
+            (row.user_id ? row.user_id.slice(0, 8) + '…' : '—') +
+            '</td>' +
+            '<td>' +
+            cap(row.subscription_tier || '—') +
+            '</td>' +
+            '<td class="mono" style="max-width:200px;overflow:hidden;text-overflow:ellipsis">' +
+            esc(details) +
+            '</td>' +
+            '<td>' +
+            (row.user_id
+              ? '<button class="btn btn-ghost btn-sm" type="button" data-user="' +
+                row.user_id +
+                '">User</button>'
+              : '') +
+            '</td>' +
+            '</tr>'
+          );
+        })
+        .join('');
+
+      setRefreshed();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  // ── Security ──────────────────────────────────────────────────────────────
+  async function loadSecurity() {
+    const type = document.getElementById('sec-type').value;
+    const success = document.getElementById('sec-success').value;
+    const qs = new URLSearchParams({ limit: '100' });
+    if (type) qs.set('eventType', type);
+    if (success !== '') qs.set('success', success);
+
+    document.getElementById('security-table').innerHTML =
+      '<tr><td colspan="5" class="empty"><span class="spinner"></span></td></tr>';
+
+    try {
+      const d = await apiFetch('/api/admin?resource=security-logs&' + qs);
+      const tbody = document.getElementById('security-table');
+      if (!d.ok || !d.events.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="empty">No events found</td></tr>';
+        return;
+      }
+      tbody.innerHTML = d.events
+        .map(function (e) {
+          return (
+            '<tr>' +
+            '<td style="white-space:nowrap">' +
+            fmtDate(e.created_at) +
+            '</td>' +
+            '<td>' +
+            esc(e.event_type) +
+            '</td>' +
+            '<td class="mono">' +
+            esc(e.ip_address || '—') +
+            '</td>' +
+            '<td class="mono">' +
+            (e.user_id ? e.user_id.slice(0, 8) + '…' : '—') +
+            '</td>' +
+            '<td><span class="badge ' +
+            (e.success ? 'badge-green' : 'badge-red') +
+            '">' +
+            (e.success ? 'OK' : 'FAIL') +
+            '</span></td>' +
+            '</tr>'
+          );
+        })
+        .join('');
+      setRefreshed();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  function setText(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  }
+
+  function fieldRow(label, valueHtml) {
+    return (
+      '<div class="field-row"><span class="field-label">' +
+      esc(label) +
+      '</span><span class="field-value">' +
+      valueHtml +
+      '</span></div>'
+    );
+  }
+
+  function esc(s) {
+    if (s == null) return '';
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function cap(s) {
+    return s ? s.charAt(0).toUpperCase() + s.slice(1) : '—';
+  }
+
+  function fmtDate(d) {
+    return d ? new Date(d).toLocaleString() : '—';
+  }
+
+  function tierBadge(t) {
+    return (
+      { trial: 'badge-gray', starter: 'badge-green', popular: 'badge-indigo', pro: 'badge-amber' }[t] ||
+      'badge-gray'
+    );
+  }
+
+  function statusBadge(s) {
+    return (
+      {
+        active: 'badge-green',
+        trial: 'badge-gray',
+        canceled: 'badge-amber',
+        expired: 'badge-red',
+        completed: 'badge-green',
+        failed: 'badge-red',
+        pending: 'badge-gray',
+        processing: 'badge-indigo',
+      }[s] || 'badge-gray'
+    );
+  }
+
+  function renderPagination(id, page, pages, cb) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (pages <= 1) {
+      el.innerHTML = '';
+      return;
+    }
+    el.innerHTML =
+      '<button class="btn btn-ghost btn-sm" type="button" data-page-prev ' +
+      (page <= 1 ? 'disabled' : '') +
+      '>Prev</button>' +
+      '<span style="color:var(--muted);font-size:12px">Page ' +
+      page +
+      ' of ' +
+      pages +
+      '</span>' +
+      '<button class="btn btn-ghost btn-sm" type="button" data-page-next ' +
+      (page >= pages ? 'disabled' : '') +
+      '>Next</button>';
+
+    const prev = el.querySelector('[data-page-prev]');
+    const next = el.querySelector('[data-page-next]');
+    if (prev && page > 1) prev.addEventListener('click', function () { cb(page - 1); });
+    if (next && page < pages) next.addEventListener('click', function () { cb(page + 1); });
+  }
+
+  // ── Event wiring ──────────────────────────────────────────────────────────
+  document.getElementById('sidebar-nav').addEventListener('click', function (e) {
+    const item = e.target.closest('.nav-item[data-page]');
+    if (item) showPage(item.dataset.page);
   });
-  if (r.status === 401) { logout(); throw new Error('Unauthorized'); }
-  return r.json();
-}
 
-// â”€â”€ Navigation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-const titles = { overview:'Overview', users:'Users', jobs:'Jobs', queue:'Queue', security:'Security Logs' };
-function showPage(name) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('page-' + name).classList.add('active');
-  document.querySelectorAll('.nav-item')[['overview','users','jobs','queue','security'].indexOf(name)].classList.add('active');
-  document.getElementById('pageTitle').textContent = titles[name];
-  currentPage = name;
-  if (name === 'overview') loadOverview();
-  if (name === 'users') loadUsers();
-  if (name === 'jobs') loadJobs();
-  if (name === 'queue') loadQueue();
-  if (name === 'security') loadSecurity();
-}
+  document.getElementById('logout-btn').addEventListener('click', logout);
+  document.getElementById('close-panel-btn').addEventListener('click', closePanel);
+  document.getElementById('panel-backdrop').addEventListener('click', closePanel);
 
-function setRefreshed() {
-  document.getElementById('lastRefresh').textContent = 'Updated ' + new Date().toLocaleTimeString();
-}
+  document.getElementById('user-search').addEventListener('input', debounceLoadUsers);
+  document.getElementById('user-tier').addEventListener('change', function () {
+    userPage = 1;
+    loadUsers();
+  });
+  document.getElementById('user-status').addEventListener('change', function () {
+    userPage = 1;
+    loadUsers();
+  });
+  document.getElementById('job-status').addEventListener('change', function () {
+    jobPage = 1;
+    loadJobs();
+  });
+  document.getElementById('sec-type').addEventListener('change', loadSecurity);
+  document.getElementById('sec-success').addEventListener('change', loadSecurity);
 
-// â”€â”€ Overview â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-async function loadOverview() {
-  try {
-    const d = await apiFetch('/api/admin?resource=stats');
-    if (!d.ok) return;
-    document.getElementById('ov-users').textContent = d.users.total.toLocaleString();
-    const active = (d.users.byTier || []).filter(r => r.subscription_status === 'active').reduce((s,r) => s + r.count, 0);
-    document.getElementById('ov-active').textContent = active.toLocaleString();
-    document.getElementById('ov-mrr').textContent = '$' + Number(d.revenue.mrrEstimateUsd).toLocaleString();
-    document.getElementById('ov-jobs-today').textContent = d.jobs.today.toLocaleString();
-    document.getElementById('ov-jobs-total').textContent = d.jobs.total.toLocaleString();
-    document.getElementById('ov-banned').textContent = d.users.banned;
+  document.body.addEventListener('click', function (e) {
+    const refresh = e.target.closest('[data-refresh]');
+    if (refresh) {
+      const loader = LOADERS[refresh.dataset.refresh];
+      if (loader) loader();
+      return;
+    }
 
-    const tierBody = document.getElementById('tier-table');
-    tierBody.innerHTML = d.users.byTier.map(r => `
-      <tr><td>${cap(r.subscription_tier)}</td><td>${cap(r.subscription_status)}</td><td><strong>${r.count}</strong></td></tr>
-    `).join('') || '<tr><td colspan="3" class="empty">No data</td></tr>';
+    const userBtn = e.target.closest('[data-user]');
+    if (userBtn && !userBtn.dataset.action && !userBtn.dataset.jobAction) {
+      openUserPanel(userBtn.dataset.user);
+      return;
+    }
 
-    const trendBody = document.getElementById('jobs-trend');
-    trendBody.innerHTML = d.jobs.last7Days.map(r => `
-      <tr><td>${r.date}</td><td class="badge badge-green">${r.completed}</td><td class="badge badge-red">${r.failed}</td></tr>
-    `).join('') || '<tr><td colspan="3" class="empty">No data</td></tr>';
+    const actionBtn = e.target.closest('[data-action]');
+    if (actionBtn) {
+      const uid = actionBtn.dataset.user;
+      const act = actionBtn.dataset.action;
+      if (act === 'ban' || act === 'unban') adminAction(act, uid);
+      if (act === 'quota') adminAdjustQuota(uid);
+      if (act === 'tier') adminChangeTier(uid);
+      return;
+    }
 
-    setRefreshed();
-  } catch(e) { console.error(e); }
-}
+    const jobBtn = e.target.closest('[data-job-action]');
+    if (jobBtn) jobAction(jobBtn.dataset.jobAction, jobBtn.dataset.job);
+  });
 
-// â”€â”€ Users â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-function debounceLoadUsers() {
-  clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(() => { userPage = 1; loadUsers(); }, 350);
-}
+  // Expose for legacy inline handlers if any remain
+  window.showPage = showPage;
+  window.logout = logout;
+  window.closePanel = closePanel;
 
-async function loadUsers() {
-  const search = document.getElementById('user-search').value.trim();
-  const tier = document.getElementById('user-tier').value;
-  const status = document.getElementById('user-status').value;
-  const qs = new URLSearchParams({ page: userPage, limit: 20 });
-  if (search) qs.set('search', search);
-  if (tier) qs.set('tier', tier);
-  if (status) qs.set('status', status);
+  loadOverview();
 
-  document.getElementById('users-table').innerHTML = '<tr><td colspan="7" class="empty"><span class="spinner"></span></td></tr>';
-  try {
-    const d = await apiFetch('/api/admin?resource=users&' + qs);
-    const tbody = document.getElementById('users-table');
-    if (!d.ok || !d.users.length) { tbody.innerHTML = '<tr><td colspan="7" class="empty">No users found</td></tr>'; return; }
-    tbody.innerHTML = d.users.map(u => `
-      <tr>
-        <td class="mono">${u.id.slice(0,8)}â€¦</td>
-        <td>${u.email || '<span style="color:var(--muted)">â€”</span>'}</td>
-        <td><span class="badge ${tierBadge(u.subscription_tier)}">${cap(u.subscription_tier)}</span></td>
-        <td><span class="badge ${statusBadge(u.subscription_status)}">${cap(u.subscription_status)}</span></td>
-        <td>${u.usage_this_month}</td>
-        <td>${fmtDate(u.created_at)}</td>
-        <td><button class="btn btn-ghost btn-sm" onclick="openUserPanel('${u.id}')">View</button></td>
-      </tr>
-    `).join('');
-    renderPagination('users-pagination', d.page, d.pages, p => { userPage = p; loadUsers(); });
-    setRefreshed();
-  } catch(e) { console.error(e); }
-}
-
-async function openUserPanel(userId) {
-  document.getElementById('user-panel').classList.add('open');
-  document.getElementById('user-panel-body').innerHTML = '<span class="spinner"></span>';
-  try {
-    const d = await apiFetch('/api/admin?resource=users&id=' + userId);
-    if (!d.ok) { document.getElementById('user-panel-body').innerHTML = '<div class="error-msg">Failed to load user</div>'; return; }
-    const u = d.user;
-    const isBanned = !!u.banned_at;
-    document.getElementById('user-panel-body').innerHTML = `
-      <div class="field-row"><span class="field-label">ID</span><span class="field-value mono">${u.id}</span></div>
-      <div class="field-row"><span class="field-label">Email</span><span class="field-value">${u.email || 'â€”'}</span></div>
-      <div class="field-row"><span class="field-label">RevenueCat ID</span><span class="field-value mono">${u.revenuecat_user_id || 'â€”'}</span></div>
-      <div class="field-row"><span class="field-label">Tier</span><span class="field-value"><span class="badge ${tierBadge(u.subscription_tier)}">${cap(u.subscription_tier)}</span></span></div>
-      <div class="field-row"><span class="field-label">Status</span><span class="field-value"><span class="badge ${statusBadge(u.subscription_status)}">${cap(u.subscription_status)}</span></span></div>
-      <div class="field-row"><span class="field-label">Trial Used</span><span class="field-value">${u.trial_generations_used} / 3</span></div>
-      <div class="field-row"><span class="field-label">Usage This Month</span><span class="field-value">${u.usage_this_month}</span></div>
-      <div class="field-row"><span class="field-label">Infringements</span><span class="field-value">${d.infringements}</span></div>
-      <div class="field-row"><span class="field-label">Banned</span><span class="field-value">${isBanned ? 'ðŸš« ' + fmtDate(u.banned_at) : 'No'}</span></div>
-      <div class="field-row"><span class="field-label">Joined</span><span class="field-value">${fmtDate(u.created_at)}</span></div>
-      ${d.subscription ? `
-        <div class="section-title">Subscription</div>
-        <div class="field-row"><span class="field-label">Platform</span><span class="field-value">${cap(d.subscription.platform)}</span></div>
-        <div class="field-row"><span class="field-label">Period End</span><span class="field-value">${fmtDate(d.subscription.current_period_end)}</span></div>
-        <div class="field-row"><span class="field-label">Cancel at End</span><span class="field-value">${d.subscription.cancel_at_period_end ? 'Yes' : 'No'}</span></div>
-      ` : ''}
-      <div class="section-title">Actions</div>
-      <div class="panel-actions">
-        ${isBanned
-          ? `<button class="btn btn-success btn-sm" onclick="adminAction('unban','${u.id}')">Unban User</button>`
-          : `<button class="btn btn-danger btn-sm" onclick="adminAction('ban','${u.id}')">Ban User</button>`}
-        <button class="btn btn-ghost btn-sm" onclick="adminAdjustQuota('${u.id}')">Adjust Quota</button>
-        <button class="btn btn-ghost btn-sm" onclick="adminChangeTier('${u.id}')">Change Tier</button>
-      </div>
-      <div class="section-title">Recent Jobs (${d.recentJobs.length})</div>
-      ${d.recentJobs.length ? `<table style="font-size:12px">
-        <thead><tr><th>ID</th><th>Style</th><th>Status</th><th>Date</th></tr></thead>
-        <tbody>${d.recentJobs.map(j => `
-          <tr><td class="mono">${j.id.slice(0,8)}â€¦</td><td>${j.style_id}</td>
-          <td><span class="badge ${statusBadge(j.status)}">${j.status}</span></td>
-          <td>${fmtDate(j.created_at)}</td></tr>
-        `).join('')}</tbody>
-      </table>` : '<div style="color:var(--muted);font-size:12px">No jobs yet</div>'}
-    `;
-  } catch(e) { document.getElementById('user-panel-body').innerHTML = '<div class="error-msg">Error loading user</div>'; }
-}
-
-function closePanel() { document.getElementById('user-panel').classList.remove('open'); }
-
-async function adminAction(action, userId) {
-  if (!confirm(`${cap(action)} this user?`)) return;
-  try {
-    const d = await apiFetch(`/api/admin?resource=users&action=${action}`, { method: 'POST', body: JSON.stringify({ userId }) });
-    if (d.ok) { openUserPanel(userId); loadUsers(); }
-    else alert(d.error || 'Action failed');
-  } catch(e) { alert('Request failed'); }
-}
-
-async function adminAdjustQuota(userId) {
-  const val = prompt('Quota adjustment (positive to add, negative to subtract):');
-  if (val === null) return;
-  const n = parseInt(val);
-  if (isNaN(n)) return alert('Enter a number');
-  const d = await apiFetch('/api/admin?resource=users&action=quota', { method: 'POST', body: JSON.stringify({ userId, adjustment: n }) });
-  if (d.ok) { openUserPanel(userId); } else alert(d.error || 'Failed');
-}
-
-async function adminChangeTier(userId) {
-  const tier = prompt('New tier (trial/starter/popular/pro):');
-  if (!tier) return;
-  const d = await apiFetch('/api/admin?resource=users&action=tier', { method: 'POST', body: JSON.stringify({ userId, tier }) });
-  if (d.ok) { openUserPanel(userId); loadUsers(); } else alert(d.error || 'Failed');
-}
-
-// â”€â”€ Jobs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-async function loadJobs() {
-  const status = document.getElementById('job-status').value;
-  const qs = new URLSearchParams({ page: jobPage, limit: 20 });
-  if (status) qs.set('status', status);
-  document.getElementById('jobs-table').innerHTML = '<tr><td colspan="7" class="empty"><span class="spinner"></span></td></tr>';
-  try {
-    const d = await apiFetch('/api/admin?resource=jobs&' + qs);
-    const tbody = document.getElementById('jobs-table');
-    if (!d.ok || !d.jobs.length) { tbody.innerHTML = '<tr><td colspan="7" class="empty">No jobs found</td></tr>'; return; }
-    tbody.innerHTML = d.jobs.map(j => `
-      <tr>
-        <td class="mono">${j.id.slice(0,8)}â€¦</td>
-        <td class="mono">${j.user_id ? j.user_id.slice(0,8) + 'â€¦' : 'â€”'}</td>
-        <td>${j.style_id}</td>
-        <td><span class="badge ${statusBadge(j.status)}">${j.status}</span></td>
-        <td>${j.priority}</td>
-        <td>${fmtDate(j.created_at)}</td>
-        <td style="display:flex;gap:4px">
-          ${j.status === 'failed' ? `<button class="btn btn-success btn-sm" onclick="jobAction('retry','${j.id}')">Retry</button>` : ''}
-          ${['pending','processing'].includes(j.status) ? `<button class="btn btn-danger btn-sm" onclick="jobAction('cancel','${j.id}')">Cancel</button>` : ''}
-        </td>
-      </tr>
-    `).join('');
-    renderPagination('jobs-pagination', d.page, d.pages, p => { jobPage = p; loadJobs(); });
-    setRefreshed();
-  } catch(e) { console.error(e); }
-}
-
-async function jobAction(action, jobId) {
-  try {
-    const d = await apiFetch(`/api/admin?resource=jobs&action=${action}&jobId=${jobId}`, { method: 'POST' });
-    if (d.ok) loadJobs(); else alert(d.error || 'Action failed');
-  } catch(e) { alert('Request failed'); }
-}
-
-// â”€â”€ Queue â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-async function loadQueue() {
-  try {
-    const d = await apiFetch('/api/admin?resource=queue-stats');
-    if (!d.ok) return;
-    document.getElementById('q-pending').textContent = d.queue.pending;
-    document.getElementById('q-processing').textContent = d.queue.processing;
-    document.getElementById('q-status').innerHTML = d.queue.isPaused
-      ? '<span class="badge badge-red">Paused</span>'
-      : '<span class="badge badge-green">Active</span>';
-    document.getElementById('q-wait').textContent = d.queue.averageWaitTime + 's';
-    document.getElementById('q-cost').textContent = '$' + d.today.costUsd.toFixed(2);
-    document.getElementById('q-cap-pct').textContent = d.today.costPercent + '%';
-
-    const body = document.getElementById('spending-table');
-    body.innerHTML = d.spending7d.map(r => `
-      <tr><td>${r.date}</td><td>$${r.cost.toFixed(4)}</td><td>${r.jobs}</td></tr>
-    `).join('') || '<tr><td colspan="3" class="empty">No data</td></tr>';
-    setRefreshed();
-  } catch(e) { console.error(e); }
-}
-
-// â”€â”€ Security â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-async function loadSecurity() {
-  const type = document.getElementById('sec-type').value;
-  const success = document.getElementById('sec-success').value;
-  const qs = new URLSearchParams({ limit: 100 });
-  if (type) qs.set('eventType', type);
-  if (success !== '') qs.set('success', success);
-  document.getElementById('security-table').innerHTML = '<tr><td colspan="5" class="empty"><span class="spinner"></span></td></tr>';
-  try {
-    const d = await apiFetch('/api/admin?resource=security-logs&' + qs);
-    const tbody = document.getElementById('security-table');
-    if (!d.ok || !d.events.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty">No events found</td></tr>'; return; }
-    tbody.innerHTML = d.events.map(e => `
-      <tr>
-        <td style="white-space:nowrap">${fmtDate(e.created_at)}</td>
-        <td>${e.event_type}</td>
-        <td class="mono">${e.ip_address || 'â€”'}</td>
-        <td class="mono">${e.user_id ? e.user_id.slice(0,8) + 'â€¦' : 'â€”'}</td>
-        <td><span class="badge ${e.success ? 'badge-green' : 'badge-red'}">${e.success ? 'OK' : 'FAIL'}</span></td>
-      </tr>
-    `).join('');
-    setRefreshed();
-  } catch(e) { console.error(e); }
-}
-
-// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : 'â€”'; }
-function fmtDate(d) { return d ? new Date(d).toLocaleString() : 'â€”'; }
-function tierBadge(t) { return { trial:'badge-gray', starter:'badge-green', popular:'badge-indigo', pro:'badge-amber' }[t] || 'badge-gray'; }
-function statusBadge(s) { return { active:'badge-green', trial:'badge-gray', canceled:'badge-amber', expired:'badge-red', completed:'badge-green', failed:'badge-red', pending:'badge-gray', processing:'badge-indigo' }[s] || 'badge-gray'; }
-
-function renderPagination(id, page, pages, cb) {
-  const el = document.getElementById(id);
-  if (pages <= 1) { el.innerHTML = ''; return; }
-  el.innerHTML = `
-    <button class="btn btn-ghost btn-sm" ${page <= 1 ? 'disabled' : ''} onclick="(${cb})(${page-1})">â€¹ Prev</button>
-    <span style="color:var(--muted);font-size:12px">Page ${page} of ${pages}</span>
-    <button class="btn btn-ghost btn-sm" ${page >= pages ? 'disabled' : ''} onclick="(${cb})(${page+1})">Next â€º</button>
-  `;
-}
-
-// Initial load
-loadOverview();
-// Auto-refresh every 60s
-setInterval(() => { if (currentPage === 'overview') loadOverview(); if (currentPage === 'queue') loadQueue(); }, 60000);
+  setInterval(function () {
+    if (currentPage === 'overview') loadOverview();
+    if (currentPage === 'queue') loadQueue();
+    if (currentPage === 'finance') loadFinance();
+  }, 60000);
+})();
