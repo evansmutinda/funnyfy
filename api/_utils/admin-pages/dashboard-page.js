@@ -28,6 +28,93 @@
     security: loadSecurity,
   };
 
+  let currency = localStorage.getItem('admin_currency') || 'USD';
+  let usdToKes = 130;
+  let fxAsOf = '';
+  let fxSource = '';
+  let lastFinanceData = null;
+  let lastOverviewStats = null;
+  let lastOverviewQueue = null;
+  let lastQueueData = null;
+
+  function fmtMoney(usd, decimals) {
+    const n = Number(usd) || 0;
+    const d = decimals == null ? 2 : decimals;
+    if (currency === 'KES') {
+      const kes = n * usdToKes;
+      const rounded = d === 0 ? Math.round(kes) : kes;
+      return (
+        'KSh ' +
+        rounded.toLocaleString(undefined, {
+          minimumFractionDigits: d === 0 ? 0 : Math.min(d, 2),
+          maximumFractionDigits: d === 0 ? 0 : Math.min(d, 2),
+        })
+      );
+    }
+    return (
+      '$' +
+      n.toLocaleString(undefined, {
+        minimumFractionDigits: Math.min(d, 2),
+        maximumFractionDigits: Math.min(d, 2),
+      })
+    );
+  }
+
+  function fmtMoneySigned(usd, decimals) {
+    const n = Number(usd) || 0;
+    if (n < 0) return '-' + fmtMoney(Math.abs(n), decimals);
+    return fmtMoney(n, decimals);
+  }
+
+  function updateCurrencyToggleUi() {
+    document.querySelectorAll('#currency-toggle [data-currency]').forEach(function (btn) {
+      btn.classList.toggle('active', btn.dataset.currency === currency);
+    });
+  }
+
+  function updateFxLabel() {
+    const el = document.getElementById('fx-rate-label');
+    if (!el) return;
+    if (currency === 'KES') {
+      const src = fxSource === 'fallback' ? 'est.' : fxAsOf || 'live';
+      el.textContent = '1 USD = ' + usdToKes.toLocaleString() + ' KES (' + src + ')';
+    } else {
+      el.textContent = '';
+    }
+  }
+
+  async function loadExchangeRate() {
+    try {
+      const d = await apiFetch('/api/admin?resource=exchange-rate');
+      if (d.ok && d.usdToKes) {
+        usdToKes = Number(d.usdToKes);
+        fxAsOf = d.asOf || '';
+        fxSource = d.source || '';
+      }
+    } catch (e) {
+      console.warn('[admin] exchange rate fetch failed', e);
+    }
+    updateFxLabel();
+  }
+
+  function setCurrency(next) {
+    if (next !== 'USD' && next !== 'KES') return;
+    currency = next;
+    localStorage.setItem('admin_currency', currency);
+    updateCurrencyToggleUi();
+    updateFxLabel();
+    refreshMoneyDisplays();
+  }
+
+  function refreshMoneyDisplays() {
+    if (lastOverviewStats) {
+      renderOverviewMoney(lastOverviewStats);
+      refreshOverviewAlerts();
+    }
+    if (lastFinanceData) renderFinance(lastFinanceData);
+    if (lastQueueData) renderQueueMoney(lastQueueData);
+  }
+
   // ── Auth ────────────────────────────────────────────────────────────────────
   if (!token) {
     window.location.href = '/admin/login';
@@ -136,6 +223,9 @@
 
       if (!stats.ok) return;
 
+      lastOverviewStats = stats;
+      lastOverviewQueue = queue.ok ? queue : null;
+
       const active = (stats.users.byTier || [])
         .filter(function (r) {
           return r.subscription_status === 'active';
@@ -148,7 +238,7 @@
       setText('ov-new-today', stats.users.newToday.toLocaleString());
       setText('ov-new-week', stats.users.newThisWeek.toLocaleString());
       setText('ov-active', active.toLocaleString());
-      setText('ov-mrr', '$' + Number(stats.revenue.mrrEstimateUsd).toLocaleString());
+      renderOverviewMoney(stats);
       setText('ov-jobs-today', stats.jobs.today.toLocaleString());
       setText('ov-infringements', String(stats.moderation.totalInfringements));
       setText('ov-banned', String(stats.users.banned));
@@ -173,9 +263,6 @@
 
       const trendBody = document.getElementById('jobs-trend');
       if (trendBody) {
-        const failedToday = (stats.jobs.last7Days || []).reduce(function (s, r) {
-          return s + (r.failed || 0);
-        }, 0);
         trendBody.innerHTML =
           (stats.jobs.last7Days || [])
             .map(function (r) {
@@ -191,48 +278,7 @@
             })
             .join('') || '<tr><td colspan="3" class="empty">No data</td></tr>';
 
-        var alerts = [];
-        if (queue.ok) {
-          if (queue.queue.isPaused) {
-            alerts.push({
-              kind: 'danger',
-              title: 'Queue paused',
-              body: queue.queue.pauseReason || 'Daily cost cap threshold reached.',
-            });
-          } else if (queue.today.costPercent >= 80) {
-            alerts.push({
-              kind: 'warn',
-              title: 'Cost cap at ' + queue.today.costPercent + '%',
-              body: 'Today: $' + queue.today.costUsd.toFixed(2) + ' of $' + queue.today.costCap.toFixed(2),
-            });
-          } else {
-            alerts.push({
-              kind: 'ok',
-              title: 'Systems operational',
-              body:
-                'Queue active · ' +
-                queue.queue.pending +
-                ' pending · cap ' +
-                queue.today.costPercent +
-                '%',
-            });
-          }
-        }
-        if (failedToday > 0) {
-          alerts.push({
-            kind: 'warn',
-            title: failedToday + ' failed jobs (7d)',
-            body: 'Check the Jobs page for retries.',
-          });
-        }
-        if (stats.moderation.totalInfringements > 0) {
-          alerts.push({
-            kind: 'warn',
-            title: stats.moderation.totalInfringements + ' content infringements',
-            body: 'Review flagged uploads on the Moderation page.',
-          });
-        }
-        renderAlerts('overview-alerts', alerts);
+        refreshOverviewAlerts();
       }
 
       setRefreshed();
@@ -241,27 +287,169 @@
     }
   }
 
+  function renderOverviewMoney(stats) {
+    setText('ov-mrr', fmtMoney(stats.revenue.mrrEstimateUsd, 0));
+  }
+
+  function refreshOverviewAlerts() {
+    if (!lastOverviewStats) return;
+    const queue = lastOverviewQueue;
+    const failedToday = (lastOverviewStats.jobs.last7Days || []).reduce(function (s, r) {
+      return s + (r.failed || 0);
+    }, 0);
+    var alerts = [];
+    if (queue) {
+      if (queue.queue.isPaused) {
+        alerts.push({
+          kind: 'danger',
+          title: 'Queue paused',
+          body: queue.queue.pauseReason || 'Daily cost cap threshold reached.',
+        });
+      } else if (queue.today.costPercent >= 80) {
+        alerts.push({
+          kind: 'warn',
+          title: 'Cost cap at ' + queue.today.costPercent + '%',
+          body:
+            'Today: ' +
+            fmtMoney(queue.today.costUsd, 2) +
+            ' of ' +
+            fmtMoney(queue.today.costCap, 2),
+        });
+      } else {
+        alerts.push({
+          kind: 'ok',
+          title: 'Systems operational',
+          body:
+            'Queue active · ' +
+            queue.queue.pending +
+            ' pending · cap ' +
+            queue.today.costPercent +
+            '%',
+        });
+      }
+    }
+    if (failedToday > 0) {
+      alerts.push({
+        kind: 'warn',
+        title: failedToday + ' failed jobs (7d)',
+        body: 'Check the Jobs page for retries.',
+      });
+    }
+    if (lastOverviewStats.moderation.totalInfringements > 0) {
+      alerts.push({
+        kind: 'warn',
+        title: lastOverviewStats.moderation.totalInfringements + ' content infringements',
+        body: 'Review flagged uploads on the Moderation page.',
+      });
+    }
+    renderAlerts('overview-alerts', alerts);
+  }
+
   // ── Finance ───────────────────────────────────────────────────────────────
   async function loadFinance() {
     try {
       const d = await apiFetch('/api/admin?resource=finance');
       if (!d.ok) return;
 
-      setText('fin-mrr', '$' + d.revenue.mrrEstimateUsd);
-      setText('fin-cost-mtd', '$' + Number(d.costs.monthToDateUsd).toFixed(2));
-      setText(
-        'fin-net',
-        (d.margin.estimatedNetUsd >= 0 ? '$' : '-$') +
-          Math.abs(d.margin.estimatedNetUsd).toFixed(2)
-      );
+      if (d.meta && d.meta.exchange && d.meta.exchange.usdToKes) {
+        usdToKes = Number(d.meta.exchange.usdToKes);
+        fxAsOf = d.meta.exchange.asOf || '';
+        fxSource = d.meta.exchange.source || '';
+        updateFxLabel();
+      }
+
+      lastFinanceData = d;
+      renderFinance(d);
+      setRefreshed();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function renderFinance(d) {
+      const gens = d.generations && d.generations.monthToDate ? d.generations.monthToDate : {};
+      setText('fin-gens-total', String(gens.total ?? '—'));
+      setText('fin-gens-done', String(gens.completed ?? '—'));
+      setText('fin-gens-failed', String(gens.failed ?? '—'));
+      const trialCost =
+        d.generations && d.generations.trial ? d.generations.trial.costMtdUsd : 0;
+      setText('fin-trial-cost', fmtMoney(trialCost, 2));
+
+      setText('fin-mrr', fmtMoney(d.revenue.mrrEstimateUsd, 0));
+      setText('fin-cost-mtd', fmtMoney(d.costs.monthToDateUsd, 2));
+      setText('fin-net', fmtMoneySigned(d.margin.estimatedNetUsd, 2));
       setText(
         'fin-subs-hint',
         d.revenue.totalActiveSubs + ' active paid subscriptions'
       );
 
+      const econTable = document.getElementById('fin-economics-table');
+      if (econTable) {
+        const rows = (d.generations && d.generations.byUserTier) || [];
+        econTable.innerHTML =
+          rows
+            .map(function (r) {
+              const isTrial = r.tier === 'trial';
+              return (
+                '<tr class="' +
+                (isTrial ? 'row-trial' : '') +
+                '"><td>' +
+                cap(r.tier) +
+                (isTrial ? ' <span class="badge badge-amber">$0 rev</span>' : '') +
+                '</td><td>' +
+                (r.activeSubs || '—') +
+                '</td><td>' +
+                fmtMoney(r.revenueMrrUsd, 0) +
+                '</td><td>' +
+                r.generationsMtd +
+                (r.failedMtd ? ' <span style="color:var(--muted);font-size:12px">(' + r.failedMtd + ' failed)</span>' : '') +
+                '</td><td><strong>' +
+                fmtMoney(r.costMtdUsd, 2) +
+                '</strong></td></tr>'
+              );
+            })
+            .join('') ||
+          '<tr><td colspan="5" class="empty">No generation data this month</td></tr>';
+      }
+
+      const modelTable = document.getElementById('fin-model-table');
+      if (modelTable) {
+        const models = (d.generations && d.generations.byModel) || [];
+        modelTable.innerHTML =
+          models
+            .map(function (m) {
+              return (
+                '<tr><td>' +
+                esc(m.label || m.model) +
+                '</td><td>' +
+                m.completed +
+                '</td><td>' +
+                m.failed +
+                '</td><td>' +
+                (m.unitCostUsd != null ? fmtMoney(m.unitCostUsd, 3) : '—') +
+                '</td><td><strong>' +
+                fmtMoney(m.costUsd, 2) +
+                '</strong></td></tr>'
+              );
+            })
+            .join('') ||
+          '<tr><td colspan="5" class="empty">No model cost data this month</td></tr>';
+      }
+
+      const modelNote = document.getElementById('fin-model-note');
+      if (modelNote && d.meta && d.meta.modelCosts) {
+        const costs = d.meta.modelCosts;
+        modelNote.textContent =
+          'Unit rates: Flux / Seedream / Nano Banana ' +
+          fmtMoney(costs['black-forest-labs/flux-kontext-pro'] || costs.default || 0.04, 3) +
+          ' · Nano Banana 2 ' +
+          fmtMoney(costs['google/nano-banana-2'] || 0.067, 3) +
+          ' · failed jobs $0';
+      }
+
       const today = d.costs.today;
-      setText('fin-today-cost', '$' + Number(today.costUsd).toFixed(4) + ' spent today');
-      setText('fin-today-cap', 'Cap $' + Number(today.capUsd).toFixed(2));
+      setText('fin-today-cost', fmtMoney(today.costUsd, 2) + ' spent today');
+      setText('fin-today-cap', 'Cap ' + fmtMoney(today.capUsd, 2));
 
       const capBadge = document.getElementById('fin-cap-badge');
       if (capBadge) {
@@ -285,10 +473,10 @@
                 cap(r.tier) +
                 '</td><td>' +
                 r.count +
-                '</td><td>$' +
-                r.unitPriceUsd.toFixed(2) +
-                '</td><td><strong>$' +
-                r.subtotalUsd.toFixed(2) +
+                '</td><td>' +
+                fmtMoney(r.unitPriceUsd, 0) +
+                '</td><td><strong>' +
+                fmtMoney(r.subtotalUsd, 0) +
                 '</strong></td></tr>'
               );
             })
@@ -298,28 +486,30 @@
       renderSpendTable('fin-spend-7', d.costs.last7.daily);
       setText(
         'fin-7-total',
-        '7d total: $' +
-          d.costs.last7.total.toFixed(4) +
-          ' · avg $' +
-          d.costs.last7.average.toFixed(4) +
+        '7d total: ' +
+          fmtMoney(d.costs.last7.total, 2) +
+          ' · avg ' +
+          fmtMoney(d.costs.last7.average, 2) +
           '/day'
       );
 
       renderSpendTable('fin-spend-30', d.costs.last30.daily);
+      const hint = document.getElementById('fin-net-hint');
+      if (hint) {
+        hint.textContent =
+          currency === 'KES'
+            ? 'MRR minus month-to-date costs · ' + usdToKes.toLocaleString() + ' KES per USD'
+            : 'MRR minus month-to-date costs';
+      }
       setText(
         'fin-30-total',
-        '30d total: $' +
-          d.costs.last30.total.toFixed(4) +
-          ' · avg $' +
-          d.costs.last30.average.toFixed(4) +
+        '30d total: ' +
+          fmtMoney(d.costs.last30.total, 2) +
+          ' · avg ' +
+          fmtMoney(d.costs.last30.average, 2) +
           '/day · ' +
           (d.meta && d.meta.disclaimer ? d.meta.disclaimer : '')
       );
-
-      setRefreshed();
-    } catch (e) {
-      console.error(e);
-    }
   }
 
   function renderSpendTable(id, rows) {
@@ -331,8 +521,8 @@
           return (
             '<tr><td>' +
             r.date +
-            '</td><td>$' +
-            Number(r.cost).toFixed(4) +
+            '</td><td>' +
+            fmtMoney(r.cost, 2) +
             '</td><td>' +
             r.jobs +
             '</td></tr>'
@@ -632,6 +822,8 @@
       const d = await apiFetch('/api/admin?resource=queue-stats');
       if (!d.ok) return;
 
+      lastQueueData = d;
+
       setText('q-pending', String(d.queue.pending));
       setText('q-processing', String(d.queue.processing));
       setText('q-completed', String(d.queue.completed));
@@ -640,26 +832,9 @@
         ? '<span class="badge badge-red">Paused</span>'
         : '<span class="badge badge-green">Active</span>';
       setText('q-wait', d.queue.averageWaitTime + 's');
-      setText('q-cost', '$' + d.today.costUsd.toFixed(2));
       setText('q-cap-pct', d.today.costPercent + '%');
 
-      const body = document.getElementById('spending-table');
-      if (body) {
-        body.innerHTML =
-          (d.spending7d || [])
-            .map(function (r) {
-              return (
-                '<tr><td>' +
-                r.date +
-                '</td><td>$' +
-                r.cost.toFixed(4) +
-                '</td><td>' +
-                r.jobs +
-                '</td></tr>'
-              );
-            })
-            .join('') || '<tr><td colspan="3" class="empty">No data</td></tr>';
-      }
+      renderQueueMoney(d);
 
       var queueAlerts = [];
       if (d.queue.isPaused) {
@@ -672,7 +847,7 @@
         queueAlerts.push({
           kind: 'warn',
           title: 'Approaching daily cap',
-          body: d.today.costPercent + '% of $' + d.today.costCap.toFixed(2),
+          body: d.today.costPercent + '% of ' + fmtMoney(d.today.costCap, 2),
         });
       }
       renderAlerts('queue-alerts', queueAlerts);
@@ -680,6 +855,27 @@
       setRefreshed();
     } catch (e) {
       console.error(e);
+    }
+  }
+
+  function renderQueueMoney(d) {
+    setText('q-cost', fmtMoney(d.today.costUsd, 2));
+    const body = document.getElementById('spending-table');
+    if (body) {
+      body.innerHTML =
+        (d.spending7d || [])
+          .map(function (r) {
+            return (
+              '<tr><td>' +
+              r.date +
+              '</td><td>' +
+              fmtMoney(r.cost, 2) +
+              '</td><td>' +
+              r.jobs +
+              '</td></tr>'
+            );
+          })
+          .join('') || '<tr><td colspan="3" class="empty">No data</td></tr>';
     }
   }
 
@@ -880,6 +1076,19 @@
   document.getElementById('logout-btn').addEventListener('click', logout);
   document.getElementById('close-panel-btn').addEventListener('click', closePanel);
   document.getElementById('panel-backdrop').addEventListener('click', closePanel);
+
+  const currencyToggle = document.getElementById('currency-toggle');
+  if (currencyToggle) {
+    currencyToggle.addEventListener('click', function (e) {
+      const btn = e.target.closest('[data-currency]');
+      if (btn) setCurrency(btn.dataset.currency);
+    });
+  }
+  updateCurrencyToggleUi();
+
+  loadExchangeRate().then(function () {
+    refreshMoneyDisplays();
+  });
 
   document.getElementById('user-search').addEventListener('input', debounceLoadUsers);
   document.getElementById('user-tier').addEventListener('change', function () {

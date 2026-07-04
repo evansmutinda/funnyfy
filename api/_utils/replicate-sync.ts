@@ -6,6 +6,7 @@
 
 import { query } from './db';
 import { creditUsageForJob } from './usage';
+import { finalizeJobCost } from './job-cost';
 import {
   handleContentPolicyViolation,
   isReplicateContentPolicyError,
@@ -131,8 +132,8 @@ export interface JobSyncRow {
 }
 
 async function loadJobById(jobId: string): Promise<JobSyncRow | null> {
-  const result = await query<JobSyncRow>(
-    `SELECT id, user_id, status, replicate_prediction_id, output_image_url,
+  const result = await query<JobSyncRow & { style_id: string }>(
+    `SELECT id, user_id, style_id, status, replicate_prediction_id, output_image_url,
             error_message, started_at, completed_at, created_at
      FROM jobs WHERE id = $1`,
     [jobId]
@@ -153,11 +154,12 @@ async function markJobCompleted(jobId: string, outputUrl: string, replicateId: s
      WHERE id = $3`,
     [outputUrl, replicateId, jobId]
   );
-  const userRow = await query<{ user_id: string | null }>(
-    `SELECT user_id FROM jobs WHERE id = $1`,
+  const jobRow = await query<{ user_id: string | null; style_id: string }>(
+    `SELECT user_id, style_id FROM jobs WHERE id = $1`,
     [jobId]
   );
-  const userId = userRow.rows[0]?.user_id;
+  const userId = jobRow.rows[0]?.user_id;
+  const styleId = jobRow.rows[0]?.style_id ?? null;
   if (userId) {
     try {
       await creditUsageForJob(jobId, userId);
@@ -165,6 +167,7 @@ async function markJobCompleted(jobId: string, outputUrl: string, replicateId: s
       console.error('[replicate-sync] creditUsageForJob failed:', creditErr);
     }
   }
+  await finalizeJobCost(jobId, styleId, 'completed');
 }
 
 async function markJobFailed(jobId: string, errorMessage: string, replicateId: string | null) {
@@ -175,6 +178,8 @@ async function markJobFailed(jobId: string, errorMessage: string, replicateId: s
      WHERE id = $3`,
     [errorMessage.slice(0, 1000), replicateId, jobId]
   );
+  const jobRow = await query<{ style_id: string }>(`SELECT style_id FROM jobs WHERE id = $1`, [jobId]);
+  await finalizeJobCost(jobId, jobRow.rows[0]?.style_id ?? null, 'failed');
 }
 
 /**

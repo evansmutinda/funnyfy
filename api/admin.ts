@@ -11,6 +11,7 @@
 //   POST /api/admin?resource=users&action=ban|unban|quota|tier
 //   GET  /api/admin?resource=finance
 //   GET  /api/admin?resource=moderation
+//   GET  /api/admin?resource=exchange-rate
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import fs from 'fs';
@@ -23,6 +24,9 @@ import { getQueueStats } from './_utils/queue-stats';
 import { getTodaySpending, getSpendingStats, shouldPauseQueue } from './_utils/cost-protection';
 import { getRecentSecurityEvents, logSecurityEvent } from './_utils/security-logging';
 import { checkAdminLoginRateLimit } from './_utils/ratelimit';
+import { getUsdToKesRate } from './_utils/exchange-rate';
+import { getModelDisplayLabel } from './_utils/job-cost';
+import { MODEL_COST_USD, getModelCost } from './_utils/cost-protection';
 
 const JWT_SECRET = process.env.JWT_SECRET || process.env.AUTH_SECRET;
 const ADMIN_USER_IDS = (process.env.ADMIN_USER_IDS || '')
@@ -56,9 +60,9 @@ async function safeCount(sql: string, params: any[] = []): Promise<number> {
 }
 
 const TIER_PRICES: Record<string, number> = {
-  starter: 4.99,
-  popular: 9.99,
-  pro: 24.99,
+  starter: 5,
+  popular: 10,
+  pro: 25,
 };
 
 function tierPrice(tier: string): number {
@@ -195,7 +199,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           safeCount(`SELECT COUNT(*)::int AS count FROM users WHERE created_at >= NOW() - INTERVAL '7 days'`),
           query<any>(`SELECT subscription_tier, subscription_status, COUNT(*)::int AS count FROM users GROUP BY subscription_tier, subscription_status ORDER BY count DESC`).catch(() => ({ rows: [] })),
           query<any>(`SELECT u.subscription_tier, SUM(ut.count)::int AS total_usage, ROUND(AVG(ut.count),1) AS avg_usage FROM users u JOIN usage_tracking ut ON ut.user_id = u.id AND ut.month = $1 GROUP BY u.subscription_tier`, [cm]).catch(() => ({ rows: [] })),
-          query<{ mrr: number }>(`SELECT COALESCE(SUM(CASE subscription_tier WHEN 'starter' THEN 4.99 WHEN 'popular' THEN 9.99 WHEN 'pro' THEN 24.99 ELSE 0 END),0)::numeric AS mrr FROM users WHERE subscription_status = 'active'`).catch(() => ({ rows: [{ mrr: 0 }] })),
+          query<{ mrr: number }>(`SELECT COALESCE(SUM(CASE subscription_tier WHEN 'starter' THEN 5 WHEN 'popular' THEN 10 WHEN 'pro' THEN 25 ELSE 0 END),0)::numeric AS mrr FROM users WHERE subscription_status = 'active'`).catch(() => ({ rows: [{ mrr: 0 }] })),
           safeCount(`SELECT COUNT(*)::int AS count FROM jobs`),
           safeCount(`SELECT COUNT(*)::int AS count FROM jobs WHERE DATE(created_at) = CURRENT_DATE`),
           safeCount(`SELECT COUNT(*)::int AS count FROM users WHERE banned_at IS NOT NULL`),
@@ -378,11 +382,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const jobId = req.query.jobId as string;
         if (!jobId) return safeErrorResponse(res, 400, 'MISSING_JOB_ID');
         if (action === 'retry') {
-          await query(`UPDATE jobs SET status = 'pending', error_message = NULL, started_at = NULL, completed_at = NULL WHERE id = $1 AND status = 'failed'`, [jobId]);
+          await query(`UPDATE jobs SET status = 'pending', error_message = NULL, started_at = NULL, completed_at = NULL, cost_usd = 0, model_version = NULL WHERE id = $1 AND status = 'failed'`, [jobId]);
           return res.status(200).json({ ok: true, message: 'Job requeued' });
         }
         if (action === 'cancel') {
-          await query(`UPDATE jobs SET status = 'failed', error_message = 'Cancelled by admin', completed_at = NOW() WHERE id = $1 AND status IN ('pending','processing')`, [jobId]);
+          await query(`UPDATE jobs SET status = 'failed', error_message = 'Cancelled by admin', completed_at = NOW(), cost_usd = 0 WHERE id = $1 AND status IN ('pending','processing')`, [jobId]);
           return res.status(200).json({ ok: true, message: 'Job cancelled' });
         }
         return safeErrorResponse(res, 400, 'UNKNOWN_ACTION');
@@ -424,7 +428,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // ── FINANCE ────────────────────────────────────────────────────────────────
     if (resource === 'finance') {
-      const [activeByTier, spending30, spending7, todaySpend, pauseCheck, monthCost] = await Promise.all([
+      const monthStart = `date_trunc('month', CURRENT_DATE)`;
+      const [
+        activeByTier,
+        spending30,
+        spending7,
+        todaySpend,
+        pauseCheck,
+        monthCostJobs,
+        monthCostLegacy,
+        genMtd,
+        genByUserTier,
+        genByModel,
+      ] = await Promise.all([
         query<any>(
           `SELECT subscription_tier AS tier, COUNT(*)::int AS count
            FROM users WHERE subscription_status = 'active' AND subscription_tier IN ('starter','popular','pro')
@@ -435,9 +451,67 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         getTodaySpending(),
         shouldPauseQueue(),
         query<{ total: number }>(
-          `SELECT COALESCE(SUM(cost_usd), 0)::numeric AS total FROM cost_tracking
-           WHERE date >= date_trunc('month', CURRENT_DATE)::date`
+          `SELECT COALESCE(SUM(cost_usd), 0)::numeric AS total FROM jobs
+           WHERE status = 'completed' AND completed_at >= ${monthStart}`
         ).catch(() => ({ rows: [{ total: 0 }] })),
+        query<{ total: number }>(
+          `SELECT COALESCE(SUM(cost_usd), 0)::numeric AS total FROM cost_tracking
+           WHERE date >= ${monthStart}::date`
+        ).catch(() => ({ rows: [{ total: 0 }] })),
+        query<{
+          generations: number;
+          completed: number;
+          failed: number;
+          cost_usd: number;
+        }>(
+          `SELECT COUNT(*)::int AS generations,
+                  COUNT(*) FILTER (WHERE status = 'completed')::int AS completed,
+                  COUNT(*) FILTER (WHERE status = 'failed')::int AS failed,
+                  COALESCE(SUM(cost_usd), 0)::numeric AS cost_usd
+           FROM jobs
+           WHERE status IN ('completed', 'failed')
+             AND COALESCE(completed_at, created_at) >= ${monthStart}`
+        ).catch(() => ({ rows: [{ generations: 0, completed: 0, failed: 0, cost_usd: 0 }] })),
+        query<{
+          user_tier: string;
+          generations: number;
+          completed: number;
+          failed: number;
+          cost_usd: number;
+        }>(
+          `SELECT
+             CASE
+               WHEN u.subscription_status = 'active' AND u.subscription_tier IN ('starter','popular','pro')
+                 THEN u.subscription_tier
+               ELSE 'trial'
+             END AS user_tier,
+             COUNT(*)::int AS generations,
+             COUNT(*) FILTER (WHERE j.status = 'completed')::int AS completed,
+             COUNT(*) FILTER (WHERE j.status = 'failed')::int AS failed,
+             COALESCE(SUM(j.cost_usd), 0)::numeric AS cost_usd
+           FROM jobs j
+           LEFT JOIN users u ON u.id = j.user_id
+           WHERE j.status IN ('completed', 'failed')
+             AND COALESCE(j.completed_at, j.created_at) >= ${monthStart}
+           GROUP BY 1
+           ORDER BY cost_usd DESC`
+        ).catch(() => ({ rows: [] })),
+        query<{
+          model: string;
+          completed: number;
+          failed: number;
+          cost_usd: number;
+        }>(
+          `SELECT COALESCE(j.model_version, 'unknown') AS model,
+                  COUNT(*) FILTER (WHERE j.status = 'completed')::int AS completed,
+                  COUNT(*) FILTER (WHERE j.status = 'failed')::int AS failed,
+                  COALESCE(SUM(j.cost_usd), 0)::numeric AS cost_usd
+           FROM jobs j
+           WHERE j.status IN ('completed', 'failed')
+             AND COALESCE(j.completed_at, j.created_at) >= ${monthStart}
+           GROUP BY j.model_version
+           ORDER BY cost_usd DESC`
+        ).catch(() => ({ rows: [] })),
       ]);
 
       const revenueRows = (activeByTier.rows || []).map((row: { tier: string; count: number }) => {
@@ -450,7 +524,37 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         };
       });
       const mrr = revenueRows.reduce((sum: number, r: { subtotalUsd: number }) => sum + r.subtotalUsd, 0);
-      const costMonth = Number(monthCost.rows[0]?.total ?? 0);
+      const revenueByTier = Object.fromEntries(
+        revenueRows.map((r: { tier: string; subtotalUsd: number; count: number }) => [
+          r.tier,
+          { mrrUsd: r.subtotalUsd, activeSubs: r.count },
+        ])
+      );
+
+      const jobsCostMonth = Number(monthCostJobs.rows[0]?.total ?? 0);
+      const legacyCostMonth = Number(monthCostLegacy.rows[0]?.total ?? 0);
+      const costMonth = jobsCostMonth > 0 ? jobsCostMonth : legacyCostMonth;
+
+      const mtd = genMtd.rows[0] ?? { generations: 0, completed: 0, failed: 0, cost_usd: 0 };
+      const tierOrder = ['trial', 'starter', 'popular', 'pro'];
+      const economicsByTier = tierOrder
+        .map((tier) => {
+          const row = (genByUserTier.rows || []).find((r: { user_tier: string }) => r.user_tier === tier);
+          const rev = tier === 'trial' ? { mrrUsd: 0, activeSubs: 0 } : revenueByTier[tier] ?? { mrrUsd: 0, activeSubs: 0 };
+          const costUsd = Number(row?.cost_usd ?? 0);
+          return {
+            tier,
+            activeSubs: rev.activeSubs,
+            revenueMrrUsd: rev.mrrUsd,
+            generationsMtd: row?.generations ?? 0,
+            completedMtd: row?.completed ?? 0,
+            failedMtd: row?.failed ?? 0,
+            costMtdUsd: costUsd,
+          };
+        })
+        .filter((row) => row.generationsMtd > 0 || row.revenueMrrUsd > 0 || row.activeSubs > 0);
+
+      const trialRow = economicsByTier.find((r) => r.tier === 'trial');
 
       return res.status(200).json({
         ok: true,
@@ -458,6 +562,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           mrrEstimateUsd: mrr.toFixed(2),
           activeByTier: revenueRows,
           totalActiveSubs: revenueRows.reduce((s: number, r: { count: number }) => s + r.count, 0),
+        },
+        generations: {
+          monthToDate: {
+            total: mtd.generations,
+            completed: mtd.completed,
+            failed: mtd.failed,
+            costUsd: Number(mtd.cost_usd),
+          },
+          byUserTier: economicsByTier,
+          byModel: (genByModel.rows || []).map((row: { model: string; completed: number; failed: number; cost_usd: number }) => ({
+            model: row.model,
+            label: getModelDisplayLabel(row.model === 'unknown' ? null : row.model),
+            completed: row.completed,
+            failed: row.failed,
+            costUsd: Number(row.cost_usd),
+            unitCostUsd: row.model && row.model !== 'unknown' ? getModelCost(row.model) : null,
+          })),
+          trial: trialRow
+            ? {
+                generationsMtd: trialRow.generationsMtd,
+                costMtdUsd: trialRow.costMtdUsd,
+              }
+            : { generationsMtd: 0, costMtdUsd: 0 },
         },
         costs: {
           today: {
@@ -479,9 +606,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         },
         meta: {
           prices: TIER_PRICES,
-          disclaimer: 'MRR estimated from active DB tiers. Costs from Replicate cost_tracking. Not accounting-grade.',
+          modelCosts: MODEL_COST_USD,
+          disclaimer:
+            'MRR uses rounded tier prices ($5/$10/$25). Generation costs from jobs.cost_usd. Trial spend has $0 revenue.',
+          exchange: await getUsdToKesRate(),
         },
       });
+    }
+
+    // ── EXCHANGE RATE ──────────────────────────────────────────────────────────
+    if (resource === 'exchange-rate') {
+      const fx = await getUsdToKesRate();
+      return res.status(200).json({ ok: true, ...fx });
     }
 
     // ── MODERATION ─────────────────────────────────────────────────────────────

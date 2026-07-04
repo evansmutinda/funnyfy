@@ -4,6 +4,7 @@
  */
 
 import { query } from './db';
+import { finalizeJobCost } from './job-cost';
 
 export const CONTENT_NOT_ALLOWED_CODE = 'CONTENT_NOT_ALLOWED';
 export const CONTENT_NOT_ALLOWED_MESSAGE = `${CONTENT_NOT_ALLOWED_CODE}: sightengine`;
@@ -305,6 +306,8 @@ export async function failJobContentNotAllowed(
     `UPDATE jobs SET status = 'failed', error_message = $1, completed_at = NOW() WHERE id = $2`,
     [contentPolicyErrorMessage(source), jobId]
   );
+  const jobRow = await query<{ style_id: string }>(`SELECT style_id FROM jobs WHERE id = $1`, [jobId]);
+  await finalizeJobCost(jobId, jobRow.rows[0]?.style_id ?? null, 'failed');
 }
 
 export async function handleContentPolicyViolation(

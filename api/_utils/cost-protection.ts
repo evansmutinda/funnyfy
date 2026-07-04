@@ -2,31 +2,29 @@
 
 import { query } from './db';
 
-// Estimated cost per generation (varies by model)
-// These are approximate costs - adjust based on actual Replicate pricing
-const MODEL_COSTS: Record<string, number> = {
-  'black-forest-labs/flux-kontext-pro': 0.04, // $0.04 per generation
-  'google/nano-banana': 0.03, // ~$0.03 per generation (estimate - verify actual cost)
-  'bytedance/seedream-4': 0.04, // estimate — verify Replicate pricing
-  'default': 0.04, // Default fallback
+/** USD per successful generation (failed = $0). */
+export const MODEL_COST_USD: Record<string, number> = {
+  'black-forest-labs/flux-kontext-pro': 0.04,
+  'google/nano-banana': 0.04,
+  'google/nano-banana-2': 0.067,
+  'bytedance/seedream-4': 0.04,
+  'bytedance/seedream-4.5': 0.04,
+  default: 0.04,
 };
 
-// Get estimated cost for a model
+export function getModelCost(modelVersion: string): number {
+  const key = (modelVersion || '').trim();
+  if (MODEL_COST_USD[key] != null) return MODEL_COST_USD[key];
+  if (key.includes('nano-banana-2')) return MODEL_COST_USD['google/nano-banana-2'];
+  if (key.includes('nano-banana')) return MODEL_COST_USD['google/nano-banana'];
+  if (key.includes('seedream-4.5')) return MODEL_COST_USD['bytedance/seedream-4.5'];
+  if (key.includes('seedream-4')) return MODEL_COST_USD['bytedance/seedream-4'];
+  if (key.includes('flux')) return MODEL_COST_USD['black-forest-labs/flux-kontext-pro'];
+  return MODEL_COST_USD.default;
+}
+
 export function getEstimatedCost(modelVersion: string): number {
-  // Try exact match first
-  if (MODEL_COSTS[modelVersion]) {
-    return MODEL_COSTS[modelVersion];
-  }
-
-  // Try partial match
-  for (const [model, cost] of Object.entries(MODEL_COSTS)) {
-    if (modelVersion.includes(model) || model.includes(modelVersion)) {
-      return cost;
-    }
-  }
-
-  // Default cost
-  return MODEL_COSTS['default'];
+  return getModelCost(modelVersion);
 }
 
 /**
@@ -113,7 +111,8 @@ export async function recordJobCost(
     await query(
       `
         INSERT INTO cost_tracking (job_id, date, cost_usd, model_version)
-        VALUES ($1, $2, $3, $4)
+        SELECT $1, $2, $3, $4
+        WHERE NOT EXISTS (SELECT 1 FROM cost_tracking WHERE job_id = $1)
       `,
       [jobId, today, cost, modelVersion]
     );

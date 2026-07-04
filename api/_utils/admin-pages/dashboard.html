@@ -130,6 +130,8 @@
     .badge-green { background: var(--green-soft); color: #6ee7b7; }
     .badge-red { background: var(--red-soft); color: #fca5a5; }
     .badge-amber { background: var(--amber-soft); color: #fcd34d; }
+    tr.row-trial td { background: rgba(251, 191, 36, 0.08); }
+    tr.row-trial td:first-child { font-weight: 600; color: #fcd34d; }
     .badge-gray { background: rgba(148, 163, 184, 0.12); color: #94a3b8; }
     .badge-indigo { background: var(--accent-soft); color: #a5b4fc; }
 
@@ -302,6 +304,36 @@
 
     .pagination { display: flex; gap: 8px; align-items: center; padding: 12px 16px; }
     .refresh-indicator { color: var(--muted); font-size: 12px; }
+    .fx-rate { color: var(--muted); font-size: 11px; white-space: nowrap; }
+
+    .currency-toggle {
+      display: inline-flex;
+      padding: 3px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      gap: 2px;
+    }
+    .currency-toggle button {
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 140ms var(--ease-out), color 140ms var(--ease-out), transform 140ms var(--ease-out);
+    }
+    .currency-toggle button:active { transform: scale(0.97); }
+    .currency-toggle button.active {
+      background: var(--accent-soft);
+      color: #c7d2fe;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .currency-toggle button:not(.active):hover { color: var(--text); }
+    }
 
     .cap-track {
       height: 6px;
@@ -450,6 +482,11 @@
     <div class="topbar">
       <div class="topbar-title" id="pageTitle">Overview</div>
       <div class="topbar-right">
+        <span class="fx-rate" id="fx-rate-label" title="Exchange rate for display only"></span>
+        <div class="currency-toggle" id="currency-toggle" role="group" aria-label="Display currency">
+          <button type="button" data-currency="USD" class="active">USD</button>
+          <button type="button" data-currency="KES">KES</button>
+        </div>
         <span class="refresh-indicator" id="lastRefresh"></span>
         <span id="adminLabel" class="badge badge-indigo"></span>
       </div>
@@ -503,8 +540,33 @@
           <div class="finance-card">
             <div class="label">Est. Net (rough)</div>
             <div class="value" id="fin-net">—</div>
-            <div class="hint">MRR minus month-to-date costs</div>
+            <div class="hint" id="fin-net-hint">MRR minus month-to-date costs</div>
           </div>
+        </div>
+
+        <div class="stats-row" style="grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); margin-bottom: 20px;">
+          <div class="stat"><div class="stat-label">Gens MTD</div><div class="stat-value" id="fin-gens-total" style="font-size:22px">—</div></div>
+          <div class="stat"><div class="stat-label">Completed</div><div class="stat-value" id="fin-gens-done" style="font-size:22px">—</div></div>
+          <div class="stat"><div class="stat-label">Failed ($0)</div><div class="stat-value" id="fin-gens-failed" style="font-size:22px">—</div></div>
+          <div class="stat"><div class="stat-label">Trial Cost MTD</div><div class="stat-value" id="fin-trial-cost" style="font-size:22px">—</div></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><h3>Month economics by user tier</h3></div>
+          <table>
+            <thead><tr><th>Tier</th><th>Active subs</th><th>Revenue (MRR)</th><th>Gens MTD</th><th>Gen cost MTD</th></tr></thead>
+            <tbody id="fin-economics-table"><tr><td colspan="5" class="empty"><span class="spinner"></span></td></tr></tbody>
+          </table>
+          <div class="card-note">Trial rows show generation cost with $0 subscription revenue. MRR is estimated from active subs at tier price.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><h3>Generation cost by model (MTD)</h3></div>
+          <table>
+            <thead><tr><th>Model</th><th>Done</th><th>Failed</th><th>Unit cost</th><th>Total cost</th></tr></thead>
+            <tbody id="fin-model-table"><tr><td colspan="5" class="empty"><span class="spinner"></span></td></tr></tbody>
+          </table>
+          <div class="card-note" id="fin-model-note">—</div>
         </div>
 
         <div class="card">
@@ -549,8 +611,8 @@
         </div>
 
         <div class="placeholder-block">
-          <strong>Custom finance reports</strong>
-          Placeholder for detailed breakdowns you will define next — payouts, refunds, per-style margins, and RevenueCat reconciliation.
+          <strong>Coming later</strong>
+          RevenueCat reconciliation, store fees, refunds, and per-style margin reports.
         </div>
       </div>
 
@@ -671,6 +733,6 @@
   <div class="panel-body" id="user-panel-body">Loading…</div>
 </div>
 
-<script src="/admin/dashboard-page.js?v=20260705" defer></script>
+<script src="/admin/dashboard-page.js?v=20260707" defer></script>
 </body>
 </html>

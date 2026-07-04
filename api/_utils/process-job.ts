@@ -15,6 +15,7 @@ import {
   isReplicateContentPolicyError,
   normalizeGenerationErrorMessage,
 } from './sightengine-moderation';
+import { finalizeJobCost } from './job-cost';
 
 const targetUrl = process.env.TARGET_API_URL;
 const targetApiKey = process.env.TARGET_API_KEY;
@@ -122,6 +123,7 @@ export async function processJob(job: JobRow): Promise<void> {
       `UPDATE jobs SET status = $1, error_message = $2, completed_at = NOW() WHERE id = $3`,
       ['failed', errorMsg, job.id]
     );
+    await finalizeJobCost(job.id, job.style_id, 'failed');
     throw new Error(`Replicate API error: ${errorMsg}`);
   }
 
@@ -179,5 +181,6 @@ export async function processJob(job: JobRow): Promise<void> {
      replicate_prediction_id = $1, error_message = $2, completed_at = NOW() WHERE id = $3`,
     [replicateId, errorMsg || 'Generation failed', job.id]
   );
+  await finalizeJobCost(job.id, job.style_id, 'failed');
   throw new Error(errorMsg || 'Replicate generation failed');
 }

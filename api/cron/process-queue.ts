@@ -7,7 +7,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { query } from '../_utils/db';
 import { processJob, type JobRow } from '../_utils/process-job';
-import { checkDailySpendingCap, shouldPauseQueue, recordJobCost, getEstimatedCost } from '../_utils/cost-protection';
+import { checkDailySpendingCap, shouldPauseQueue, getEstimatedCost } from '../_utils/cost-protection';
+import { finalizeJobCost } from '../_utils/job-cost';
 import { getStyleById } from '../_utils/styles-config';
 import { verifyJWT } from '../_utils/security';
 import { creditUsageForJob } from '../_utils/usage';
@@ -143,10 +144,7 @@ export default async function handler(
     try {
       await processJob(job);
 
-      // Record cost after successful completion
-      if (styleConfig) {
-        await recordJobCost(job.id, styleConfig.model);
-      }
+      await finalizeJobCost(job.id, job.style_id, 'completed');
 
       // Update usage tracking after successful completion (once per job)
       if (job.user_id) {
@@ -183,6 +181,7 @@ export default async function handler(
           `,
           [errorMessage.slice(0, 1000), job.id]
         );
+        await finalizeJobCost(job.id, job.style_id, 'failed');
       } catch (updateErr) {
         console.error(`[process-queue] Failed to update job ${job.id} status:`, updateErr);
       }

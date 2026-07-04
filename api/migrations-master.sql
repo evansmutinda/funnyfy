@@ -100,7 +100,9 @@ CREATE TABLE IF NOT EXISTS jobs (
   error_message           TEXT,
   created_at              TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
   started_at              TIMESTAMPTZ,
-  completed_at            TIMESTAMPTZ
+  completed_at            TIMESTAMPTZ,
+  cost_usd                NUMERIC(10,6) NOT NULL DEFAULT 0,
+  model_version           VARCHAR(255)
 );
 
 CREATE INDEX IF NOT EXISTS idx_jobs_status_priority ON jobs(status, priority DESC, created_at ASC);
@@ -147,6 +149,8 @@ CREATE TABLE IF NOT EXISTS cost_tracking (
 );
 
 CREATE INDEX IF NOT EXISTS idx_cost_tracking_date ON cost_tracking(date);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_cost_tracking_job_id_unique
+  ON cost_tracking(job_id) WHERE job_id IS NOT NULL;
 
 -- ============================================================
 -- SECURITY LOGS
