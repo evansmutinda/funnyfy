@@ -197,7 +197,7 @@
       margin-bottom: 6px;
       font-weight: 600;
     }
-    .stat-value { font-size: 26px; font-weight: 700; letter-spacing: -0.03em; color: var(--text); }
+    .stat-value { font-size: 26px; font-weight: 700; letter-spacing: -0.03em; color: var(--text); white-space: nowrap; }
     .stat-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
 
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
@@ -354,13 +354,35 @@
     .cap-fill.danger { background: linear-gradient(90deg, var(--red), #f87171); }
 
     .finance-hero {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      align-items: stretch;
       gap: 14px;
       margin-bottom: 20px;
+      overflow-x: auto;
+      scrollbar-width: thin;
     }
-    @media (max-width: 768px) { .finance-hero { grid-template-columns: 1fr; } }
-    .growth-hero { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+    .finance-hero .finance-card {
+      flex: 1 1 auto;
+      min-width: max(140px, min-content);
+    }
+    .growth-hero .finance-card {
+      min-width: max(120px, min-content);
+    }
+    @media (max-width: 768px) {
+      .finance-hero {
+        flex-wrap: wrap;
+        overflow-x: visible;
+      }
+      .finance-hero .finance-card {
+        flex: 1 1 calc(50% - 7px);
+        min-width: 140px;
+      }
+      .growth-hero .finance-card {
+        flex: 1 1 calc(50% - 7px);
+      }
+    }
     .finance-card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -369,8 +391,15 @@
       box-shadow: var(--shadow);
     }
     .finance-card .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
-    .finance-card .value { font-size: 32px; font-weight: 700; letter-spacing: -0.03em; margin-top: 6px; }
-    .finance-card .hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+    .finance-card .value {
+      font-size: clamp(22px, 2.4vw, 32px);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin-top: 6px;
+      white-space: nowrap;
+      line-height: 1.15;
+    }
+    .finance-card .hint { font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.35; }
 
     .placeholder-block {
       border: 1px dashed var(--border);
@@ -808,6 +837,6 @@
   <div class="panel-body" id="user-panel-body">Loading…</div>
 </div>
 
-<script src="/admin/dashboard-page.js?v=20260708" defer></script>
+<script src="/admin/dashboard-page.js?v=20260709" defer></script>
 </body>
 </html>
