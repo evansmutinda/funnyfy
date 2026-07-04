@@ -111,6 +111,7 @@ export default function ResultScreen({
     setLocalPreviewUri(null);
     setPreviewError(false);
 
+    // Temporary cache for on-screen preview only — not the DCIM/Funnyfy save name.
     (async () => {
       try {
         const path = `${FileSystem.cacheDirectory}result_preview_${Date.now()}.jpg`;
@@ -212,13 +213,16 @@ export default function ResultScreen({
     const { silent = false } = opts;
     if (!imageUrl || loading) return false;
     try {
-      let localPath = localPreviewUri;
+      const fileName = getSavedImageFileName();
+      const localPath = FileSystem.documentDirectory + fileName;
 
-      if (!localPath || !localPath.startsWith('file://')) {
-        const fileName = getSavedImageFileName();
-        localPath = FileSystem.documentDirectory + fileName;
+      if (localPreviewUri?.startsWith('file://')) {
+        await FileSystem.copyAsync({ from: localPreviewUri, to: localPath });
+      } else {
         const resultDl = await FileSystem.downloadAsync(imageUrl, localPath);
-        localPath = resultDl.uri;
+        if (resultDl.status !== 200) {
+          throw new Error(`Download failed (${resultDl.status})`);
+        }
       }
 
       let saved = false;

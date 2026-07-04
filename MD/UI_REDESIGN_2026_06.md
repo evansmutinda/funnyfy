@@ -202,10 +202,12 @@ Detail: `MD/SUBSCRIPTION_UI_THEME_SNAPSHOT.md`
 
 Detail: `MD/GALLERY_SCREEN.md`
 
-- Floating **X** close (top-right)
-- Trash left in header when items exist
-- Full-screen **paged swipe** viewer with `{i}/{n}` counter
-- Dark shell + white Share CTA
+- **Device path:** **`DCIM/Funnyfy/`** (album `Funnyfy`) — primary source for My Gallery
+- Rescans all Funnyfy albums + path/filename fallback on every open
+- Floating **X** close (`galleryCloseWrap`, top-right)
+- Trash left in header when items exist (clears in-app list only — not `DCIM/Funnyfy`)
+- Full-screen **paged swipe** viewer with `{i}/{n}` counter; image fills pager height
+- Dark shell + white Share CTA (`resolveShareableImageUri` for device photos)
 
 ---
 
@@ -239,7 +241,7 @@ See `MD/TOAST_NOTIFICATION_SYSTEM.md`.
 | Pattern | Where |
 |---------|-------|
 | `FadeInDown` stagger | Style rows, usage card |
-| Row focus sequence | `useRowFocus.js` — one category row’s tiles animate at a time |
+| Row focus | `useRowFocus.js` — all visible category rows animate comparison crossfade |
 | Comparison crossfade | `ComparisonFade` on Upload + curated style tiles (`MediaTile`) |
 | Style carousel crossfade | `PaywallStyleFade` on Subscription |
 | Tips sheet slide | `PhotoTipsSheet` in-tree `withTiming` |
@@ -290,7 +292,7 @@ apps/mobile/utils/funnyfyAlbum.js
 | Doc | Topic |
 |-----|-------|
 | `MD/SUBSCRIPTION_UI_THEME_SNAPSHOT.md` | Usage vs Subscription split |
-| `MD/GALLERY_SCREEN.md` | Gallery merge + viewer |
+| `MD/GALLERY_SCREEN.md` | **`DCIM/Funnyfy` save/load + My Gallery viewer** |
 | `MD/TOAST_NOTIFICATION_SYSTEM.md` | Toasts & dialogs |
 | `MD/CHANGELOG.md` | Release history |
 

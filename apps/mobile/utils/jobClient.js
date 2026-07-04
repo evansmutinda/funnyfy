@@ -1,4 +1,5 @@
 import { jobErrorMessage } from './contentErrors';
+import { ContentPolicyBlockedError, isJobContentPolicyBlocked } from './contentViolations';
 
 const TERMINAL_STATUSES = new Set(['completed', 'failed']);
 const POLL_INTERVAL_MS = 2000;
@@ -30,6 +31,15 @@ export async function pollJobUntilDone({ apiBase, jobId, getApiHeaders, onUpdate
     if (TERMINAL_STATUSES.has(jobInfo.status)) {
       if (jobInfo.status === 'completed' && jobInfo.outputImageUrl) {
         return { ok: true, jobInfo, output: jobInfo.outputImageUrl };
+      }
+      if (isJobContentPolicyBlocked(jobInfo)) {
+        throw new ContentPolicyBlockedError({
+          userMessage: jobInfo.userMessage || jobErrorMessage(jobInfo),
+          infringementCount: jobInfo.infringementCount ?? null,
+          errorMessage: jobInfo.errorMessage,
+          jobId: jobInfo.id,
+          source: jobInfo.contentPolicySource || null,
+        });
       }
       throw new Error(jobErrorMessage(jobInfo));
     }

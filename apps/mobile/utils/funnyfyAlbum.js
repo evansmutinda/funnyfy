@@ -1,9 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
+import * as FileSystem from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
 
 export const FUNNYFY_ALBUM_ID_KEY = '@funnyfy_media_album_id';
 export const FUNNYFY_FOLDER_NAME = 'Funnyfy';
+/** Canonical Android path — photos live here on device. */
+export const FUNNYFY_DCIM_RELATIVE_PATH = 'DCIM/Funnyfy';
 
 /** Saved via getSavedImageFileName() in constants.js */
 const FUNNYFY_FILENAME_PREFIX = /^funnyfy-/i;
@@ -16,10 +19,10 @@ const devWarn = (...args) => {
 /** Legacy album titles from earlier builds — matched case-insensitively. */
 const LEGACY_ALBUM_TITLES = ['Funnyfy', 'FunnyFy', 'FUNNYFY', 'funnyfy'];
 
-function mapAssetToGalleryItem(asset) {
+function mapAssetToGalleryItem(asset, imageUrl = asset.uri) {
   return {
     id: `media_${asset.id}`,
-    imageUrl: asset.uri,
+    imageUrl,
     remoteUrl: null,
     isLocal: true,
     isDeviceAlbum: true,
@@ -28,6 +31,33 @@ function mapAssetToGalleryItem(asset) {
     styleId: null,
     createdAt: asset.creationTime * 1000,
   };
+}
+
+async function enrichAssetDisplayUri(asset) {
+  let imageUrl = asset.uri;
+  try {
+    const info = await MediaLibrary.getAssetInfoAsync(asset, {
+      shouldDownloadFromNetwork: false,
+    });
+    imageUrl = info.localUri || info.uri || asset.uri;
+  } catch {
+    // Some devices only expose content:// on asset.uri — keep it.
+  }
+  return mapAssetToGalleryItem(asset, imageUrl);
+}
+
+async function mapAssetsToGalleryItems(assets) {
+  return Promise.all(assets.map((asset) => enrichAssetDisplayUri(asset)));
+}
+
+async function listFunnyfyAlbums() {
+  try {
+    const albums = await MediaLibrary.getAlbumsAsync({ includeSmartAlbums: false });
+    return albums.filter((album) => isFunnyfyAlbumTitle(album.title));
+  } catch (err) {
+    console.warn('[Gallery] listFunnyfyAlbums failed:', err?.message || err);
+    return [];
+  }
 }
 
 function normalizeTitle(title) {
@@ -227,114 +257,158 @@ async function getAssetsFromAlbum(album, first) {
  * saved with Funnyfy-* filenames or under a .../Funnyfy/ folder (includes
  * photos that landed in DCIM root before the album fix).
  */
-async function scanFunnyfySavedPhotos({ first = 50, scanPool = 200 } = {}) {
-  let result;
-  try {
-    result = await MediaLibrary.getAssetsAsync({
-      mediaType: MediaLibrary.MediaType.photo,
-      first: scanPool,
-      sortBy: [[MediaLibrary.SortBy.creationTime, false]],
-    });
-  } catch (err) {
-    console.warn('[Gallery] recent photo scan failed:', err?.message || err);
-    return [];
-  }
-
+async function scanFunnyfySavedPhotos({ first = 50, scanPool = 800 } = {}) {
   const matches = [];
-  for (const asset of result.assets) {
-    if (matches.length >= first) break;
+  const seen = new Set();
+  let after;
+  const pageSize = 200;
+  let scanned = 0;
+
+  while (matches.length < first && scanned < scanPool) {
+    const batchSize = Math.min(pageSize, scanPool - scanned);
+    let result;
     try {
-      const info = await MediaLibrary.getAssetInfoAsync(asset, {
-        shouldDownloadFromNetwork: false,
+      result = await MediaLibrary.getAssetsAsync({
+        mediaType: MediaLibrary.MediaType.photo,
+        first: batchSize,
+        after,
+        sortBy: [[MediaLibrary.SortBy.creationTime, false]],
       });
-      if (isFunnyfySavedPhoto(info)) {
-        matches.push(asset);
+    } catch (err) {
+      console.warn('[Gallery] recent photo scan failed:', err?.message || err);
+      break;
+    }
+
+    if (!result.assets.length) {
+      break;
+    }
+
+    scanned += result.assets.length;
+
+    for (const asset of result.assets) {
+      if (matches.length >= first || seen.has(asset.id)) {
+        continue;
       }
-    } catch {
-      // Some Android content-uris omit filename — match uri when possible
+
       if (FUNNYFY_PATH_PATTERN.test(asset.uri || '')) {
+        seen.add(asset.id);
         matches.push(asset);
+        continue;
+      }
+
+      try {
+        const info = await MediaLibrary.getAssetInfoAsync(asset, {
+          shouldDownloadFromNetwork: false,
+        });
+        if (isFunnyfySavedPhoto(info)) {
+          seen.add(asset.id);
+          matches.push(asset);
+        }
+      } catch {
+        // Some Android content-uris omit filename — already checked uri above.
       }
     }
+
+    if (!result.hasNextPage) {
+      break;
+    }
+    after = result.endCursor;
   }
 
   if (matches.length > 0) {
     console.log(
-      '[Gallery] filename/path scan found',
+      '[Gallery] DCIM/Funnyfy path scan found',
       matches.length,
-      'Funnyfy photo(s)',
-      Platform.OS === 'android' ? '(album may be missing — e.g. saved to DCIM root)' : '',
+      'photo(s)',
+      Platform.OS === 'android' ? `(scanned ${scanned} recent)` : '',
     );
   }
 
   return matches;
 }
 
-export async function getFunnyfyAlbumAssets({ first = 50 } = {}) {
+export async function getFunnyfyAlbumAssets({ first = 50, rescan = false } = {}) {
   const canRead = await requestGalleryReadPermission();
   if (!canRead) {
     return [];
   }
 
-  let album = await resolveFunnyfyAlbum();
-  let assets = [];
-
-  if (album) {
-    assets = await getAssetsFromAlbum(album, first);
-    if (assets.length > 0) {
-      console.log(
-        '[Gallery] album scan:',
-        assets.length,
-        'photo(s) in',
-        album.title || FUNNYFY_FOLDER_NAME,
-      );
-    }
+  if (rescan) {
+    await AsyncStorage.removeItem(FUNNYFY_ALBUM_ID_KEY);
   }
 
-  const scanned = await scanFunnyfySavedPhotos({ first, scanPool: 500 });
+  const assets = [];
+  const seen = new Set();
 
-  if (!album && scanned.length > 0) {
-    album = await discoverFunnyfyAlbumFromExistingPhotos();
-    if (album) {
-      const albumAssets = await getAssetsFromAlbum(album, first);
-      if (albumAssets.length > 0) {
-        console.log(
-          '[Gallery] discovered album from existing photos:',
-          albumAssets.length,
-          'in',
-          album.title || FUNNYFY_FOLDER_NAME,
-        );
-        assets = albumAssets;
-      }
-    }
-  } else if (album && assets.length === 0 && scanned.length > 0) {
-    const rediscovered = await discoverFunnyfyAlbumFromExistingPhotos();
-    if (rediscovered) {
-      const albumAssets = await getAssetsFromAlbum(rediscovered, first);
-      if (albumAssets.length > 0) {
-        album = rediscovered;
-        assets = albumAssets;
-      }
-    }
-  }
-
-  const seen = new Set(assets.map((asset) => asset.id));
-  for (const asset of scanned) {
-    if (!seen.has(asset.id)) {
-      assets.push(asset);
+  const addAssets = (batch) => {
+    for (const asset of batch) {
+      if (seen.has(asset.id)) continue;
       seen.add(asset.id);
+      assets.push(asset);
+      if (assets.length >= first) break;
+    }
+  };
+
+  const funnyfyAlbums = await listFunnyfyAlbums();
+  for (const album of funnyfyAlbums) {
+    if (assets.length >= first) break;
+    const batch = await getAssetsFromAlbum(album, first - assets.length);
+    if (batch.length > 0) {
+      console.log(
+        '[Gallery] album',
+        album.title || FUNNYFY_FOLDER_NAME,
+        ':',
+        batch.length,
+        'photo(s)',
+      );
+      addAssets(batch);
+      await AsyncStorage.setItem(FUNNYFY_ALBUM_ID_KEY, album.id);
     }
   }
 
-  if (assets.length === 0 && scanned.length === 0 && !album) {
-    console.log(
-      '[Gallery] No',
-      FUNNYFY_FOLDER_NAME,
-      'album or matching photos found on device',
-    );
+  if (assets.length < first) {
+    const cachedId = await AsyncStorage.getItem(FUNNYFY_ALBUM_ID_KEY);
+    if (cachedId && !funnyfyAlbums.some((album) => album.id === cachedId)) {
+      const cachedAlbum = { id: cachedId, title: FUNNYFY_FOLDER_NAME };
+      const batch = await getAssetsFromAlbum(cachedAlbum, first - assets.length);
+      if (batch.length > 0) {
+        addAssets(batch);
+      } else {
+        await AsyncStorage.removeItem(FUNNYFY_ALBUM_ID_KEY);
+      }
+    }
   }
 
-  return assets.slice(0, first).map(mapAssetToGalleryItem);
+  if (assets.length < first) {
+    const resolved = await resolveFunnyfyAlbum({ rescan: true });
+    if (resolved && !funnyfyAlbums.some((album) => album.id === resolved.id)) {
+      const batch = await getAssetsFromAlbum(resolved, first - assets.length);
+      if (batch.length > 0) {
+        addAssets(batch);
+        await AsyncStorage.setItem(FUNNYFY_ALBUM_ID_KEY, resolved.id);
+      }
+    }
+  }
+
+  if (assets.length < first) {
+    const scanned = await scanFunnyfySavedPhotos({
+      first: first - assets.length,
+      scanPool: 800,
+    });
+    addAssets(scanned);
+  }
+
+  if (assets.length === 0) {
+    console.log(
+      '[Gallery] No photos in',
+      FUNNYFY_DCIM_RELATIVE_PATH,
+      `(albums found: ${funnyfyAlbums.length})`,
+    );
+    return [];
+  }
+
+  console.log('[Gallery] Loaded', assets.length, 'photo(s) from', FUNNYFY_DCIM_RELATIVE_PATH);
+  return mapAssetsToGalleryItems(assets.slice(0, first));
 }
 
 export async function requestGalleryWritePermission() {
@@ -521,4 +595,51 @@ export function mergeGalleryItems(storedItems, albumItems) {
   }
 
   return merged.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+}
+
+/**
+ * Resolve a gallery item URI to a local file:// path suitable for expo-sharing.
+ */
+export async function resolveShareableImageUri(item, fileName) {
+  const imageUrl = item?.imageUrl;
+  if (!imageUrl) {
+    throw new Error('Missing image');
+  }
+
+  if (imageUrl.startsWith('file://')) {
+    const info = await FileSystem.getInfoAsync(imageUrl);
+    if (info.exists) {
+      return imageUrl;
+    }
+  }
+
+  const cachePath = `${FileSystem.cacheDirectory}${fileName}`;
+
+  if (item?.mediaAssetId) {
+    const info = await MediaLibrary.getAssetInfoAsync(item.mediaAssetId);
+    const sourceUri = info.localUri || info.uri || imageUrl;
+    if (sourceUri.startsWith('file://')) {
+      const localInfo = await FileSystem.getInfoAsync(sourceUri);
+      if (localInfo.exists) {
+        return sourceUri;
+      }
+    }
+    await FileSystem.copyAsync({ from: sourceUri, to: cachePath });
+    return cachePath;
+  }
+
+  if (
+    imageUrl.startsWith('content://')
+    || imageUrl.startsWith('ph://')
+    || (Platform.OS === 'ios' && imageUrl.startsWith('assets-library://'))
+  ) {
+    await FileSystem.copyAsync({ from: imageUrl, to: cachePath });
+    return cachePath;
+  }
+
+  const dl = await FileSystem.downloadAsync(imageUrl, cachePath);
+  if (dl.status !== 200) {
+    throw new Error(`Download failed (${dl.status})`);
+  }
+  return dl.uri;
 }

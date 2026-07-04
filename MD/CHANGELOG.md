@@ -15,6 +15,8 @@ All notable changes to this project will be documented in this file.
 - **`MD/PROMPTS.md`** — generated prompts reference from `api/_utils/styles-config.ts`
 
 ### Changed
+- **Content moderation UX (v1.0.74)** — softer policy dialog; E005/Replicate rejections surfaced as content blocks; `contentPolicyBlocked` + `infringementCount` on GET `/api/job`; local violation log + Sentry info events
+- **Style picker row focus** — all sufficiently visible rows animate (no alternate-row skip)
 - **Comparison asset layout** — originals under `apps/mobile/assets/comparisons/source/`; bundled app uses generated `tiles/` (~400px) and `hero/` (~832px) only
 - **Style picker thumbnails** — static `after` tile images via `getStyleImage()` (fixes Android decoder exhaustion / missing comic tiles)
 - **Documentation versioning** — `README.md`, `MD/STATUS.md`, `MD/STYLES.md` reference `apps/mobile/version.json` instead of hardcoded semver; semver policy in `MD/TESTING.md`

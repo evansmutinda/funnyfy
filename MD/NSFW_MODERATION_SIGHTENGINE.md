@@ -1,37 +1,68 @@
-# NSFW Moderation (Sightengine)
+# Content Moderation (Sightengine + Replicate)
 
-**Last Updated**: June 2026
+**Last Updated**: July 2026
 
 ---
 
 ## Overview
 
-Sightengine screens uploaded images for explicit content **before** Replicate generation. This runs in the async job worker.
+Uploaded images are screened for policy violations **before** Replicate generation (Sightengine). Replicate model rejections (e.g. E005 sensitive content) are mapped to the same user-facing flow.
+
+Runs in the async job worker (`api/_utils/process-job.ts`).
 
 ---
 
 ## Flow
 
 1. User uploads image → `POST /api/enqueue`
-2. Queue worker runs `api/process-job.ts` (or `api/_utils/process-job.ts`)
+2. Queue worker runs `api/_utils/process-job.ts`
 3. Image validated at enqueue time (MIME, size, magic bytes) — see `SECURITY.md`
-4. **Sightengine** nudity check on the image URL/data
-5. If blocked: job fails with `CONTENT_NOT_ALLOWED`; user sees NSFW modal in app
+4. **Sightengine** multi-model check on base64 image data
+5. If blocked: job fails with `CONTENT_NOT_ALLOWED`; infringement recorded; user sees content-policy dialog in app
 6. If passed: Replicate generation proceeds
+7. If Replicate rejects for sensitive/content policy (E005): same block + infringement path
+
+---
+
+## Sightengine Models
+
+Single API call with:
+
+```
+nudity-2.1,gore-2.0,weapon,violence,offensive-2.0,self-harm
+```
+
+| Category | What is blocked |
+|----------|-----------------|
+| **Nudity** | Sexual activity, sexual display, erotica (except normal bikini/swimwear), very suggestive (except swimwear), sex toys |
+| **Gore / death** | Blood, corpses, skulls, serious injury, organs |
+| **Weapons** | Firearms (excluding toy guns), knives |
+| **Violence** | Physical violence, firearm threats (combat sports allowed) |
+| **Hate / offensive** | Nazi, terrorist, confederate, supremacist, swastika imagery |
+| **Self-harm** | Self-injury indicators |
+
+Implementation: `api/_utils/sightengine-moderation.ts`
+
+**Age / minors:** We do **not** use Sightengine `face-age` (no blanket block on photos of children). Nudity, violence, weapons, gore, hate, and self-harm rules apply to **all** uploads regardless of who is in the photo. Replicate may still reject some edge cases (E005).
+
+**Bikinis / swimwear:** Bikinis, one-piece swimwear, and male swimwear are **allowed** when Sightengine classifies them as the dominant suggestive signal. Explicit nudity (`sexual_activity`, `sexual_display`) and lingerie/underwear still block. A bikini photo with actual explicit content still fails.
 
 ---
 
 ## Thresholds
 
-```typescript
-const NSFW_RAW_THRESHOLD = 0.3;        // in api/process-job.ts
-const INFRINGEMENT_BAN_THRESHOLD = 3;  // violations → user banned
-```
+Default score threshold: **0.3** (0–1 confidence from Sightengine).
 
-| Setting | Default | Effect |
+| Env var | Default | Effect |
 |---------|---------|--------|
-| `NSFW_RAW_THRESHOLD` | `0.3` | Block if `nudity.raw >= 0.3` |
-| `INFRINGEMENT_BAN_THRESHOLD` | `3` | Set `users.banned_at` after 3 violations |
+| `MODERATION_NUDITY_THRESHOLD` | `0.3` | sexual_activity, sexual_display, erotica, sextoy |
+| `MODERATION_VERY_SUGGESTIVE_THRESHOLD` | `0.5` | very_suggestive (allows normal swimwear in many cases) |
+| `MODERATION_GORE_THRESHOLD` | `0.3` | gore / death imagery |
+| `MODERATION_WEAPON_THRESHOLD` | `0.3` | firearms, knives |
+| `MODERATION_VIOLENCE_THRESHOLD` | `0.3` | physical_violence, firearm_threat |
+| `MODERATION_OFFENSIVE_THRESHOLD` | `0.3` | hate / offensive symbols |
+| `MODERATION_SELF_HARM_THRESHOLD` | `0.3` | self-harm |
+| `INFRINGEMENT_BAN_THRESHOLD` | `3` | Set `users.banned_at` after N violations |
 
 ---
 
@@ -42,29 +73,25 @@ SIGHTENGINE_API_USER=your_user
 SIGHTENGINE_API_SECRET=your_secret
 ```
 
+If Sightengine credentials are missing, the check is skipped. If the Sightengine API call fails, the worker **fail-opens** (proceeds to Replicate) and logs a warning.
+
 ---
 
 ## Database
 
-Violations recorded in `infringements` table. Banned users get 403 on enqueue.
-
----
-
-## Adjusting Sensitivity
-
-Edit `NSFW_RAW_THRESHOLD` in `api/process-job.ts` (lower = stricter).
+Violations recorded in `infringements` table (`infringement_type`: `nsfw`). Details JSON includes violation category and scores. Banned users get 403 on enqueue.
 
 ---
 
 ## User Experience
 
-- **While generating:** Result overlay shows four steps — submit, queue, **Checking content guidelines…** (moderation), then **Creating your {style}** / generating. If moderation fails, the infringement dialog appears; otherwise flow continues to Replicate.
-- **On block:** Dark dialog — title **Content not permitted**; message notes the upload was recorded and further violations may suspend the account; single **Understood** pill returns to upload (photo cleared).
-- No retry limit on NSFW errors (user can pick a different photo).
-- Not the same as generation failure retries (3× for Replicate errors).
+- **While generating:** Result overlay shows **Checking content guidelines…** during moderation.
+- **On block:** Friendly dialog — **This photo can't be used**; acknowledges false alarms; account-limit note only after repeat flags. Violations logged in server `infringements`, locally on device, and as Sentry info events (not crashes).
+- Replicate E005 / sensitive rejections show the same dialog (not a generic generation error).
+- No retry limit on content-policy errors (user can pick a different photo).
 
 **Mobile helpers:** `apps/mobile/utils/contentErrors.js`, `apps/mobile/utils/jobProgress.js`
 
 ---
 
-**See also**: `SECURITY.md`, `api/process-job.ts`, `api/enqueue.ts`
+**See also**: `SECURITY.md`, `api/_utils/sightengine-moderation.ts`, `api/_utils/process-job.ts`, `api/enqueue.ts`

@@ -9,4 +9,4 @@ Actionable backlog. On Windows, `todo/` and `ToDo/` are the same directory.
 
 **Canonical docs:** `MD/STATUS.md`, `MD/DISASTER_RECOVERY.md`, `MD/SECURITY_AUDIT.md`
 
-**Integration checklists:** [`To do/`](../To%20do/) (splash, entry, [Sentry](../To%20do/SENTRY_INTEGRATION.md) — mobile done, [version gating](../To%20do/APP_VERSION_GATING.md) — backlog)
+**Integration checklists:** [`To do/`](../To%20do/) (splash, entry, [Sentry](../To%20do/SENTRY_INTEGRATION.md) — mobile done, [version gating](../To%20do/APP_VERSION_GATING.md) — backlog, [admin dashboard](../To%20do/ADMIN_DASHBOARD_SETUP.md))

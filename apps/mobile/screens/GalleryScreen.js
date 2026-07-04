@@ -20,7 +20,7 @@ import { useNotifications } from '../components/NotificationProvider';
 import MediaTile from '../components/MediaTile';
 import PressScale from '../components/PressScale';
 import { BOTTOM_INSET_MIN, getSavedImageFileName } from '../constants';
-import { getFunnyfyAlbumAssets, mergeGalleryItems } from '../utils/funnyfyAlbum';
+import { getFunnyfyAlbumAssets, mergeGalleryItems, requestGalleryReadPermission, resolveShareableImageUri } from '../utils/funnyfyAlbum';
 import styles from '../styles';
 
 const GALLERY_STORAGE_KEY = '@funnyfy_gallery';
@@ -86,33 +86,36 @@ async function saveToGallery(item) {
 }
 
 async function verifyStoredItems(storedItems) {
-  const verified = [];
-  for (const item of storedItems) {
-    if (item.isLocal && item.imageUrl?.startsWith('file://')) {
-      try {
-        const info = await FileSystem.getInfoAsync(item.imageUrl);
-        if (info.exists) {
-          verified.push(item);
+  const results = await Promise.all(
+    storedItems.map(async (item) => {
+      if (item.isLocal && item.imageUrl?.startsWith('file://')) {
+        try {
+          const info = await FileSystem.getInfoAsync(item.imageUrl);
+          return info.exists ? item : null;
+        } catch {
+          return null;
         }
-      } catch {
-        // File missing, skip it
       }
-    } else {
-      verified.push(item);
-    }
-  }
-  return verified;
+      return item;
+    }),
+  );
+  return results.filter(Boolean);
 }
 
-async function loadGallery() {
+
+async function loadGallery({ rescanDevice = true } = {}) {
   try {
     const data = await AsyncStorage.getItem(GALLERY_STORAGE_KEY);
-    const storedItems = data ? JSON.parse(data) : [];
-    const verifiedStored = await verifyStoredItems(storedItems);
-    const albumItems = await getFunnyfyAlbumAssets({ first: GALLERY_MAX_ITEMS });
+    const previousStored = data ? JSON.parse(data) : [];
+    const verifiedStored = await verifyStoredItems(previousStored);
+
+    const albumItems = await getFunnyfyAlbumAssets({
+      first: GALLERY_MAX_ITEMS,
+      rescan: rescanDevice,
+    });
     const merged = mergeGalleryItems(verifiedStored, albumItems).slice(0, GALLERY_MAX_ITEMS);
 
-    if (JSON.stringify(merged) !== JSON.stringify(storedItems)) {
+    if (JSON.stringify(merged) !== JSON.stringify(previousStored)) {
       await AsyncStorage.setItem(GALLERY_STORAGE_KEY, JSON.stringify(merged));
     }
 
@@ -167,24 +170,34 @@ export { saveToGallery };
 
 export default function GalleryScreen({ onBack }) {
   const insets = useSafeAreaInsets();
-  const { width: windowWidth } = useWindowDimensions();
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const { showToast, showDialog, closeDialog } = useNotifications();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [viewerVisible, setViewerVisible] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(0);
+  const [pagerHeight, setPagerHeight] = useState(0);
+  const [permissionDenied, setPermissionDenied] = useState(false);
   const viewerListRef = useRef(null);
 
-  const refresh = async () => {
+  const closeTop = insets.top + 12;
+
+  const refresh = useCallback(async () => {
     setLoading(true);
-    const data = await loadGallery();
-    setItems(data);
-    setLoading(false);
-  };
+    try {
+      const canRead = await requestGalleryReadPermission();
+      setPermissionDenied(!canRead);
+
+      const merged = await loadGallery({ rescanDevice: true });
+      setItems(merged);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     refresh();
-  }, []);
+  }, [refresh]);
 
   const handleDelete = (item) => {
     showDialog({
@@ -222,17 +235,22 @@ export default function GalleryScreen({ onBack }) {
     const item = items[viewerIndex];
     if (!item) return;
     try {
+      const available = await Sharing.isAvailableAsync();
+      if (!available) {
+        showToast('Share unavailable', 'Sharing is not supported on this device', 'warning');
+        return;
+      }
       const fileName = getSavedImageFileName();
-      const localPath = FileSystem.cacheDirectory + fileName;
-      const dl = await FileSystem.downloadAsync(item.imageUrl, localPath);
-      await Sharing.shareAsync(dl.uri, {
+      const shareUri = await resolveShareableImageUri(item, fileName);
+      await Sharing.shareAsync(shareUri, {
         mimeType: 'image/jpeg',
         dialogTitle: 'Check out my caricature!',
       });
     } catch (err) {
       console.error('[Gallery] share error:', err);
+      showToast('Share failed', 'Could not share this photo. Try again.', 'error');
     }
-  }, [items, viewerIndex]);
+  }, [items, viewerIndex, showToast]);
 
   const scrollViewerToIndex = useCallback((index, animated = false) => {
     if (!viewerListRef.current || index < 0 || index >= items.length) return;
@@ -259,7 +277,7 @@ export default function GalleryScreen({ onBack }) {
     <View style={styles.galleryRoot}>
       <StatusBar barStyle="light-content" backgroundColor="#0B0F19" />
 
-      <View style={[styles.pwdFloatingCloseWrap, { top: insets.top + 4, right: 8 }]}>
+      <View style={[styles.galleryCloseWrap, { top: closeTop, right: 8 }]}>
         <PressScale onPress={onBack} style={styles.pwdCloseCircle} hitSlop={8}>
           <Feather name="x" size={20} color="#FFFFFF" />
         </PressScale>
@@ -296,7 +314,9 @@ export default function GalleryScreen({ onBack }) {
           </View>
           <Text style={styles.galleryEmptyTitle}>No caricatures yet</Text>
           <Text style={styles.galleryEmptyText}>
-            Save a result from the generation screen and it will appear here and in your phone&apos;s Funnyfy album.
+            {permissionDenied
+              ? 'Allow photo access in Settings so FunnyFy can show your DCIM/Funnyfy saves.'
+              : 'Save a result from the generation screen and it will appear here and in DCIM/Funnyfy on your phone.'}
           </Text>
         </View>
       ) : (
@@ -321,10 +341,7 @@ export default function GalleryScreen({ onBack }) {
                 onLongPress={() => handleDelete(item)}
                 android_ripple={null}
               >
-                <MediaTile
-                  imageSource={{ uri: item.imageUrl }}
-                  label={item.styleLabel || 'Caricature'}
-                />
+                <MediaTile imageSource={{ uri: item.imageUrl }} />
               </Pressable>
             ))}
           </View>
@@ -339,7 +356,7 @@ export default function GalleryScreen({ onBack }) {
         statusBarTranslucent
       >
         <View style={styles.galleryViewerRoot}>
-          <View style={[styles.pwdFloatingCloseWrap, { top: insets.top + 4, right: 8 }]}>
+          <View style={[styles.galleryCloseWrap, { top: closeTop, right: 8 }]}>
             <PressScale
               onPress={() => setViewerVisible(false)}
               style={styles.pwdCloseCircle}
@@ -349,39 +366,57 @@ export default function GalleryScreen({ onBack }) {
             </PressScale>
           </View>
 
-          <FlatList
-            ref={viewerListRef}
-            data={items}
-            keyExtractor={(item) => item.id}
-            horizontal
-            pagingEnabled
-            bounces={items.length > 1}
-            showsHorizontalScrollIndicator={false}
-            initialScrollIndex={viewerIndex}
-            style={styles.galleryViewerPager}
-            getItemLayout={(_, index) => ({
-              length: windowWidth,
-              offset: windowWidth * index,
-              index,
-            })}
-            onMomentumScrollEnd={handleViewerScrollEnd}
-            onScrollToIndexFailed={({ index }) => {
-              viewerListRef.current?.scrollToOffset({
-                offset: index * windowWidth,
-                animated: false,
-              });
+          <View
+            style={styles.galleryViewerPagerWrap}
+            onLayout={(event) => {
+              const { height } = event.nativeEvent.layout;
+              if (height > 0 && height !== pagerHeight) {
+                setPagerHeight(height);
+              }
             }}
-            renderItem={({ item }) => (
-              <View style={[styles.galleryViewerPage, { width: windowWidth }]}>
-                <Image
-                  source={{ uri: item.imageUrl }}
-                  style={styles.galleryViewerImage}
-                  resizeMode="contain"
-                  fadeDuration={0}
-                />
-              </View>
-            )}
-          />
+          >
+            <FlatList
+              ref={viewerListRef}
+              data={items}
+              keyExtractor={(item) => item.id}
+              horizontal
+              pagingEnabled
+              bounces={items.length > 1}
+              showsHorizontalScrollIndicator={false}
+              initialScrollIndex={viewerIndex}
+              style={styles.galleryViewerPager}
+              getItemLayout={(_, index) => ({
+                length: windowWidth,
+                offset: windowWidth * index,
+                index,
+              })}
+              onMomentumScrollEnd={handleViewerScrollEnd}
+              onScrollToIndexFailed={({ index }) => {
+                viewerListRef.current?.scrollToOffset({
+                  offset: index * windowWidth,
+                  animated: false,
+                });
+              }}
+              renderItem={({ item }) => (
+                <View
+                  style={[
+                    styles.galleryViewerPage,
+                    {
+                      width: windowWidth,
+                      height: pagerHeight || windowHeight * 0.72,
+                    },
+                  ]}
+                >
+                  <Image
+                    source={{ uri: item.imageUrl }}
+                    style={styles.galleryViewerImage}
+                    resizeMode="contain"
+                    fadeDuration={0}
+                  />
+                </View>
+              )}
+            />
+          </View>
 
           {activeViewerItem ? (
             <View style={[styles.galleryViewerFooter, { paddingBottom: Math.max(insets.bottom, 16) + 8 }]}>

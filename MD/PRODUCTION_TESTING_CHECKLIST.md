@@ -384,6 +384,9 @@
   - [ ] Verify job enqueued correctly
   - [ ] Verify polling works (job status updates)
   - [ ] Verify result displayed when complete
+  - [ ] Save result → verify file in phone **`DCIM/Funnyfy/`**
+  - [ ] Open **My Gallery** → saved photo visible (see `MD/GALLERY_SCREEN.md`)
+  - [ ] Gallery viewer: swipe, share; clear in-app list does not delete `DCIM/Funnyfy`
   - [ ] Verify error handling if job fails
 - [ ] **Offline UX (mobile)**
   - [ ] Airplane mode — orange overlay banner visible; does not push header layout

@@ -79,7 +79,7 @@ Deploy via Vercel. See `MD/ENV_SETUP.md` and `MD/SETUP_VERCEL_ENV.md` for enviro
 
 - Netflix-style style picker (16 categories, dark UI)
 - Upload → review → generate flow with OS crop (`expo-image-picker`)
-- Gallery, save/share, restyle from result
+- Gallery (**`DCIM/Funnyfy`** saves), save/share, restyle from result
 - RevenueCat paywall + backend subscription sync
 - Offline banner + generate guards
 - Admin dashboard, cron queue worker, webhook idempotency
@@ -93,6 +93,8 @@ Deploy via Vercel. See `MD/ENV_SETUP.md` and `MD/SETUP_VERCEL_ENV.md` for enviro
 |-----|---------|
 | [`MD/STATUS.md`](MD/STATUS.md) | Launch checklist & current state |
 | [`MD/CHANGELOG.md`](MD/CHANGELOG.md) | Version history |
+| [`MD/TESTING.md`](MD/TESTING.md) | API, mobile, versioning, test guide |
+| [`MD/GALLERY_SCREEN.md`](MD/GALLERY_SCREEN.md) | My Gallery + **`DCIM/Funnyfy`** path |
 | [`MD/DEVELOPMENT_PLAN.md`](MD/DEVELOPMENT_PLAN.md) | Architecture & phases |
 | [`MD/SECURITY_AUDIT.md`](MD/SECURITY_AUDIT.md) | Security findings |
 | [`MD/DISASTER_RECOVERY.md`](MD/DISASTER_RECOVERY.md) | RTO/RPO & runbooks |
@@ -121,4 +123,4 @@ Full doc index: [`MD/README.md`](MD/README.md)
 
 ---
 
-**Last updated:** June 2026
+**Last updated:** July 2026

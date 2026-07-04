@@ -128,7 +128,7 @@ npm start
    - **Offline**: Generate disabled; orange toast if tapped; usage pill still visible
 4. **Generation**: `POST /api/enqueue` then poll `/api/job` — phased loading copy; **usage counter +1 only on success**
 5. **Result**: Drag compare (no Before/After labels), save (silent), share, **Try another style**, **Try another photo**
-6. **Gallery**: Tile grid; saved images in Funnyfy device album
+6. **Gallery**: Tile grid; photos from **`DCIM/Funnyfy/`** (rescans device on open); share + swipe viewer
 7. **Subscription**: Full-bleed dark paywall; usage card + tier cards + pinned CTA
 8. **Trial warning**: Quota/trial banners on upload when applicable
 9. **About**: Version matches `version.json` / `expo-constants`
@@ -264,12 +264,13 @@ Invoke-RestMethod -Uri "https://funnyfy-staging.vercel.app/api/sync-subscription
 
 ---
 
-## Testing NSFW Moderation
+## Testing Content Moderation
 
-Upload an image via the app. If Sightengine returns `nudity.raw >= 0.3`, you'll see the toast:
-> "This image cannot be processed. Please use an appropriate photo."
+Upload an image via the app. If Sightengine or Replicate flags policy violations, you'll see the **Content not permitted** dialog (not a generic generation error).
 
-Check Supabase `infringements` table to verify the record was created.
+Check Supabase `infringements` table to verify the record was created. Details JSON includes violation categories and scores.
+
+See `MD/NSFW_MODERATION_SIGHTENGINE.md` for models and thresholds.
 
 ---
 
@@ -317,7 +318,10 @@ Real errors (e.g. failed generation) appear via `captureAppError` in `App.js`.
 - [ ] Style card labels readable on light/busy images (dark backdrop pill behind text)
 - [ ] Image upload and generation completes
 - [ ] Result screen: slider, save, share all work
-- [ ] Gallery screen shows saved images
+- [ ] Save from result → file appears in phone **`DCIM/Funnyfy/`** (Android Gallery app)
+- [ ] My Gallery shows saves from **`DCIM/Funnyfy`** after open (grant photo permission if prompted)
+- [ ] Gallery viewer: swipe, share, full-height image
+- [ ] Clear in-app gallery (trash) does not delete `DCIM/Funnyfy` files
 - [ ] Subscription screen shows plan cards
 - [ ] Toast notifications appear (not system Alert dialogs)
 - [ ] Subscription purchase updates plan (not stuck on trial)
@@ -327,4 +331,4 @@ Real errors (e.g. failed generation) appear via `captureAppError` in `App.js`.
 
 ---
 
-**Last Updated**: June 2026
+**Last Updated**: July 2026

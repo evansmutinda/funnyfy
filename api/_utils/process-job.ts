@@ -8,13 +8,18 @@ import {
   pollReplicatePrediction,
   saveReplicatePredictionId,
 } from './replicate-sync';
+import {
+  checkImageWithSightengine,
+  CONTENT_NOT_ALLOWED_CODE,
+  handleContentPolicyViolation,
+  isReplicateContentPolicyError,
+  normalizeGenerationErrorMessage,
+} from './sightengine-moderation';
 
 const targetUrl = process.env.TARGET_API_URL;
 const targetApiKey = process.env.TARGET_API_KEY;
 const sightengineUser = process.env.SIGHTENGINE_API_USER;
 const sightengineSecret = process.env.SIGHTENGINE_API_SECRET;
-const NSFW_RAW_THRESHOLD = 0.3;
-const INFRINGEMENT_BAN_THRESHOLD = 3;
 
 export interface JobRow {
   id: string;
@@ -76,52 +81,16 @@ export async function processJob(job: JobRow): Promise<void> {
 
   if (imageUrl && sightengineUser && sightengineSecret) {
     try {
-      const base64Match = imageUrl.match(/^data:image\/\w+;base64,(.+)$/);
-      if (base64Match) {
-        const buffer = Buffer.from(base64Match[1], 'base64');
-        const blob = new Blob([buffer], { type: 'image/jpeg' });
-        const form = new FormData();
-        form.append('media', blob, 'image.jpg');
-        form.append('models', 'nudity');
-        form.append('api_user', sightengineUser);
-        form.append('api_secret', sightengineSecret);
-
-        const modRes = await fetch('https://api.sightengine.com/1.0/check.json', {
-          method: 'POST',
-          body: form,
+      const moderation = await checkImageWithSightengine(imageUrl, sightengineUser, sightengineSecret);
+      if (moderation && !moderation.allowed) {
+        await handleContentPolicyViolation(job.id, job.user_id, {
+          source: 'sightengine',
+          violations: moderation.violations,
         });
-        const modData = await modRes.json().catch(() => ({}));
-        const nudity = (modData as { nudity?: { raw?: number } })?.nudity;
-
-        if (nudity && typeof nudity.raw === 'number' && nudity.raw >= NSFW_RAW_THRESHOLD) {
-          if (job.user_id) {
-            try {
-              await query(
-                `INSERT INTO infringements (user_id, infringement_type, details)
-                 VALUES ($1, 'nsfw', $2)`,
-                [job.user_id, JSON.stringify({ raw: nudity.raw })]
-              );
-              const countResult = await query<{ count: string }>(
-                `SELECT COUNT(*)::text AS count FROM infringements WHERE user_id = $1`,
-                [job.user_id]
-              );
-              const infCount = parseInt(countResult.rows[0]?.count ?? '0', 10);
-              if (infCount >= INFRINGEMENT_BAN_THRESHOLD) {
-                await query(`UPDATE users SET banned_at = NOW() WHERE id = $1`, [job.user_id]);
-              }
-            } catch (infErr) {
-              console.error('[process-job] Failed to record NSFW infringement:', infErr);
-            }
-          }
-          await query(
-            `UPDATE jobs SET status = 'failed', error_message = $1, completed_at = NOW() WHERE id = $2`,
-            ['CONTENT_NOT_ALLOWED: Image failed NSFW moderation', job.id]
-          );
-          throw new Error('CONTENT_NOT_ALLOWED');
-        }
+        throw new Error(CONTENT_NOT_ALLOWED_CODE);
       }
     } catch (modErr: unknown) {
-      if (modErr instanceof Error && modErr.message === 'CONTENT_NOT_ALLOWED') throw modErr;
+      if (modErr instanceof Error && modErr.message === CONTENT_NOT_ALLOWED_CODE) throw modErr;
       console.warn('[process-job] Sightengine check failed (proceeding):', modErr);
     }
   }
@@ -142,6 +111,13 @@ export async function processJob(job: JobRow): Promise<void> {
 
   if (!fetchRes.ok) {
     const errorMsg = typeof data === 'object' ? JSON.stringify(data) : String(data);
+    if (isReplicateContentPolicyError(errorMsg)) {
+      await handleContentPolicyViolation(job.id, job.user_id, {
+        source: 'replicate',
+        error: errorMsg.slice(0, 500),
+      });
+      throw new Error(CONTENT_NOT_ALLOWED_CODE);
+    }
     await query(
       `UPDATE jobs SET status = $1, error_message = $2, completed_at = NOW() WHERE id = $3`,
       ['failed', errorMsg, job.id]
@@ -179,12 +155,24 @@ export async function processJob(job: JobRow): Promise<void> {
     throw new Error('JOB_STUCK: Worker interrupted while Replicate is still processing');
   }
 
-  const errorMsg =
+  let errorMsg =
     replicateStatus === 'failed' || replicateStatus === 'canceled'
       ? `Replicate ${replicateStatus}: ${replicateError || 'No details'}`
       : outputUrl
         ? null
         : 'Replicate did not return an image';
+
+  if (errorMsg && isReplicateContentPolicyError(errorMsg)) {
+    await handleContentPolicyViolation(job.id, job.user_id, {
+      source: 'replicate',
+      error: errorMsg.slice(0, 500),
+    });
+    throw new Error(CONTENT_NOT_ALLOWED_CODE);
+  }
+
+  if (errorMsg) {
+    errorMsg = normalizeGenerationErrorMessage(errorMsg);
+  }
 
   await query(
     `UPDATE jobs SET status = 'failed', output_image_url = NULL,

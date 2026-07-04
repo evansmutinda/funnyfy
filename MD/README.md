@@ -25,6 +25,7 @@ FunnyFy is a React Native mobile app (Android & iOS) that transforms user photos
 - `apps/mobile/components/NetworkProvider.js` - Connectivity state + global `OfflineBanner`
 - `apps/mobile/components/OfflineBanner.js` - Orange offline overlay (non-blocking)
 - `apps/mobile/utils/contactSupport.js` - Menu Contact us mailto helper
+- `apps/mobile/utils/funnyfyAlbum.js` - **`DCIM/Funnyfy` save/load** (MediaLibrary; see `MD/GALLERY_SCREEN.md`)
 - `apps/mobile/utils/` - Job progress, trial warnings, style categories, subscription dates
 - `api/_utils/styles-config.ts` - Enabled styles + prompts (server-side)
 - `api/_utils/style-catalog.ts` - Full catalog from spreadsheet
@@ -47,6 +48,7 @@ FunnyFy is a React Native mobile app (Android & iOS) that transforms user photos
 | `DEVELOPMENT_PLAN.md` | Architecture and phases |
 | `ADDING_MORE_STYLES_GUIDE.md` | Enable catalog styles + thumbnails (see also `STYLES.md`) |
 | `BUILD_APK_GUIDE.md` | EAS and local APK builds (preferred over Expo Go) |
+| `GALLERY_SCREEN.md` | **My Gallery + `DCIM/Funnyfy` save/load path** ⭐ |
 | `DATABASE_SCHEMA.md` | Supabase schema |
 | `DISASTER_RECOVERY.md` | RTO/RPO, rollback, health checks, incident playbooks |
 | `REVENUECAT_SETUP.md` | RevenueCat SDK + webhook |
@@ -87,6 +89,11 @@ Use a **local debug APK** (`.\build-apk-local.ps1`) instead of **Expo Go** when 
 2. **Review**: same header pills; photo preview; Remove / Choose another / **Generate**
 3. **Crop**: OS picker via `expo-image-picker` (`allowsEditing: true`) — all builds
 
+### Gallery / device saves
+- **Canonical Android path:** **`DCIM/Funnyfy/`** (album title `Funnyfy`)
+- **My Gallery** loads from `DCIM/Funnyfy` on every open (rescans device + merges in-app list)
+- Detail: [`MD/GALLERY_SCREEN.md`](GALLERY_SCREEN.md)
+
 ### Backend
 - **Staging**: `https://funnyfy-staging.vercel.app`
 - **Production**: `https://funnyfyapp.vercel.app`
@@ -113,4 +120,4 @@ Use a **local debug APK** (`.\build-apk-local.ps1`) instead of **Expo Go** when 
 
 ---
 
-**Last Updated**: June 2026
+**Last Updated**: July 2026

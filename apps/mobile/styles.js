@@ -759,6 +759,17 @@ const styles = StyleSheet.create({
   },
 
   
+    galleryCloseWrap: {
+    position: 'absolute',
+    zIndex: 10,
+  },
+
+  
+    galleryViewerPagerWrap: {
+    flex: 1,
+  },
+
+  
     galleryViewerHeader: {
     paddingHorizontal: 16,
     paddingBottom: 8,
@@ -781,10 +792,8 @@ const styles = StyleSheet.create({
 
   
     galleryViewerPage: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 12,
   },
 
   

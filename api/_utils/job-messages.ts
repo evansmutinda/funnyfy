@@ -1,5 +1,8 @@
 /** User-facing job error copy (mirrors apps/mobile/utils/contentErrors.js). */
 
+const CONTENT_POLICY_INLINE =
+  "This photo couldn't be used. Try a different picture — false alarms happen sometimes.";
+
 export function humanizeJobError(message: string | null | undefined): string | null {
   const raw = String(message || '').trim();
   if (!raw) return null;
@@ -10,9 +13,16 @@ export function humanizeJobError(message: string | null | undefined): string | n
     lower.includes('content_not_allowed') ||
     lower.includes('nsfw') ||
     lower.includes('cannot be processed') ||
-    lower.includes('appropriate')
+    lower.includes('appropriate') ||
+    lower.includes('e005') ||
+    lower.includes('flagged as sensitive') ||
+    lower.includes('input or output was flagged') ||
+    lower.includes('sensitive content') ||
+    lower.includes('content policy') ||
+    lower.includes('inappropriate') ||
+    lower.includes('violat')
   ) {
-    return 'This photo violates our content policy. Please choose an appropriate image.';
+    return CONTENT_POLICY_INLINE;
   }
 
   if (lower.includes('job_output_expired') || lower.includes('prediction expired')) {
@@ -31,6 +41,14 @@ export function humanizeJobError(message: string | null | undefined): string | n
     lower.startsWith('replicate canceled') ||
     lower.startsWith('replicate cancelled')
   ) {
+    if (
+      lower.includes('e005') ||
+      lower.includes('flagged as sensitive') ||
+      lower.includes('sensitive content') ||
+      lower.includes('content policy')
+    ) {
+      return CONTENT_POLICY_INLINE;
+    }
     return "We couldn't create your caricature this time. Please try again.";
   }
 

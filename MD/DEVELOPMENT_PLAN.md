@@ -75,15 +75,16 @@ Key tables:
 - React Native (Expo SDK 52) — intentionally not upgraded to 53/54 (breaking changes in expo-file-system and image picker)
 - JavaScript
 - React Context for notification state
-- AsyncStorage for style/UI preferences
-- expo-file-system for auth token persistence
+- AsyncStorage for style/UI preferences and in-app gallery index (`@funnyfy_gallery`)
+- expo-file-system for auth token persistence and optional `documentDirectory/gallery/` copies
+- Device saves: **`DCIM/Funnyfy/`** via `expo-media-library` (`funnyfyAlbum.js`) — not direct file writes
 
 ### 2.2 Screens
 1. **Style Selection** — Netflix-style category rows on dark background; "See all" → 2-column grid
 2. **Upload** — `UploadFlowHeader`: back + style pill (left) + usage pill (right); Gallery/Camera; photo tips auto-sheet
 3. **Review / Generate** — same header pills; confirm photo; Generate CTA
 4. **Result** — before/after slider + auto-demo, save/share, try another style
-5. **Gallery** — saved caricature grid, full-screen viewer
+5. **Gallery** — saved caricature grid, full-screen viewer; loads from **`DCIM/Funnyfy/`** (see `MD/GALLERY_SCREEN.md`)
 6. **Subscription** — full-bleed dark paywall (`#0B0F19`); usage card, tier cards, pinned CTA
 
 ### 2.3 Offline / connectivity

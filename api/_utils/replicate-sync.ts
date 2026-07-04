@@ -6,6 +6,10 @@
 
 import { query } from './db';
 import { creditUsageForJob } from './usage';
+import {
+  handleContentPolicyViolation,
+  isReplicateContentPolicyError,
+} from './sightengine-moderation';
 
 const targetApiKey = process.env.TARGET_API_KEY;
 const REPLICATE_PREDICTIONS_URL = 'https://api.replicate.com/v1/predictions';
@@ -236,11 +240,15 @@ export async function syncJobWithReplicate(job: JobSyncRow): Promise<JobSyncRow 
 
     if (status === 'failed' || status === 'canceled') {
       const detail = data.error ?? data.logs ?? 'No details';
-      await markJobFailed(
-        job.id,
-        `Replicate ${status}: ${typeof detail === 'string' ? detail : JSON.stringify(detail)}`,
-        replicateId
-      );
+      const rawError = `Replicate ${status}: ${typeof detail === 'string' ? detail : JSON.stringify(detail)}`;
+      if (isReplicateContentPolicyError(rawError)) {
+        await handleContentPolicyViolation(job.id, job.user_id, {
+          source: 'replicate',
+          error: rawError.slice(0, 500),
+        });
+        return loadJobById(job.id);
+      }
+      await markJobFailed(job.id, rawError, replicateId);
       return loadJobById(job.id);
     }
 

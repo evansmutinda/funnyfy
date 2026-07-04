@@ -26,13 +26,13 @@ FunnyFy is a React Native mobile application that transforms user photos into AI
 - ✅ Before/after comparison slider on result + **4-phase job loading** (submit → queue → moderation → generate; title **Creating your {style}**)
 - ✅ **Try another style**: Regenerate same photo with a new style (restyle flow)
 - ✅ **Try another photo**: From result, pick a new photo for the same style
-- ✅ Save to device functionality (Funnyfy album on Android/iOS; write-only path on Android)
+- ✅ Save to device functionality — **`DCIM/Funnyfy/`** on Android via `saveToFunnyfyAlbum()` (see `MD/GALLERY_SCREEN.md`)
 - ✅ Share functionality (result + menu share sheet)
 - ✅ Error handling and user feedback
 - ✅ **Offline UX**: NetInfo connectivity, **orange global overlay** banner (non-blocking), generate/purchase guards, auto-refresh on reconnect
 - ✅ **Content-policy dialog** for NSFW blocks: **Content not permitted** + **Understood** CTA; clears photo and returns to upload (Sightengine, pre-Replicate)
 - ✅ Safe area handling: Bottom insets prevent overlap with navigation bar
-- ✅ **Gallery screen**: Dark theme; grid of saved caricatures, full-screen viewer
+- ✅ **Gallery screen**: Dark theme; loads from **`DCIM/Funnyfy`** + in-app merge; full-screen swipe viewer; share from device URIs
 - ✅ **Save toast**: "View in Gallery" action after successful save
 - ✅ **Toast notification system**: Beautiful in-app toasts replace all system Alert.alert calls
 - ✅ **ConfirmDialog component**: Custom modal with optional neutral 3rd button

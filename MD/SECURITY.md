@@ -41,9 +41,11 @@ Before a job is enqueued:
 - **File size limit**: 10MB maximum
 - **Magic byte verification**: File header bytes checked (prevents fake MIME types)
 
-### 4. NSFW Content Moderation (`api/process-job.ts` + Sightengine)
+### 4. Content Moderation (`api/_utils/sightengine-moderation.ts` + Sightengine)
 - Images screened by Sightengine **before** sending to Replicate
-- Threshold: `nudity.raw >= 0.3` → blocked (adjustable via `NSFW_RAW_THRESHOLD`)
+- Multi-model check: nudity, gore/death, weapons, violence, hate, self-harm (no age-based face blocking — family photos with children are allowed; explicit/harmful content is still blocked regardless of subject age)
+- Default threshold: **0.3** (configurable via `MODERATION_*_THRESHOLD` env vars)
+- Replicate sensitive/E005 rejections mapped to the same `CONTENT_NOT_ALLOWED` flow
 - Blocked images create an `infringements` record in Supabase
 - After 3 violations (`INFRINGEMENT_BAN_THRESHOLD`), user is banned (`users.banned_at` set)
 - Banned users receive 403: "Your account has been suspended due to repeated policy violations."

@@ -14,6 +14,7 @@
 
 ## Security — launch blockers
 
+- [ ] **Admin dashboard** — set `ADMIN_USER_IDS` on staging (+ prod); see `To do/ADMIN_DASHBOARD_SETUP.md`
 - [ ] **Production release keystore** — replace debug signing for `release` APK builds
 - [ ] **JWT → `expo-secure-store`** — migrate `apps/mobile/services/auth.js`
 - [ ] **Cron queue hardening** — per-user rate limit + scope JWT kick to caller’s pending job

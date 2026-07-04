@@ -1,25 +1,46 @@
-/** True when the API rejected the image for content moderation (Sightengine / NSFW). */
+/** True when the API rejected the image for content moderation (Sightengine / Replicate). */
 export function isNsfwContentError(message) {
   const lower = String(message || '').toLowerCase();
   return (
     lower.includes('content_not_allowed') ||
     lower.includes('nsfw') ||
     lower.includes('cannot be processed') ||
-    lower.includes('appropriate')
+    lower.includes('appropriate') ||
+    lower.includes('e005') ||
+    lower.includes('flagged as sensitive') ||
+    lower.includes('input or output was flagged') ||
+    lower.includes('sensitive content') ||
+    lower.includes('content policy') ||
+    lower.includes('inappropriate') ||
+    lower.includes('violat') ||
+    lower.includes("can't be used") ||
+    lower.includes('couldn\'t use this photo')
   );
 }
 
-export const NSFW_REJECT_DIALOG = {
-  title: 'Content not permitted',
-  message:
-    'This photo violates our content policy and cannot be processed. The upload has been recorded. Further violations may result in your account being suspended. Please use an appropriate photo only.',
-  confirmLabel: 'Understood',
-  hideCancel: true,
-};
+/** Friendlier dialog copy; only mentions account limits after repeat flags. */
+export function buildContentPolicyDialog(infringementCount = 0) {
+  let message =
+    "We couldn't use this photo for a caricature. Sometimes lighting, clothing, or background triggers a false alarm — please try a different photo.";
+
+  if (infringementCount >= 2) {
+    message +=
+      ' If flagged uploads keep happening, we may need to limit account access.';
+  }
+
+  return {
+    title: "This photo can't be used",
+    message,
+    confirmLabel: 'Got it',
+    hideCancel: true,
+  };
+}
+
+export const NSFW_REJECT_DIALOG = buildContentPolicyDialog(0);
 
 /** Short inline copy for error banners (never show raw API codes to users). */
 export const NSFW_INLINE_MESSAGE =
-  'This photo violates our content policy. Please choose an appropriate image.';
+  "This photo couldn't be used. Try a different picture — false alarms happen sometimes.";
 
 const GENERIC_RETRY = 'Something went wrong. Please try again.';
 const GENERATION_RETRY = "We couldn't create your caricature this time. Please try again.";
@@ -87,6 +108,9 @@ export function humanizeApiError(message) {
     lower.startsWith('replicate canceled') ||
     lower.startsWith('replicate cancelled')
   ) {
+    if (isNsfwContentError(raw)) {
+      return NSFW_INLINE_MESSAGE;
+    }
     return GENERATION_RETRY;
   }
 

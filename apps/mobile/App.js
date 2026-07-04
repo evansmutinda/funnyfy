@@ -51,7 +51,12 @@ import {
 } from './constants';
 import { mergeServerStyles } from './utils/mergeServerStyles';
 import { getTrialRemaining, getTrialWarningMessage, isTrialUser } from './utils/trialWarnings';
-import { isNsfwContentError, humanizeApiError, NSFW_REJECT_DIALOG } from './utils/contentErrors';
+import { isNsfwContentError, humanizeApiError, buildContentPolicyDialog } from './utils/contentErrors';
+import {
+  isContentPolicyError,
+  recordContentViolation,
+  ContentPolicyBlockedError,
+} from './utils/contentViolations';
 import { pollJobUntilDone } from './utils/jobClient';
 import { setSentryUser, captureAppError } from './utils/sentry';
 import { openContactSupport, openStyleRequest } from './utils/contactSupport';
@@ -152,6 +157,33 @@ function AppContent({ fontsLoaded }) {
     'x-user-id': userIdRef.current || '',
     ...(authTokenRef.current ? { Authorization: `Bearer ${authTokenRef.current}` } : {}),
   });
+
+  const handleContentPolicyBlock = useCallback(
+    (err, { styleId } = {}) => {
+      const infringementCount =
+        err?.infringementCount != null ? err.infringementCount : 0;
+
+      recordContentViolation({
+        jobId: err?.jobId || null,
+        styleId: styleId || err?.styleId || null,
+        source: err?.source || 'unknown',
+        rawMessage: err?.rawErrorMessage || err?.message || null,
+        infringementCount: err?.infringementCount ?? null,
+      });
+
+      showDialog({
+        ...buildContentPolicyDialog(infringementCount),
+        onConfirm: () => {
+          closeDialog();
+          setPickedImage(null);
+          setScreen('upload');
+          setError('');
+          setFailedAttempts(0);
+        },
+      });
+    },
+    [showDialog, closeDialog]
+  );
 
   const applyAuthState = (auth) => {
     if (!auth?.userId) return auth;
@@ -610,17 +642,18 @@ function AppContent({ fontsLoaded }) {
         } catch (err) {
           const errorMessage = err.message || String(err);
 
-          if (isNsfwContentError(errorMessage)) {
-            showDialog({
-              ...NSFW_REJECT_DIALOG,
-              onConfirm: () => {
-                closeDialog();
-                setPickedImage(null);
-                setScreen('upload');
-                setError('');
-                setFailedAttempts(0);
-              },
-            });
+          if (isContentPolicyError(err)) {
+            handleContentPolicyBlock(
+              err.name === 'ContentPolicyBlockedError'
+                ? err
+                : new ContentPolicyBlockedError({
+                    userMessage: errorMessage,
+                    errorMessage,
+                    styleId,
+                    jobId: err.jobId || null,
+                  }),
+              { styleId }
+            );
             return;
           }
 
@@ -636,7 +669,7 @@ function AppContent({ fontsLoaded }) {
           setJob(null);
         }
       },
-    [showDialog, closeDialog]
+    [showDialog, closeDialog, handleContentPolicyBlock]
   );
 
   const handleSubscribe = async (selectedTier = null) => {
@@ -933,17 +966,17 @@ function AppContent({ fontsLoaded }) {
     } catch (err) {
       const errorMessage = err.message || String(err);
 
-      if (isNsfwContentError(errorMessage)) {
-        showDialog({
-          ...NSFW_REJECT_DIALOG,
-          onConfirm: () => {
-            closeDialog();
-            setPickedImage(null);
-            setScreen('upload');
-            setError('');
-            setFailedAttempts(0);
-          },
-        });
+      if (isContentPolicyError(err)) {
+        handleContentPolicyBlock(
+          err.name === 'ContentPolicyBlockedError'
+            ? err
+            : new ContentPolicyBlockedError({
+                userMessage: errorMessage,
+                errorMessage,
+                jobId: pendingJobId,
+              }),
+          { styleId: style?.id }
+        );
         return;
       }
 

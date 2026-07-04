@@ -6,6 +6,7 @@ import { safeErrorResponse } from './_utils/security';
 import { getEstimatedWaitTime } from './_utils/queue-stats';
 import { humanizeJobError } from './_utils/job-messages';
 import { syncJobWithReplicate, type JobSyncRow } from './_utils/replicate-sync';
+import { getContentPolicySource, isContentPolicyError } from './_utils/sightengine-moderation';
 
 export default async function handler(
   req: VercelRequest,
@@ -102,6 +103,25 @@ export default async function handler(
     }
 
     const userMessage = humanizeJobError(job.error_message);
+    const contentPolicyBlocked =
+      job.status === 'failed' && isContentPolicyError(job.error_message);
+    const contentPolicySource = contentPolicyBlocked
+      ? getContentPolicySource(job.error_message)
+      : null;
+
+    let infringementCount: number | null = null;
+    if (contentPolicyBlocked) {
+      try {
+        const infResult = await query<{ count: number }>(
+          `SELECT COUNT(*)::int AS count FROM infringements WHERE user_id = $1`,
+          [userId]
+        );
+        infringementCount = infResult.rows[0]?.count ?? 0;
+      } catch (infErr) {
+        console.error('[job] Failed to fetch infringement count:', infErr);
+      }
+    }
+
     const recoverable =
       job.status === 'processing' ||
       job.status === 'pending' ||
@@ -123,6 +143,9 @@ export default async function handler(
         outputImageUrl: job.output_image_url,
         errorMessage: job.error_message,
         userMessage,
+        contentPolicyBlocked,
+        contentPolicySource,
+        infringementCount,
         recoverable,
         createdAt: job.created_at,
         startedAt: job.started_at,

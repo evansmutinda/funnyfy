@@ -8,17 +8,11 @@ import React, {
   useState,
 } from 'react';
 import { Dimensions } from 'react-native';
-import { TILE_FADE_MS, TILE_HOLD_MS } from '../components/ComparisonFade';
 
 const ELIGIBLE_RATIO = 0.22;
 const PARTIAL_RATIO = 0.08;
-const PRIMARY_EXCLUSIVE_RATIO = 0.52;
-const BOTTOM_BAND_START = 0.58;
 const SCROLL_SETTLE_MS = 450;
 const SCROLL_MEASURE_DEBOUNCE_MS = 120;
-
-/** One crossfade cycle: hold → fade → hold → fade */
-const ROW_SEQUENCE_MS = (TILE_HOLD_MS + TILE_FADE_MS) * 2;
 
 const RowFocusContext = createContext(null);
 
@@ -34,99 +28,44 @@ function sortByScreenPosition(a, b) {
   return a.rowIndex - b.rowIndex;
 }
 
-function pickPrimaryRow(measurements, winH) {
-  const eligible = measurements.filter((m) => m.ratio >= ELIGIBLE_RATIO);
-  if (eligible.length === 0) return null;
+function pickActiveRowIds(measurements) {
+  const eligible = measurements
+    .filter((m) => m.ratio >= ELIGIBLE_RATIO)
+    .sort(sortByScreenPosition);
 
-  const bottomEligible = eligible.filter(
-    (m) => m.y + m.h * 0.5 >= winH * BOTTOM_BAND_START,
-  );
-  if (bottomEligible.length) {
-    return bottomEligible.reduce((best, m) => {
-      if (!best || m.y > best.y || (m.y === best.y && m.ratio > best.ratio)) return m;
-      return best;
-    }, null);
+  if (eligible.length > 0) {
+    return eligible.map((m) => m.rowId);
   }
 
-  const centerY = winH / 2;
-  let best = null;
+  const partial = measurements
+    .filter((m) => m.ratio >= PARTIAL_RATIO)
+    .sort((a, b) => b.ratio - a.ratio);
 
-  eligible.forEach((m) => {
-    const centerDistance = Math.abs(m.y + m.h / 2 - centerY);
-    if (
-      !best
-      || m.ratio > best.ratio
-      || (m.ratio === best.ratio && centerDistance < best.centerDistance)
-    ) {
-      best = { ...m, centerDistance };
-    }
-  });
-
-  return best;
-}
-
-function pickSequenceRows(eligible, winH) {
-  if (eligible.length < 2) return eligible.map((m) => m.rowId);
-
-  const bottomMost = eligible.reduce((best, m) => (!best || m.y > best.y ? m : best), null);
-  const inLowerBand = bottomMost
-    && bottomMost.y + bottomMost.h * 0.5 >= winH * BOTTOM_BAND_START;
-
-  if (inLowerBand) {
-    const partner = [...eligible]
-      .filter((m) => m.rowId !== bottomMost.rowId)
-      .sort((a, b) => b.ratio - a.ratio)[0];
-    if (partner) {
-      return [bottomMost, partner].sort(sortByScreenPosition).map((m) => m.rowId);
-    }
-  }
-
-  return [...eligible]
-    .sort((a, b) => b.ratio - a.ratio)
-    .slice(0, 2)
-    .sort(sortByScreenPosition)
-    .map((m) => m.rowId);
+  return partial.length > 0 ? [partial[0].rowId] : [];
 }
 
 export function RowFocusProvider({ children, scrollTick, enabled = true }) {
   const registryRef = useRef(new Map());
-  const [activeRowId, setActiveRowId] = useState(null);
-  const sequenceIndexRef = useRef(0);
-  const sequenceTimerRef = useRef(null);
+  const [activeRowIds, setActiveRowIds] = useState(() => new Set());
   const measuringRef = useRef(false);
   const enabledRef = useRef(enabled);
   enabledRef.current = enabled;
 
-  const clearSequenceTimer = useCallback(() => {
-    if (sequenceTimerRef.current != null) {
-      clearInterval(sequenceTimerRef.current);
-      sequenceTimerRef.current = null;
-    }
+  const setActiveRowsIfChanged = useCallback((nextRowIds) => {
+    setActiveRowIds((prev) => {
+      if (prev.size === nextRowIds.length && nextRowIds.every((id) => prev.has(id))) {
+        return prev;
+      }
+      return new Set(nextRowIds);
+    });
   }, []);
-
-  const setActiveRowIfChanged = useCallback((nextRowId) => {
-    setActiveRowId((prev) => (prev === nextRowId ? prev : nextRowId));
-  }, []);
-
-  const startSequence = useCallback((rowIds) => {
-    clearSequenceTimer();
-    if (rowIds.length < 2) return;
-
-    sequenceIndexRef.current = 0;
-    setActiveRowIfChanged(rowIds[0]);
-
-    sequenceTimerRef.current = setInterval(() => {
-      sequenceIndexRef.current = (sequenceIndexRef.current + 1) % rowIds.length;
-      setActiveRowIfChanged(rowIds[sequenceIndexRef.current]);
-    }, ROW_SEQUENCE_MS);
-  }, [clearSequenceTimer, setActiveRowIfChanged]);
 
   const registerRow = useCallback((rowId, ref, rowIndex) => {
     registryRef.current.set(rowId, { ref, rowIndex });
     return () => registryRef.current.delete(rowId);
   }, []);
 
-  const measureRows = useCallback((enableSequence) => {
+  const measureRows = useCallback(() => {
     if (!enabledRef.current) return;
     if (measuringRef.current) return;
     measuringRef.current = true;
@@ -134,8 +73,7 @@ export function RowFocusProvider({ children, scrollTick, enabled = true }) {
     const entries = Array.from(registryRef.current.entries());
     if (entries.length === 0) {
       measuringRef.current = false;
-      setActiveRowIfChanged(null);
-      clearSequenceTimer();
+      setActiveRowsIfChanged([]);
       return;
     }
 
@@ -145,43 +83,7 @@ export function RowFocusProvider({ children, scrollTick, enabled = true }) {
 
     const finish = () => {
       measuringRef.current = false;
-
-      const eligible = measurements
-        .filter((m) => m.ratio >= ELIGIBLE_RATIO)
-        .sort(sortByScreenPosition);
-
-      if (eligible.length === 0) {
-        const partial = measurements
-          .filter((m) => m.ratio >= PARTIAL_RATIO)
-          .sort((a, b) => b.ratio - a.ratio);
-        if (partial.length > 0) {
-          clearSequenceTimer();
-          setActiveRowIfChanged(partial[0].rowId);
-          return;
-        }
-        setActiveRowIfChanged(null);
-        clearSequenceTimer();
-        return;
-      }
-
-      const dominant = measurements
-        .filter((m) => m.ratio >= PRIMARY_EXCLUSIVE_RATIO)
-        .sort((a, b) => b.ratio - a.ratio)[0];
-
-      if (dominant && !enableSequence) {
-        clearSequenceTimer();
-        setActiveRowIfChanged(dominant.rowId);
-        return;
-      }
-
-      if (enableSequence && eligible.length >= 2) {
-        startSequence(pickSequenceRows(eligible, winH));
-        return;
-      }
-
-      const primary = pickPrimaryRow(measurements, winH);
-      clearSequenceTimer();
-      setActiveRowIfChanged(primary?.rowId ?? eligible[0].rowId);
+      setActiveRowsIfChanged(pickActiveRowIds(measurements));
     };
 
     entries.forEach(([rowId, { ref, rowIndex }]) => {
@@ -204,25 +106,24 @@ export function RowFocusProvider({ children, scrollTick, enabled = true }) {
         if (pending === 0) finish();
       });
     });
-  }, [clearSequenceTimer, setActiveRowIfChanged, startSequence]);
+  }, [setActiveRowsIfChanged]);
 
   useEffect(() => {
     if (!enabled) {
-      setActiveRowId(null);
-      clearSequenceTimer();
+      setActiveRowIds(new Set());
       return undefined;
     }
     const scrollMeasureTimer = setTimeout(() => {
-      measureRows(false);
+      measureRows();
     }, SCROLL_MEASURE_DEBOUNCE_MS);
 
     return () => clearTimeout(scrollMeasureTimer);
-  }, [scrollTick, measureRows, enabled, clearSequenceTimer]);
+  }, [scrollTick, measureRows, enabled]);
 
   useEffect(() => {
     if (!enabled) return undefined;
     const settleTimer = setTimeout(() => {
-      measureRows(true);
+      measureRows();
     }, SCROLL_SETTLE_MS);
 
     return () => clearTimeout(settleTimer);
@@ -230,16 +131,13 @@ export function RowFocusProvider({ children, scrollTick, enabled = true }) {
 
   useEffect(() => {
     if (!enabled) return undefined;
-    const mountTimer = setTimeout(() => measureRows(false), 100);
-    return () => {
-      clearSequenceTimer();
-      clearTimeout(mountTimer);
-    };
-  }, [measureRows, clearSequenceTimer, enabled]);
+    const mountTimer = setTimeout(() => measureRows(), 100);
+    return () => clearTimeout(mountTimer);
+  }, [measureRows, enabled]);
 
   const value = useMemo(
-    () => ({ registerRow, activeRowId, measureRows, enabled }),
-    [registerRow, activeRowId, measureRows, enabled],
+    () => ({ registerRow, activeRowIds, measureRows, enabled }),
+    [registerRow, activeRowIds, measureRows, enabled],
   );
 
   return (
@@ -265,7 +163,7 @@ export function useCategoryRowFocus(rowId, rowIndex) {
     }
   }, []);
 
-  const isRowActive = ctx?.enabled && ctx?.activeRowId === rowId;
+  const isRowActive = ctx?.enabled && ctx?.activeRowIds?.has(rowId);
 
   const onRowLayout = useCallback(() => {
     if (!ctx?.enabled) return;
@@ -273,7 +171,7 @@ export function useCategoryRowFocus(rowId, rowIndex) {
       clearTimeout(layoutMeasureTimerRef.current);
     }
     layoutMeasureTimerRef.current = setTimeout(() => {
-      ctx.measureRows(false);
+      ctx.measureRows();
     }, 200);
   }, [ctx]);
 
