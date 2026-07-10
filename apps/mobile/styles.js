@@ -270,6 +270,107 @@ const styles = StyleSheet.create({
     opacity: 0.92,
   },
 
+  launchLoaderRoot: {
+    flex: 1,
+    backgroundColor: DARK_BG,
+  },
+
+  launchLoaderBrand: {
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingBottom: 20,
+    gap: 6,
+  },
+
+  launchLoaderMark: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 28,
+    fontWeight: '800',
+    color: PAPER,
+    letterSpacing: -0.8,
+  },
+
+  launchLoaderTagline: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 13,
+    fontWeight: '500',
+    color: DARK_MUTED,
+    letterSpacing: -0.1,
+  },
+
+  launchLoaderSkeletonWrap: {
+    flex: 1,
+    paddingTop: 4,
+    gap: 22,
+  },
+
+  launchSkeletonSection: {
+    gap: 10,
+  },
+
+  launchSkeletonHeader: {
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    minHeight: 20,
+  },
+
+  launchSkeletonTileRow: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    gap: 10,
+  },
+
+  launchSkeletonTile: {
+    width: 110,
+    gap: 8,
+  },
+
+  launchSkeletonTileImage: {
+    width: '100%',
+    aspectRatio: 0.72,
+    borderRadius: 18,
+  },
+
+  launchSkeletonTileCaption: {
+    width: '72%',
+    height: 10,
+    borderRadius: 5,
+    alignSelf: 'center',
+  },
+
+  launchShimmerBone: {
+    backgroundColor: DARK_CHIP,
+    borderWidth: 1,
+    borderColor: DARK_BORDER,
+  },
+
+  launchLoaderFooter: {
+    paddingHorizontal: 24,
+    paddingTop: 8,
+    alignItems: 'center',
+    gap: 8,
+  },
+
+  launchLoaderStatus: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 15,
+    fontWeight: '600',
+    color: PAPER,
+    letterSpacing: -0.2,
+  },
+
+  launchLoaderHint: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 13,
+    fontWeight: '400',
+    color: DARK_MUTED,
+    textAlign: 'center',
+    lineHeight: 18,
+    marginBottom: 4,
+  },
+
   
   styleHeroImageWrapper: {
     aspectRatio: 16 / 9,
@@ -933,6 +1034,79 @@ const styles = StyleSheet.create({
   
   galleryItem: {
     width: '48%',
+    position: 'relative',
+  },
+
+  gallerySelectBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#6366F1',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 2,
+  },
+
+  galleryActionDisabled: {
+    opacity: 0.45,
+  },
+
+  gallerySelectAllButton: {
+    alignSelf: 'center',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
+
+  gallerySelectAllText: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#A5B4FC',
+  },
+
+  gallerySelectionBar: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    backgroundColor: DARK_BG,
+    borderTopWidth: 1,
+    borderTopColor: DARK_BORDER,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+
+  gallerySelectionBarLabel: {
+    flex: 1,
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 13,
+    fontWeight: '500',
+    color: DARK_MUTED,
+  },
+
+  gallerySelectionRemoveButton: {
+    backgroundColor: '#DC2626',
+    borderRadius: 999,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+  },
+
+  gallerySelectionRemoveText: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+
+  gallerySelectionRemoveTextDisabled: {
+    color: 'rgba(255,255,255,0.55)',
   },
 
   
@@ -1175,6 +1349,22 @@ const styles = StyleSheet.create({
     color: DARK_MUTED,
     lineHeight: 22,
     marginBottom: 24,
+  },
+
+  dialogCheckboxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 20,
+    marginTop: -8,
+  },
+
+  dialogCheckboxLabel: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '500',
+    color: PAPER,
+    lineHeight: 20,
   },
 
   
@@ -2799,6 +2989,14 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     letterSpacing: -0.15,
     minHeight: 28,
+  },
+
+    discoveryRowCardCaption: {
+    marginTop: 6,
+    paddingHorizontal: 0,
+    fontSize: 11,
+    lineHeight: 14,
+    minHeight: 30,
   },
 
   

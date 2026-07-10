@@ -496,12 +496,23 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
   },
   'expressive-impasto': {
     id: 'expressive-impasto',
-    label: 'Expressive Impasto',
+    label: 'Expressive Impasto V1',
     categoryId: 'paintings',
     description: 'Expressive impasto oil painting with thick brushstrokes, vivid color, and dramatic post-impressionist texture',
     prompt:
       'An expressive Post-Impressionist oil painting featuring thick impasto brushstrokes, swirling directional paint strokes, vibrant complementary colors, textured canvas, energetic movement, dramatic lighting, bold painterly texture. Preserve the uploaded person\'s exact facial identity, age, hairstyle, facial structure, expression, and clothing. Transform only the artistic rendering, not the person\'s identity.',
     model: NANO_BANANA_2,
+    enabled: true,
+    premium: false,
+  },
+  'expressive-impasto-v2': {
+    id: 'expressive-impasto-v2',
+    label: 'Expressive Impasto V2',
+    categoryId: 'paintings',
+    description: 'Expressive impasto oil painting with thick brushstrokes, vivid color, and dramatic post-impressionist texture',
+    prompt:
+      'An expressive Post-Impressionist oil painting featuring thick impasto brushstrokes, swirling directional paint strokes, vibrant complementary colors, textured canvas, energetic movement, dramatic lighting, bold painterly texture. Preserve the uploaded person\'s exact facial identity, age, hairstyle, facial structure, expression, and clothing. Transform only the artistic rendering, not the person\'s identity.',
+    model: SEEDREAM_4_5,
     enabled: true,
     premium: false,
   },

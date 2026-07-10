@@ -88,6 +88,7 @@ const STYLE_AFTER_BASENAME = {
   baroque: 'Baroque',
   'van-gogh': 'van-gogh',
   'expressive-impasto': 'Expressive- Impasto',
+  'expressive-impasto-v2': 'Expressive- Impasto2',
   monet: 'monet',
   renoir: 'Renoir',
   cezanne: 'Cézanne',

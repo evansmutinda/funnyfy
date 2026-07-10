@@ -20,8 +20,43 @@ export function resolveCategoryLabel(style) {
   return STYLE_CATEGORIES.find((cat) => cat.id === categoryId)?.label || null;
 }
 
-function getCreatingTitle(categoryLabel) {
-  const name = categoryLabel || 'look';
+/** Singular phrase for "Creating your …" (e.g. paintings → painting). */
+const CATEGORY_CREATING_NAME = {
+  caricatures: 'caricature',
+  cartoons: 'cartoon',
+  paintings: 'painting',
+  '3d-characters': '3D character',
+  'anime-manga': 'anime',
+  'stickers-emojis': 'sticker',
+  'video-games': 'video game',
+  'drawings-sketches': 'drawing',
+  'fantasy-mythical': 'fantasy portrait',
+  historical: 'historical portrait',
+  art: 'artwork',
+  professions: 'portrait',
+  'seasonal-events': 'seasonal portrait',
+  trending: 'caricature',
+  tinyme: 'TinyMe look',
+  'moods-moments': 'portrait',
+};
+
+export function resolveCategoryCreatingPhrase(style) {
+  if (!style) return 'look';
+  const categoryId = style.categoryId || getStyleCategory(style.id);
+  if (categoryId && CATEGORY_CREATING_NAME[categoryId]) {
+    return CATEGORY_CREATING_NAME[categoryId];
+  }
+  const label = resolveCategoryLabel(style);
+  if (!label) return 'look';
+  const lower = label.toLowerCase();
+  if (lower.endsWith(' characters')) return lower.replace(/ characters$/, ' character');
+  if (lower.endsWith(' games')) return lower.replace(/ games$/, ' game');
+  if (lower.endsWith('s') && !lower.endsWith('ss')) return lower.slice(0, -1);
+  return lower;
+}
+
+function getCreatingTitle(phrase) {
+  const name = phrase || 'look';
   return `Creating your ${name}`;
 }
 
@@ -55,8 +90,8 @@ function isModerationPhase(job, now = Date.now()) {
  * Maps live job status (from /api/job poll) to user-facing loading copy.
  * phaseIndex: 0 = submit, 1 = queue, 2 = moderation, 3 = generating
  */
-export function getJobProgressCopy(job, { categoryLabel, loading, now = Date.now() }) {
-  const title = getCreatingTitle(categoryLabel);
+export function getJobProgressCopy(job, { creatingPhrase, loading, now = Date.now() }) {
+  const title = getCreatingTitle(creatingPhrase);
 
   if (!loading) {
     return { title, subtitle: '', phaseIndex: 0, statusHint: '' };

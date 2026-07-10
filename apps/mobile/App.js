@@ -36,6 +36,7 @@ import GalleryScreen from './screens/GalleryScreen';
 import UsageScreen from './screens/UsageScreen';
 import InfoScreen from './screens/InfoScreen';
 import StyleScreen from './screens/StyleScreen';
+import StylesLaunchLoader from './components/StylesLaunchLoader';
 import UploadScreen from './screens/UploadScreen';
 import PhotoReviewScreen from './screens/PhotoReviewScreen';
 import SubscriptionScreen from './screens/SubscriptionScreen';
@@ -50,6 +51,7 @@ import {
   SUPPORT_EMAIL,
 } from './constants';
 import { mergeServerStyles } from './utils/mergeServerStyles';
+import { readStylesCache, writeStylesCache } from './utils/stylesCache';
 import { getTrialRemaining, getTrialWarningMessage, isTrialUser } from './utils/trialWarnings';
 import { isNsfwContentError, humanizeApiError, buildContentPolicyDialog } from './utils/contentErrors';
 import {
@@ -145,6 +147,7 @@ function AppContent({ fontsLoaded }) {
   const revenueCatExpirationRef = useRef(null);
   const wasOnlineRef = useRef(true);
   const serverStyleIdsRef = useRef(null);
+  const hasStylesRef = useRef(false);
 
   // Keep refs in sync so async functions always use the latest values
   useEffect(() => {
@@ -475,8 +478,22 @@ function AppContent({ fontsLoaded }) {
     }
   };
 
-  const fetchStyles = useCallback(async () => {
-    setStylesLoading(true);
+  const applyStyles = useCallback((serverStyles) => {
+    const merged = mergeServerStyles(serverStyles);
+    hasStylesRef.current = merged.length > 0;
+    if (serverStyles?.length) {
+      serverStyleIdsRef.current = new Set(serverStyles.map((s) => s.id));
+    } else {
+      serverStyleIdsRef.current = null;
+    }
+    setAvailableStyles(merged);
+    return merged;
+  }, []);
+
+  const fetchStyles = useCallback(async ({ background = false } = {}) => {
+    if (!background) {
+      setStylesLoading(true);
+    }
     try {
       const res = await fetch(`${API_BASE}/api/styles`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -489,28 +506,47 @@ function AppContent({ fontsLoaded }) {
           description: s.description,
           categoryId: s.categoryId,
         }));
-        serverStyleIdsRef.current = new Set(serverStyles.map((s) => s.id));
-        setAvailableStyles(mergeServerStyles(serverStyles));
+        applyStyles(serverStyles);
+        await writeStylesCache(serverStyles);
       } else {
         throw new Error('No styles returned');
       }
     } catch (err) {
       console.error('Failed to fetch styles from server:', err);
-      serverStyleIdsRef.current = null;
-      setAvailableStyles(mergeServerStyles([]));
+      if (!hasStylesRef.current) {
+        applyStyles([]);
+      }
     } finally {
       setStylesLoading(false);
     }
-  }, []);
+  }, [applyStyles]);
 
   useEffect(() => {
-    fetchStyles();
-  }, [fetchStyles]);
+    let cancelled = false;
+
+    (async () => {
+      const cached = await readStylesCache();
+      if (cancelled) return;
+
+      if (cached?.styles?.length) {
+        applyStyles(cached.styles);
+        setStylesLoading(false);
+        fetchStyles({ background: true });
+        return;
+      }
+
+      fetchStyles();
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [applyStyles, fetchStyles]);
 
   useEffect(() => {
     if (!wasOnlineRef.current && isOnline) {
       devLog('[Network] Back online — refreshing styles and subscription');
-      fetchStyles();
+      fetchStyles({ background: hasStylesRef.current });
       refreshSubscription();
       ensureAuthenticated()
         .then((auth) => applyAuthState(auth))
@@ -1022,6 +1058,14 @@ function AppContent({ fontsLoaded }) {
 
   if (!splashHidden) {
     return null;
+  }
+
+  if (stylesLoading && availableStyles.length === 0) {
+    return (
+      <AppShell>
+        <StylesLaunchLoader />
+      </AppShell>
+    );
   }
 
   if (screen === 'style') {

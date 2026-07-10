@@ -287,6 +287,7 @@ function StylePickerTile({
       <MediaTile
         imageSource={getStyleImage(item)}
         comparisonPair={hasPair ? getTileComparisonPair(item) : null}
+        label={item.label}
         isSelected={selectedStyle?.id === item.id}
         variant="discoveryRow"
         comparisonActive={comparisonActive}
@@ -318,6 +319,7 @@ function DiscoveryGridRow({
               <MediaTile
                 imageSource={getStyleImage(item)}
                 comparisonPair={hasPair ? getTileComparisonPair(item) : null}
+                label={item.label}
                 isSelected={selectedStyle?.id === item.id}
                 variant="discovery"
                 comparisonActive={isRowActive}

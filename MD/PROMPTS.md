@@ -8,7 +8,7 @@ Regenerate this file after prompt changes:
 node scripts/generate-prompts-md.js
 ```
 
-**Last generated:** 2026-07-10 · **70 enabled** · **1 disabled** in LEGACY_STYLES
+**Last generated:** 2026-07-10 · **71 enabled** · **1 disabled** in LEGACY_STYLES
 
 Prompts are server-side only — the mobile app never bundles them. When adding a style, copy/adapt a prompt here, then add it to `LEGACY_STYLES` and deploy staging.
 
@@ -336,10 +336,20 @@ make this a Baroque Portrait painting
 An expressive Post-Impressionist oil painting featuring thick impasto brushstrokes, swirling directional paint strokes, vibrant complementary colors, textured canvas, energetic movement, dramatic lighting, bold painterly texture. Preserve the uploaded person's exact facial identity, age, hairstyle, facial structure, expression, and clothing. Transform only the artistic rendering, not the person's identity.
 ```
 
-#### `expressive-impasto` — Expressive Impasto
+#### `expressive-impasto` — Expressive Impasto V1
 
 - **Category:** paintings
 - **Model:** NANO_BANANA_2
+- **Description:** Expressive impasto oil painting with thick brushstrokes, vivid color, and dramatic post-impressionist texture
+
+```
+An expressive Post-Impressionist oil painting featuring thick impasto brushstrokes, swirling directional paint strokes, vibrant complementary colors, textured canvas, energetic movement, dramatic lighting, bold painterly texture. Preserve the uploaded person's exact facial identity, age, hairstyle, facial structure, expression, and clothing. Transform only the artistic rendering, not the person's identity.
+```
+
+#### `expressive-impasto-v2` — Expressive Impasto V2
+
+- **Category:** paintings
+- **Model:** SEEDREAM_4_5
 - **Description:** Expressive impasto oil painting with thick brushstrokes, vivid color, and dramatic post-impressionist texture
 
 ```

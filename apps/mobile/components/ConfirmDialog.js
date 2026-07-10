@@ -1,5 +1,6 @@
-import React from 'react';
-import { Modal, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Modal, Pressable, Text, TouchableOpacity, View } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import PressScale from './PressScale';
 import styles from '../styles';
 
@@ -10,13 +11,21 @@ export default function ConfirmDialog({
   confirmLabel = 'Confirm',
   cancelLabel = 'Cancel',
   neutralLabel = null,
+  checkboxLabel = null,
   destructive = false,
   neutralDestructive = false,
   hideCancel = false,
+  stackActions = false,
   onConfirm,
   onCancel,
   onNeutral,
 }) {
+  const [checked, setChecked] = useState(false);
+
+  useEffect(() => {
+    if (visible) setChecked(false);
+  }, [visible]);
+
   const handleBackdropPress = () => {
     if (hideCancel) return;
     onCancel?.();
@@ -25,6 +34,10 @@ export default function ConfirmDialog({
   const handleRequestClose = () => {
     if (hideCancel) return;
     onCancel?.();
+  };
+
+  const handleConfirm = () => {
+    onConfirm?.(checkboxLabel ? checked : undefined);
   };
 
   return (
@@ -42,7 +55,25 @@ export default function ConfirmDialog({
         <View style={styles.dialogCard} onStartShouldSetResponder={() => true}>
           {title ? <Text style={styles.dialogTitle}>{title}</Text> : null}
           {message ? <Text style={styles.dialogMessage}>{message}</Text> : null}
-          <View style={[styles.dialogActionsRow, hideCancel && styles.dialogActionsStack]}>
+          {checkboxLabel ? (
+            <Pressable
+              style={styles.dialogCheckboxRow}
+              onPress={() => setChecked((value) => !value)}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked }}
+            >
+              <Feather
+                name={checked ? 'check-square' : 'square'}
+                size={20}
+                color={checked ? '#A5B4FC' : '#9CA3AF'}
+              />
+              <Text style={styles.dialogCheckboxLabel}>{checkboxLabel}</Text>
+            </Pressable>
+          ) : null}
+          <View style={[
+            styles.dialogActionsRow,
+            (hideCancel || stackActions) && styles.dialogActionsStack,
+          ]}>
             {!hideCancel ? (
               <PressScale style={styles.dialogCancelButton} onPress={onCancel}>
                 <Text style={styles.dialogCancelText}>{cancelLabel}</Text>
@@ -64,7 +95,7 @@ export default function ConfirmDialog({
                 hideCancel && styles.dialogConfirmButtonFull,
                 destructive && styles.dialogConfirmDestructive,
               ]}
-              onPress={onConfirm}
+              onPress={handleConfirm}
             >
               <Text style={[styles.dialogConfirmText, destructive && styles.dialogConfirmTextDestructive]}>
                 {confirmLabel}

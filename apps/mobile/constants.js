@@ -257,6 +257,7 @@ export const STYLE_CARD_IMAGE_IMPRESSIONIST = require('./assets/comparisons/tile
 export const STYLE_CARD_IMAGE_BAROQUE = require('./assets/comparisons/tiles/after/Paintings/Baroque.jpg');
 export const STYLE_CARD_IMAGE_VAN_GOGH = require('./assets/comparisons/tiles/after/Paintings/van-gogh.jpg');
 export const STYLE_CARD_IMAGE_EXPRESSIVE_IMPASTO = require('./assets/comparisons/tiles/after/Paintings/Expressive- Impasto.jpg');
+export const STYLE_CARD_IMAGE_EXPRESSIVE_IMPASTO_V2 = require('./assets/comparisons/tiles/after/Paintings/Expressive- Impasto2.jpg');
 export const STYLE_CARD_IMAGE_MONET = require('./assets/comparisons/tiles/after/Paintings/monet.jpg');
 export const STYLE_CARD_IMAGE_RENOIR = require('./assets/comparisons/tiles/after/Paintings/Renoir.jpg');
 export const STYLE_CARD_IMAGE_CEZANNE = require('./assets/comparisons/tiles/after/Paintings/Cézanne.jpg');
@@ -343,6 +344,7 @@ const STYLE_IMAGE_BY_ID = {
   baroque: STYLE_CARD_IMAGE_BAROQUE,
   'van-gogh': STYLE_CARD_IMAGE_VAN_GOGH,
   'expressive-impasto': STYLE_CARD_IMAGE_EXPRESSIVE_IMPASTO,
+  'expressive-impasto-v2': STYLE_CARD_IMAGE_EXPRESSIVE_IMPASTO_V2,
   monet: STYLE_CARD_IMAGE_MONET,
   renoir: STYLE_CARD_IMAGE_RENOIR,
   cezanne: STYLE_CARD_IMAGE_CEZANNE,
@@ -380,6 +382,7 @@ export function getStyleImage(style) {
   if (label.includes('colored glass') || label.includes('coloured glass')) return STYLE_CARD_IMAGE_COLOURED_GLASS;
   if (label.includes('ink wash') || label.includes('ink-wash')) return STYLE_CARD_IMAGE_INK_WASH;
   if (label.includes('van gogh') || label.includes('vangogh')) return STYLE_CARD_IMAGE_VAN_GOGH;
+  if (label.includes('expressive impasto v2')) return STYLE_CARD_IMAGE_EXPRESSIVE_IMPASTO_V2;
   if (label.includes('expressive impasto')) return STYLE_CARD_IMAGE_EXPRESSIVE_IMPASTO;
   if (label.includes('cézanne')) return STYLE_CARD_IMAGE_CEZANNE;
   if (label.includes('sesshū')) return STYLE_CARD_IMAGE_SESSHU;

@@ -151,6 +151,10 @@ const CURATED_PAIR_PATHS = {
     before: 'before/man8.png',
     after: 'after/Paintings/Expressive- Impasto.jpeg',
   },
+  'expressive-impasto-v2': {
+    before: 'before/man8.png',
+    after: 'after/Paintings/Expressive- Impasto2.jpg',
+  },
   'monet': {
     before: 'before/lady4.png',
     after: 'after/Paintings/monet.jpg',

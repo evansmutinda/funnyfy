@@ -72,9 +72,11 @@ export default function NotificationProvider({ children }) {
         cancelLabel={dialog.cancelLabel}
         neutralLabel={dialog.neutralLabel}
         neutralDestructive={dialog.neutralDestructive}
+        checkboxLabel={dialog.checkboxLabel}
         confirmLabel={dialog.confirmLabel}
         destructive={dialog.destructive}
         hideCancel={dialog.hideCancel}
+        stackActions={dialog.stackActions}
         onCancel={() => {
           if (dialog.onCancel) dialog.onCancel();
           closeDialog();
@@ -82,8 +84,8 @@ export default function NotificationProvider({ children }) {
         onNeutral={() => {
           if (dialog.onNeutral) dialog.onNeutral();
         }}
-        onConfirm={() => {
-          if (dialog.onConfirm) dialog.onConfirm();
+        onConfirm={(checked) => {
+          if (dialog.onConfirm) dialog.onConfirm(checked);
         }}
       />
     </NotificationContext.Provider>

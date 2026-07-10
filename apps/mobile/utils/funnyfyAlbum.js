@@ -4,6 +4,7 @@ import * as FileSystem from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
 
 export const FUNNYFY_ALBUM_ID_KEY = '@funnyfy_media_album_id';
+export const GALLERY_HIDDEN_KEY = '@funnyfy_gallery_hidden';
 export const FUNNYFY_FOLDER_NAME = 'Funnyfy';
 /** Canonical Android path — photos live here on device. */
 export const FUNNYFY_DCIM_RELATIVE_PATH = 'DCIM/Funnyfy';
@@ -422,18 +423,19 @@ export async function requestGalleryWritePermission() {
 /**
  * Save into the Funnyfy device album (DCIM/Funnyfy on Android).
  * Never falls back to DCIM root — see MD/GALLERY_SCREEN.md.
+ * @returns {Promise<{ ok: boolean, assetId?: string }>}
  */
 export async function saveToFunnyfyAlbum(localFileUri) {
   try {
     if (!localFileUri?.startsWith('file://')) {
       devWarn('[Save] invalid file uri for MediaLibrary');
-      return false;
+      return { ok: false };
     }
 
     const canWrite = await requestGalleryWritePermission();
     if (!canWrite) {
       devWarn('[Save] MediaLibrary write permission denied');
-      return false;
+      return { ok: false };
     }
 
     if (Platform.OS === 'android') {
@@ -443,8 +445,12 @@ export async function saveToFunnyfyAlbum(localFileUri) {
     return saveToFunnyfyAlbumIos(localFileUri);
   } catch (err) {
     console.error('[Save] saveToFunnyfyAlbum error:', err);
-    return false;
+    return { ok: false };
   }
+}
+
+function saveAlbumSuccess(asset) {
+  return { ok: true, assetId: asset?.id };
 }
 
 async function saveToFunnyfyAlbumAndroid(localFileUri) {
@@ -453,7 +459,7 @@ async function saveToFunnyfyAlbumAndroid(localFileUri) {
     asset = await MediaLibrary.createAssetAsync(localFileUri);
   } catch (assetErr) {
     console.error('[Save] createAssetAsync failed:', assetErr);
-    return false;
+    return { ok: false };
   }
 
   const persistAlbumId = async (albumRef) => {
@@ -472,7 +478,7 @@ async function saveToFunnyfyAlbumAndroid(localFileUri) {
   if (cachedId) {
     try {
       await addToAlbum(cachedId);
-      return true;
+      return saveAlbumSuccess(asset);
     } catch (err) {
       devWarn('[Save] add to cached album failed:', err?.message || err);
       await AsyncStorage.removeItem(FUNNYFY_ALBUM_ID_KEY);
@@ -485,7 +491,7 @@ async function saveToFunnyfyAlbumAndroid(localFileUri) {
     if (existing) {
       try {
         await addToAlbum(existing);
-        return true;
+        return saveAlbumSuccess(asset);
       } catch (err) {
         devWarn('[Save] add to resolved album failed:', err?.message || err);
       }
@@ -499,14 +505,14 @@ async function saveToFunnyfyAlbumAndroid(localFileUri) {
       false,
     );
     await persistAlbumId(album);
-    return true;
+    return saveAlbumSuccess(asset);
   } catch (createErr) {
     devWarn('[Save] createAlbumAsync failed:', createErr?.message || createErr);
   }
 
   // Asset is in the gallery even if album assignment failed (matches iOS behavior).
   devWarn('[Save] Saved to gallery; Funnyfy album assignment failed');
-  return true;
+  return saveAlbumSuccess(asset);
 }
 
 async function saveToFunnyfyAlbumIos(localFileUri) {
@@ -515,7 +521,7 @@ async function saveToFunnyfyAlbumIos(localFileUri) {
     asset = await MediaLibrary.createAssetAsync(localFileUri);
   } catch (assetErr) {
     console.error('[Save] createAssetAsync failed:', assetErr);
-    return false;
+    return { ok: false };
   }
 
   const persistAlbumId = async (albumRef) => {
@@ -534,7 +540,7 @@ async function saveToFunnyfyAlbumIos(localFileUri) {
   if (cachedId) {
     try {
       await addToAlbum(cachedId);
-      return true;
+      return saveAlbumSuccess(asset);
     } catch (err) {
       devWarn('[Save] add to cached album failed:', err?.message || err);
       await AsyncStorage.removeItem(FUNNYFY_ALBUM_ID_KEY);
@@ -547,7 +553,7 @@ async function saveToFunnyfyAlbumIos(localFileUri) {
     if (existing) {
       try {
         await addToAlbum(existing);
-        return true;
+        return saveAlbumSuccess(asset);
       } catch (err) {
         devWarn('[Save] add to resolved album failed:', err?.message || err);
       }
@@ -561,13 +567,106 @@ async function saveToFunnyfyAlbumIos(localFileUri) {
       false,
     );
     await persistAlbumId(album);
-    return true;
+    return saveAlbumSuccess(asset);
   } catch (createErr) {
     devWarn('[Save] createAlbumAsync failed:', createErr?.message || createErr);
   }
 
   devWarn('[Save] Saved to Photos library; Funnyfy album assignment failed');
-  return true;
+  return saveAlbumSuccess(asset);
+}
+
+export function galleryItemHiddenKey(item) {
+  if (item?.mediaAssetId) return `media:${item.mediaAssetId}`;
+  if (item?.id) return `id:${item.id}`;
+  return null;
+}
+
+export async function getGalleryHiddenKeys() {
+  try {
+    const raw = await AsyncStorage.getItem(GALLERY_HIDDEN_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return new Set(Array.isArray(parsed) ? parsed : []);
+  } catch {
+    return new Set();
+  }
+}
+
+export async function addGalleryHiddenKeys(keys) {
+  const hidden = await getGalleryHiddenKeys();
+  for (const key of keys) {
+    if (key) hidden.add(key);
+  }
+  await AsyncStorage.setItem(GALLERY_HIDDEN_KEY, JSON.stringify([...hidden]));
+}
+
+export function isGalleryItemHidden(item, hiddenKeys) {
+  const key = galleryItemHiddenKey(item);
+  return Boolean(key && hiddenKeys.has(key));
+}
+
+export function filterHiddenGalleryItems(items, hiddenKeys) {
+  return items.filter((item) => !isGalleryItemHidden(item, hiddenKeys));
+}
+
+const DEVICE_MATCH_WINDOW_MS = 60_000;
+
+async function resolveDeviceAssetIdsForGalleryItems(items) {
+  const assetIds = new Set();
+  const unresolved = [];
+
+  for (const item of items) {
+    if (item.mediaAssetId) {
+      assetIds.add(item.mediaAssetId);
+    } else {
+      unresolved.push(item);
+    }
+  }
+
+  if (unresolved.length === 0) {
+    return [...assetIds];
+  }
+
+  const albumItems = await getFunnyfyAlbumAssets({ first: 100, rescan: false });
+  const usedAlbumIds = new Set(assetIds);
+
+  for (const item of unresolved) {
+    const createdAt = item.createdAt || 0;
+    const match = albumItems.find((album) => {
+      if (!album.mediaAssetId || usedAlbumIds.has(album.mediaAssetId)) {
+        return false;
+      }
+      const albumTime = album.createdAt || 0;
+      return Math.abs(albumTime - createdAt) <= DEVICE_MATCH_WINDOW_MS;
+    });
+
+    if (match?.mediaAssetId) {
+      assetIds.add(match.mediaAssetId);
+      usedAlbumIds.add(match.mediaAssetId);
+    }
+  }
+
+  return [...assetIds];
+}
+
+export async function deleteDeviceGalleryAssets(items) {
+  const assetIds = await resolveDeviceAssetIdsForGalleryItems(items);
+  if (!assetIds.length) {
+    return { ok: true, deleted: 0, notFound: items.length };
+  }
+
+  const canWrite = await requestGalleryWritePermission();
+  if (!canWrite) {
+    return { ok: false, reason: 'permission' };
+  }
+
+  try {
+    await MediaLibrary.deleteAssetsAsync(assetIds);
+    return { ok: true, deleted: assetIds.length };
+  } catch (err) {
+    console.error('[Gallery] deleteAssetsAsync failed:', err);
+    return { ok: false, reason: 'error' };
+  }
 }
 
 export function mergeGalleryItems(storedItems, albumItems) {

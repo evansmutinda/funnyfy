@@ -25,7 +25,7 @@ import {
 import {
   getJobProgressCopy,
   JOB_PROGRESS_PHASE_COUNT,
-  resolveCategoryLabel,
+  resolveCategoryCreatingPhrase,
 } from '../utils/jobProgress';
 import styles from '../styles';
 
@@ -76,15 +76,15 @@ export default function ResultScreen({
   const showCompare = hasResult && !loading && !!displayUri && !previewError;
   const showLoadingOverlay = (loading && !hasResult) || (hasResult && !displayUri && !previewError);
 
-  const categoryLabel = useMemo(() => resolveCategoryLabel(style), [style]);
+  const creatingPhrase = useMemo(() => resolveCategoryCreatingPhrase(style), [style]);
 
   const progressCopy = useMemo(
     () => getJobProgressCopy(job, {
-      categoryLabel,
+      creatingPhrase,
       loading: loading && !hasResult,
       now: Date.now(),
     }),
-    [job, categoryLabel, loading, hasResult, progressTick],
+    [job, creatingPhrase, loading, hasResult, progressTick],
   );
 
   useEffect(() => {
@@ -232,8 +232,8 @@ export default function ResultScreen({
       let saved = false;
       let savedPath = '';
 
-      const ok = await saveToFunnyfyAlbum(localPath);
-      if (ok) {
+      const saveResult = await saveToFunnyfyAlbum(localPath);
+      if (saveResult?.ok) {
         saved = true;
         savedPath = Platform.OS === 'android'
           ? `Gallery › ${FUNNYFY_FOLDER_NAME} album`
@@ -255,6 +255,7 @@ export default function ResultScreen({
             imageUrl,
             styleLabel: style?.label || 'Caricature',
             styleId: style?.id,
+            mediaAssetId: saveResult.assetId || null,
           });
         } catch (galleryErr) {
           console.warn('[Gallery] in-app save failed (non-fatal):', galleryErr);

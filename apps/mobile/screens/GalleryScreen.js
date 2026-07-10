@@ -20,7 +20,17 @@ import { useNotifications } from '../components/NotificationProvider';
 import MediaTile from '../components/MediaTile';
 import PressScale from '../components/PressScale';
 import { BOTTOM_INSET_MIN, getSavedImageFileName, SAVED_IMAGE_MIME } from '../constants';
-import { getFunnyfyAlbumAssets, mergeGalleryItems, requestGalleryReadPermission, resolveShareableImageUri } from '../utils/funnyfyAlbum';
+import {
+  addGalleryHiddenKeys,
+  deleteDeviceGalleryAssets,
+  filterHiddenGalleryItems,
+  galleryItemHiddenKey,
+  getFunnyfyAlbumAssets,
+  getGalleryHiddenKeys,
+  mergeGalleryItems,
+  requestGalleryReadPermission,
+  resolveShareableImageUri,
+} from '../utils/funnyfyAlbum';
 import styles from '../styles';
 
 const GALLERY_STORAGE_KEY = '@funnyfy_gallery';
@@ -57,11 +67,14 @@ async function saveToGallery(item) {
 
     const existing = await AsyncStorage.getItem(GALLERY_STORAGE_KEY);
     const items = existing ? JSON.parse(existing) : [];
+    const mediaAssetId = item.mediaAssetId || null;
     const newItem = {
-      id: `gen_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      id: mediaAssetId ? `media_${mediaAssetId}` : `gen_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
       imageUrl: savedLocalUri || item.imageUrl,
       remoteUrl: item.imageUrl,
       isLocal: !!savedLocalUri,
+      isDeviceAlbum: Boolean(mediaAssetId),
+      mediaAssetId,
       styleLabel: item.styleLabel,
       styleId: item.styleId,
       createdAt: Date.now(),
@@ -108,12 +121,16 @@ async function loadGallery({ rescanDevice = true } = {}) {
     const data = await AsyncStorage.getItem(GALLERY_STORAGE_KEY);
     const previousStored = data ? JSON.parse(data) : [];
     const verifiedStored = await verifyStoredItems(previousStored);
+    const hiddenKeys = await getGalleryHiddenKeys();
 
     const albumItems = await getFunnyfyAlbumAssets({
       first: GALLERY_MAX_ITEMS,
       rescan: rescanDevice,
     });
-    const merged = mergeGalleryItems(verifiedStored, albumItems).slice(0, GALLERY_MAX_ITEMS);
+    const merged = filterHiddenGalleryItems(
+      mergeGalleryItems(verifiedStored, albumItems),
+      hiddenKeys,
+    ).slice(0, GALLERY_MAX_ITEMS);
 
     if (JSON.stringify(merged) !== JSON.stringify(previousStored)) {
       await AsyncStorage.setItem(GALLERY_STORAGE_KEY, JSON.stringify(merged));
@@ -126,29 +143,53 @@ async function loadGallery({ rescanDevice = true } = {}) {
   }
 }
 
-async function deleteFromGallery(id) {
-  try {
-    const existing = await AsyncStorage.getItem(GALLERY_STORAGE_KEY);
-    const items = existing ? JSON.parse(existing) : [];
-    const target = items.find((item) => item.id === id);
-    const updated = items.filter((item) => item.id !== id);
+async function removeGalleryItems(items, { deleteFromDevice = false } = {}) {
+  if (!items?.length) return { ok: true };
 
-    if (target?.isLocal && target?.imageUrl?.startsWith('file://') && !target?.isDeviceAlbum) {
-      try {
-        await FileSystem.deleteAsync(target.imageUrl, { idempotent: true });
-      } catch {}
+  try {
+    const hiddenKeys = items.map(galleryItemHiddenKey).filter(Boolean);
+    await addGalleryHiddenKeys(hiddenKeys);
+
+    const existing = await AsyncStorage.getItem(GALLERY_STORAGE_KEY);
+    const storedItems = existing ? JSON.parse(existing) : [];
+    const removeIds = new Set(items.map((item) => item.id));
+    const updated = storedItems.filter((item) => !removeIds.has(item.id));
+
+    for (const item of items) {
+      const isAppCache = item.isLocal && item.imageUrl?.startsWith('file://') && !item.isDeviceAlbum;
+      if (isAppCache && (deleteFromDevice || !item.mediaAssetId)) {
+        try {
+          await FileSystem.deleteAsync(item.imageUrl, { idempotent: true });
+        } catch {}
+      }
     }
 
     await AsyncStorage.setItem(GALLERY_STORAGE_KEY, JSON.stringify(updated));
-    return true;
+
+    if (deleteFromDevice) {
+      const deviceResult = await deleteDeviceGalleryAssets(items);
+      if (!deviceResult.ok) {
+        return { ok: false, reason: deviceResult.reason };
+      }
+      if (deviceResult.notFound > 0 && deviceResult.deleted === 0) {
+        return { ok: true, deviceNotFound: true };
+      }
+    }
+
+    return { ok: true };
   } catch (err) {
-    console.error('[Gallery] delete error:', err);
-    return false;
+    console.error('[Gallery] remove error:', err);
+    return { ok: false, reason: 'error' };
   }
 }
 
-async function clearGallery() {
+async function clearGallery(currentItems) {
   try {
+    const hiddenKeys = (currentItems || []).map(galleryItemHiddenKey).filter(Boolean);
+    if (hiddenKeys.length > 0) {
+      await addGalleryHiddenKeys(hiddenKeys);
+    }
+
     const existing = await AsyncStorage.getItem(GALLERY_STORAGE_KEY);
     const items = existing ? JSON.parse(existing) : [];
     for (const item of items) {
@@ -178,9 +219,33 @@ export default function GalleryScreen({ onBack }) {
   const [viewerIndex, setViewerIndex] = useState(0);
   const [pagerHeight, setPagerHeight] = useState(0);
   const [permissionDenied, setPermissionDenied] = useState(false);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState(() => new Set());
   const viewerListRef = useRef(null);
 
   const closeTop = insets.top + 12;
+  const selectedCount = selectedIds.size;
+
+  const exitSelectionMode = useCallback(() => {
+    setSelectionMode(false);
+    setSelectedIds(new Set());
+  }, []);
+
+  const toggleItemSelection = useCallback((itemId) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(itemId)) {
+        next.delete(itemId);
+      } else {
+        next.add(itemId);
+      }
+      return next;
+    });
+  }, []);
+
+  const selectAllItems = useCallback(() => {
+    setSelectedIds(new Set(items.map((item) => item.id)));
+  }, [items]);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -199,22 +264,71 @@ export default function GalleryScreen({ onBack }) {
     refresh();
   }, [refresh]);
 
-  const handleDelete = (item) => {
+  const performRemove = useCallback(async (itemsToRemove, { deleteFromDevice = false } = {}) => {
+    const removeIds = new Set(itemsToRemove.map((item) => item.id));
+    setItems((prev) => prev.filter((item) => !removeIds.has(item.id)));
+    exitSelectionMode();
+
+    const result = await removeGalleryItems(itemsToRemove, { deleteFromDevice });
+    if (!result.ok) {
+      await refresh();
+      if (result.reason === 'permission') {
+        showToast(
+          'Permission needed',
+          'Allow photo access to delete images from your phone.',
+          'warning',
+        );
+      } else {
+        showToast('Remove failed', 'Could not remove the selected photos. Try again.', 'error');
+      }
+      return;
+    }
+
+    await refresh();
+    const count = itemsToRemove.length;
+    if (deleteFromDevice && result.deviceNotFound) {
+      showToast(
+        'Removed from app',
+        'Could not find the photo on your phone, but it was removed from My Gallery.',
+        'warning',
+      );
+      return;
+    }
+    showToast(
+      deleteFromDevice ? 'Deleted' : 'Removed',
+      deleteFromDevice
+        ? `${count} photo${count === 1 ? '' : 's'} deleted from your phone`
+        : `${count} photo${count === 1 ? '' : 's'} removed from My Gallery`,
+      'success',
+    );
+  }, [exitSelectionMode, refresh, showToast]);
+
+  const promptRemove = useCallback((itemsToRemove) => {
+    if (!itemsToRemove.length) return;
+
+    const count = itemsToRemove.length;
     showDialog({
-      title: 'Remove from My Gallery?',
-      message: item.isDeviceAlbum
-        ? 'This removes it from the in-app list only. The photo stays in your phone\'s Funnyfy album unless you delete it in the Gallery app.'
-        : 'This removes it from your in-app gallery. Photos already saved to your phone are not affected.',
+      title: count === 1 ? 'Remove photo?' : `Remove ${count} photos?`,
+      message: 'This removes the selected photos from My Gallery.',
+      checkboxLabel: 'Also remove from device',
       confirmLabel: 'Remove',
       destructive: true,
-      onConfirm: async () => {
+      onConfirm: async (alsoFromDevice) => {
         closeDialog();
-        await deleteFromGallery(item.id);
-        refresh();
-        showToast('Removed', 'Caricature removed from My Gallery', 'success');
+        await performRemove(itemsToRemove, { deleteFromDevice: !!alsoFromDevice });
       },
     });
-  };
+  }, [closeDialog, performRemove, showDialog]);
+
+  const handleRemoveSelected = useCallback(() => {
+    const selectedItems = items.filter((item) => selectedIds.has(item.id));
+    promptRemove(selectedItems);
+  }, [items, promptRemove, selectedIds]);
+
+  const handleEnterSelection = useCallback((initialItemId = null) => {
+    setSelectionMode(true);
+    setSelectedIds(initialItemId ? new Set([initialItemId]) : new Set());
+  }, []);
 
   const handleClearAll = () => {
     showDialog({
@@ -224,8 +338,9 @@ export default function GalleryScreen({ onBack }) {
       destructive: true,
       onConfirm: async () => {
         closeDialog();
-        await clearGallery();
-        refresh();
+        exitSelectionMode();
+        await clearGallery(items);
+        setItems([]);
         showToast('Gallery cleared', 'In-app list cleared', 'success');
       },
     });
@@ -285,20 +400,50 @@ export default function GalleryScreen({ onBack }) {
 
       <View style={[styles.galleryHeaderBand, { paddingTop: insets.top + 8, paddingRight: 52 }]}>
         <View style={styles.galleryHeaderRow}>
-          {items.length > 0 ? (
-            <PressScale onPress={handleClearAll} style={styles.uploadCircleButton}>
-              <Feather name="trash-2" size={18} color="#FFFFFF" />
+          {selectionMode ? (
+            <PressScale onPress={exitSelectionMode} style={styles.uploadCircleButton}>
+              <Feather name="x" size={18} color="#FFFFFF" />
+            </PressScale>
+          ) : items.length > 0 ? (
+            <View style={styles.galleryHeaderActions}>
+              <PressScale onPress={() => handleEnterSelection()} style={styles.uploadCircleButton}>
+                <Feather name="check-square" size={18} color="#FFFFFF" />
+              </PressScale>
+              <PressScale onPress={handleClearAll} style={styles.uploadCircleButton}>
+                <Feather name="trash-2" size={18} color="#FFFFFF" />
+              </PressScale>
+            </View>
+          ) : (
+            <View style={styles.galleryHeaderSpacer} />
+          )}
+          <Text style={styles.galleryHeaderTitle}>
+            {selectionMode ? `${selectedCount} selected` : 'My Gallery'}
+          </Text>
+          {selectionMode ? (
+            <PressScale
+              onPress={handleRemoveSelected}
+              style={[styles.uploadCircleButton, selectedCount === 0 && styles.galleryActionDisabled]}
+              disabled={selectedCount === 0}
+            >
+              <Feather name="trash-2" size={18} color={selectedCount === 0 ? '#6B7280' : '#FFFFFF'} />
             </PressScale>
           ) : (
             <View style={styles.galleryHeaderSpacer} />
           )}
-          <Text style={styles.galleryHeaderTitle}>My Gallery</Text>
-          <View style={styles.galleryHeaderSpacer} />
         </View>
         {!loading && items.length > 0 ? (
           <Text style={styles.galleryHeaderSubtitle}>
-            {items.length} saved · tap to view · long-press to remove
+            {selectionMode
+              ? (selectedCount < items.length
+                ? 'Tap photos to select'
+                : 'All photos selected')
+              : `${items.length} saved · tap to view · Select to remove`}
           </Text>
+        ) : null}
+        {selectionMode && items.length > 0 && selectedCount < items.length ? (
+          <PressScale onPress={selectAllItems} style={styles.gallerySelectAllButton}>
+            <Text style={styles.gallerySelectAllText}>Select all</Text>
+          </PressScale>
         ) : null}
       </View>
 
@@ -324,29 +469,61 @@ export default function GalleryScreen({ onBack }) {
           style={{ flex: 1 }}
           contentContainerStyle={{
             paddingHorizontal: 16,
-            paddingBottom: Math.max(insets.bottom, BOTTOM_INSET_MIN) + 16,
+            paddingBottom: Math.max(insets.bottom, BOTTOM_INSET_MIN) + (selectionMode ? 88 : 16),
           }}
           showsVerticalScrollIndicator={false}
           overScrollMode="never"
         >
           <View style={styles.galleryGrid}>
-            {items.map((item, index) => (
-              <Pressable
-                key={item.id}
-                style={styles.galleryItem}
-                onPress={() => {
-                  setViewerIndex(index);
-                  setViewerVisible(true);
-                }}
-                onLongPress={() => handleDelete(item)}
-                android_ripple={null}
-              >
-                <MediaTile imageSource={{ uri: item.imageUrl }} />
-              </Pressable>
-            ))}
+            {items.map((item, index) => {
+              const isSelected = selectedIds.has(item.id);
+              return (
+                <Pressable
+                  key={item.id}
+                  style={styles.galleryItem}
+                  onPress={() => {
+                    if (selectionMode) {
+                      toggleItemSelection(item.id);
+                      return;
+                    }
+                    setViewerIndex(index);
+                    setViewerVisible(true);
+                  }}
+                  onLongPress={() => handleEnterSelection(item.id)}
+                  android_ripple={null}
+                >
+                  <MediaTile
+                    imageSource={{ uri: item.imageUrl }}
+                    isSelected={isSelected}
+                  />
+                  {selectionMode && isSelected ? (
+                    <View style={styles.gallerySelectBadge}>
+                      <Feather name="check" size={14} color="#FFFFFF" />
+                    </View>
+                  ) : null}
+                </Pressable>
+              );
+            })}
           </View>
         </ScrollView>
       )}
+
+      {selectionMode && items.length > 0 ? (
+        <View style={[styles.gallerySelectionBar, { paddingBottom: Math.max(insets.bottom, BOTTOM_INSET_MIN) + 8 }]}>
+          <Text style={styles.gallerySelectionBarLabel}>
+            {selectedCount === 0 ? 'Select photos to remove' : `${selectedCount} selected`}
+          </Text>
+          <PressScale
+            style={[styles.gallerySelectionRemoveButton, selectedCount === 0 && styles.galleryActionDisabled]}
+            onPress={handleRemoveSelected}
+            disabled={selectedCount === 0}
+          >
+            <Text style={[styles.gallerySelectionRemoveText, selectedCount === 0 && styles.gallerySelectionRemoveTextDisabled]}>
+              Remove
+            </Text>
+          </PressScale>
+        </View>
+      ) : null}
 
       <Modal
         visible={viewerVisible}

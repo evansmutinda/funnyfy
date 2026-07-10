@@ -13,6 +13,7 @@ const DISCOVERY_VARIANTS = new Set(['discovery', 'discoveryWide', 'discoveryDens
 
 const CAPTION_MAX_LINES = {
   discovery: 3,
+  discoveryRow: 3,
   discoveryWide: 2,
   discoveryDense: 3,
 };
@@ -93,8 +94,10 @@ function MediaTile({
     variant === 'chip' && styles.mediaTileChipLabel,
   ];
 
+  const isRow = variant === 'discoveryRow';
   const captionStyle = [
     styles.discoveryCardCaption,
+    isRow && styles.discoveryRowCardCaption,
     isWide && styles.discoveryWideCardCaption,
     isDense && styles.discoveryDenseCardCaption,
   ];
