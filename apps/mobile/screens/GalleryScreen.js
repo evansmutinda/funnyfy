@@ -19,7 +19,7 @@ import * as Sharing from 'expo-sharing';
 import { useNotifications } from '../components/NotificationProvider';
 import MediaTile from '../components/MediaTile';
 import PressScale from '../components/PressScale';
-import { BOTTOM_INSET_MIN, getSavedImageFileName } from '../constants';
+import { BOTTOM_INSET_MIN, getSavedImageFileName, SAVED_IMAGE_MIME } from '../constants';
 import { getFunnyfyAlbumAssets, mergeGalleryItems, requestGalleryReadPermission, resolveShareableImageUri } from '../utils/funnyfyAlbum';
 import styles from '../styles';
 
@@ -243,7 +243,7 @@ export default function GalleryScreen({ onBack }) {
       const fileName = getSavedImageFileName();
       const shareUri = await resolveShareableImageUri(item, fileName);
       await Sharing.shareAsync(shareUri, {
-        mimeType: 'image/jpeg',
+        mimeType: SAVED_IMAGE_MIME,
         dialogTitle: 'Check out my caricature!',
       });
     } catch (err) {

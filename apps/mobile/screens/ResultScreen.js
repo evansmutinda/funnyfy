@@ -19,6 +19,7 @@ import { saveToGallery } from './GalleryScreen';
 import {
   FUNNYFY_FOLDER_NAME,
   getSavedImageFileName,
+  SAVED_IMAGE_MIME,
   saveToFunnyfyAlbum,
 } from '../constants';
 import {
@@ -117,7 +118,7 @@ export default function ResultScreen({
     // Temporary cache for on-screen preview only — not the DCIM/Funnyfy save name.
     (async () => {
       try {
-        const path = `${FileSystem.cacheDirectory}result_preview_${Date.now()}.jpg`;
+        const path = `${FileSystem.cacheDirectory}result_preview_${Date.now()}.png`;
         const dl = await FileSystem.downloadAsync(imageUrl, path);
         if (cancelled) return;
         if (dl.status === 200) {
@@ -204,7 +205,7 @@ export default function ResultScreen({
       const localPath = FileSystem.documentDirectory + fileName;
       const resultDl = await FileSystem.downloadAsync(imageUrl, localPath);
       await Sharing.shareAsync(resultDl.uri, {
-        mimeType: 'image/jpeg',
+        mimeType: SAVED_IMAGE_MIME,
         dialogTitle: 'Check out my caricature!',
       });
     } catch (err) {

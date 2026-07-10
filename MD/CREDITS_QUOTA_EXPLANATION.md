@@ -177,7 +177,8 @@ From `api/_utils/cost-protection.ts`:
 ```typescript
 const MODEL_COSTS: Record<string, number> = {
   'black-forest-labs/flux-kontext-pro': 0.04,  // $0.04 per generation
-  'google/nano-banana': 0.03,                  // ~$0.03 per generation (estimate)
+  'google/nano-banana': 0.039,                 // $0.039 per generation
+  'google/nano-banana-2': 0.067,               // $0.067 per generation
   'default': 0.04,                             // Default fallback
 };
 ```

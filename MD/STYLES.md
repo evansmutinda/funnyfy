@@ -48,7 +48,7 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 |----------|-----------------|----------|
 | `DEFAULT_MODEL` | `black-forest-labs/flux-kontext-pro` | Most cartoon / art styles, dc |
 | `NANO_BANANA` | `google/nano-banana` | Caricatures, mural, pop art v3, video-game styles, classic-v2, saturday-v1 |
-| `NANO_BANANA_2` | `google/nano-banana-2` | renoir, impasto, hokusai-v2, hiroshige, sesshu, cyberpunk-v2, disney |
+| `NANO_BANANA_2` | `google/nano-banana-2` | renoir, impasto, expressive-impasto, hokusai-v2, hiroshige, sesshu, cyberpunk-v2, disney |
 | `SEEDREAM_4` | `bytedance/seedream-4` | lowpoly, pop art v2, graffiti, banksy, mosaic, watercolor, acrylic, gouache, expressionist, impressionist, baroque, van-gogh, monet, classic-v1, saturday-v2, carc1 |
 | `SEEDREAM_4_5` | `bytedance/seedream-4.5` | cezanne, gauguin, matisse, seurat, ink-wash, hokusai-v1, comic, cute, cyberpunk-v1 |
 
@@ -103,6 +103,7 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 | `impressionist` | Impressionist | paintings | seedream-4 | ✅ |
 | `baroque` | Baroque | paintings | seedream-4 | ✅ |
 | `van-gogh` | Van Gogh | paintings | seedream-4 | ✅ |
+| `expressive-impasto` | Expressive Impasto | paintings | nano-banana-2 | ✅ |
 | `monet` | Monet | paintings | seedream-4 | ✅ |
 | `renoir` | Renoir | paintings | nano-banana-2 | ✅ |
 | `cezanne` | Cézanne | paintings | seedream-4.5 | ✅ |
@@ -182,6 +183,7 @@ Run `npm run build-comparison-assets` after adding or replacing source files. Fo
 | `impressionist` | `before/man6.png` | `after/Paintings/Impressionist.jpg` |
 | `baroque` | `before/man7.png` | `after/Paintings/Baroque.jpg` |
 | `van-gogh` | `before/lady14.png` | `after/Paintings/van-gogh.jpg` |
+| `expressive-impasto` | `before/man8.png` | `after/Paintings/Expressive- Impasto.jpeg` |
 | `monet` | `before/lady4.png` | `after/Paintings/monet.jpg` |
 | `renoir` | `before/lady11.png` | `after/Paintings/Renoir.jpeg` |
 | `cezanne` | `before/man5.png` | `after/Paintings/Cézanne.jpg` |

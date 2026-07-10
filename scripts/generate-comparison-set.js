@@ -30,7 +30,7 @@
  *   SKIP_EXISTING  Default: 1 — set to 0 to re-generate even when a file exists
  *
  * Cost note:
- *   ~$0.04 per generation on flux-kontext-pro, ~$0.03 on nano-banana.
+ *   ~$0.04 per generation on flux-kontext-pro, ~$0.039 on nano-banana, ~$0.067 on nano-banana-2.
  *   N enabled styles × M before photos = N*M generations.
  */
 
@@ -87,6 +87,7 @@ const STYLE_AFTER_BASENAME = {
   impressionist: 'Impressionist',
   baroque: 'Baroque',
   'van-gogh': 'van-gogh',
+  'expressive-impasto': 'Expressive- Impasto',
   monet: 'monet',
   renoir: 'Renoir',
   cezanne: 'Cézanne',

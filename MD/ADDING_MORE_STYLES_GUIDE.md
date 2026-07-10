@@ -452,7 +452,8 @@ Temporarily disable styles:
 
 Each style uses the same API cost:
 - **flux-kontext-pro**: $0.04 per generation
-- **nano-banana**: ~$0.03 per generation (estimate - verify actual cost)
+- **nano-banana**: $0.039 per generation
+- **nano-banana-2**: $0.067 per generation
 
 **Adding more styles doesn't increase costs** - users still have the same monthly quota. More styles just gives them more options!
 

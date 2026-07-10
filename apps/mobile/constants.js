@@ -187,6 +187,9 @@ Contact: ${SUPPORT_EMAIL}`;
 export const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 export const BOTTOM_INSET_MIN = Platform.OS === 'android' ? 48 : 34;
 
+export const SAVED_IMAGE_EXTENSION = 'png';
+export const SAVED_IMAGE_MIME = 'image/png';
+
 export function getSavedImageFileName() {
   const d = new Date();
   const y = d.getFullYear();
@@ -195,7 +198,7 @@ export function getSavedImageFileName() {
   const h = String(d.getHours()).padStart(2, '0');
   const min = String(d.getMinutes()).padStart(2, '0');
   const s = String(d.getSeconds()).padStart(2, '0');
-  return `Funnyfy-${y}-${m}-${day}_${h}${min}${s}.jpg`;
+  return `Funnyfy-${y}-${m}-${day}_${h}${min}${s}.${SAVED_IMAGE_EXTENSION}`;
 }
 
 export const STYLE_CARD_IMAGE_DEFAULT = require('./assets/toon.jpg');
@@ -253,6 +256,7 @@ export const STYLE_CARD_IMAGE_EXPRESSIONIST = require('./assets/comparisons/tile
 export const STYLE_CARD_IMAGE_IMPRESSIONIST = require('./assets/comparisons/tiles/after/Paintings/Impressionist.jpg');
 export const STYLE_CARD_IMAGE_BAROQUE = require('./assets/comparisons/tiles/after/Paintings/Baroque.jpg');
 export const STYLE_CARD_IMAGE_VAN_GOGH = require('./assets/comparisons/tiles/after/Paintings/van-gogh.jpg');
+export const STYLE_CARD_IMAGE_EXPRESSIVE_IMPASTO = require('./assets/comparisons/tiles/after/Paintings/Expressive- Impasto.jpg');
 export const STYLE_CARD_IMAGE_MONET = require('./assets/comparisons/tiles/after/Paintings/monet.jpg');
 export const STYLE_CARD_IMAGE_RENOIR = require('./assets/comparisons/tiles/after/Paintings/Renoir.jpg');
 export const STYLE_CARD_IMAGE_CEZANNE = require('./assets/comparisons/tiles/after/Paintings/Cézanne.jpg');
@@ -338,6 +342,7 @@ const STYLE_IMAGE_BY_ID = {
   impressionist: STYLE_CARD_IMAGE_IMPRESSIONIST,
   baroque: STYLE_CARD_IMAGE_BAROQUE,
   'van-gogh': STYLE_CARD_IMAGE_VAN_GOGH,
+  'expressive-impasto': STYLE_CARD_IMAGE_EXPRESSIVE_IMPASTO,
   monet: STYLE_CARD_IMAGE_MONET,
   renoir: STYLE_CARD_IMAGE_RENOIR,
   cezanne: STYLE_CARD_IMAGE_CEZANNE,
@@ -375,6 +380,7 @@ export function getStyleImage(style) {
   if (label.includes('colored glass') || label.includes('coloured glass')) return STYLE_CARD_IMAGE_COLOURED_GLASS;
   if (label.includes('ink wash') || label.includes('ink-wash')) return STYLE_CARD_IMAGE_INK_WASH;
   if (label.includes('van gogh') || label.includes('vangogh')) return STYLE_CARD_IMAGE_VAN_GOGH;
+  if (label.includes('expressive impasto')) return STYLE_CARD_IMAGE_EXPRESSIVE_IMPASTO;
   if (label.includes('cézanne')) return STYLE_CARD_IMAGE_CEZANNE;
   if (label.includes('sesshū')) return STYLE_CARD_IMAGE_SESSHU;
   if (label.includes('pixar')) return STYLE_CARD_IMAGE_PXL;

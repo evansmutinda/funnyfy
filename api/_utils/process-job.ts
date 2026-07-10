@@ -22,6 +22,9 @@ const targetApiKey = process.env.TARGET_API_KEY;
 const sightengineUser = process.env.SIGHTENGINE_API_USER;
 const sightengineSecret = process.env.SIGHTENGINE_API_SECRET;
 
+/** Replicate models that accept output_format (flux, nano-banana, seedream). */
+const REPLICATE_OUTPUT_FORMAT = 'png';
+
 export interface JobRow {
   id: string;
   user_id: string | null;
@@ -72,6 +75,14 @@ export async function processJob(job: JobRow): Promise<void> {
       input.max_images = 1;
     } else {
       input.input_image = imageUrl;
+    }
+
+    if (
+      modelVersion.includes('flux') ||
+      modelVersion.includes('nano-banana') ||
+      modelVersion.includes('seedream')
+    ) {
+      input.output_format = REPLICATE_OUTPUT_FORMAT;
     }
   }
 

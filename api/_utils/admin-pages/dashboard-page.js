@@ -584,8 +584,10 @@
       if (modelNote && d.meta && d.meta.modelCosts) {
         const costs = d.meta.modelCosts;
         modelNote.textContent =
-          'Unit rates: Flux / Seedream / Nano Banana ' +
+          'Unit rates: Flux / Seedream ' +
           fmtMoney(costs['black-forest-labs/flux-kontext-pro'] || costs.default || 0.04, 3) +
+          ' · Nano Banana ' +
+          fmtMoney(costs['google/nano-banana'] || 0.039, 3) +
           ' · Nano Banana 2 ' +
           fmtMoney(costs['google/nano-banana-2'] || 0.067, 3) +
           ' · failed jobs $0';

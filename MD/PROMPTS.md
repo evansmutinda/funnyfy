@@ -8,7 +8,7 @@ Regenerate this file after prompt changes:
 node scripts/generate-prompts-md.js
 ```
 
-**Last generated:** 2026-07-02 · **69 enabled** · **1 disabled** in LEGACY_STYLES
+**Last generated:** 2026-07-10 · **70 enabled** · **1 disabled** in LEGACY_STYLES
 
 Prompts are server-side only — the mobile app never bundles them. When adding a style, copy/adapt a prompt here, then add it to `LEGACY_STYLES` and deploy staging.
 
@@ -333,7 +333,17 @@ make this a Baroque Portrait painting
 - **Description:** Van Gogh style painting with expressive brushstrokes and vivid swirling color
 
 ```
-using this pic make this a van gogh style Painting
+An expressive Post-Impressionist oil painting featuring thick impasto brushstrokes, swirling directional paint strokes, vibrant complementary colors, textured canvas, energetic movement, dramatic lighting, bold painterly texture. Preserve the uploaded person's exact facial identity, age, hairstyle, facial structure, expression, and clothing. Transform only the artistic rendering, not the person's identity.
+```
+
+#### `expressive-impasto` — Expressive Impasto
+
+- **Category:** paintings
+- **Model:** NANO_BANANA_2
+- **Description:** Expressive impasto oil painting with thick brushstrokes, vivid color, and dramatic post-impressionist texture
+
+```
+An expressive Post-Impressionist oil painting featuring thick impasto brushstrokes, swirling directional paint strokes, vibrant complementary colors, textured canvas, energetic movement, dramatic lighting, bold painterly texture. Preserve the uploaded person's exact facial identity, age, hairstyle, facial structure, expression, and clothing. Transform only the artistic rendering, not the person's identity.
 ```
 
 #### `monet` — Monet

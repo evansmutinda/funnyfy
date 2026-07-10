@@ -219,13 +219,15 @@ export async function checkImageWithSightengine(
   apiUser: string,
   apiSecret: string
 ): Promise<ModerationResult | null> {
-  const base64Match = base64DataUrl.match(/^data:image\/\w+;base64,(.+)$/);
+  const base64Match = base64DataUrl.match(/^data:(image\/[\w+.-]+);base64,(.+)$/);
   if (!base64Match) return null;
 
-  const buffer = Buffer.from(base64Match[1], 'base64');
-  const blob = new Blob([buffer], { type: 'image/jpeg' });
+  const mime = base64Match[1];
+  const ext = mime.includes('png') ? 'png' : mime.includes('webp') ? 'webp' : 'jpg';
+  const buffer = Buffer.from(base64Match[2], 'base64');
+  const blob = new Blob([buffer], { type: mime });
   const form = new FormData();
-  form.append('media', blob, 'image.jpg');
+  form.append('media', blob, `image.${ext}`);
   form.append('models', SIGHTENGINE_MODELS);
   form.append('api_user', apiUser);
   form.append('api_secret', apiSecret);

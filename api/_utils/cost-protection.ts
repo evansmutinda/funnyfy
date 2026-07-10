@@ -5,7 +5,7 @@ import { query } from './db';
 /** USD per successful generation (failed = $0). */
 export const MODEL_COST_USD: Record<string, number> = {
   'black-forest-labs/flux-kontext-pro': 0.04,
-  'google/nano-banana': 0.04,
+  'google/nano-banana': 0.039,
   'google/nano-banana-2': 0.067,
   'bytedance/seedream-4': 0.04,
   'bytedance/seedream-4.5': 0.04,

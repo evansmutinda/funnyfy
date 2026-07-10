@@ -488,8 +488,20 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     label: 'Van Gogh',
     categoryId: 'paintings',
     description: 'Van Gogh style painting with expressive brushstrokes and vivid swirling color',
-    prompt: 'using this pic make this a van gogh style Painting',
+    prompt:
+      'An expressive Post-Impressionist oil painting featuring thick impasto brushstrokes, swirling directional paint strokes, vibrant complementary colors, textured canvas, energetic movement, dramatic lighting, bold painterly texture. Preserve the uploaded person\'s exact facial identity, age, hairstyle, facial structure, expression, and clothing. Transform only the artistic rendering, not the person\'s identity.',
     model: SEEDREAM_4,
+    enabled: true,
+    premium: false,
+  },
+  'expressive-impasto': {
+    id: 'expressive-impasto',
+    label: 'Expressive Impasto',
+    categoryId: 'paintings',
+    description: 'Expressive impasto oil painting with thick brushstrokes, vivid color, and dramatic post-impressionist texture',
+    prompt:
+      'An expressive Post-Impressionist oil painting featuring thick impasto brushstrokes, swirling directional paint strokes, vibrant complementary colors, textured canvas, energetic movement, dramatic lighting, bold painterly texture. Preserve the uploaded person\'s exact facial identity, age, hairstyle, facial structure, expression, and clothing. Transform only the artistic rendering, not the person\'s identity.',
+    model: NANO_BANANA_2,
     enabled: true,
     premium: false,
   },
