@@ -267,6 +267,14 @@ const CURATED_PAIR_PATHS = {
     before: 'before/lady11.png',
     after: 'after/Art/Paste-up.jpg',
   },
+  'monday-mood': {
+    before: 'before/lady3.png',
+    after: ['after/Moods&Moments/mondays1.jpg', 'after/Moods&Moments/mondays2.jpeg', 'after/Moods&Moments/mondays3.jpeg'],
+  },
+  'friday-feeling': {
+    before: 'before/man9.png',
+    after: ['after/Moods&Moments/fridays1.jpeg', 'after/Moods&Moments/fridays2.jpeg'],
+  },
 };
 
 function assetForTier(relPath, tier) {
@@ -279,9 +287,12 @@ function resolveCuratedPair(styleId, tier) {
   const paths = CURATED_PAIR_PATHS[styleId];
   if (!paths) return null;
   const before = assetForTier(paths.before, tier);
-  const after = assetForTier(paths.after, tier);
-  if (!before || !after) return null;
-  return { before, after };
+  const afterPathList = Array.isArray(paths.after) ? paths.after : [paths.after];
+  const afters = afterPathList
+    .map((rel) => assetForTier(rel, tier))
+    .filter(Boolean);
+  if (!before || afters.length === 0) return null;
+  return { before, after: afters[0], afters };
 }
 
 function toOutputRel(inputRel) {

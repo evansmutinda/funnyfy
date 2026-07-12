@@ -23,16 +23,17 @@ export async function finalizeJobCost(
 ): Promise<void> {
   try {
     const style = styleId ? getStyleById(styleId) : null;
-    const model = style?.model ?? null;
-    const cost = outcome === 'completed' && model ? getModelCost(model) : 0;
-
-    const existing = await query<{ cost_usd: number; status: string }>(
-      `SELECT cost_usd, status FROM jobs WHERE id = $1`,
+    const existing = await query<{ cost_usd: number; status: string; model_version: string | null }>(
+      `SELECT cost_usd, status, model_version FROM jobs WHERE id = $1`,
       [jobId]
     );
     const row = existing.rows[0];
     if (!row) return;
     if (row.status === 'completed' && Number(row.cost_usd) > 0) return;
+
+    // Prefer model chosen at process time (multi-model styles); else primary.
+    const model = row.model_version || style?.model || null;
+    const cost = outcome === 'completed' && model ? getModelCost(model) : 0;
 
     await query(`UPDATE jobs SET cost_usd = $1, model_version = $2 WHERE id = $3`, [cost, model, jobId]);
 

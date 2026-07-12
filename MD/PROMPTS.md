@@ -8,7 +8,7 @@ Regenerate this file after prompt changes:
 node scripts/generate-prompts-md.js
 ```
 
-**Last generated:** 2026-07-10 · **71 enabled** · **1 disabled** in LEGACY_STYLES
+**Last generated:** 2026-07-11 · **81 enabled** · **1 disabled** in LEGACY_STYLES
 
 Prompts are server-side only — the mobile app never bundles them. When adding a style, copy/adapt a prompt here, then add it to `LEGACY_STYLES` and deploy staging.
 
@@ -29,6 +29,108 @@ See also: `MD/STYLES.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`.
 ---
 
 ## Enabled prompts
+
+### Moods & Moments
+
+#### `monday-mood` — Monday
+
+- **Category:** moods-moments
+- **Model:** SEEDREAM_4_5 · NANO_BANANA_2 · NANO_BANANA (random)
+- **Description:** Humorous Monday Mood cartoon — exhausted, relatable, identity preserved
+
+```
+Preserve the uploaded person's identity exactly. Create a humorous Monday Mood cartoon illustration. The person is exhausted, slouching with a varied mood and expressions Add random scenarios in relation to the illustration. Warm painterly comic illustration, expressive brushwork, clean composition, humorous but relatable, identity preserved..
+```
+
+#### `friday-feeling` — Friday
+
+- **Category:** moods-moments
+- **Model:** NANO_BANANA_2 · NANO_BANANA (random)
+- **Description:** Humorous Friday Feeling illustration — excited, relaxed, full of energy
+
+```
+Preserve the uploaded person's identity exactly. Create a humorous Friday Feeling illustration. The person is excited, relaxed, smiling, and full of energy with varied moods and expressions. Add random scenarios in relation to the illustration. Warm painterly comic illustration, expressive brushwork, clean composition, humorous but relatable, identity preserved.
+```
+
+#### `payday` — Payday
+
+- **Category:** moods-moments
+- **Model:** NANO_BANANA
+- **Description:** Payday glow-up caricature — flush, smug, and briefly unstoppable
+
+```
+Using the uploaded photo as the sole identity reference, create a funny caricature of the subject as Payday. Preserve facial likeness, age, ethnicity, hairstyle, and clothing while exaggerating a smug, flush, briefly-unstoppable grin. Scene: playful payday moment — bank notification vibe, shopping bags or coffee treat nearby, soft glamorous lighting. Mood: temporary wealth swagger, light comedy. Style: polished humorous editorial caricature. Full-bleed. No readable text, logos, watermarks, or borders.
+```
+
+#### `end-of-month` — End of Month
+
+- **Category:** moods-moments
+- **Model:** NANO_BANANA
+- **Description:** Broke-but-surviving end-of-month caricature — empty wallet energy
+
+```
+Using the uploaded photo as the sole identity reference, create a funny caricature of the subject as End of Month. Preserve facial likeness, age, ethnicity, hairstyle, and clothing while exaggerating a broke-but-surviving, empty-wallet expression. Scene: end-of-month realism — sparse fridge vibes, empty wallet or nearly empty card, ramen or toast nearby, soft comic lighting. Mood: relatable financial humor, not harsh. Style: polished humorous editorial caricature. Full-bleed. No readable text, logos, watermarks, or borders.
+```
+
+#### `before-coffee` — Before Coffee
+
+- **Category:** moods-moments
+- **Model:** NANO_BANANA
+- **Description:** Pre-caffeine zombie caricature — half-awake and unapproachable
+
+```
+Using the uploaded photo as the sole identity reference, create a funny caricature of the subject as Before Coffee. Preserve facial likeness, age, ethnicity, hairstyle, and clothing while exaggerating a half-awake, unapproachable, pre-caffeine zombie expression. Scene: morning kitchen or bathroom — empty mug waiting, dim soft light, bedhead energy. Mood: comic warning label energy. Style: polished humorous editorial caricature. Full-bleed. No text, logos, watermarks, or borders.
+```
+
+#### `after-coffee` — After Coffee
+
+- **Category:** moods-moments
+- **Model:** NANO_BANANA
+- **Description:** Post-caffeine glow caricature — alert, caffeinated, and finally human
+
+```
+Using the uploaded photo as the sole identity reference, create a funny caricature of the subject as After Coffee. Preserve facial likeness, age, ethnicity, hairstyle, and clothing while exaggerating an alert, caffeinated, finally-human expression. Scene: bright morning light, steaming coffee cup in hand or nearby, energetic posture. Mood: revitalized comedy glow-up. Style: polished humorous editorial caricature with crisp lighting. Full-bleed. No text, logos, watermarks, or borders.
+```
+
+#### `deadline-mode` — Deadline Mode
+
+- **Category:** moods-moments
+- **Model:** NANO_BANANA
+- **Description:** Deadline chaos caricature — intense focus, caffeine, and ticking clock energy
+
+```
+Using the uploaded photo as the sole identity reference, create a funny caricature of the subject as Deadline Mode. Preserve facial likeness, age, ethnicity, hairstyle, and clothing while exaggerating intense focus, mild panic, and hyper-productive energy. Scene: desk buried in notes and screens, coffee cups, soft dramatic task lighting, ticking-clock tension without readable text. Mood: stressful comedy. Style: polished humorous editorial caricature. Full-bleed. No logos, watermarks, or borders.
+```
+
+#### `vacation-mood` — Vacation Mood
+
+- **Category:** moods-moments
+- **Model:** NANO_BANANA
+- **Description:** Vacation-brain caricature — sunglasses, sun, and zero responsibilities
+
+```
+Using the uploaded photo as the sole identity reference, create a funny caricature of the subject as Vacation Mood. Preserve facial likeness, age, ethnicity, hairstyle, and clothing while exaggerating a relaxed, sunglasses-optional, zero-responsibilities smile. Scene: sunny vacation setting — beach, pool, or resort lounge with warm sunlight and soft tropical colors. Mood: blissful escape comedy. Style: polished humorous editorial caricature. Full-bleed. No text, logos, watermarks, or borders.
+```
+
+#### `gym-motivation` — Gym Motivation
+
+- **Category:** moods-moments
+- **Model:** NANO_BANANA
+- **Description:** Gym-day caricature — hyped, determined, and slightly overconfident
+
+```
+Using the uploaded photo as the sole identity reference, create a funny caricature of the subject as Gym Motivation. Preserve facial likeness, age, ethnicity, hairstyle, and athletic or casual gym clothing while exaggerating a hyped, determined, slightly overconfident expression. Scene: gym or workout setting — weights, water bottle, energetic lighting. Mood: motivational comedy, not body-shaming. Style: polished humorous editorial caricature. Full-bleed. No text, logos, watermarks, or borders.
+```
+
+#### `forgot-my-password` — Forgot My Password
+
+- **Category:** moods-moments
+- **Model:** NANO_BANANA
+- **Description:** Password-reset rage caricature — staring at a screen in digital despair
+
+```
+Using the uploaded photo as the sole identity reference, create a funny caricature of the subject as Forgot My Password. Preserve facial likeness, age, ethnicity, hairstyle, and clothing while exaggerating digital despair — blank stare, mild rage, forehead-in-hand energy at a laptop or phone. Scene: desk or couch with glowing screen, soft comic lighting. Mood: relatable tech frustration comedy. Style: polished humorous editorial caricature. Full-bleed. No readable UI text, logos, watermarks, or borders.
+```
 
 ### Caricatures
 
@@ -252,6 +354,16 @@ make this a Comic Book Style cartoon
 
 ```
 make this a Comic Book Style cartoon
+```
+
+#### `custom1` — Custom 1
+
+- **Category:** cartoons
+- **Model:** DEFAULT_MODEL
+- **Description:** Digital cartoon illustration with vibrant colors and proportion exaggeration
+
+```
+Using the uploaded photo as the facial reference, create a digital cartoon illustration of the same subject. Preserve the subject's recognizable facial likeness, while applying stylized, cartoon-like exaggeration. The subject is dressed in random shirt that fits snugly around a rounded torso, paired with random trousers that are slightly loose at the legs, and random shoes. His arms hang naturally by his sides, with relaxed but slightly clenched hands. The background is a bright blue sky with soft, fluffy white clouds, creating an open, cheerful atmosphere that contrasts with the subject's serious expression. Style: clean, polished contemporary digital cartoon illustration, with smooth linework, vibrant colors, and intentional proportion exaggeration (large head, simplified body). Maintain clarity, balanced proportions, and a friendly cartoon aesthetic. Full-bleed composition. No borders. No photorealism.
 ```
 
 ### Paintings
@@ -670,6 +782,16 @@ make this a pixar-like cartoon including the background
 make this a funko pop
 ```
 
+#### `custom2` — Custom 2
+
+- **Category:** 3d-characters
+- **Model:** DEFAULT_MODEL
+- **Description:** Stylized 3D cartoon caricature with soft, friendly animated style - supports multiple faces
+
+```
+Using the uploaded photo as the reference, detect all clearly visible human faces in the image.Create a stylized 3D cartoon caricature of EACH person, preserving their individual facial likeness, skin tone, hairstyle, and expression.Do NOT merge faces and do NOT ignore secondary subjects. If multiple people are present:Apply the same 3D animated style consistently to all subjects, Maintain relative positions and scale between them,Keep each face distinct and recognizable,Reinterpret each person in a soft, friendly, animated 3D style with slightly exaggerated features, including: Large expressive eyes,Smooth rounded facial structure,Simplified nose and mouth,Warm, cheerful expressions,Skin should be smooth and matte, with soft lighting and no visible pores.Hair should be stylized and sculpted, with soft volume and clean shapes.Clothing should remain recognizable but simplified. Background may be simplified or softly blurred, but the relationship and interaction between subjects must be preserved.Render quality: polished 3D animated film style, clean geometry, soft shadows, warm color palette.Full-bleed composition. No borders. No photorealism.
+```
+
 ### Anime & Manga
 
 #### `anime` — Anime
@@ -734,28 +856,6 @@ make this a funny neanderthal cartoon maintaining facial features, in a random N
 
 ```
 make this a funny neanderthal 3d caricature maintaining facial features, in a random Neanderthalic setting. detect and include all humans in the photo, caricaturize all humans once detected
-```
-
-### Trending
-
-#### `custom1` — Custom 1
-
-- **Category:** trending
-- **Model:** DEFAULT_MODEL
-- **Description:** Digital cartoon illustration with vibrant colors and proportion exaggeration
-
-```
-Using the uploaded photo as the facial reference, create a digital cartoon illustration of the same subject. Preserve the subject's recognizable facial likeness, while applying stylized, cartoon-like exaggeration. The subject is dressed in random shirt that fits snugly around a rounded torso, paired with random trousers that are slightly loose at the legs, and random shoes. His arms hang naturally by his sides, with relaxed but slightly clenched hands. The background is a bright blue sky with soft, fluffy white clouds, creating an open, cheerful atmosphere that contrasts with the subject's serious expression. Style: clean, polished contemporary digital cartoon illustration, with smooth linework, vibrant colors, and intentional proportion exaggeration (large head, simplified body). Maintain clarity, balanced proportions, and a friendly cartoon aesthetic. Full-bleed composition. No borders. No photorealism.
-```
-
-#### `custom2` — Custom 2
-
-- **Category:** trending
-- **Model:** DEFAULT_MODEL
-- **Description:** Stylized 3D cartoon caricature with soft, friendly animated style - supports multiple faces
-
-```
-Using the uploaded photo as the reference, detect all clearly visible human faces in the image.Create a stylized 3D cartoon caricature of EACH person, preserving their individual facial likeness, skin tone, hairstyle, and expression.Do NOT merge faces and do NOT ignore secondary subjects. If multiple people are present:Apply the same 3D animated style consistently to all subjects, Maintain relative positions and scale between them,Keep each face distinct and recognizable,Reinterpret each person in a soft, friendly, animated 3D style with slightly exaggerated features, including: Large expressive eyes,Smooth rounded facial structure,Simplified nose and mouth,Warm, cheerful expressions,Skin should be smooth and matte, with soft lighting and no visible pores.Hair should be stylized and sculpted, with soft volume and clean shapes.Clothing should remain recognizable but simplified. Background may be simplified or softly blurred, but the relationship and interaction between subjects must be preserved.Render quality: polished 3D animated film style, clean geometry, soft shadows, warm color palette.Full-bleed composition. No borders. No photorealism.
 ```
 
 ---

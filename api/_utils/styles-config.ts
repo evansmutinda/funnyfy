@@ -13,9 +13,30 @@ export interface StyleConfig {
   categoryId: string;
   description?: string;
   prompt: string;
+  /** Primary model (cost estimates + fallback). */
   model: string;
+  /** Optional pool — process-job picks one at random per generation. */
+  models?: string[];
   premium?: boolean;
   enabled?: boolean;
+}
+
+/** Models available for a style (pool or single primary). */
+export function getStyleModels(style: StyleConfig): string[] {
+  if (Array.isArray(style.models) && style.models.length > 0) {
+    return style.models;
+  }
+  return style.model ? [style.model] : [];
+}
+
+/** Pick a model for this generation (random from pool when set). */
+export function resolveStyleModel(style: StyleConfig): string {
+  const pool = getStyleModels(style);
+  if (pool.length === 0) {
+    throw new Error(`Style ${style.id} has no model configured`);
+  }
+  if (pool.length === 1) return pool[0];
+  return pool[Math.floor(Math.random() * pool.length)];
 }
 
 const DEFAULT_MODEL = 'black-forest-labs/flux-kontext-pro';
@@ -245,7 +266,7 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
   custom1: {
     id: 'custom1',
     label: 'Custom 1',
-    categoryId: 'trending',
+    categoryId: 'cartoons',
     description: 'Digital cartoon illustration with vibrant colors and proportion exaggeration',
     prompt:
       "Using the uploaded photo as the facial reference, create a digital cartoon illustration of the same subject. Preserve the subject's recognizable facial likeness, while applying stylized, cartoon-like exaggeration. The subject is dressed in random shirt that fits snugly around a rounded torso, paired with random trousers that are slightly loose at the legs, and random shoes. His arms hang naturally by his sides, with relaxed but slightly clenched hands. The background is a bright blue sky with soft, fluffy white clouds, creating an open, cheerful atmosphere that contrasts with the subject's serious expression. Style: clean, polished contemporary digital cartoon illustration, with smooth linework, vibrant colors, and intentional proportion exaggeration (large head, simplified body). Maintain clarity, balanced proportions, and a friendly cartoon aesthetic. Full-bleed composition. No borders. No photorealism.",
@@ -659,7 +680,7 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
   custom2: {
     id: 'custom2',
     label: 'Custom 2',
-    categoryId: 'trending',
+    categoryId: '3d-characters',
     description: 'Stylized 3D cartoon caricature with soft, friendly animated style - supports multiple faces',
     prompt:
       'Using the uploaded photo as the reference, detect all clearly visible human faces in the image.Create a stylized 3D cartoon caricature of EACH person, preserving their individual facial likeness, skin tone, hairstyle, and expression.Do NOT merge faces and do NOT ignore secondary subjects. If multiple people are present:Apply the same 3D animated style consistently to all subjects, Maintain relative positions and scale between them,Keep each face distinct and recognizable,Reinterpret each person in a soft, friendly, animated 3D style with slightly exaggerated features, including: Large expressive eyes,Smooth rounded facial structure,Simplified nose and mouth,Warm, cheerful expressions,Skin should be smooth and matte, with soft lighting and no visible pores.Hair should be stylized and sculpted, with soft volume and clean shapes.Clothing should remain recognizable but simplified. Background may be simplified or softly blurred, but the relationship and interaction between subjects must be preserved.Render quality: polished 3D animated film style, clean geometry, soft shadows, warm color palette.Full-bleed composition. No borders. No photorealism.',
@@ -782,6 +803,118 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     description: 'Cyborg cartoon caricature maintaining facial and body features, set in futuristic city settings',
     prompt:
       'make a cyborg cartoon caricature, maintaining subjects facial and body features, set in futuristic random city in random settings',
+    model: NANO_BANANA,
+    enabled: true,
+    premium: false,
+  },
+  'monday-mood': {
+    id: 'monday-mood',
+    label: 'Monday',
+    categoryId: 'moods-moments',
+    description: 'Humorous Monday Mood cartoon — exhausted, relatable, identity preserved',
+    prompt:
+      "Preserve the uploaded person's identity exactly. Create a humorous Monday Mood cartoon illustration. The person is exhausted, slouching with a varied mood and expressions Add random scenarios in relation to the illustration. Warm painterly comic illustration, expressive brushwork, clean composition, humorous but relatable, identity preserved..",
+    model: SEEDREAM_4_5,
+    models: [SEEDREAM_4_5, NANO_BANANA_2, NANO_BANANA],
+    enabled: true,
+    premium: false,
+  },
+  'friday-feeling': {
+    id: 'friday-feeling',
+    label: 'Friday',
+    categoryId: 'moods-moments',
+    description: 'Humorous Friday Feeling illustration — excited, relaxed, full of energy',
+    prompt:
+      "Preserve the uploaded person's identity exactly. Create a humorous Friday Feeling illustration. The person is excited, relaxed, smiling, and full of energy with varied moods and expressions. Add random scenarios in relation to the illustration. Warm painterly comic illustration, expressive brushwork, clean composition, humorous but relatable, identity preserved.",
+    model: NANO_BANANA_2,
+    models: [NANO_BANANA_2, NANO_BANANA],
+    enabled: true,
+    premium: false,
+  },
+  payday: {
+    id: 'payday',
+    label: 'Payday',
+    categoryId: 'moods-moments',
+    description: 'Payday glow-up caricature — flush, smug, and briefly unstoppable',
+    prompt:
+      "Using the uploaded photo as the sole identity reference, create a funny caricature of the subject as Payday. Preserve facial likeness, age, ethnicity, hairstyle, and clothing while exaggerating a smug, flush, briefly-unstoppable grin. Scene: playful payday moment — bank notification vibe, shopping bags or coffee treat nearby, soft glamorous lighting. Mood: temporary wealth swagger, light comedy. Style: polished humorous editorial caricature. Full-bleed. No readable text, logos, watermarks, or borders.",
+    model: NANO_BANANA,
+    enabled: true,
+    premium: false,
+  },
+  'end-of-month': {
+    id: 'end-of-month',
+    label: 'End of Month',
+    categoryId: 'moods-moments',
+    description: 'Broke-but-surviving end-of-month caricature — empty wallet energy',
+    prompt:
+      "Using the uploaded photo as the sole identity reference, create a funny caricature of the subject as End of Month. Preserve facial likeness, age, ethnicity, hairstyle, and clothing while exaggerating a broke-but-surviving, empty-wallet expression. Scene: end-of-month realism — sparse fridge vibes, empty wallet or nearly empty card, ramen or toast nearby, soft comic lighting. Mood: relatable financial humor, not harsh. Style: polished humorous editorial caricature. Full-bleed. No readable text, logos, watermarks, or borders.",
+    model: NANO_BANANA,
+    enabled: true,
+    premium: false,
+  },
+  'before-coffee': {
+    id: 'before-coffee',
+    label: 'Before Coffee',
+    categoryId: 'moods-moments',
+    description: 'Pre-caffeine zombie caricature — half-awake and unapproachable',
+    prompt:
+      "Using the uploaded photo as the sole identity reference, create a funny caricature of the subject as Before Coffee. Preserve facial likeness, age, ethnicity, hairstyle, and clothing while exaggerating a half-awake, unapproachable, pre-caffeine zombie expression. Scene: morning kitchen or bathroom — empty mug waiting, dim soft light, bedhead energy. Mood: comic warning label energy. Style: polished humorous editorial caricature. Full-bleed. No text, logos, watermarks, or borders.",
+    model: NANO_BANANA,
+    enabled: true,
+    premium: false,
+  },
+  'after-coffee': {
+    id: 'after-coffee',
+    label: 'After Coffee',
+    categoryId: 'moods-moments',
+    description: 'Post-caffeine glow caricature — alert, caffeinated, and finally human',
+    prompt:
+      "Using the uploaded photo as the sole identity reference, create a funny caricature of the subject as After Coffee. Preserve facial likeness, age, ethnicity, hairstyle, and clothing while exaggerating an alert, caffeinated, finally-human expression. Scene: bright morning light, steaming coffee cup in hand or nearby, energetic posture. Mood: revitalized comedy glow-up. Style: polished humorous editorial caricature with crisp lighting. Full-bleed. No text, logos, watermarks, or borders.",
+    model: NANO_BANANA,
+    enabled: true,
+    premium: false,
+  },
+  'deadline-mode': {
+    id: 'deadline-mode',
+    label: 'Deadline Mode',
+    categoryId: 'moods-moments',
+    description: 'Deadline chaos caricature — intense focus, caffeine, and ticking clock energy',
+    prompt:
+      "Using the uploaded photo as the sole identity reference, create a funny caricature of the subject as Deadline Mode. Preserve facial likeness, age, ethnicity, hairstyle, and clothing while exaggerating intense focus, mild panic, and hyper-productive energy. Scene: desk buried in notes and screens, coffee cups, soft dramatic task lighting, ticking-clock tension without readable text. Mood: stressful comedy. Style: polished humorous editorial caricature. Full-bleed. No logos, watermarks, or borders.",
+    model: NANO_BANANA,
+    enabled: true,
+    premium: false,
+  },
+  'vacation-mood': {
+    id: 'vacation-mood',
+    label: 'Vacation Mood',
+    categoryId: 'moods-moments',
+    description: 'Vacation-brain caricature — sunglasses, sun, and zero responsibilities',
+    prompt:
+      "Using the uploaded photo as the sole identity reference, create a funny caricature of the subject as Vacation Mood. Preserve facial likeness, age, ethnicity, hairstyle, and clothing while exaggerating a relaxed, sunglasses-optional, zero-responsibilities smile. Scene: sunny vacation setting — beach, pool, or resort lounge with warm sunlight and soft tropical colors. Mood: blissful escape comedy. Style: polished humorous editorial caricature. Full-bleed. No text, logos, watermarks, or borders.",
+    model: NANO_BANANA,
+    enabled: true,
+    premium: false,
+  },
+  'gym-motivation': {
+    id: 'gym-motivation',
+    label: 'Gym Motivation',
+    categoryId: 'moods-moments',
+    description: 'Gym-day caricature — hyped, determined, and slightly overconfident',
+    prompt:
+      "Using the uploaded photo as the sole identity reference, create a funny caricature of the subject as Gym Motivation. Preserve facial likeness, age, ethnicity, hairstyle, and athletic or casual gym clothing while exaggerating a hyped, determined, slightly overconfident expression. Scene: gym or workout setting — weights, water bottle, energetic lighting. Mood: motivational comedy, not body-shaming. Style: polished humorous editorial caricature. Full-bleed. No text, logos, watermarks, or borders.",
+    model: NANO_BANANA,
+    enabled: true,
+    premium: false,
+  },
+  'forgot-my-password': {
+    id: 'forgot-my-password',
+    label: 'Forgot My Password',
+    categoryId: 'moods-moments',
+    description: 'Password-reset rage caricature — staring at a screen in digital despair',
+    prompt:
+      "Using the uploaded photo as the sole identity reference, create a funny caricature of the subject as Forgot My Password. Preserve facial likeness, age, ethnicity, hairstyle, and clothing while exaggerating digital despair — blank stare, mild rage, forehead-in-hand energy at a laptop or phone. Scene: desk or couch with glowing screen, soft comic lighting. Mood: relatable tech frustration comedy. Style: polished humorous editorial caricature. Full-bleed. No readable UI text, logos, watermarks, or borders.",
     model: NANO_BANANA,
     enabled: true,
     premium: false,

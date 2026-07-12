@@ -23,6 +23,7 @@ const MODEL_LABELS = {
 };
 
 const CATEGORY_ORDER = [
+  'moods-moments',
   'caricatures',
   'cartoons',
   'paintings',
@@ -31,10 +32,10 @@ const CATEGORY_ORDER = [
   'anime-manga',
   'video-games',
   'fantasy-mythical',
-  'trending',
 ];
 
 const CATEGORY_LABELS = {
+  'moods-moments': 'Moods & Moments',
   caricatures: 'Caricatures',
   cartoons: 'Cartoons',
   paintings: 'Paintings',
@@ -43,7 +44,6 @@ const CATEGORY_LABELS = {
   'anime-manga': 'Anime & Manga',
   'video-games': 'Video Games',
   'fantasy-mythical': 'Fantasy & Mythical',
-  trending: 'Trending',
 };
 
 function extractLegacyBlock(source) {
@@ -121,19 +121,33 @@ function field(body, name) {
 }
 
 function parseStyles(block) {
-  return splitTopLevelEntries(block).map(({ key, body }) => ({
-    id: field(body, 'id') || key,
-    label: field(body, 'label'),
-    categoryId: field(body, 'categoryId'),
-    description: field(body, 'description'),
-    prompt: field(body, 'prompt'),
-    model: field(body, 'model'),
-    enabled: !/enabled:\s*false/.test(body),
-  }));
+  return splitTopLevelEntries(block).map(({ key, body }) => {
+    const modelsMatch = body.match(/models:\s*\[([^\]]*)\]/);
+    const models = modelsMatch
+      ? [...modelsMatch[1].matchAll(/([A-Z0-9_]+)/g)].map((m) => m[1])
+      : [];
+    return {
+      id: field(body, 'id') || key,
+      label: field(body, 'label'),
+      categoryId: field(body, 'categoryId'),
+      description: field(body, 'description'),
+      prompt: field(body, 'prompt'),
+      model: field(body, 'model'),
+      models,
+      enabled: !/enabled:\s*false/.test(body),
+    };
+  });
 }
 
 function modelLabel(model) {
   return MODEL_LABELS[model] || model;
+}
+
+function resolveModelLabels(style) {
+  if (style.models?.length) {
+    return style.models.map(modelLabel).join(' · ') + ' (random)';
+  }
+  return modelLabel(style.model);
 }
 
 function renderStyle(style) {
@@ -142,7 +156,7 @@ function renderStyle(style) {
     `#### \`${style.id}\` — ${style.label}${status}`,
     '',
     `- **Category:** ${style.categoryId}`,
-    `- **Model:** ${modelLabel(style.model)}`,
+    `- **Model:** ${resolveModelLabels(style)}`,
     ...(style.description ? [`- **Description:** ${style.description}`] : []),
     '',
     '```',

@@ -54,10 +54,20 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 
 ---
 
-## Enabled styles (69)
+## Enabled styles (81)
 
 | Id | Label | Category | Model | Comparison pair |
 |----|-------|----------|-------|-----------------|
+| `monday-mood` | Monday | moods-moments | seedream-4.5 / nano-banana-2 / nano-banana (random) | ✅ (3 afters) |
+| `friday-feeling` | Friday | moods-moments | nano-banana-2 / nano-banana (random) | ✅ (2 afters) |
+| `payday` | Payday | moods-moments | nano-banana | — |
+| `end-of-month` | End of Month | moods-moments | nano-banana | — |
+| `before-coffee` | Before Coffee | moods-moments | nano-banana | — |
+| `after-coffee` | After Coffee | moods-moments | nano-banana | — |
+| `deadline-mode` | Deadline Mode | moods-moments | nano-banana | — |
+| `vacation-mood` | Vacation Mood | moods-moments | nano-banana | — |
+| `gym-motivation` | Gym Motivation | moods-moments | nano-banana | — |
+| `forgot-my-password` | Forgot My Password | moods-moments | nano-banana | — |
 | `90s-cartoon` | 90s | cartoons | flux-kontext-pro | ✅ |
 | `chibi` | Chibi | cartoons | flux-kontext-pro | ✅ |
 | `classic-v1` | Classic V1 | cartoons | seedream-4 | ✅ |
@@ -77,8 +87,8 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 | `3d-render-v2` | 3D Render V2 | cartoons | seedream-4.5 | ✅ |
 | `neon` | Neon | art | flux-kontext-pro | ✅ |
 | `anime` | Anime | anime-manga | flux-kontext-pro | — |
-| `custom1` | Custom 1 | trending | flux-kontext-pro | — |
-| `custom2` | Custom 2 | trending | flux-kontext-pro | — |
+| `custom1` | Custom 1 | cartoons | flux-kontext-pro | — |
+| `custom2` | Custom 2 | 3d-characters | flux-kontext-pro | — |
 | `3dclay` | 3D Clay | 3d-characters | flux-kontext-pro | ✅ |
 | `oil-paint` | Oil Paint | paintings | flux-kontext-pro | ✅ |
 | `lowpoly` | Low Poly | art | seedream-4 | ✅ |
@@ -214,6 +224,8 @@ Run `npm run build-comparison-assets` after adding or replacing source files. Fo
 | `surreal` | `before/lady9.png` | `after/Art/surreal.jpeg` |
 | `coloured-glass` | `before/lady10.png` | `after/Art/coloured-glass.jpg` |
 | `paste-up` | `before/lady11.png` | `after/Art/Paste-up.jpg` |
+| `monday-mood` | `before/lady3.png` | `after/Moods&Moments/mondays1.jpg`, `mondays2.jpeg`, `mondays3.jpeg` |
+| `friday-feeling` | `before/man9.png` | `after/Moods&Moments/fridays1.jpeg`, `fridays2.jpeg` |
 
 **Style picker behavior:** Home category rows and the **See all** grid use `RowFocusProvider` (`hooks/useRowFocus.js`) so one row crossfades at a time. Home rows show up to **5** previews (`ROW_PREVIEW_COUNT`); use **See all** for the full category list.
 

@@ -31,7 +31,7 @@ export default async function handler(
   return res.status(200).json({
     ok: true,
     categories: STYLE_CATEGORIES,
-    styles: styles.map(({ prompt, model, ...style }) => ({
+    styles: styles.map(({ prompt, model, models, ...style }) => ({
       ...style,
     })),
   });

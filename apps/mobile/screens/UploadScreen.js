@@ -101,6 +101,7 @@ export default function UploadScreen({
       <ComparisonFade
         beforeSource={comparisonPair.before}
         afterSource={comparisonPair.after}
+        afterSources={comparisonPair.afters}
         style={styles.uploadBackgroundFill}
         imageStyle={styles.uploadBackgroundImage}
         holdMs={1800}

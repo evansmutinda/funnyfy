@@ -2,7 +2,7 @@
 // Used by the async queue worker (api/cron/process-queue.ts)
 
 import { query } from './db';
-import { getStyleById } from './styles-config';
+import { getStyleById, resolveStyleModel } from './styles-config';
 import {
   getImageUrlFromOutput,
   pollReplicatePrediction,
@@ -44,7 +44,10 @@ export async function processJob(job: JobRow): Promise<void> {
 
   let prompt = styleConfig.prompt;
   const imageUrl = job.input_image_url;
-  const modelVersion = styleConfig.model;
+  const modelVersion = resolveStyleModel(styleConfig);
+
+  // Persist chosen model early so cost finalization uses the actual run, not the primary.
+  await query(`UPDATE jobs SET model_version = $1 WHERE id = $2`, [modelVersion, job.id]);
 
   const input: Record<string, unknown> = {
     prompt: prompt,

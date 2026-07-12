@@ -116,11 +116,16 @@ function MediaTile({
           <ComparisonFade
             beforeSource={resolvedPair.before}
             afterSource={resolvedPair.after}
+            afterSources={resolvedPair.afters}
             style={StyleSheet.absoluteFillObject}
             paused={comparisonPaused}
             holdMs={TILE_HOLD_MS}
             fadeMs={TILE_FADE_MS}
-            maxCycles={DEFAULT_COMPARISON_CYCLES}
+            maxCycles={
+              Array.isArray(resolvedPair.afters) && resolvedPair.afters.length > 1
+                ? resolvedPair.afters.length
+                : DEFAULT_COMPARISON_CYCLES
+            }
           />
         ) : useStaticComparison ? (
           <Image

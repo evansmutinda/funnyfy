@@ -12,8 +12,8 @@ export interface StyleCategory {
 }
 
 export const STYLE_CATEGORIES: StyleCategory[] = [
-  { id: 'caricatures', label: "Caricatures" },
   { id: 'moods-moments', label: "Moods & Moments" },
+  { id: 'caricatures', label: "Caricatures" },
   { id: 'tinyme', label: "TinyMe" },
   { id: 'cartoons', label: "Cartoons" },
   { id: '3d-characters', label: "3D Characters" },
@@ -27,7 +27,6 @@ export const STYLE_CATEGORIES: StyleCategory[] = [
   { id: 'art', label: "Art" },
   { id: 'professions', label: "Professions" },
   { id: 'seasonal-events', label: "Seasonal & Events" },
-  { id: 'trending', label: "Trending" },
 ];
 
 export const STYLE_CATALOG: StyleCatalogEntry[] = [
@@ -41,8 +40,8 @@ export const STYLE_CATALOG: StyleCatalogEntry[] = [
   { id: "street-artist-caricature", label: "Street Artist Caricature", categoryId: "caricatures" },
   { id: "funny-business-portrait", label: "Funny Business Portrait", categoryId: "caricatures" },
   { id: "theme-park-caricature", label: "Theme Park Caricature", categoryId: "caricatures" },
-  { id: "monday-mood", label: "Monday Mood", categoryId: "moods-moments" },
-  { id: "friday-feeling", label: "Friday Feeling", categoryId: "moods-moments" },
+  { id: "monday-mood", label: "Monday", categoryId: "moods-moments" },
+  { id: "friday-feeling", label: "Friday", categoryId: "moods-moments" },
   { id: "payday", label: "Payday", categoryId: "moods-moments" },
   { id: "end-of-month", label: "End of Month", categoryId: "moods-moments" },
   { id: "before-coffee", label: "Before Coffee", categoryId: "moods-moments" },
@@ -181,16 +180,16 @@ export const STYLE_CATALOG: StyleCatalogEntry[] = [
   { id: "new-year", label: "New Year", categoryId: "seasonal-events" },
   { id: "father-s-day", label: "Father's Day", categoryId: "seasonal-events" },
   { id: "mother-s-day", label: "Mother's Day", categoryId: "seasonal-events" },
-  { id: "action-figure-box", label: "Action Figure Box", categoryId: "trending" },
-  { id: "funny-figure-box", label: "Funny Figure Box", categoryId: "trending" },
-  { id: "collectible-toy", label: "Collectible Toy", categoryId: "trending" },
-  { id: "ai-passport-photo", label: "AI Passport Photo", categoryId: "trending" },
-  { id: "vintage-poster", label: "Vintage Poster", categoryId: "trending" },
-  { id: "movie-poster", label: "Movie Poster", categoryId: "trending" },
-  { id: "magazine-cover", label: "Magazine Cover", categoryId: "trending" },
-  { id: "trading-card", label: "Trading Card", categoryId: "trending" },
-  { id: "sports-card", label: "Sports Card", categoryId: "trending" },
-  { id: "wanted-poster", label: "Wanted Poster", categoryId: "trending" },
+  { id: "action-figure-box", label: "Action Figure Box", categoryId: "cartoons" },
+  { id: "funny-figure-box", label: "Funny Figure Box", categoryId: "cartoons" },
+  { id: "collectible-toy", label: "Collectible Toy", categoryId: "cartoons" },
+  { id: "ai-passport-photo", label: "AI Passport Photo", categoryId: "art" },
+  { id: "vintage-poster", label: "Vintage Poster", categoryId: "art" },
+  { id: "movie-poster", label: "Movie Poster", categoryId: "art" },
+  { id: "magazine-cover", label: "Magazine Cover", categoryId: "art" },
+  { id: "trading-card", label: "Trading Card", categoryId: "art" },
+  { id: "sports-card", label: "Sports Card", categoryId: "art" },
+  { id: "wanted-poster", label: "Wanted Poster", categoryId: "art" },
 ];
 
 export const CATALOG_STYLE_COUNT = 160;

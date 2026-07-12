@@ -249,6 +249,8 @@ export const STYLE_CARD_IMAGE_GEOMETRIC = require('./assets/comparisons/tiles/af
 export const STYLE_CARD_IMAGE_SURREAL = require('./assets/comparisons/tiles/after/Art/surreal.jpg');
 export const STYLE_CARD_IMAGE_COLOURED_GLASS = require('./assets/comparisons/tiles/after/Art/coloured-glass.jpg');
 export const STYLE_CARD_IMAGE_PASTE_UP = require('./assets/comparisons/tiles/after/Art/Paste-up.jpg');
+export const STYLE_CARD_IMAGE_MONDAY = require('./assets/comparisons/tiles/after/Moods&Moments/mondays1.jpg');
+export const STYLE_CARD_IMAGE_FRIDAY = require('./assets/comparisons/tiles/after/Moods&Moments/fridays1.jpg');
 export const STYLE_CARD_IMAGE_WC = require('./assets/wc.jpg');
 export const STYLE_CARD_IMAGE_ACRYLIC = require('./assets/comparisons/tiles/after/Paintings/Acrylic.jpg');
 export const STYLE_CARD_IMAGE_GOUACHE = require('./assets/comparisons/tiles/after/Paintings/Gouache.jpg');
@@ -334,6 +336,8 @@ const STYLE_IMAGE_BY_ID = {
   surreal: STYLE_CARD_IMAGE_SURREAL,
   'coloured-glass': STYLE_CARD_IMAGE_COLOURED_GLASS,
   'paste-up': STYLE_CARD_IMAGE_PASTE_UP,
+  'monday-mood': STYLE_CARD_IMAGE_MONDAY,
+  'friday-feeling': STYLE_CARD_IMAGE_FRIDAY,
   'pop-art-v1': STYLE_CARD_IMAGE_POP_ART_V1,
   'pop-art-v2': STYLE_CARD_IMAGE_POP_ART_V2,
   'pop-art-v3': STYLE_CARD_IMAGE_POP_ART_V3,

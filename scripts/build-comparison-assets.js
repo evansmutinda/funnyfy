@@ -216,7 +216,12 @@ function buildCuratedPairsBlock(pathMap) {
   for (const [styleId, paths] of Object.entries(pathMap)) {
     lines.push(`  '${styleId}': {`);
     lines.push(`    before: '${paths.before}',`);
-    lines.push(`    after: '${paths.after}',`);
+    if (Array.isArray(paths.after)) {
+      const listed = paths.after.map((a) => `'${a}'`).join(', ');
+      lines.push(`    after: [${listed}],`);
+    } else {
+      lines.push(`    after: '${paths.after}',`);
+    }
     lines.push('  },');
   }
   lines.push('};');
@@ -231,10 +236,18 @@ function extractCuratedPathMap(pairsSource) {
 
   if (pathsBlock) {
     const map = {};
-    const entryRe = /['"]?([\w-]+)['"]?\s*:\s*\{\s*before:\s*'([^']+)',\s*after:\s*'([^']+)',\s*\}/g;
+    const entryRe =
+      /['"]?([\w-]+)['"]?\s*:\s*\{\s*before:\s*'([^']+)',\s*after:\s*(\[[\s\S]*?\]|'[^']+')\s*,?\s*\}/g;
     let match;
     while ((match = entryRe.exec(block[0])) !== null) {
-      map[match[1]] = { before: match[2], after: match[3] };
+      const afterRaw = match[3].trim();
+      let after;
+      if (afterRaw.startsWith('[')) {
+        after = [...afterRaw.matchAll(/'([^']+)'/g)].map((m) => m[1]);
+      } else {
+        after = afterRaw.slice(1, -1);
+      }
+      map[match[1]] = { before: match[2], after };
     }
     if (Object.keys(map).length === 0) {
       throw new Error('No CURATED_PAIR_PATHS entries parsed');
@@ -283,7 +296,10 @@ async function main() {
   const curatedPathMap = extractCuratedPathMap(pairsSource);
   const referenced = [
     ...collectRequirePaths(pairsSource),
-    ...Object.values(curatedPathMap).flatMap((p) => [p.before, p.after]),
+    ...Object.values(curatedPathMap).flatMap((p) => [
+      p.before,
+      ...(Array.isArray(p.after) ? p.after : [p.after]),
+    ]),
   ];
   const allSourceImages = await walkImages(SOURCE_DIR);
   const toConvert = [...new Set([...referenced, ...allSourceImages])];

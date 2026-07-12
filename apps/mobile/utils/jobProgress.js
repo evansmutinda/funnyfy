@@ -35,9 +35,8 @@ const CATEGORY_CREATING_NAME = {
   art: 'artwork',
   professions: 'portrait',
   'seasonal-events': 'seasonal portrait',
-  trending: 'caricature',
   tinyme: 'TinyMe look',
-  'moods-moments': 'portrait',
+  'moods-moments': 'mood portrait',
 };
 
 export function resolveCategoryCreatingPhrase(style) {
