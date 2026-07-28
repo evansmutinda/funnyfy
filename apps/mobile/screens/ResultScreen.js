@@ -58,6 +58,7 @@ export default function ResultScreen({
   onOpenUsage,
   backHandlerRef,
   style,
+  onUnloadableOutput,
 }) {
   const insets = useSafeAreaInsets();
   const { showToast, showDialog, closeDialog } = useNotifications();
@@ -67,14 +68,18 @@ export default function ResultScreen({
   const [hasBeenSaved, setHasBeenSaved] = useState(false);
   const [localPreviewUri, setLocalPreviewUri] = useState(null);
   const [previewError, setPreviewError] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [sharing, setSharing] = useState(false);
   const [progressTick, setProgressTick] = useState(0);
   const sliderDemoDoneRef = useRef(false);
   const sliderUserTouchedRef = useRef(false);
+  const unloadableReportedRef = useRef(false);
   const hasResult = !!result && !!imageUrl;
   const maxRetriesReached = error && failedAttempts >= 3;
   const displayUri = localPreviewUri || imageUrl;
   const showCompare = hasResult && !loading && !!displayUri && !previewError;
   const showLoadingOverlay = (loading && !hasResult) || (hasResult && !displayUri && !previewError);
+  const actionsBusy = loading || saving || sharing;
 
   const creatingPhrase = useMemo(() => resolveCategoryCreatingPhrase(style), [style]);
 
@@ -97,10 +102,25 @@ export default function ResultScreen({
       setMix(0);
       setHasBeenSaved(false);
       setPreviewError(false);
+      unloadableReportedRef.current = false;
       sliderDemoDoneRef.current = false;
       sliderUserTouchedRef.current = false;
     }
   }, [hasResult, imageUrl]);
+
+  const reportUnloadable = useCallback(
+    (reason) => {
+      if (unloadableReportedRef.current) return;
+      unloadableReportedRef.current = true;
+      setPreviewError(true);
+      onUnloadableOutput?.({
+        reason: reason || 'preview_failed',
+        imageUrl,
+        jobId: job?.id || result?.jobId || null,
+      });
+    },
+    [imageUrl, job?.id, onUnloadableOutput, result?.jobId],
+  );
 
   // Cache the remote result locally so Android reliably renders the preview.
   useEffect(() => {
@@ -121,15 +141,24 @@ export default function ResultScreen({
         const path = `${FileSystem.cacheDirectory}result_preview_${Date.now()}.png`;
         const dl = await FileSystem.downloadAsync(imageUrl, path);
         if (cancelled) return;
-        if (dl.status === 200) {
-          setLocalPreviewUri(dl.uri);
-        } else {
-          setLocalPreviewUri(imageUrl);
+        if (dl.status !== 200) {
+          reportUnloadable(`preview_http_${dl.status}`);
+          return;
         }
+        try {
+          const info = await FileSystem.getInfoAsync(dl.uri);
+          if (info?.exists && typeof info.size === 'number' && info.size < 5000) {
+            reportUnloadable('preview_too_small');
+            return;
+          }
+        } catch {
+          // size check is best-effort
+        }
+        setLocalPreviewUri(dl.uri);
       } catch (err) {
-        console.warn('[Result] preview cache failed, using remote URL:', err);
+        console.warn('[Result] preview cache failed:', err);
         if (!cancelled) {
-          setLocalPreviewUri(imageUrl);
+          reportUnloadable('preview_download_failed');
         }
       }
     })();
@@ -137,7 +166,7 @@ export default function ResultScreen({
     return () => {
       cancelled = true;
     };
-  }, [imageUrl]);
+  }, [imageUrl, reportUnloadable]);
 
   const showSavedToast = useCallback((savedPath) => {
     showToast('Saved', savedPath, 'success', {
@@ -199,23 +228,32 @@ export default function ResultScreen({
   }, [showCompare, canvasWidth, imageUrl]);
 
   const handleShare = async () => {
-    if (!imageUrl || loading) return;
+    if (!imageUrl || actionsBusy) return;
+    setSharing(true);
     try {
       const fileName = getSavedImageFileName();
       const localPath = FileSystem.documentDirectory + fileName;
       const resultDl = await FileSystem.downloadAsync(imageUrl, localPath);
+      if (resultDl.status !== 200) {
+        throw new Error(`Download failed (${resultDl.status})`);
+      }
       await Sharing.shareAsync(resultDl.uri, {
         mimeType: SAVED_IMAGE_MIME,
         dialogTitle: 'Check out my caricature!',
       });
     } catch (err) {
       console.error('Share error:', err);
+      showToast('Share failed', 'Could not prepare the image for sharing. Please try again.', 'error');
+    } finally {
+      setSharing(false);
     }
   };
 
   const handleDownload = async (opts = {}) => {
     const { silent = false } = opts;
     if (!imageUrl || loading) return false;
+    if (saving) return false;
+    setSaving(true);
     try {
       const fileName = getSavedImageFileName();
       const localPath = FileSystem.documentDirectory + fileName;
@@ -270,7 +308,16 @@ export default function ResultScreen({
       return false;
     } catch (err) {
       console.error('Download/save error:', err);
+      if (!silent) {
+        showToast(
+          'Save failed',
+          'Could not download or save the image. Check your connection and try again.',
+          'error',
+        );
+      }
       return false;
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -385,7 +432,7 @@ export default function ResultScreen({
                 source={{ uri: displayUri }}
                 style={styles.resultCompareImage}
                 resizeMode="cover"
-                onError={() => setPreviewError(true)}
+                onError={() => reportUnloadable('image_decode_failed')}
               />
             ) : original?.imageUri ? (
               <Image
@@ -453,7 +500,7 @@ export default function ResultScreen({
                 <Feather name="image" size={28} color="rgba(255,255,255,0.55)" />
                 <Text style={styles.resultLoadingTitle}>Preview unavailable</Text>
                 <Text style={styles.resultLoadingSubtitle}>
-                  Save or share may still work once the image finishes loading.
+                  This caricature could not be loaded. Tap Try again — you were not charged.
                 </Text>
               </View>
             ) : null}
@@ -527,16 +574,20 @@ export default function ResultScreen({
             style={[
               styles.resultActionButton,
               hasBeenSaved && styles.resultActionButtonSaved,
-              (!hasResult || loading) && styles.buttonDisabled,
+              (!hasResult || actionsBusy || previewError) && styles.buttonDisabled,
             ]}
             onPress={() => handleDownload()}
-            disabled={!hasResult || loading}
+            disabled={!hasResult || actionsBusy || previewError}
           >
-            <Feather
-              name={hasBeenSaved ? 'check' : 'download'}
-              size={18}
-              color={hasBeenSaved ? '#10B981' : '#0F172A'}
-            />
+            {saving ? (
+              <ActivityIndicator size="small" color="#0F172A" />
+            ) : (
+              <Feather
+                name={hasBeenSaved ? 'check' : 'download'}
+                size={18}
+                color={hasBeenSaved ? '#10B981' : '#0F172A'}
+              />
+            )}
             <Text
               style={[
                 styles.resultActionButtonText,
@@ -544,20 +595,26 @@ export default function ResultScreen({
               ]}
               numberOfLines={1}
             >
-              {hasBeenSaved ? 'Saved' : 'Save'}
+              {saving ? 'Saving…' : hasBeenSaved ? 'Saved' : 'Save'}
             </Text>
           </PressScale>
 
           <PressScale
             style={[
               styles.resultActionButton,
-              (!hasResult || loading) && styles.buttonDisabled,
+              (!hasResult || actionsBusy || previewError) && styles.buttonDisabled,
             ]}
             onPress={handleShare}
-            disabled={!hasResult || loading}
+            disabled={!hasResult || actionsBusy || previewError}
           >
-            <Feather name="share-2" size={18} color="#0F172A" />
-            <Text style={styles.resultActionButtonText} numberOfLines={1}>Share</Text>
+            {sharing ? (
+              <ActivityIndicator size="small" color="#0F172A" />
+            ) : (
+              <Feather name="share-2" size={18} color="#0F172A" />
+            )}
+            <Text style={styles.resultActionButtonText} numberOfLines={1}>
+              {sharing ? 'Sharing…' : 'Share'}
+            </Text>
           </PressScale>
         </View>
       </View>

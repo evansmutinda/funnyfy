@@ -14,6 +14,11 @@ import { verifyJWT } from '../_utils/security';
 import { creditUsageForJob } from '../_utils/usage';
 import { recoverStaleProcessingJobs } from '../_utils/replicate-sync';
 import { purgeStaleRateLimits } from '../_utils/ratelimit';
+import {
+  GENERATION_UNAVAILABLE_CODE,
+  isReplicateBillingError,
+  pauseQueueForReplicateBilling,
+} from '../_utils/queue-pause';
 
 const MAX_CONCURRENT_JOBS = Number(process.env.MAX_CONCURRENT_JOBS || 10);
 
@@ -59,14 +64,18 @@ export default async function handler(
       console.warn('[process-queue] rate_limits purge failed:', purgeErr);
     }
 
-    // Check if queue should be paused due to cost protection
+    // Check if queue should be paused (daily spend cap OR Replicate billing)
     const pauseCheck = await shouldPauseQueue();
     if (pauseCheck.paused) {
-      console.warn('[process-queue] Queue paused due to cost protection:', pauseCheck.reason);
+      console.warn('[process-queue] Queue paused:', pauseCheck.reason);
       return res.status(200).json({
         ok: true,
-        message: 'Queue paused - daily spending cap reached',
+        message:
+          pauseCheck.pauseKind === 'billing'
+            ? 'Queue paused - Replicate billing (operator must top up credits)'
+            : 'Queue paused - daily spending cap reached',
         paused: true,
+        pauseKind: pauseCheck.pauseKind || null,
         reason: pauseCheck.reason,
         currentSpending: pauseCheck.currentSpending,
         cap: pauseCheck.cap,
@@ -167,6 +176,32 @@ export default async function handler(
           message: 'Job still processing on Replicate',
           jobId: job.id,
           recoverable: true,
+        });
+      }
+
+      // Billing / blank output already handled inside processJob (pause + failed status)
+      if (
+        errorMessage.includes(GENERATION_UNAVAILABLE_CODE) ||
+        errorMessage.includes('BLANK_OR_UNLOADABLE_OUTPUT') ||
+        isReplicateBillingError(errorMessage)
+      ) {
+        if (
+          !errorMessage.includes(GENERATION_UNAVAILABLE_CODE) &&
+          !errorMessage.includes('BLANK_OR_UNLOADABLE_OUTPUT') &&
+          isReplicateBillingError(errorMessage)
+        ) {
+          await pauseQueueForReplicateBilling(errorMessage, 'process_queue');
+        }
+        return res.status(200).json({
+          ok: true,
+          message: errorMessage.includes('BLANK_OR_UNLOADABLE_OUTPUT')
+            ? 'Job failed — blank or unloadable output'
+            : 'Job failed — queue paused for Replicate billing',
+          jobId: job.id,
+          error: errorMessage.includes('BLANK_OR_UNLOADABLE_OUTPUT')
+            ? 'BLANK_OR_UNLOADABLE_OUTPUT'
+            : GENERATION_UNAVAILABLE_CODE,
+          paused: !errorMessage.includes('BLANK_OR_UNLOADABLE_OUTPUT'),
         });
       }
 

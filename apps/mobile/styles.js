@@ -793,6 +793,37 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
 
+  menuUserIdRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    marginTop: 4,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.08)',
+  },
+
+  menuUserIdTextBlock: {
+    flex: 1,
+    marginRight: 10,
+  },
+
+  menuUserIdLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.45)',
+    letterSpacing: 0.2,
+    marginBottom: 2,
+  },
+
+  menuUserIdValue: {
+    fontSize: 13,
+    fontWeight: '400',
+    color: 'rgba(255,255,255,0.72)',
+    letterSpacing: 0.2,
+    fontVariant: ['tabular-nums'],
+  },
+
   
   mediaTileChipWrapper: {
     width: 56,

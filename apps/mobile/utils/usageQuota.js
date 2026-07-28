@@ -18,7 +18,8 @@ export function getUsageQuotaInfo(subscriptionInfo) {
   const remaining = Math.max(0, limit - current);
   const isExceeded = limit > 0 && current >= limit;
   const remainingRatio = limit > 0 ? remaining / limit : 1;
-  const isLow = !isExceeded && remainingRatio <= USAGE_LOW_REMAINING_RATIO;
+  // Stay amber when exhausted so the warning doesn't flip to default white until recharge
+  const isLow = isExceeded || remainingRatio <= USAGE_LOW_REMAINING_RATIO;
 
   return {
     current,

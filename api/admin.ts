@@ -6,6 +6,7 @@
 //   POST /api/admin?resource=login          { userId }
 //   GET  /api/admin?resource=stats
 //   GET  /api/admin?resource=queue-stats
+//   POST /api/admin?resource=queue-stats&action=resume  (clear Replicate billing pause)
 //   GET  /api/admin?resource=security-logs
 //   GET  /api/admin?resource=users
 //   POST /api/admin?resource=users&action=ban|unban|quota|tier
@@ -23,6 +24,7 @@ import { applyMiddleware } from './_utils/middleware';
 import { safeErrorResponse, verifyJWT, getClientIp, setAdminPageSecurityHeaders } from './_utils/security';
 import { getQueueStats } from './_utils/queue-stats';
 import { getTodaySpending, getSpendingStats, shouldPauseQueue } from './_utils/cost-protection';
+import { clearBillingPause } from './_utils/queue-pause';
 import { getRecentSecurityEvents, logSecurityEvent } from './_utils/security-logging';
 import { checkAdminLoginRateLimit } from './_utils/ratelimit';
 import { getUsdToKesRate } from './_utils/exchange-rate';
@@ -238,6 +240,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // ── QUEUE STATS ────────────────────────────────────────────────────────────
     if (resource === 'queue-stats') {
+      if (req.method === 'POST') {
+        const action = req.query.action as string;
+        if (action === 'resume') {
+          const cleared = await clearBillingPause('admin');
+          if (!cleared) {
+            return safeErrorResponse(res, 500, 'RESUME_FAILED', 'Could not clear billing pause');
+          }
+          const pauseCheck = await shouldPauseQueue();
+          return res.status(200).json({
+            ok: true,
+            message: pauseCheck.paused
+              ? 'Billing pause cleared, but queue still paused (daily cost cap).'
+              : 'Queue resumed — pending jobs will process on the next worker tick.',
+            stillPaused: pauseCheck.paused,
+            pauseReason: pauseCheck.reason || null,
+            pauseKind: pauseCheck.pauseKind || null,
+          });
+        }
+        return safeErrorResponse(res, 400, 'UNKNOWN_ACTION', `Unknown action: ${action}`);
+      }
+
       const [queueStats, todaySpend, spending7d, pauseCheck] = await Promise.all([
         getQueueStats(), getTodaySpending(), getSpendingStats(7), shouldPauseQueue(),
       ]);
@@ -253,6 +276,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           oldestPendingJob: queueStats.oldestPendingJob,
           isPaused: pauseCheck.paused,
           pauseReason: pauseCheck.reason,
+          pauseKind: pauseCheck.pauseKind || null,
+          canResumeBilling: pauseCheck.pauseKind === 'billing',
         },
         today: {
           costUsd: todaySpend.totalCost,

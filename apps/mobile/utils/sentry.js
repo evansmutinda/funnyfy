@@ -55,5 +55,33 @@ export function setSentryUser(userId) {
 
 export function captureAppError(err, context = {}) {
   if (!process.env.EXPO_PUBLIC_SENTRY_DSN) return;
-  Sentry.captureException(err, { extra: context });
+
+  const rawErrorMessage =
+    err?.rawErrorMessage ||
+    context.rawErrorMessage ||
+    null;
+  const jobId = err?.jobId || context.jobId || null;
+  const styleId = err?.styleId || context.styleId || null;
+
+  const extra = {
+    ...context,
+    ...(rawErrorMessage ? { rawErrorMessage: String(rawErrorMessage).slice(0, 1000) } : {}),
+    ...(jobId ? { jobId: String(jobId) } : {}),
+    ...(styleId ? { styleId: String(styleId) } : {}),
+    userMessage: err?.message ? String(err.message).slice(0, 240) : undefined,
+  };
+
+  // Group by technical cause when available, not the shared friendly copy
+  const fingerprint = rawErrorMessage
+    ? ['generation-failed', String(rawErrorMessage).slice(0, 160)]
+    : undefined;
+
+  Sentry.captureException(err, {
+    extra,
+    tags: {
+      flow: context.flow || 'unknown',
+      ...(jobId ? { jobId: String(jobId) } : {}),
+    },
+    ...(fingerprint ? { fingerprint } : {}),
+  });
 }

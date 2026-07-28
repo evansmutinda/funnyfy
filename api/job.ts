@@ -7,15 +7,106 @@ import { getEstimatedWaitTime } from './_utils/queue-stats';
 import { humanizeJobError } from './_utils/job-messages';
 import { syncJobWithReplicate, type JobSyncRow } from './_utils/replicate-sync';
 import { getContentPolicySource, isContentPolicyError } from './_utils/sightengine-moderation';
+import { revokeUsageForJob } from './_utils/usage';
+import {
+  BLANK_OUTPUT_CODE,
+  BLANK_OUTPUT_MESSAGE,
+  blankOutputErrorMessage,
+} from './_utils/output-validation';
+
+async function handleReportBadOutput(
+  req: VercelRequest,
+  res: VercelResponse,
+  userId: string
+) {
+  let body: { jobId?: string; reason?: string } = {};
+  try {
+    body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
+  } catch {
+    return safeErrorResponse(res, 400, 'INVALID_JSON', 'Invalid JSON body');
+  }
+
+  const jobId = body.jobId || (req.query.id as string) || (req.query.jobId as string);
+  if (!jobId || typeof jobId !== 'string') {
+    return safeErrorResponse(res, 400, 'MISSING_JOB_ID', 'jobId is required');
+  }
+
+  const jobResult = await query<{
+    id: string;
+    user_id: string | null;
+    status: string;
+    output_image_url: string | null;
+  }>(
+    `SELECT id, user_id, status, output_image_url FROM jobs WHERE id = $1`,
+    [jobId]
+  );
+
+  if (jobResult.rows.length === 0) {
+    return safeErrorResponse(res, 404, 'JOB_NOT_FOUND', 'Job not found');
+  }
+
+  const job = jobResult.rows[0];
+  if (job.user_id && job.user_id !== userId) {
+    return safeErrorResponse(res, 403, 'FORBIDDEN', 'Forbidden');
+  }
+
+  if (job.status !== 'completed') {
+    return res.status(200).json({
+      ok: true,
+      alreadyHandled: true,
+      message: 'Job is not in completed state',
+      status: job.status,
+    });
+  }
+
+  const reason = String(body.reason || 'client_unloadable').slice(0, 120);
+  await query(
+    `
+      UPDATE jobs
+      SET status = 'failed',
+          error_message = $1,
+          completed_at = COALESCE(completed_at, NOW())
+      WHERE id = $2 AND status = 'completed'
+    `,
+    [blankOutputErrorMessage(reason), jobId]
+  );
+
+  let revoked = false;
+  if (job.user_id) {
+    revoked = await revokeUsageForJob(jobId, job.user_id);
+  }
+
+  console.warn('[job] Reported blank/unloadable output', { jobId, reason, revoked });
+
+  return res.status(200).json({
+    ok: true,
+    revoked,
+    message: BLANK_OUTPUT_MESSAGE,
+    error: BLANK_OUTPUT_CODE,
+  });
+}
 
 export default async function handler(
   req: VercelRequest,
   res: VercelResponse
 ) {
-  if (!applyMiddleware(req, res, ['GET', 'OPTIONS'])) return;
+  if (!applyMiddleware(req, res, ['GET', 'POST', 'OPTIONS'])) return;
 
   const userId = requireAuth(req, res);
   if (!userId) return;
+
+  if (req.method === 'POST') {
+    const action = (req.query.action as string) || '';
+    if (action === 'report-bad-output') {
+      try {
+        return await handleReportBadOutput(req, res, userId);
+      } catch (err) {
+        console.error('[job] report-bad-output failed:', err);
+        return safeErrorResponse(res, 500, 'REPORT_FAILED', 'Failed to report bad output');
+      }
+    }
+    return safeErrorResponse(res, 400, 'UNKNOWN_ACTION', 'Unknown action');
+  }
 
   const jobId = (req.query.id || req.query.jobId) as string | undefined;
 

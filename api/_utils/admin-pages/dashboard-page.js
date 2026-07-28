@@ -306,8 +306,15 @@
       if (queue.queue.isPaused) {
         alerts.push({
           kind: 'danger',
-          title: 'Queue paused',
-          body: queue.queue.pauseReason || 'Daily cost cap threshold reached.',
+          title:
+            queue.queue.pauseKind === 'billing'
+              ? 'Queue paused — Replicate credits'
+              : 'Queue paused',
+          body:
+            (queue.queue.pauseReason || 'Daily cost cap threshold reached.') +
+            (queue.queue.canResumeBilling
+              ? ' Top up Replicate, then Resume on the Queue page.'
+              : ''),
         });
       } else if (queue.today.costPercent >= 80) {
         alerts.push({
@@ -980,14 +987,24 @@
       setText('q-wait', d.queue.averageWaitTime + 's');
       setText('q-cap-pct', d.today.costPercent + '%');
 
+      var resumeBtn = document.getElementById('q-resume-btn');
+      if (resumeBtn) {
+        resumeBtn.style.display = d.queue.canResumeBilling ? '' : 'none';
+        resumeBtn.onclick = resumeQueue;
+      }
+
       renderQueueMoney(d);
 
       var queueAlerts = [];
       if (d.queue.isPaused) {
         queueAlerts.push({
           kind: 'danger',
-          title: 'Queue is paused',
-          body: d.queue.pauseReason || 'Cost protection triggered.',
+          title: d.queue.pauseKind === 'billing' ? 'Paused — Replicate credits' : 'Queue is paused',
+          body:
+            (d.queue.pauseReason || 'Cost protection triggered.') +
+            (d.queue.canResumeBilling
+              ? ' Top up Replicate, then click Resume queue.'
+              : ''),
         });
       } else if (d.today.costPercent >= 75) {
         queueAlerts.push({
@@ -1001,6 +1018,20 @@
       setRefreshed();
     } catch (e) {
       console.error(e);
+    }
+  }
+
+  async function resumeQueue() {
+    if (!confirm('Resume the queue after topping up Replicate credits?')) return;
+    try {
+      const d = await apiFetch('/api/admin?resource=queue-stats&action=resume', {
+        method: 'POST',
+        body: '{}',
+      });
+      alert(d.message || (d.ok ? 'Queue resumed' : 'Resume failed'));
+      loadQueue();
+    } catch (e) {
+      alert('Resume request failed');
     }
   }
 

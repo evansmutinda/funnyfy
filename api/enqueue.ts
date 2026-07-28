@@ -11,6 +11,8 @@ import { safeErrorResponse } from './_utils/security';
 import { checkAllRateLimits } from './_utils/ratelimit';
 import { getEstimatedWaitTime } from './_utils/queue-stats';
 import { getCurrentMonthDate, getTierQuota, TRIAL_LIMIT } from './_utils/usage';
+import { shouldPauseQueue } from './_utils/cost-protection';
+import { generationUnavailableResponse } from './_utils/queue-pause';
 
 function getQuotaForTier(tier: string | null): number {
   return getTierQuota(tier);
@@ -42,6 +44,17 @@ export default async function handler(
   }
 
   const { styleId, imageUrl } = validation.data;
+
+  // Hard-block new jobs while queue is paused (billing or daily cap)
+  try {
+    const pauseCheck = await shouldPauseQueue();
+    if (pauseCheck.paused) {
+      const body = generationUnavailableResponse();
+      return res.status(503).json(body);
+    }
+  } catch (pauseErr) {
+    console.warn('[enqueue] Pause check failed (proceeding):', pauseErr);
+  }
 
   // Look up user
   let userTier: string | null = null;

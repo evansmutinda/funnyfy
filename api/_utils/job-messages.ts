@@ -25,6 +25,14 @@ export function humanizeJobError(message: string | null | undefined): string | n
     return CONTENT_POLICY_INLINE;
   }
 
+  if (lower.includes('blank_or_unloadable_output') || lower.includes('came back empty')) {
+    return 'The caricature came back empty or could not be loaded. Please try again — you were not charged.';
+  }
+
+  if (lower.includes('generation_unavailable') || lower.includes('temporarily unavailable')) {
+    return 'Generation is temporarily unavailable. Please try again later.';
+  }
+
   if (lower.includes('job_output_expired') || lower.includes('prediction expired')) {
     return 'Your caricature took too long to retrieve. Please generate again — failed runs are not billed.';
   }

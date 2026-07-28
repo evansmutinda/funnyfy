@@ -1,6 +1,7 @@
 // Cost protection utilities for monitoring and limiting Replicate API spending
 
 import { query } from './db';
+import { getBillingPauseState } from './queue-pause';
 
 /** USD per successful generation (failed = $0). */
 export const MODEL_COST_USD: Record<string, number> = {
@@ -169,16 +170,28 @@ export async function getSpendingStats(days: number = 7): Promise<{
 }
 
 /**
- * Check if queue should be paused due to cost
+ * Check if queue should be paused due to cost OR Replicate billing/credits.
  */
 export async function shouldPauseQueue(): Promise<{
   paused: boolean;
   reason?: string;
   currentSpending: number;
   cap: number;
+  pauseKind?: 'billing' | 'daily_cap' | null;
 }> {
+  const billing = await getBillingPauseState();
   const cap = getDailySpendingCap();
   const today = await getTodaySpending();
+
+  if (billing.paused) {
+    return {
+      paused: true,
+      reason: billing.reason || 'Replicate billing pause — top up credits, then Resume in admin',
+      currentSpending: today.totalCost,
+      cap,
+      pauseKind: 'billing',
+    };
+  }
 
   // Pause if we've exceeded 95% of cap (safety margin)
   const threshold = cap * 0.95;
@@ -189,6 +202,7 @@ export async function shouldPauseQueue(): Promise<{
     reason: paused ? `Daily spending cap reached ($${today.totalCost.toFixed(2)} / $${cap.toFixed(2)})` : undefined,
     currentSpending: today.totalCost,
     cap,
+    pauseKind: paused ? 'daily_cap' : null,
   };
 }
 

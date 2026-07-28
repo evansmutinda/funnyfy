@@ -11,6 +11,10 @@ import {
   handleContentPolicyViolation,
   isReplicateContentPolicyError,
 } from './sightengine-moderation';
+import {
+  blankOutputErrorMessage,
+  validateOutputImageUrl,
+} from './output-validation';
 
 const targetApiKey = process.env.TARGET_API_KEY;
 const REPLICATE_PREDICTIONS_URL = 'https://api.replicate.com/v1/predictions';
@@ -147,6 +151,17 @@ function predictionAgeMs(job: JobSyncRow): number {
 }
 
 async function markJobCompleted(jobId: string, outputUrl: string, replicateId: string | null) {
+  const validation = await validateOutputImageUrl(outputUrl);
+  if (!validation.ok) {
+    console.warn('[replicate-sync] Output failed validation:', validation);
+    await markJobFailed(
+      jobId,
+      blankOutputErrorMessage(validation.reason),
+      replicateId
+    );
+    return;
+  }
+
   await query(
     `UPDATE jobs SET status = 'completed', output_image_url = $1,
      replicate_prediction_id = COALESCE($2, replicate_prediction_id),

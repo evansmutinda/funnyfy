@@ -668,6 +668,7 @@ function AppContent({ fontsLoaded }) {
           setResult({
             status: 'succeeded',
             output: pollResult.output,
+            jobId: pollResult.jobInfo?.id || jobId,
           });
           setFailedAttempts(0);
           setPendingJobId(null);
@@ -699,7 +700,12 @@ function AppContent({ fontsLoaded }) {
 
           console.error('API error:', err);
           if (!/invalid_style_id/i.test(errorMessage)) {
-            captureAppError(err, { flow: 'generate', styleId });
+            captureAppError(err, {
+              flow: 'generate',
+              styleId,
+              jobId: err.jobId || null,
+              rawErrorMessage: err.rawErrorMessage || null,
+            });
           }
           setError(humanizeApiError(errorMessage));
           setFailedAttempts((prev) => prev + 1);
@@ -976,8 +982,56 @@ function AppContent({ fontsLoaded }) {
     setScreen(id);
   }, [showToast]);
 
+  const handleUnloadableOutput = useCallback(
+    async ({ reason, imageUrl, jobId } = {}) => {
+      const resolvedJobId = jobId || result?.jobId || pendingJobId || null;
+      const friendly =
+        'The caricature came back empty or could not be loaded. Please try again — you were not charged.';
+
+      captureAppError(new Error('BLANK_OR_UNLOADABLE_OUTPUT'), {
+        flow: 'generate_output',
+        styleId: style?.id || null,
+        jobId: resolvedJobId,
+        rawErrorMessage: reason || 'unloadable_output',
+        imageUrl: imageUrl ? String(imageUrl).slice(0, 200) : null,
+      });
+
+      setResult(null);
+      setError(friendly);
+      setFailedAttempts((prev) => prev + 1);
+      setJob(null);
+      setPendingJobId(null);
+
+      if (resolvedJobId && authTokenRef.current) {
+        try {
+          await fetch(
+            `${API_BASE}/api/job?action=report-bad-output&id=${encodeURIComponent(resolvedJobId)}`,
+            {
+              method: 'POST',
+              headers: getApiHeaders(),
+              body: JSON.stringify({
+                jobId: resolvedJobId,
+                reason: reason || 'client_unloadable',
+              }),
+            }
+          );
+        } catch (reportErr) {
+          console.warn('[App] report-bad-output failed:', reportErr?.message || reportErr);
+        }
+      }
+
+      setTimeout(() => refreshSubscription(), 500);
+    },
+    [pendingJobId, result?.jobId, style?.id]
+  );
+
   const handleRetry = async () => {
     if (!pendingJobId) {
+      if (original?.imageDataUrl && style?.id) {
+        setError('');
+        callApi({ imageDataUrl: original.imageDataUrl, styleId: style.id });
+        return;
+      }
       setError('Tap Generate to start again, or go back and choose another photo.');
       return;
     }
@@ -999,7 +1053,7 @@ function AppContent({ fontsLoaded }) {
         onUpdate: setJob,
       });
 
-      setResult({ status: 'succeeded', output: pollResult.output });
+      setResult({ status: 'succeeded', output: pollResult.output, jobId: pendingJobId });
       setFailedAttempts(0);
       setPendingJobId(null);
       setTimeout(() => refreshSubscription(), 500);
@@ -1020,6 +1074,14 @@ function AppContent({ fontsLoaded }) {
         return;
       }
 
+      if (!/invalid_style_id/i.test(errorMessage)) {
+        captureAppError(err, {
+          flow: 'generate_retry',
+          styleId: style?.id || null,
+          jobId: err.jobId || pendingJobId || null,
+          rawErrorMessage: err.rawErrorMessage || null,
+        });
+      }
       setError(humanizeApiError(errorMessage));
       setFailedAttempts((prev) => prev + 1);
     } finally {
@@ -1113,6 +1175,10 @@ function AppContent({ fontsLoaded }) {
           visible={menuOpen}
           onClose={() => setMenuOpen(false)}
           onSelect={handleMenuSelect}
+          userId={userId}
+          onUserIdCopied={() => {
+            showToast('Copied', 'User ID copied — include it when contacting support', 'success');
+          }}
         />
       </AppShell>
     );
@@ -1264,6 +1330,7 @@ function AppContent({ fontsLoaded }) {
         subscriptionInfo={subscriptionInfo}
         backHandlerRef={resultBackHandlerRef}
         style={style}
+        onUnloadableOutput={handleUnloadableOutput}
         onBack={() => {
           setRestyleMode(false);
           setStyleReturnCategory(style?.categoryId || getStyleCategory(style?.id) || null);

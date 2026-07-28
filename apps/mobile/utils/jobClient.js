@@ -5,6 +5,17 @@ const TERMINAL_STATUSES = new Set(['completed', 'failed']);
 const POLL_INTERVAL_MS = 2000;
 const MAX_POLL_ATTEMPTS = 90;
 
+/** Failed generation with friendly UI copy + raw backend error for Sentry. */
+export class GenerationFailedError extends Error {
+  constructor({ userMessage, errorMessage, jobId, styleId } = {}) {
+    super(userMessage || jobErrorMessage({ errorMessage, userMessage }));
+    this.name = 'GenerationFailedError';
+    this.rawErrorMessage = errorMessage || null;
+    this.jobId = jobId || null;
+    this.styleId = styleId || null;
+  }
+}
+
 /**
  * Poll GET /api/job until completed, failed, or timeout.
  * Each poll may trigger server-side Replicate sync.
@@ -41,7 +52,12 @@ export async function pollJobUntilDone({ apiBase, jobId, getApiHeaders, onUpdate
           source: jobInfo.contentPolicySource || null,
         });
       }
-      throw new Error(jobErrorMessage(jobInfo));
+      throw new GenerationFailedError({
+        userMessage: jobErrorMessage(jobInfo),
+        errorMessage: jobInfo.errorMessage,
+        jobId: jobInfo.id,
+        styleId: jobInfo.styleId || null,
+      });
     }
 
     await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));

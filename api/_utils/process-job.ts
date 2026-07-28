@@ -16,6 +16,16 @@ import {
   normalizeGenerationErrorMessage,
 } from './sightengine-moderation';
 import { finalizeJobCost } from './job-cost';
+import {
+  GENERATION_UNAVAILABLE_CODE,
+  isReplicateBillingError,
+  pauseQueueForReplicateBilling,
+} from './queue-pause';
+import {
+  blankOutputErrorMessage,
+  BLANK_OUTPUT_CODE,
+  validateOutputImageUrl,
+} from './output-validation';
 
 const targetUrl = process.env.TARGET_API_URL;
 const targetApiKey = process.env.TARGET_API_KEY;
@@ -133,6 +143,15 @@ export async function processJob(job: JobRow): Promise<void> {
       });
       throw new Error(CONTENT_NOT_ALLOWED_CODE);
     }
+    if (fetchRes.status === 402 || isReplicateBillingError(errorMsg)) {
+      await pauseQueueForReplicateBilling(errorMsg, 'replicate_create');
+      await query(
+        `UPDATE jobs SET status = $1, error_message = $2, completed_at = NOW() WHERE id = $3`,
+        ['failed', `${GENERATION_UNAVAILABLE_CODE}: ${errorMsg}`.slice(0, 1000), job.id]
+      );
+      await finalizeJobCost(job.id, job.style_id, 'failed');
+      throw new Error(GENERATION_UNAVAILABLE_CODE);
+    }
     await query(
       `UPDATE jobs SET status = $1, error_message = $2, completed_at = NOW() WHERE id = $3`,
       ['failed', errorMsg, job.id]
@@ -159,6 +178,18 @@ export async function processJob(job: JobRow): Promise<void> {
   const replicateError = data.error ?? data.logs ?? null;
 
   if (replicateStatus === 'succeeded' && outputUrl) {
+    const validation = await validateOutputImageUrl(outputUrl);
+    if (!validation.ok) {
+      console.warn('[process-job] Output failed validation:', validation);
+      await query(
+        `UPDATE jobs SET status = 'failed', output_image_url = NULL,
+         replicate_prediction_id = $1, error_message = $2, completed_at = NOW() WHERE id = $3`,
+        [replicateId, blankOutputErrorMessage(validation.reason), job.id]
+      );
+      await finalizeJobCost(job.id, job.style_id, 'failed');
+      throw new Error(BLANK_OUTPUT_CODE);
+    }
+
     await query(
       `UPDATE jobs SET status = $1, output_image_url = $2, replicate_prediction_id = $3,
        error_message = NULL, completed_at = NOW() WHERE id = $4`,
@@ -184,6 +215,17 @@ export async function processJob(job: JobRow): Promise<void> {
       error: errorMsg.slice(0, 500),
     });
     throw new Error(CONTENT_NOT_ALLOWED_CODE);
+  }
+
+  if (errorMsg && isReplicateBillingError(errorMsg)) {
+    await pauseQueueForReplicateBilling(errorMsg, 'replicate_prediction');
+    await query(
+      `UPDATE jobs SET status = 'failed', output_image_url = NULL,
+       replicate_prediction_id = $1, error_message = $2, completed_at = NOW() WHERE id = $3`,
+      [replicateId, `${GENERATION_UNAVAILABLE_CODE}: ${errorMsg}`.slice(0, 1000), job.id]
+    );
+    await finalizeJobCost(job.id, job.style_id, 'failed');
+    throw new Error(GENERATION_UNAVAILABLE_CODE);
   }
 
   if (errorMsg) {

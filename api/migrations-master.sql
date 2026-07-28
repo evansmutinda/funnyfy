@@ -198,6 +198,16 @@ CREATE TABLE IF NOT EXISTS admin_users (
 );
 
 -- ============================================================
+-- APP SETTINGS (operator flags, e.g. Replicate billing pause)
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS app_settings (
+  key        TEXT PRIMARY KEY,
+  value      JSONB NOT NULL DEFAULT '{}'::jsonb,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ============================================================
 -- USEFUL VIEWS
 -- ============================================================
 

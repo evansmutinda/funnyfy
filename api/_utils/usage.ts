@@ -118,4 +118,52 @@ export function getTierQuota(tier: string | null | undefined): number {
   return TIER_QUOTAS[tier.toLowerCase()] || 0;
 }
 
+/**
+ * Undo a usage credit for a job that was marked completed but later found unloadable/blank.
+ * Safe to call multiple times (no-op if credit row already gone).
+ */
+export async function revokeUsageForJob(jobId: string, userId: string): Promise<boolean> {
+  const creditResult = await query<{ job_id: string }>(
+    `DELETE FROM job_usage_credits WHERE job_id = $1 RETURNING job_id`,
+    [jobId]
+  );
+
+  if (creditResult.rows.length === 0) {
+    return false;
+  }
+
+  const jobResult = await query<{ completed_at: string | null }>(
+    `SELECT completed_at FROM jobs WHERE id = $1`,
+    [jobId]
+  );
+  const completedAt = jobResult.rows[0]?.completed_at
+    ? new Date(jobResult.rows[0].completed_at)
+    : new Date();
+  const month = `${completedAt.getFullYear()}-${String(completedAt.getMonth() + 1).padStart(2, '0')}-01`;
+
+  const subscribed = await hasActiveSubscription(userId);
+  if (subscribed) {
+    await query(
+      `
+        UPDATE usage_tracking
+        SET count = GREATEST(0, count - 1)
+        WHERE user_id = $1 AND month = $2
+      `,
+      [userId, month]
+    );
+  } else {
+    await query(
+      `
+        UPDATE users
+        SET trial_generations_used = GREATEST(0, trial_generations_used - 1)
+        WHERE id = $1
+      `,
+      [userId]
+    );
+  }
+
+  console.log(`[usage] Revoked credit for job ${jobId} (user ${userId})`);
+  return true;
+}
+
 export { TRIAL_LIMIT, TIER_QUOTAS };
