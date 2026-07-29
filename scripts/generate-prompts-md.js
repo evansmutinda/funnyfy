@@ -30,8 +30,6 @@ const CATEGORY_ORDER = [
   'art',
   '3d-characters',
   'anime-manga',
-  'video-games',
-  'fantasy-mythical',
 ];
 
 const CATEGORY_LABELS = {
@@ -42,8 +40,6 @@ const CATEGORY_LABELS = {
   art: 'Art',
   '3d-characters': '3D Characters',
   'anime-manga': 'Anime & Manga',
-  'video-games': 'Video Games',
-  'fantasy-mythical': 'Fantasy & Mythical',
 };
 
 function extractLegacyBlock(source) {
@@ -236,8 +232,7 @@ function main() {
     '',
     '- **Short prompts** work for many cartoon/art styles (`make this a …`).',
     '- **Caricatures** use longer, structured prompts (likeness, exaggeration, medium, background).',
-    '- **Multi-subject** styles (`custom2`, `neand3d`, `impasto`, ukiyo-e masters) mention detecting all faces/subjects.',
-    '- **Trademark safety:** superhero/villain prompts say avoid trademarked themes.',
+    '- **Multi-subject** styles (`impasto`, ukiyo-e masters) mention detecting all faces/subjects.',
     '- **Composition:** many prompts end with `Full-bleed composition. No borders.`',
     '- **Catalog placeholders** (160 styles, `enabled: false`) use auto-generated placeholder prompts until you replace them in `LEGACY_STYLES`.',
     '',

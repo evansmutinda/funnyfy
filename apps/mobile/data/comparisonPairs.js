@@ -39,6 +39,18 @@ const CURATED_PAIR_PATHS = {
     before: 'before/toon.png',
     after: 'after/caricature/carc1.jpg',
   },
+  '3d-bd': {
+    before: 'before/lady.png',
+    after: 'after/caricature/3dbd.jpeg',
+  },
+  '3d': {
+    before: 'before/lady6.png',
+    after: 'after/caricature/3d.jpg',
+  },
+  'dancing-carc': {
+    before: 'before/lady6.png',
+    after: 'after/caricature/dancing-carc.jpeg',
+  },
   '90s-cartoon': {
     before: 'before/toon.png',
     after: 'after/cartoons/toon.jpg',
@@ -114,6 +126,50 @@ const CURATED_PAIR_PATHS = {
   'pixar-like': {
     before: 'before/pxl.png',
     after: 'after/3d/pxl.jpg',
+  },
+  '3d-portrait-v1': {
+    before: 'before/lady2.png',
+    after: 'after/3d/3d-portraitv1.jpg',
+  },
+  '3d-portrait-v2': {
+    before: 'before/lady2.png',
+    after: 'after/3d/3d-portraitv2.jpeg',
+  },
+  'minime': {
+    before: 'before/lady6.png',
+    after: 'after/3d/minime.jpeg',
+  },
+  'dancing-3d': {
+    before: 'before/teen2.png',
+    after: 'after/3d/dancing-3d.jpg',
+  },
+  'miniature': {
+    before: 'before/teen2.png',
+    after: 'after/3d/miniature.jpg',
+  },
+  'plastic-toy-v1': {
+    before: 'before/couple.png',
+    after: 'after/3d/toyv1.jpg',
+  },
+  'plastic-toy-v2': {
+    before: 'before/couple.png',
+    after: 'after/3d/toyv2.jpeg',
+  },
+  'figurine-v2': {
+    before: 'before/man10.png',
+    after: 'after/3d/figurinev2.jpeg',
+  },
+  'figurine-v2b': {
+    before: 'before/man10.png',
+    after: 'after/3d/figurinev2.jpeg',
+  },
+  'figurine-v3': {
+    before: 'before/teen2.png',
+    after: 'after/3d/figurinev3.jpg',
+  },
+  'figurine-v4': {
+    before: 'before/man10.png',
+    after: 'after/3d/figurinev4.jpeg',
   },
   'oil-paint': {
     before: 'before/lady9.png',
@@ -203,6 +259,10 @@ const CURATED_PAIR_PATHS = {
     before: 'before/lady5.png',
     after: 'after/Paintings/Sesshū.jpeg',
   },
+  'wc-marker': {
+    before: 'before/lady3.png',
+    after: 'after/Paintings/wc-marker.jpg',
+  },
   'mural': {
     before: 'before/lady2.png',
     after: 'after/Art/mural.jpeg',
@@ -238,6 +298,10 @@ const CURATED_PAIR_PATHS = {
   'mosaic': {
     before: 'before/man4.png',
     after: 'after/Art/mosaic.jpg',
+  },
+  'hexagonal-mosaic': {
+    before: 'before/lady2.png',
+    after: 'after/Art/hexagon-mosaic.jpeg',
   },
   'e-glow': {
     before: 'before/lady7.png',

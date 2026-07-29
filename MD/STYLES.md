@@ -54,7 +54,7 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 
 ---
 
-## Enabled styles (81)
+## Enabled styles (90)
 
 | Id | Label | Category | Model | Comparison pair |
 |----|-------|----------|-------|-----------------|
@@ -87,8 +87,6 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 | `3d-render-v2` | 3D Render V2 | cartoons | seedream-4.5 | ✅ |
 | `neon` | Neon | art | flux-kontext-pro | ✅ |
 | `anime` | Anime | anime-manga | flux-kontext-pro | — |
-| `custom1` | Custom 1 | cartoons | flux-kontext-pro | — |
-| `custom2` | Custom 2 | 3d-characters | flux-kontext-pro | — |
 | `3dclay` | 3D Clay | 3d-characters | flux-kontext-pro | ✅ |
 | `oil-paint` | Oil Paint | paintings | flux-kontext-pro | ✅ |
 | `lowpoly` | Low Poly | art | seedream-4 | ✅ |
@@ -99,6 +97,7 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 | `graffiti` | Graffiti | art | seedream-4 | ✅ |
 | `banksy` | Banksy | art | seedream-4 | ✅ |
 | `mosaic` | Mosaic | art | seedream-4 | ✅ |
+| `hexagonal-mosaic` | Hexagonal Mosaic | art | nano-banana | ✅ |
 | `e-glow` | E-Glow | art | flux-kontext-pro | ✅ |
 | `abstract-v1` | Abstract V1 | art | nano-banana | ✅ |
 | `abstract-v2` | Abstract V2 | art | seedream-4 | ✅ |
@@ -127,18 +126,28 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 | `hokusai-v2` | Hokusai V2 | paintings | nano-banana-2 | ✅ |
 | `hiroshige` | Hiroshige | paintings | nano-banana-2 | ✅ |
 | `sesshu` | Sesshū | paintings | nano-banana-2 | ✅ |
+| `wc-marker` | Watercolor Marker | paintings | flux-kontext-pro | ✅ |
 | `pixar-like` | Pixar-like | 3d-characters | flux-kontext-pro | ✅ |
 | `funko-pop` | Funko Pop | 3d-characters | flux-kontext-pro | — |
-| `neandc` | Neanderthal | fantasy-mythical | nano-banana | — |
-| `neand3d` | Neanderthal 3D | fantasy-mythical | nano-banana | — |
+| `3d-portrait-v1` | 3D Portrait V1 | 3d-characters | seedream-4.5 | ✅ |
+| `3d-portrait-v2` | 3D Portrait V2 | 3d-characters | nano-banana-2 | ✅ |
+| `minime` | Minime | 3d-characters | nano-banana-2 | ✅ |
+| `dancing-3d` | Dancing | 3d-characters | seedream-4.5 | ✅ |
+| `miniature` | Miniature | 3d-characters | seedream-4.5 | ✅ |
+| `plastic-toy-v1` | Plastic Toy | 3d-characters | seedream-4.5 | ✅ |
+| `plastic-toy-v2` | Plastic Toy | 3d-characters | nano-banana-2 | ✅ |
+| `figurine-v2` | Figurine V2 | 3d-characters | seedream-4.5 | ✅ |
+| `figurine-v2b` | Figurine V2 | 3d-characters | nano-banana-2 | ✅ |
+| `figurine-v3` | Figurine V3 | 3d-characters | seedream-4.5 | ✅ |
+| `figurine-v4` | Figurine V4 | 3d-characters | nano-banana-2 | ✅ |
 | `handd` | Hand-Drawn | caricatures | nano-banana | ✅ |
 | `editorial` | Editorial | caricatures | nano-banana | ✅ |
 | `exaggerated` | Exaggerated | caricatures | nano-banana | ✅ |
 | `watercolor` | Watercolor | caricatures | seedream-4 | ✅ |
 | `carc1` | Carc1 | caricatures | seedream-4 | ✅ |
-| `superhero` | Superhero | video-games | nano-banana | — |
-| `villian` | Super Villain | video-games | nano-banana | — |
-| `cyborg` | Cyborg | video-games | nano-banana | — |
+| `3d-bd` | 3D BD | caricatures | nano-banana-2 | ✅ |
+| `3d` | 3D | caricatures | seedream-4.5 | ✅ |
+| `dancing-carc` | Dancing | caricatures | nano-banana-2 | ✅ |
 
 **Note:** `watercolor` (caricatures) and `water-color` (paintings) are different styles.
 
@@ -167,6 +176,9 @@ Run `npm run build-comparison-assets` after adding or replacing source files. Fo
 | `exaggerated` | `before/man2.png` | `after/caricature/Exaggerated.jpeg` |
 | `watercolor` | `before/couple.png` | `after/caricature/Watercolor-c.jpg` |
 | `carc1` | `before/toon.png` | `after/caricature/carc1.jpg` |
+| `3d-bd` | `before/lady.png` | `after/caricature/3dbd.jpeg` |
+| `3d` | `before/lady6.png` | `after/caricature/3d.jpg` |
+| `dancing-carc` | `before/lady6.png` | `after/caricature/dancing-carc.jpeg` |
 | `90s-cartoon` | `before/toon.png` | `after/cartoons/toon.jpg` |
 | `chibi` | `before/chibi.png` | `after/cartoons/chibi.jpg` |
 | `classic-v1` | `before/lady4.png` | `after/cartoons/classic.jpg` |
@@ -186,6 +198,17 @@ Run `npm run build-comparison-assets` after adding or replacing source files. Fo
 | `3d-render-v2` | `before/teen.png` | `after/cartoons/3d-renderv2.jpg` |
 | `3dclay` | `before/3dclay.png` | `after/3d/3dclay.jpg` |
 | `pixar-like` | `before/pxl.png` | `after/3d/pxl.jpg` |
+| `3d-portrait-v1` | `before/lady2.png` | `after/3d/3d-portraitv1.jpg` |
+| `3d-portrait-v2` | `before/lady2.png` | `after/3d/3d-portraitv2.jpeg` |
+| `minime` | `before/lady6.png` | `after/3d/minime.jpeg` |
+| `dancing-3d` | `before/teen2.png` | `after/3d/dancing-3d.jpg` |
+| `miniature` | `before/teen2.png` | `after/3d/miniature.jpg` |
+| `plastic-toy-v1` | `before/couple.png` | `after/3d/toyv1.jpg` |
+| `plastic-toy-v2` | `before/couple.png` | `after/3d/toyv2.jpeg` |
+| `figurine-v2` | `before/man10.png` | `after/3d/figurinev2.jpeg` |
+| `figurine-v2b` | `before/man10.png` | `after/3d/figurinev2.jpeg` |
+| `figurine-v3` | `before/teen2.png` | `after/3d/figurinev3.jpg` |
+| `figurine-v4` | `before/man10.png` | `after/3d/figurinev4.jpeg` |
 | `oil-paint` | `before/lady9.png` | `after/Paintings/oilpaint.jpg` |
 | `water-color` | `before/wc.png` | `after/Paintings/wc.jpg` |
 | `acrylic` | `before/lady12.png` | `after/Paintings/Acrylic.jpg` |
@@ -208,6 +231,7 @@ Run `npm run build-comparison-assets` after adding or replacing source files. Fo
 | `hokusai-v2` | `before/dude.png` | `after/Paintings/Hokusai2.jpeg` |
 | `hiroshige` | `before/lady12.png` | `after/Paintings/Hiroshige.jpeg` |
 | `sesshu` | `before/lady5.png` | `after/Paintings/Sesshū.jpeg` |
+| `wc-marker` | `before/lady3.png` | `after/Paintings/wc-marker.jpg` |
 | `mural` | `before/lady2.png` | `after/Art/mural.jpeg` |
 | `neon` | `before/lady3.png` | `after/Art/neon.jpg` |
 | `lowpoly` | `before/lady4.png` | `after/Art/lowpoly.jpg` |
@@ -217,6 +241,7 @@ Run `npm run build-comparison-assets` after adding or replacing source files. Fo
 | `graffiti` | `before/dude2.png` | `after/Art/graffiti.jpg` |
 | `banksy` | `before/lady6.png` | `after/Art/banksy.jpg` |
 | `mosaic` | `before/man4.png` | `after/Art/mosaic.jpg` |
+| `hexagonal-mosaic` | `before/lady2.png` | `after/Art/hexagon-mosaic.jpeg` |
 | `e-glow` | `before/lady7.png` | `after/Art/eglow.jpg` |
 | `abstract-v1` | `before/lady8.png` | `after/Art/abstractv1.jpeg` |
 | `abstract-v2` | `before/lady8.png` | `after/Art/abstractv2.jpg` |

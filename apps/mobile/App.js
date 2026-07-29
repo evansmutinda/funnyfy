@@ -50,7 +50,7 @@ import {
   ABOUT_TEXT,
   SUPPORT_EMAIL,
 } from './constants';
-import { mergeServerStyles } from './utils/mergeServerStyles';
+import { mergeServerStyles, getServerConfirmedStyleIds } from './utils/mergeServerStyles';
 import { readStylesCache, writeStylesCache } from './utils/stylesCache';
 import { getTrialRemaining, getTrialWarningMessage, isTrialUser } from './utils/trialWarnings';
 import { isNsfwContentError, humanizeApiError, buildContentPolicyDialog } from './utils/contentErrors';
@@ -481,11 +481,7 @@ function AppContent({ fontsLoaded }) {
   const applyStyles = useCallback((serverStyles) => {
     const merged = mergeServerStyles(serverStyles);
     hasStylesRef.current = merged.length > 0;
-    if (serverStyles?.length) {
-      serverStyleIdsRef.current = new Set(serverStyles.map((s) => s.id));
-    } else {
-      serverStyleIdsRef.current = null;
-    }
+    serverStyleIdsRef.current = getServerConfirmedStyleIds(serverStyles);
     setAvailableStyles(merged);
     return merged;
   }, []);

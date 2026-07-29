@@ -263,17 +263,6 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     enabled: true,
     premium: false,
   },
-  custom1: {
-    id: 'custom1',
-    label: 'Custom 1',
-    categoryId: 'cartoons',
-    description: 'Digital cartoon illustration with vibrant colors and proportion exaggeration',
-    prompt:
-      "Using the uploaded photo as the facial reference, create a digital cartoon illustration of the same subject. Preserve the subject's recognizable facial likeness, while applying stylized, cartoon-like exaggeration. The subject is dressed in random shirt that fits snugly around a rounded torso, paired with random trousers that are slightly loose at the legs, and random shoes. His arms hang naturally by his sides, with relaxed but slightly clenched hands. The background is a bright blue sky with soft, fluffy white clouds, creating an open, cheerful atmosphere that contrasts with the subject's serious expression. Style: clean, polished contemporary digital cartoon illustration, with smooth linework, vibrant colors, and intentional proportion exaggeration (large head, simplified body). Maintain clarity, balanced proportions, and a friendly cartoon aesthetic. Full-bleed composition. No borders. No photorealism.",
-    model: DEFAULT_MODEL,
-    enabled: true,
-    premium: false,
-  },
   '3dclay': {
     id: '3dclay',
     label: '3D Clay',
@@ -371,6 +360,17 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     description: 'Mosaic installation art portrait with tiled color fragments',
     prompt: 'make this a Mosaic installations art',
     model: SEEDREAM_4,
+    enabled: true,
+    premium: false,
+  },
+  'hexagonal-mosaic': {
+    id: 'hexagonal-mosaic',
+    label: 'Hexagonal Mosaic',
+    categoryId: 'art',
+    description: 'Hexagonal mosaic portrait with honeycomb tiles and faceted color blocks',
+    prompt:
+      "Preserve the uploaded person's identity exactly. Transform the portrait into a contemporary geometric artwork composed of interlocking hexagonal mosaic cells across the face while preserving realistic eyes, nose, lips, and facial proportions. Render the hair as flowing topographic contour lines resembling fingerprint ridges or elevation maps. Blend warm amber and orange tones into cool violet, indigo, and cobalt gradients with smooth transitions. Integrate the geometric pattern naturally into the clothing using elongated vertical graphic elements. Maintain a textured off-white paper background with subtle painterly brush textures. High-detail digital illustration, architectural precision, clean composition, elegant modern generative art, crisp edges, premium gallery-quality finish.",
+    model: NANO_BANANA,
     enabled: true,
     premium: false,
   },
@@ -657,6 +657,16 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     enabled: true,
     premium: false,
   },
+  'wc-marker': {
+    id: 'wc-marker',
+    label: 'Watercolor Marker',
+    categoryId: 'paintings',
+    description: 'Watercolor marker portrait with loose washes and crisp ink-marker edges',
+    prompt: "Using the attached image as a reference create stylish dynamic stylized portrait of a person head, drawn with art watercolor markers. Use only one [color] color family in contrasting shades: a bright vivid shade for the crucial contour lines and details, a very light pastel shade for soft volume and shadows. Maximize the use of white paper (negative space). No dark colors. Marker strokes do not overlap, use long smooth dynamic lines where possible. Stylish perspective and camera angle. Only essential details. Slight paper texture is visible under the strokes, the rest is clean white. Bold, graphic, juicy",
+    model: DEFAULT_MODEL,
+    enabled: true,
+    premium: false,
+  },
   'pixar-like': {
     id: 'pixar-like',
     label: 'Pixar-like',
@@ -677,35 +687,133 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     enabled: true,
     premium: false,
   },
-  custom2: {
-    id: 'custom2',
-    label: 'Custom 2',
+  '3d-portrait-v1': {
+    id: '3d-portrait-v1',
+    label: '3D Portrait V1',
     categoryId: '3d-characters',
-    description: 'Stylized 3D cartoon caricature with soft, friendly animated style - supports multiple faces',
+    description: 'Stylized 3D portrait with exaggerated cartoon proportions and semi-realistic skin texture',
     prompt:
-      'Using the uploaded photo as the reference, detect all clearly visible human faces in the image.Create a stylized 3D cartoon caricature of EACH person, preserving their individual facial likeness, skin tone, hairstyle, and expression.Do NOT merge faces and do NOT ignore secondary subjects. If multiple people are present:Apply the same 3D animated style consistently to all subjects, Maintain relative positions and scale between them,Keep each face distinct and recognizable,Reinterpret each person in a soft, friendly, animated 3D style with slightly exaggerated features, including: Large expressive eyes,Smooth rounded facial structure,Simplified nose and mouth,Warm, cheerful expressions,Skin should be smooth and matte, with soft lighting and no visible pores.Hair should be stylized and sculpted, with soft volume and clean shapes.Clothing should remain recognizable but simplified. Background may be simplified or softly blurred, but the relationship and interaction between subjects must be preserved.Render quality: polished 3D animated film style, clean geometry, soft shadows, warm color palette.Full-bleed composition. No borders. No photorealism.',
-    model: DEFAULT_MODEL,
+      'A stylized 3D portrait that transforms the person in the photo into a character with exaggerated proportions, like a cartoon. The skin is textured with realistic pores, subtle wrinkles, and expressive features, just like in the photo.  A discreet signature is added in the lower left corner in a contrasting color: The lighting is warm and soft, with a plain beige studio background. High-quality 3D rendering with semi-realistic shading, sculpted facial features, and high-quality materials.',
+    model: SEEDREAM_4_5,
     enabled: true,
     premium: false,
   },
-  neandc: {
-    id: 'neandc',
-    label: 'Neanderthal',
-    categoryId: 'fantasy-mythical',
-    description: 'Funny neanderthal cartoon maintaining facial features in a random Neanderthalic setting',
-    prompt: 'make this a funny neanderthal cartoon maintaining facial features, in a random Neanderthalic setting',
-    model: NANO_BANANA,
+  '3d-portrait-v2': {
+    id: '3d-portrait-v2',
+    label: '3D Portrait V2',
+    categoryId: '3d-characters',
+    description: 'Stylized 3D portrait with exaggerated cartoon proportions and semi-realistic skin texture',
+    prompt:
+      'A stylized 3D portrait that transforms the person in the photo into a character with exaggerated proportions, like a cartoon. The skin is textured with realistic pores, subtle wrinkles, and expressive features, just like in the photo.  A discreet signature is added in the lower left corner in a contrasting color: The lighting is warm and soft, with a plain beige studio background. High-quality 3D rendering with semi-realistic shading, sculpted facial features, and high-quality materials.',
+    model: NANO_BANANA_2,
     enabled: true,
     premium: false,
   },
-  neand3d: {
-    id: 'neand3d',
-    label: 'Neanderthal 3D',
-    categoryId: 'fantasy-mythical',
-    description: 'Funny neanderthal 3D caricature maintaining facial features, detects and includes all humans',
+  minime: {
+    id: 'minime',
+    label: 'Minime',
+    categoryId: '3d-characters',
+    description:
+      'Premium studio portrait pairing a photoreal subject with a stylized mini 3D version of the same person',
     prompt:
-      'make this a funny neanderthal 3d caricature maintaining facial features, in a random Neanderthalic setting. detect and include all humans in the photo, caricaturize all humans once detected',
-    model: NANO_BANANA,
+      "Use the uploaded reference image as an immutable source of identity for both subjects. IDENTITY FIXED - NOT ALTERABLE Preserve the exact facial structure, facial proportions, skin tone, eye shape, nose shape, lips, hairstyle, hair color, visual age, body proportions, and all recognizable personality traits from the reference image. The real person and the stylized character must clearly represent the same person. Do not create a different face, hairstyle, ethnicity, age, or body type. Do not embellish, alter, or reinterpret the person's identity. COMPOSITION AND FRAMMENT Create a premium studio portrait in a vertical 4:5 composition. Full-length shot. The real person stands on the right side of the frame. A stylized 3D version of the same person stands on the left side. The 3D character should be approximately 50-60% the height of a real person and reach approximately to waist level. The real subject casually rests one elbow on the character's large head. The interaction should appear natural, relaxed, and believable. Maintain a balanced distance between objects and a clean, centered composition. REAL SUBJECT - PHOTOREALISM Create an ultra-realistic, professional, commercial-quality studio photograph. Skin texture, natural pores, realistic hair strands, realistic fabric detail, and physically accurate lighting should be visible. The facial expression should be warm, inviting, confident, and relaxed. Avoid overly wide smiles, artificial beauty filters, plastic skin, and unrealistic retouching. POSE DIRECTION The pose should appear natural, stylish, and relaxed. Weight slightly shifted to one leg. Slight asymmetry in posture. Relaxed shoulders. Natural body language. The hand resting on the character should appear casual and relaxed, not staged. Avoid stiff, standing poses. CLOTHING PRESERVATION Accurately recreate the clothing from the reference image. Preserve the clothing colors, fit, silhouette, fabric characteristics, stitching, folds, seams, cuffs, hems, logos, accessories, shoes, and overall style. Do not alter or replace clothing elements. 3D CHARACTER VERSION Create a premium animated 3D character inspired by the aesthetics of high-end cinematic animation. The character should remain clearly recognizable as the same person. Large, expressive head. Smaller, stylized body proportions. More expressive facial expressions while maintaining accurate character. Slightly enlarged eyes. Softer facial contours. A friendly, animated smile. Sophisticated, high-quality character modeling. Avoid a toy-like, cheap, plastic, low-detail, or rigid figurine look. CHARACTER AND MOVEMENT The character should appear alive and expressive. Subtle body movement. Natural stance. Playful personality. Animated facial expression. Confident and charming presence. The pose should look like a still from an animated film, not like a static collectible figurine. MATERIALS AND DETAILS High-quality physically based rendering. Premium cloth simulation. Soft, realistic folds in clothing. Accurate surface reflections. Natural skin shading and lighting. Detailed hair rendering. Professional character texturing. LIGHTING AND STUDIO ENVIRONMENT Soft, diffuse studio lighting from the top left. Clean highlight transitions. Natural, soft shadows. Premium commercial studio lighting scheme. The background should be a seamless light gray studio gradient, slightly brighter in the center. Both subjects should cast realistic shadows, securely anchored to the surface.",
+    model: NANO_BANANA_2,
+    enabled: true,
+    premium: false,
+  },
+  'dancing-3d': {
+    id: 'dancing-3d',
+    label: 'Dancing',
+    categoryId: '3d-characters',
+    description:
+      'Exaggerated hybrid 3D-illustration dancing character with dynamic motion and painterly textures',
+    prompt:
+      "An exaggerated hybrid cartoon character combining sculpted 3D volume with expressive painted illustration style, featuring distorted stylized proportions and artistic facial deformation, freely adapting the person's appearance without realistic facial accuracy while keeping recognizable traits such as skin tone and hairstyle, the character captured in a dynamic dance pos full of motion and rhythm, flowing body ges and expressive posture, visible brush strok painted shadows and graphic textures layer over soft 3D forms, contemporary animated illustration aesthetic, solid blue studio background, stylized studio lighting translated into painterly highlights and shadows, energetic composition, textured paint surfaces and high-end hybrid 3D illustration render",
+    model: SEEDREAM_4_5,
+    enabled: true,
+    premium: false,
+  },
+  miniature: {
+    id: 'miniature',
+    label: 'Miniature',
+    categoryId: '3d-characters',
+    description:
+      'Hyperrealistic miniature caricature sitting in giant hands with oversized head and photoreal detail',
+    prompt:
+      "Use the attached photo as the primary reference for appearance and clothing. Maintain the person's individuality as accurately as possible: recognizable facial features, head shape, hairstyle, hairline, age, skin tone and natural texture, and the shape of the eyes, nose, lips, and chin. Transfer clothing, shoes, accessories, colors, materials, and small details entirely from the attached reference—don't replace or invent anything. Create the effect of a hyperrealistic, humorous caricature: an adult is transformed into a tiny, miniature version of themselves with a deliberately exaggerated, disproportionately large head and a very small body. The head should appear massive and expressive, but the face remains anatomically realistic and easily recognizable. This is a living, breathing miniature person, not a child, a toy, or a plastic doll. The character sits on the open palm of a huge human hand, crossing their legs in a confident, slightly demonstrative pose. The character's arms are tightly folded over their chest. The facial expression is serious, sullen, and slightly displeased: furrowed brows, an intense gaze, and barely noticeable pursed lips. The emotion is expressive but natural, without being overly grotesque. The enormous lower palm gently supports the miniature character and takes up a noticeable portion of the foreground. A second, gigantic hand enters the frame from above and gently touches the top of the character's head, as if gently supporting a small, lifelike figure between its palms. Both hands must appear as realistic as possible: correct anatomy and proportions of the fingers, natural skin, pores, fine wrinkles, knuckle creases, nails, translucent areas of skin, and soft, natural highlights. The contrast between the enormous hands and the tiny body should create a convincing illusion of scale. Vertical portrait composition 9:16. The camera is positioned approximately at face level, at a slight three-quarter angle. The face is the main focal point of the image, with perfectly sharp eyes and facial features. Both large hands beautifully frame the character, creating the impression that he is nestled between them. The head, petite body, crossed legs, clothing, and key parts of both hands are fully visible in the frame. The composition is dense, expressive, and visually balanced. Cinematic studio lighting: soft, directional key light on the face, subtle shadows, delicate backlighting along the edges of the head and clothing, and natural reflections on the skin. Realistic depth of field with a slight blur in the background without losing important details. The background is a bright blue-blue radial gradient, more luminous and saturated in the center behind the character and gradually fading to a deep blue at the edges. 8K, extreme detail, hyperrealism, photorealistic, cinematic quality, ultra-detailed skin, realistic fabric texture, physically accurate lighting, natural color grading, HDR, sharp facial details, professional studio photography, premium advertising aesthetics, high-end collectible miniature effect, no text.",
+    model: SEEDREAM_4_5,
+    enabled: true,
+    premium: false,
+  },
+  'plastic-toy-v1': {
+    id: 'plastic-toy-v1',
+    label: 'Plastic Toy',
+    categoryId: '3d-characters',
+    description:
+      'Premium stylized plastic toy render preserving the original scene, pose, and composition',
+    prompt:
+      "Using the uploaded image as your ONLY reference, transform it into a high-quality stylized 3D render of a plastic toy, STRICTLY preserving the original scene without any changes: same object, same pose, same camera angle, same framing, same proportions, same lighting direction, same shadows, and same composition. The final image should look like an exact copy of the original photograph, transformed into a toy version, not a reimagining of it. Transform all characters and objects into the aesthetics of a premium collectible toy made of molded plastic. Surfaces should be exceptionally smooth, clean, and glossy, with controlled specular highlights, like those found in high-end designer toys or luxury collectible figurines. Add realistic structural details to the toy: visible hinge joints at the shoulders, elbows, hips, and knees (neat round or segmented hinges); subtle joint lines along the limbs and body parts; if necessary, minimal facial segmentation lines (very subtle, like those on premium action figures, no exaggeration); hinges should appear naturally integrated into the design and not interfere with the anatomy. The skin should be transformed into a smooth synthetic plastic (without pores or any imperfections), while fully preserving the character's personality and facial structure. Eyes should have a slight glossy sheen, like the painted eyes of the toy. Clothing should be transformed into plastic-coated materials (latex, rubberized surfaces, molded plastic, etc.), while maintaining the exact same design, folds, and construction - without any redesign.",
+    model: SEEDREAM_4_5,
+    enabled: true,
+    premium: false,
+  },
+  'plastic-toy-v2': {
+    id: 'plastic-toy-v2',
+    label: 'Plastic Toy',
+    categoryId: '3d-characters',
+    description:
+      'Premium stylized plastic toy render preserving the original scene, pose, and composition',
+    prompt:
+      "Using the uploaded image as your ONLY reference, transform it into a high-quality stylized 3D render of a plastic toy, STRICTLY preserving the original scene without any changes: same object, same pose, same camera angle, same framing, same proportions, same lighting direction, same shadows, and same composition. The final image should look like an exact copy of the original photograph, transformed into a toy version, not a reimagining of it. Transform all characters and objects into the aesthetics of a premium collectible toy made of molded plastic. Surfaces should be exceptionally smooth, clean, and glossy, with controlled specular highlights, like those found in high-end designer toys or luxury collectible figurines. Add realistic structural details to the toy: visible hinge joints at the shoulders, elbows, hips, and knees (neat round or segmented hinges); subtle joint lines along the limbs and body parts; if necessary, minimal facial segmentation lines (very subtle, like those on premium action figures, no exaggeration); hinges should appear naturally integrated into the design and not interfere with the anatomy. The skin should be transformed into a smooth synthetic plastic (without pores or any imperfections), while fully preserving the character's personality and facial structure. Eyes should have a slight glossy sheen, like the painted eyes of the toy. Clothing should be transformed into plastic-coated materials (latex, rubberized surfaces, molded plastic, etc.), while maintaining the exact same design, folds, and construction - without any redesign.",
+    model: NANO_BANANA_2,
+    enabled: true,
+    premium: false,
+  },
+  'figurine-v2': {
+    id: 'figurine-v2',
+    label: 'Figurine V2',
+    categoryId: '3d-characters',
+    description:
+      'Hyper-realistic commercial scene with a 1/7th-scale collectible figurine beside the real subject',
+    prompt:
+      "Use a reference photo to create a hyper-realistic commercial scene featuring a 1/7th scale collectible action figure based on the uploaded image. The main subject is a realistic miniature figurine of the same man from the reference photo, accurately reproducing his appearance, facial features, hairstyle, body proportions, pose, and clothing. The figurine stands on a round, clear acrylic base and is placed on a computer desk in a modern studio space. The figurine's materials should look premium and realistic: detailed skin, natural fabric texture, accurate paintwork, and clear, fine details, without a plastic or toy-like appearance. Next to the table is a real-life version of the same man, wearing the same clothing as in the reference photo. He carefully cleans the figurine with a fine brush, leaning slightly toward it, with an attentive and focused expression. The composition should emphasize the contrast between the real man and his miniature commercial figurine. The setting is a stylish, modern studio room with bright, soft lighting. In the background, shelves displaying a collection of toys, figurines, and decorative items are visible. The background is slightly blurred to keep the main focus on the figurine and the man. The atmosphere is premium, creative, and collectible, reminiscent of a professional advertising shoot for a brand of designer figurines. Ultra-realistic texture, highly detailed, 8K, cinematic soft light, realistic shadows, professional product photography, no plastic textures, no CGI",
+    model: SEEDREAM_4_5,
+    enabled: true,
+    premium: false,
+  },
+  'figurine-v2b': {
+    id: 'figurine-v2b',
+    label: 'Figurine V2',
+    categoryId: '3d-characters',
+    description:
+      'Hyper-realistic commercial scene with a 1/7th-scale collectible figurine beside the real subject',
+    prompt:
+      "Use a reference photo to create a hyper-realistic commercial scene featuring a 1/7th scale collectible action figure based on the uploaded image. The main subject is a realistic miniature figurine of the same man from the reference photo, accurately reproducing his appearance, facial features, hairstyle, body proportions, pose, and clothing. The figurine stands on a round, clear acrylic base and is placed on a computer desk in a modern studio space. The figurine's materials should look premium and realistic: detailed skin, natural fabric texture, accurate paintwork, and clear, fine details, without a plastic or toy-like appearance. Next to the table is a real-life version of the same man, wearing the same clothing as in the reference photo. He carefully cleans the figurine with a fine brush, leaning slightly toward it, with an attentive and focused expression. The composition should emphasize the contrast between the real man and his miniature commercial figurine. The setting is a stylish, modern studio room with bright, soft lighting. In the background, shelves displaying a collection of toys, figurines, and decorative items are visible. The background is slightly blurred to keep the main focus on the figurine and the man. The atmosphere is premium, creative, and collectible, reminiscent of a professional advertising shoot for a brand of designer figurines. Ultra-realistic texture, highly detailed, 8K, cinematic soft light, realistic shadows, professional product photography, no plastic textures, no CGI",
+    model: NANO_BANANA_2,
+    enabled: true,
+    premium: false,
+  },
+  'figurine-v3': {
+    id: 'figurine-v3',
+    label: 'Figurine V3',
+    categoryId: '3d-characters',
+    description:
+      'Hyper-realistic chibi collectible figurine product photo on a wooden table with graffiti backdrop',
+    prompt:
+      'A hyper-realistic promotional product photo of a small collectible figurine, positioned vertically on a wooden table with a distinctive natural texture. The figurine is fully visible and central to the composition. The figurine is based on the character from the attached image and is executed in a charming chibi style: an enlarged head, compact body proportions, expressive facial features, and a recognizable appearance. The character is depicted in a dynamic pose against a brick wall covered in colorful graffiti.\n\nThe figurine accurately replicates the appearance, pose, clothing, hairstyle, and key features of the character from the attached image. The detailed plastic figurine looks like a genuine premium collectible souvenir with its precise paint job and matte and slightly glossy surfaces.\n\nThe composition is reminiscent of a professional advertising shoot for a limited edition collection. The figurine is the main focus of the shot. A blurred brick wall with bright street graffiti elements is visible in the background.\n\nSoft natural lighting from the side, subtle highlights on the figurine, realistic contact shadows on the table, a warm, cozy atmosphere. Shallow depth of field, sharp focus on the figurine, smooth artistic background blur, the effect of a professional 50mm lens. Maximum photorealism, realistic materials and textures, high detail, commercial product photography, 8K quality, no unnecessary objects, text, watermarks, or visual defects.',
+    model: SEEDREAM_4_5,
+    enabled: true,
+    premium: false,
+  },
+  'figurine-v4': {
+    id: 'figurine-v4',
+    label: 'Figurine V4',
+    categoryId: '3d-characters',
+    description:
+      'Hyper-realistic chibi collectible figurine product photo on a wooden table with graffiti backdrop',
+    prompt:
+      'A hyper-realistic promotional product photo of a small collectible figurine, positioned vertically on a wooden table with a distinctive natural texture. The figurine is fully visible and central to the composition. The figurine is based on the character from the attached image and is executed in a charming chibi style: an enlarged head, compact body proportions, expressive facial features, and a recognizable appearance. The character is depicted in a dynamic pose against a brick wall covered in colorful graffiti.\n\nThe figurine accurately replicates the appearance, pose, clothing, hairstyle, and key features of the character from the attached image. The detailed plastic figurine looks like a genuine premium collectible souvenir with its precise paint job and matte and slightly glossy surfaces.\n\nThe composition is reminiscent of a professional advertising shoot for a limited edition collection. The figurine is the main focus of the shot. A blurred brick wall with bright street graffiti elements is visible in the background.\n\nSoft natural lighting from the side, subtle highlights on the figurine, realistic contact shadows on the table, a warm, cozy atmosphere. Shallow depth of field, sharp focus on the figurine, smooth artistic background blur, the effect of a professional 50mm lens. Maximum photorealism, realistic materials and textures, high detail, commercial product photography, 8K quality, no unnecessary objects, text, watermarks, or visual defects.',
+    model: NANO_BANANA_2,
     enabled: true,
     premium: false,
   },
@@ -774,36 +882,38 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     enabled: true,
     premium: false,
   },
-  superhero: {
-    id: 'superhero',
-    label: 'Superhero',
-    categoryId: 'video-games',
-    description: 'Superhero caricature in action, avoiding trademarked themes, maintaining facial and body features',
+  '3d-bd': {
+    id: '3d-bd',
+    label: '3D BD',
+    categoryId: 'caricatures',
+    description: 'Ultra-realistic premium BD caricature with exaggerated features and cinematic lighting',
     prompt:
-      'make a superhero caricature, in superhero costumes, avoid trademarked themes, set super hero actions like saving victims, stopping trains, stopping bad guys, etc. in random settings. maintain subjects facial and body features',
-    model: NANO_BANANA,
+      "Transform the person in the original photograph into an ultra-realistic, highly detailed premium-quality BD caricature. Preserve the recognizability, facial features, head shape, hairstyle, clothing, pose, personality, and overall mood of the original photo. Exaggerate characteristic facial features to the extreme: enlarge the head relative to the body, make the character more expressive, but do not distort the person beyond recognition. Emphasize the shape of the eyes (make them huge), eyebrows, nose (make it big), lips, cheekbones, and jawline, while maintaining natural proportions and visual similarity to the reference. Add realistic skin microtexture: pores, expression lines, fine lines, natural folds, subtle imperfections, and smooth color transitions. The look should be vibrant and natural, without the effects of plastic, wax, or excessive ironing. Detail the hair, eyelashes, boots, and clothing textures: individual fibers, seams, folds, and natural light reflections. Use cinematic lighting, flickering volumetric shadows, expressive highlights, and realistic rendering. The final result should resemble a character from an expensive full-length animated film: stylized, charismatic, emotional, and distinctly... High-quality digitalization, professional",
+    model: NANO_BANANA_2,
     enabled: true,
     premium: false,
   },
-  villian: {
-    id: 'villian',
-    label: 'Super Villain',
-    categoryId: 'video-games',
-    description: 'Super villain caricature in action, avoiding trademarked themes, maintaining facial and body features',
+  '3d': {
+    id: '3d',
+    label: '3D',
+    categoryId: 'caricatures',
+    description:
+      'Ultra-realistic premium 3D caricature with exaggerated features and cinematic film-style rendering',
     prompt:
-      'make a super villain caricature, in superhero costumes, avoid trademarked themes, set super villan actions like chasing victims, destroying stuff being bad guys, etc, in random settings. maintain subjects facial and body features',
-    model: NANO_BANANA,
+      "Transform a person in a source photo into an ultra-realistic, highly detailed premium 3D caricature. Preserve the recognizability, individual facial features, head shape, hairstyle, clothing, pose, emotion, and overall mood of the original photo. Exaggerate characteristic facial features to the extreme: enlarge the head relative to the body, make facial expressions more expressive, but don't distort the person beyond recognition. Emphasize the shape of the eyes (make them huge), eyebrows, nose (make it big), lips, cheekbones, and jawline, while maintaining natural proportions and visual similarity to the reference. Add realistic skin microtexture: pores, expression lines, fine wrinkles, natural folds, subtle imperfections, and smooth tonal transitions. The skin should look alive and natural, without the effect of plastic, wax, or excessive smoothing. Detail the hair, eyelashes, eyebrows, and clothing textures: individual fibers, seams, folds, and natural light reflections. Use cinematic lighting, soft volumetric shadows, expressive highlights, and realistic rendering. The final result should resemble a character from an expensive full-length animated film: stylized, charismatic, emotional, and photorealistic at the same time. Highly detailed, professional 3D rendering, ultra-realistic, cinematic lighting, 8K, no text, logos, or extraneous elements.",
+    model: SEEDREAM_4_5,
     enabled: true,
     premium: false,
   },
-  cyborg: {
-    id: 'cyborg',
-    label: 'Cyborg',
-    categoryId: 'video-games',
-    description: 'Cyborg cartoon caricature maintaining facial and body features, set in futuristic city settings',
+  'dancing-carc': {
+    id: 'dancing-carc',
+    label: 'Dancing',
+    categoryId: 'caricatures',
+    description:
+      'Exaggerated hybrid 3D-illustration dancing caricature with dynamic motion and painterly textures',
     prompt:
-      'make a cyborg cartoon caricature, maintaining subjects facial and body features, set in futuristic random city in random settings',
-    model: NANO_BANANA,
+      "An exaggerated hybrid cartoon character combining sculpted 3D volume with expressive painted illustration style, featuring distorted stylized proportions and artistic facial deformation, freely adapting the person's appearance without realistic facial accuracy while keeping recognizable traits such as skin tone and hairstyle, the character captured in a dynamic dance pos full of motion and rhythm, flowing body ges and expressive posture, visible brush strok painted shadows and graphic textures layer over soft 3D forms, contemporary animated illustration aesthetic, solid blue studio background, stylized studio lighting translated into painterly highlights and shadows, energetic composition, textured paint surfaces and high-end hybrid 3D illustration render",
+    model: NANO_BANANA_2,
     enabled: true,
     premium: false,
   },

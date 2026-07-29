@@ -162,7 +162,7 @@ Key tables:
 - **Enabled styles** with live prompts — see `MD/STYLES.md` (count also in generated `MD/PROMPTS.md`)
 - Models:
   - **Primary**: `black-forest-labs/flux-kontext-pro` (most styles)
-  - **Secondary**: `google/nano-banana` (custom2, neand3d, handd, superhero, villain, cyborg)
+  - **Secondary**: `google/nano-banana` (handd)
 
 Styles are configured server-side in `api/_utils/styles-config.ts`. Thumbnails are bundled in `apps/mobile/assets/` via `getStyleImage()` in `constants.js`.
 

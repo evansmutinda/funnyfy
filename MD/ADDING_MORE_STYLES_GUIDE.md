@@ -87,11 +87,6 @@ Here are popular style categories that work well for caricature apps:
 - **Paper Cutout** (flat, layered)
 
 ### Character Themes
-- **Superhero** ✅ (you have this)
-- **Super Villain** ✅ (you have this)
-- **Cyborg** ✅ (you have this)
-- **Neanderthal** ✅ (you have this)
-- **Wizard/Mage** (fantasy)
 - **Pirate** (adventure)
 - **Robot** (mechanical)
 - **Alien** (sci-fi)

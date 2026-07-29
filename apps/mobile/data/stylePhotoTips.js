@@ -48,7 +48,7 @@ export const GENERIC_STYLE_PHOTO_TIPS = {
     },
   ],
   rules: [
-    'One person per photo (Custom 2 and Neanderthal 3D handle groups)',
+    'One person per photo',
     'Avoid hats, masks, or heavy shadows on the face',
     'Avoid photos with nudity, violence, or weapons — most issues are accidental, so another photo usually works',
   ],

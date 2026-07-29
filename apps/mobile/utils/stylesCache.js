@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const STYLES_CACHE_KEY = '@funnyfy/styles_cache_v1';
+const STYLES_CACHE_KEY = '@funnyfy/styles_cache_v2';
 
 function normalizeStyleEntry(style) {
   if (!style?.id) return null;
