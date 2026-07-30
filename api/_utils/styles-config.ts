@@ -444,6 +444,42 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     enabled: true,
     premium: false,
   },
+  'pencil-sketch-v1': {
+    id: 'pencil-sketch-v1',
+    label: 'Pencil Sketch V1',
+    categoryId: 'art',
+    description:
+      'Childlike crayon caricature on lined notebook paper with messy vibrant strokes',
+    prompt:
+      'A childlike crayon drawing on blue horizontal lined notebook paper. The drawing is a simplified, slightly exaggerated caricature of the reference image. preserving face shape, skin tone, hairstyle, facial expression, and outfit colors. Features messy, vibrant crayon strokes and bold outlines. Background is simplified and loosely sketched. The overall effect should be an authentic drawing by a child aged 10-6.',
+    model: NANO_BANANA,
+    enabled: true,
+    premium: false,
+  },
+  'pencil-sketch-v2': {
+    id: 'pencil-sketch-v2',
+    label: 'Pencil Sketch V2',
+    categoryId: 'art',
+    description:
+      'Childlike crayon caricature on lined notebook paper with messy vibrant strokes',
+    prompt:
+      'A childlike crayon drawing on blue horizontal lined notebook paper. The drawing is a simplified, slightly exaggerated caricature of the reference image. preserving face shape, skin tone, hairstyle, facial expression, and outfit colors. Features messy, vibrant crayon strokes and bold outlines. Background is simplified and loosely sketched. The overall effect should be an authentic drawing by a child aged 10-6.',
+    model: NANO_BANANA_2,
+    enabled: true,
+    premium: false,
+  },
+  origami: {
+    id: 'origami',
+    label: 'Origami',
+    categoryId: 'art',
+    description:
+      'Elegant traditional origami sculpture of the subject from folded washi paper with museum-quality craftsmanship',
+    prompt:
+      "Preserve the uploaded person's identity exactly. Transform the person into an elegant traditional origami sculpture, handcrafted entirely from folded paper while maintaining their recognizable facial features, hairstyle, skin tone (represented through carefully chosen paper colours), clothing, accessories, and personality.\n\nConstruct the entire character exclusively from precisely folded sheets of paper, using authentic origami techniques without cutting, tearing, or sculpting. Every part of the figure—including the face, hair, clothing, shoes, and accessories—should be formed through intricate geometric folds, layered paper structures, sharp creases, crisp edges, and carefully engineered paper geometry.\n\nPreserve the person's facial identity by using sophisticated folded forms that suggest the eyes, eyebrows, nose, lips, jawline, hairstyle, and expression while remaining unmistakably handcrafted from paper. Hair should be represented through layered folded strips, pleats, curls, or angular paper sections that mimic the person's hairstyle.\n\nClothing should appear as folded paper garments with realistic collars, sleeves, seams, lapels, pockets, folds, and fabric draping recreated entirely through origami techniques. Accessories should also be folded from paper while remaining clearly recognizable.\n\nUse premium textured Japanese washi paper with subtle fibres, natural matte surfaces, delicate paper grain, and realistic fold stress along the creases. Employ harmonious paper colours with gentle tonal variation while preserving the person's clothing colours and overall appearance.\n\nDisplay the finished origami sculpture on a clean neutral surface with soft studio lighting that highlights the crisp folds, layered construction, realistic paper thickness, and intricate craftsmanship. Subtle contact shadows, shallow depth of field, professional macro photography, museum-quality paper sculpture, ultra-detailed handcrafted artistry, elegant composition, photorealistic materials, 8K quality, no glue, no tape, no text, no watermarks, and no visual defects.",
+    model: SEEDREAM_4_5,
+    enabled: true,
+    premium: false,
+  },
   'water-color': {
     id: 'water-color',
     label: 'Water Color',
@@ -681,9 +717,35 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     id: 'funko-pop',
     label: 'Funko Pop',
     categoryId: '3d-characters',
-    description: 'Funko Pop style',
-    prompt: 'make this a funko pop',
+    description:
+      'Premium vinyl Funko Pop–style collectible figure with oversized head and commercial product photography',
+    prompt:
+      "Preserve the uploaded person's identity exactly. Transform the person into a premium vinyl collectible figure inspired by the iconic Funko Pop aesthetic while maintaining their recognizable facial features, hairstyle, skin tone, facial hair (if applicable), clothing, accessories, and overall personality.\n\nThe character has the classic collectible proportions: an oversized rounded head occupying approximately half the figure's total height, a compact simplified body, short limbs, and slightly enlarged hands and feet. The face features large glossy solid-black circular eyes without visible pupils, simplified eyebrows, a minimal nose, and a subtle stylized smile or neutral expression while preserving the person's unique likeness. The figure has a smooth matte vinyl finish with subtle satin highlights and finely sculpted details.\n\nFaithfully recreate the person's hairstyle with simplified sculpted strands and clean vinyl contours. Reproduce all distinctive clothing, shoes, jewellery, glasses, watches, hats, or accessories in miniature collectible form using simplified yet highly recognizable sculpting. Preserve colour accuracy while slightly simplifying textures to resemble moulded vinyl.\n\nThe figure stands confidently on a transparent round display base with balanced proportions and museum-quality craftsmanship. Every detail resembles a professionally manufactured designer vinyl collectible, including clean seam lines, crisp paint application, smooth rounded edges, premium mould quality, realistic vinyl materials, subtle surface reflections, and highly detailed sculpting.\n\nThe scene is photographed as premium commercial product photography on a clean tabletop or studio surface with soft diffused lighting, realistic contact shadows, gentle reflections, shallow depth of field, and a professional 85mm product lens. Ultra-photorealistic, 8K quality, sharp focus on the figure, commercial advertising aesthetic, realistic materials and textures, clean composition, no packaging, no logos, no text, no watermarks, and no visual defects.",
     model: DEFAULT_MODEL,
+    enabled: true,
+    premium: false,
+  },
+  aardman: {
+    id: 'aardman',
+    label: 'Aardman',
+    categoryId: '3d-characters',
+    description:
+      'Grotesque humorous Aardman-style claymation 3D scene preserving original composition',
+    prompt:
+      'Create a highly detailed 3D interpretation of the reference image while **strictly preserving the exact spatial arrangement of all objects, their scale, rotations, positions, and the overall structural composition.**\n\n**Do not move, add, or remove any elements.** Instead, translate the entire image into a grotesque, humorous clay world while preserving the original scene and its visual logic.\n\n### Style\n\nThe style should be **extremely caricatured**, reminiscent of **Aardman Animations**, with an absurdist tone.\n\nThe characters should appear deliberately ridiculous, featuring:\n\n* Wildly disproportionate bodies\n* Rubbery, noodle-like limbs\n* Bulging "ping-pong ball" eyes, slightly pointing in different directions\n* Huge toothy smiles with unnaturally large rectangular teeth\n* Clearly visible pink gums\n\nEach character should look intentionally comical.\n\n### Texture & Aesthetic\n\nEverything should appear to be sculpted from **heavy, matte modeling clay (plasticine).**\n\nThe geometry should be intentionally uneven and imperfect:\n\n* No straight lines\n* No perfectly sharp edges\n* No sterile smoothness\n\nEvery surface should feel hand-sculpted, with visible waviness and rough, organic forms.\n\nThe material should display pronounced tactile imperfections, including:\n\n* Deep dirty fingerprints\n* Random fingernail scratches\n* Rough seams\n* Fine cracks\n* Tiny dust particles\n* Lint fibers\n* Small bits of debris stuck to the clay surface\n\n### Overall Feel\n\nThe final result should evoke a **funny, bizarre, slightly unsettling, yet vibrant and tangible claymation world**, rendered as a richly detailed 3D image with maximum visual detail.',
+    model: SEEDREAM_4_5,
+    enabled: true,
+    premium: false,
+  },
+  'modern-animation': {
+    id: 'modern-animation',
+    label: 'Modern Animation',
+    categoryId: '3d-characters',
+    description:
+      'Warm high-end modern animated feature-film character with soft stylization and cinematic lighting',
+    prompt:
+      "Preserve the uploaded person's identity exactly. Transform the uploaded person into a charming high-end animated feature film character, preserving their recognizable facial features, hairstyle, beard, skin tone, eye colour, clothing, accessories, and personality.\n\nReimagine the character with warm, appealing proportions: a slightly oversized head, expressive large eyes with natural irises, softly rounded cheeks, a friendly smile, simplified facial anatomy, and subtle stylization while maintaining the person's unmistakable identity. Avoid caricature-like distortion or exaggerated facial features.\n\nSculpt the hair as soft, flowing strands with layered volume, natural movement, and silky textures. Facial hair should appear neatly groomed with stylized yet realistic individual strands that blend seamlessly into the character's face.\n\nThe clothing should retain its original design while being recreated with premium animated-film quality, featuring soft fabrics, clean stitching, subtle wrinkles, realistic cloth simulation, and vibrant colours.\n\nRender the character as a premium stylized 3D model with smooth topology, high-quality skin shaders, subtle subsurface scattering, realistic fabric materials, soft global illumination, ambient occlusion, cinematic rim lighting, and polished studio-quality rendering.\n\nThe overall aesthetic should feel warm, inviting, expressive, and emotionally engaging, with rounded forms, appealing silhouettes, and elegant proportions typical of modern family animated feature films.\n\nPlace the character against a clean softly blurred gradient background with warm cinematic lighting, shallow depth of field, soft shadows, premium colour grading, ultra-clean composition, commercial-quality character render, highly detailed textures, photorealistic 3D materials, 8K quality, no text, no logos, no watermarks, and no visual defects.",
+    model: SEEDREAM_4_5,
     enabled: true,
     premium: false,
   },
@@ -769,9 +831,9 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     enabled: true,
     premium: false,
   },
-  'figurine-v2': {
-    id: 'figurine-v2',
-    label: 'Figurine V2',
+  'figurine-v1': {
+    id: 'figurine-v1',
+    label: 'Figurine V1',
     categoryId: '3d-characters',
     description:
       'Hyper-realistic commercial scene with a 1/7th-scale collectible figurine beside the real subject',
@@ -781,8 +843,8 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     enabled: true,
     premium: false,
   },
-  'figurine-v2b': {
-    id: 'figurine-v2b',
+  'figurine-v2': {
+    id: 'figurine-v2',
     label: 'Figurine V2',
     categoryId: '3d-characters',
     description:
@@ -914,6 +976,30 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     prompt:
       "An exaggerated hybrid cartoon character combining sculpted 3D volume with expressive painted illustration style, featuring distorted stylized proportions and artistic facial deformation, freely adapting the person's appearance without realistic facial accuracy while keeping recognizable traits such as skin tone and hairstyle, the character captured in a dynamic dance pos full of motion and rhythm, flowing body ges and expressive posture, visible brush strok painted shadows and graphic textures layer over soft 3D forms, contemporary animated illustration aesthetic, solid blue studio background, stylized studio lighting translated into painterly highlights and shadows, energetic composition, textured paint surfaces and high-end hybrid 3D illustration render",
     model: NANO_BANANA_2,
+    enabled: true,
+    premium: false,
+  },
+  'tiny-muscle-v1': {
+    id: 'tiny-muscle-v1',
+    label: 'Tiny Muscle V1',
+    categoryId: 'caricatures',
+    description:
+      'Humorous hyper-muscular cartoon caricature with oversized head and comic-book hero physique',
+    prompt:
+      "Preserve the uploaded person's identity exactly. Transform the person into a humorous hyper-muscular cartoon caricature while maintaining their recognizable face, hairstyle, skin tone, facial hair, and personality.\n\nExaggerate characteristic facial features to the extreme: enlarge the head relative to the body, make facial expressions more expressive, but don't distort the person beyond recognition. Emphasize the shape of the eyes (make them huge), eyebrows, nose (make it big), lips, cheekbones, and jawline, while maintaining natural proportions and visual similarity to the reference.\n\nDramatically exaggerate the physique with enormous rounded shoulders, gigantic biceps, thick forearms, massive chest, oversized trapezius muscles, a powerful V-shaped torso, sculpted eight-pack abs, broad back, muscular thighs, and athletic calves. The proportions should be intentionally exaggerated and cartoonishly powerful while remaining visually appealing and cohesive. The body should look like an impossibly muscular comic-book hero rather than a realistic bodybuilder.\n\nPreserve the person's facial identity, but subtly enhance the expression with a confident grin, determined eyes, and strong jawline without over-distorting their unique facial features.\n\nRender smooth, clean muscle contours with glossy skin highlights, rounded anatomical forms, and premium digital illustration quality. Emphasize heroic proportions, dynamic anatomy, exaggerated strength, and energetic visual appeal. Rich colour gradients, soft studio lighting, subtle ambient occlusion, crisp edges, and high-detail digital painting with a polished commercial illustration finish. Humorous yet impressive, premium character design, ultra-detailed, vibrant, 8K quality.",
+    model: SEEDREAM_4_5,
+    enabled: true,
+    premium: false,
+  },
+  'tiny-muscle-v2': {
+    id: 'tiny-muscle-v2',
+    label: 'Tiny Muscle V2',
+    categoryId: 'caricatures',
+    description:
+      'Humorous hyper-muscular cartoon caricature with oversized head and comic-book hero physique',
+    prompt:
+      "Preserve the uploaded person's identity exactly. Transform the person into a humorous hyper-muscular cartoon caricature while maintaining their recognizable face, hairstyle, skin tone, facial hair, and personality.\n\nExaggerate characteristic facial features to the extreme: enlarge the head relative to the body, make facial expressions more expressive, but don't distort the person beyond recognition. Emphasize the shape of the eyes (make them huge), eyebrows, nose (make it big), lips, cheekbones, and jawline, while maintaining natural proportions and visual similarity to the reference.\n\nDramatically exaggerate the physique with enormous rounded shoulders, gigantic biceps, thick forearms, massive chest, oversized trapezius muscles, a powerful V-shaped torso, sculpted eight-pack abs, broad back, muscular thighs, and athletic calves. The proportions should be intentionally exaggerated and cartoonishly powerful while remaining visually appealing and cohesive. The body should look like an impossibly muscular comic-book hero rather than a realistic bodybuilder.\n\nPreserve the person's facial identity, but subtly enhance the expression with a confident grin, determined eyes, and strong jawline without over-distorting their unique facial features.\n\nRender smooth, clean muscle contours with glossy skin highlights, rounded anatomical forms, and premium digital illustration quality. Emphasize heroic proportions, dynamic anatomy, exaggerated strength, and energetic visual appeal. Rich colour gradients, soft studio lighting, subtle ambient occlusion, crisp edges, and high-detail digital painting with a polished commercial illustration finish. Humorous yet impressive, premium character design, ultra-detailed, vibrant, 8K quality.",
+    model: NANO_BANANA,
     enabled: true,
     premium: false,
   },

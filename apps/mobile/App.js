@@ -242,14 +242,39 @@ function AppContent({ fontsLoaded }) {
       if (auth.isLocal) {
         console.warn('[Auth] Running with local ID — backend unavailable. Check DATABASE_URL in Vercel.');
       } else if (auth.userId && auth.token && hasKey) {
-        const rcCustomerInfo = await linkRevenueCatToBackend(auth.userId);
-        if (rcCustomerInfo) {
-          // sync happens after ensureAuthenticated is available — defer via getCustomerInfo in refresh
-        }
+        // Never block splash/authReady on Purchases.logIn — it can hang past the failsafe
+        // and leave subscription/API calls racing with a half-finished startup.
+        withTimeout(
+          linkRevenueCatToBackend(auth.userId),
+          RC_STARTUP_TIMEOUT_MS,
+          'RevenueCat link'
+        ).catch((err) => console.warn('[RevenueCat] link deferred/failed:', err?.message || err));
       }
     } catch (err) {
       console.error('[Auth] init error:', err);
       auth = { userId: null, token: null, isLocal: true };
+    }
+
+    return auth;
+  };
+
+  const refreshAuthToken = async () => {
+    devLog('[Auth] Refreshing JWT...');
+    const rcUserId = hasRevenueCatKey() ? await getAppUserId().catch(() => null) : null;
+    const auth = await forceReAuth(API_BASE, rcUserId);
+    applyAuthState(auth);
+
+    if (!auth.token && auth.isLocal) {
+      console.warn('[Auth] Still no token after forceReAuth — backend may be unreachable');
+      return auth;
+    }
+
+    if (auth.userId && auth.token && hasRevenueCatKey()) {
+      withTimeout(
+        linkRevenueCatToBackend(auth.userId),
+        RC_STARTUP_TIMEOUT_MS,
+        'RevenueCat link'
+      ).catch((err) => console.warn('[RevenueCat] link deferred/failed:', err?.message || err));
     }
 
     return auth;
@@ -268,23 +293,7 @@ function AppContent({ fontsLoaded }) {
       return { userId: userIdRef.current, token: authTokenRef.current, isLocal: false };
     }
 
-    devLog('[Auth] Ensuring authentication...');
-    const rcUserId = hasRevenueCatKey() ? await getAppUserId().catch(() => null) : null;
-
-    // No JWT means stored auth is stale or startup raced — force a fresh token
-    let auth = await forceReAuth(API_BASE, rcUserId);
-    applyAuthState(auth);
-
-    if (!auth.token && auth.isLocal) {
-      console.warn('[Auth] Still no token after forceReAuth — backend may be unreachable');
-      return auth;
-    }
-
-    if (auth.userId && auth.token && hasRevenueCatKey()) {
-      await linkRevenueCatToBackend(auth.userId);
-    }
-
-    return auth;
+    return refreshAuthToken();
   };
 
   // Push RevenueCat purchase state to our backend (webhook may lag or be unconfigured)
@@ -440,6 +449,14 @@ function AppContent({ fontsLoaded }) {
       }
       if (!res.ok || !json.ok) {
         console.warn('[subscription] non-ok response:', json);
+        // Stale/invalid JWT — mint a fresh token and retry once
+        if (
+          retryCount < maxRetries &&
+          (res.status === 401 || json?.error === 'AUTHENTICATION_REQUIRED')
+        ) {
+          await refreshAuthToken();
+          return refreshSubscription(retryCount + 1);
+        }
         // Retry on error response
         if (retryCount < maxRetries && res.status >= 500) {
           setTimeout(() => refreshSubscription(retryCount + 1), 1000);
@@ -573,8 +590,8 @@ function AppContent({ fontsLoaded }) {
   }, []);
 
   const callApi = useMemo(
-    () =>
-      async ({ imageDataUrl, styleId }) => {
+    () => {
+      const run = async ({ imageDataUrl, styleId, _authRetried = false }) => {
         if (!styleId) {
           setError('No style selected. Please choose a style and try again.');
           return;
@@ -627,6 +644,14 @@ function AppContent({ fontsLoaded }) {
           }
 
           if (!enqueueRes.ok || !enqueueJson.ok) {
+            const errCode = enqueueJson?.error?.error || enqueueJson?.error;
+            if (
+              (enqueueRes.status === 401 || errCode === 'AUTHENTICATION_REQUIRED') &&
+              !_authRetried
+            ) {
+              await refreshAuthToken();
+              return await run({ imageDataUrl, styleId, _authRetried: true });
+            }
             const msg =
               enqueueJson?.message ||
               enqueueJson?.error?.error ||
@@ -710,7 +735,10 @@ function AppContent({ fontsLoaded }) {
           setLoading(false);
           setJob(null);
         }
-      },
+      };
+
+      return run;
+    },
     [showDialog, closeDialog, handleContentPolicyBlock]
   );
 

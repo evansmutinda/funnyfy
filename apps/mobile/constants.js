@@ -245,6 +245,9 @@ export const STYLE_CARD_IMAGE_GEOMETRIC = require('./assets/comparisons/tiles/af
 export const STYLE_CARD_IMAGE_SURREAL = require('./assets/comparisons/tiles/after/Art/surreal.jpg');
 export const STYLE_CARD_IMAGE_COLOURED_GLASS = require('./assets/comparisons/tiles/after/Art/coloured-glass.jpg');
 export const STYLE_CARD_IMAGE_PASTE_UP = require('./assets/comparisons/tiles/after/Art/Paste-up.jpg');
+export const STYLE_CARD_IMAGE_PENCIL_SKETCH_V1 = require('./assets/comparisons/tiles/after/Art/Pencil Sketch1.jpg');
+export const STYLE_CARD_IMAGE_PENCIL_SKETCH_V2 = require('./assets/comparisons/tiles/after/Art/Pencil Sketch2.jpg');
+export const STYLE_CARD_IMAGE_ORIGAMI = require('./assets/comparisons/tiles/after/Art/origami.jpg');
 export const STYLE_CARD_IMAGE_MONDAY = require('./assets/comparisons/tiles/after/Moods&Moments/mondays1.jpg');
 export const STYLE_CARD_IMAGE_FRIDAY = require('./assets/comparisons/tiles/after/Moods&Moments/fridays1.jpg');
 export const STYLE_CARD_IMAGE_WC = require('./assets/wc.jpg');
@@ -269,16 +272,21 @@ export const STYLE_CARD_IMAGE_HOKUSAI_V2 = require('./assets/comparisons/tiles/a
 export const STYLE_CARD_IMAGE_HIROSHIGE = require('./assets/comparisons/tiles/after/Paintings/Hiroshige.jpg');
 export const STYLE_CARD_IMAGE_SESSHU = require('./assets/comparisons/tiles/after/Paintings/Sesshū.jpg');
 export const STYLE_CARD_IMAGE_WC_MARKER = require('./assets/comparisons/tiles/after/Paintings/wc-marker.jpg');
-export const STYLE_CARD_IMAGE_PXL = require('./assets/pxl.jpg');
-export const STYLE_CARD_IMAGE_FUNKO = require('./assets/funko.jpg');
+export const STYLE_CARD_IMAGE_PXL = require('./assets/comparisons/tiles/after/3d/pxl.jpg');
+export const STYLE_CARD_IMAGE_FUNKO = require('./assets/comparisons/tiles/after/3d/funko.jpg');
+export const STYLE_CARD_IMAGE_AARDMAN = require('./assets/comparisons/tiles/after/3d/Aardman.jpg');
+export const STYLE_CARD_IMAGE_MODERN_ANIMATION = require('./assets/comparisons/tiles/after/3d/Modern-Animated.jpg');
 export const STYLE_CARD_IMAGE_3D_PORTRAIT_V1 = require('./assets/comparisons/tiles/after/3d/3d-portraitv1.jpg');
 export const STYLE_CARD_IMAGE_3D_PORTRAIT_V2 = require('./assets/comparisons/tiles/after/3d/3d-portraitv2.jpg');
 export const STYLE_CARD_IMAGE_MINIME = require('./assets/comparisons/tiles/after/3d/minime.jpg');
 export const STYLE_CARD_IMAGE_DANCING_3D = require('./assets/comparisons/tiles/after/3d/dancing-3d.jpg');
 export const STYLE_CARD_IMAGE_DANCING_CARC = require('./assets/comparisons/tiles/after/caricature/dancing-carc.jpg');
+export const STYLE_CARD_IMAGE_TINY_MUSCLE_V1 = require('./assets/comparisons/tiles/after/caricature/tiny-muscle1.jpg');
+export const STYLE_CARD_IMAGE_TINY_MUSCLE_V2 = require('./assets/comparisons/tiles/after/caricature/tiny-muscle2.jpg');
 export const STYLE_CARD_IMAGE_MINIATURE = require('./assets/comparisons/tiles/after/3d/miniature.jpg');
 export const STYLE_CARD_IMAGE_PLASTIC_TOY_V1 = require('./assets/comparisons/tiles/after/3d/toyv1.jpg');
 export const STYLE_CARD_IMAGE_PLASTIC_TOY_V2 = require('./assets/comparisons/tiles/after/3d/toyv2.jpg');
+export const STYLE_CARD_IMAGE_FIGURINE_V1 = require('./assets/comparisons/tiles/after/3d/figurinev1.jpg');
 export const STYLE_CARD_IMAGE_FIGURINE_V2 = require('./assets/comparisons/tiles/after/3d/figurinev2.jpg');
 export const STYLE_CARD_IMAGE_FIGURINE_V3 = require('./assets/comparisons/tiles/after/3d/figurinev3.jpg');
 export const STYLE_CARD_IMAGE_FIGURINE_V4 = require('./assets/comparisons/tiles/after/3d/figurinev4.jpg');
@@ -339,6 +347,9 @@ const STYLE_IMAGE_BY_ID = {
   surreal: STYLE_CARD_IMAGE_SURREAL,
   'coloured-glass': STYLE_CARD_IMAGE_COLOURED_GLASS,
   'paste-up': STYLE_CARD_IMAGE_PASTE_UP,
+  'pencil-sketch-v1': STYLE_CARD_IMAGE_PENCIL_SKETCH_V1,
+  'pencil-sketch-v2': STYLE_CARD_IMAGE_PENCIL_SKETCH_V2,
+  origami: STYLE_CARD_IMAGE_ORIGAMI,
   'monday-mood': STYLE_CARD_IMAGE_MONDAY,
   'friday-feeling': STYLE_CARD_IMAGE_FRIDAY,
   'pop-art-v1': STYLE_CARD_IMAGE_POP_ART_V1,
@@ -368,16 +379,20 @@ const STYLE_IMAGE_BY_ID = {
   'water-color': STYLE_CARD_IMAGE_WC,
   'pixar-like': STYLE_CARD_IMAGE_PXL,
   'funko-pop': STYLE_CARD_IMAGE_FUNKO,
+  aardman: STYLE_CARD_IMAGE_AARDMAN,
+  'modern-animation': STYLE_CARD_IMAGE_MODERN_ANIMATION,
   '3d-portrait-v1': STYLE_CARD_IMAGE_3D_PORTRAIT_V1,
   '3d-portrait-v2': STYLE_CARD_IMAGE_3D_PORTRAIT_V2,
   minime: STYLE_CARD_IMAGE_MINIME,
   'dancing-3d': STYLE_CARD_IMAGE_DANCING_3D,
   'dancing-carc': STYLE_CARD_IMAGE_DANCING_CARC,
+  'tiny-muscle-v1': STYLE_CARD_IMAGE_TINY_MUSCLE_V1,
+  'tiny-muscle-v2': STYLE_CARD_IMAGE_TINY_MUSCLE_V2,
   miniature: STYLE_CARD_IMAGE_MINIATURE,
   'plastic-toy-v1': STYLE_CARD_IMAGE_PLASTIC_TOY_V1,
   'plastic-toy-v2': STYLE_CARD_IMAGE_PLASTIC_TOY_V2,
+  'figurine-v1': STYLE_CARD_IMAGE_FIGURINE_V1,
   'figurine-v2': STYLE_CARD_IMAGE_FIGURINE_V2,
-  'figurine-v2b': STYLE_CARD_IMAGE_FIGURINE_V2,
   'figurine-v3': STYLE_CARD_IMAGE_FIGURINE_V3,
   'figurine-v4': STYLE_CARD_IMAGE_FIGURINE_V4,
 };

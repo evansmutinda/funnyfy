@@ -54,7 +54,7 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 
 ---
 
-## Enabled styles (90)
+## Enabled styles (97)
 
 | Id | Label | Category | Model | Comparison pair |
 |----|-------|----------|-------|-----------------|
@@ -105,6 +105,9 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 | `surreal` | Surreal | art | nano-banana | ✅ |
 | `coloured-glass` | Coloured Glass | art | seedream-4 | ✅ |
 | `paste-up` | Paste-up | art | seedream-4 | ✅ |
+| `pencil-sketch-v1` | Pencil Sketch V1 | art | nano-banana | ✅ |
+| `pencil-sketch-v2` | Pencil Sketch V2 | art | nano-banana-2 | ✅ |
+| `origami` | Origami | art | seedream-4.5 | ✅ |
 | `water-color` | Water Color | paintings | flux-kontext-pro | ✅ |
 | `acrylic` | Acrylic | paintings | seedream-4 | ✅ |
 | `gouache` | Gouache | paintings | seedream-4 | ✅ |
@@ -128,7 +131,9 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 | `sesshu` | Sesshū | paintings | nano-banana-2 | ✅ |
 | `wc-marker` | Watercolor Marker | paintings | flux-kontext-pro | ✅ |
 | `pixar-like` | Pixar-like | 3d-characters | flux-kontext-pro | ✅ |
-| `funko-pop` | Funko Pop | 3d-characters | flux-kontext-pro | — |
+| `funko-pop` | Funko Pop | 3d-characters | flux-kontext-pro | ✅ |
+| `aardman` | Aardman | 3d-characters | seedream-4.5 | ✅ |
+| `modern-animation` | Modern Animation | 3d-characters | seedream-4.5 | ✅ |
 | `3d-portrait-v1` | 3D Portrait V1 | 3d-characters | seedream-4.5 | ✅ |
 | `3d-portrait-v2` | 3D Portrait V2 | 3d-characters | nano-banana-2 | ✅ |
 | `minime` | Minime | 3d-characters | nano-banana-2 | ✅ |
@@ -136,8 +141,8 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 | `miniature` | Miniature | 3d-characters | seedream-4.5 | ✅ |
 | `plastic-toy-v1` | Plastic Toy | 3d-characters | seedream-4.5 | ✅ |
 | `plastic-toy-v2` | Plastic Toy | 3d-characters | nano-banana-2 | ✅ |
-| `figurine-v2` | Figurine V2 | 3d-characters | seedream-4.5 | ✅ |
-| `figurine-v2b` | Figurine V2 | 3d-characters | nano-banana-2 | ✅ |
+| `figurine-v1` | Figurine V1 | 3d-characters | seedream-4.5 | ✅ |
+| `figurine-v2` | Figurine V2 | 3d-characters | nano-banana-2 | ✅ |
 | `figurine-v3` | Figurine V3 | 3d-characters | seedream-4.5 | ✅ |
 | `figurine-v4` | Figurine V4 | 3d-characters | nano-banana-2 | ✅ |
 | `handd` | Hand-Drawn | caricatures | nano-banana | ✅ |
@@ -148,6 +153,8 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 | `3d-bd` | 3D BD | caricatures | nano-banana-2 | ✅ |
 | `3d` | 3D | caricatures | seedream-4.5 | ✅ |
 | `dancing-carc` | Dancing | caricatures | nano-banana-2 | ✅ |
+| `tiny-muscle-v1` | Tiny Muscle V1 | caricatures | seedream-4.5 | ✅ |
+| `tiny-muscle-v2` | Tiny Muscle V2 | caricatures | nano-banana | ✅ |
 
 **Note:** `watercolor` (caricatures) and `water-color` (paintings) are different styles.
 
@@ -179,6 +186,8 @@ Run `npm run build-comparison-assets` after adding or replacing source files. Fo
 | `3d-bd` | `before/lady.png` | `after/caricature/3dbd.jpeg` |
 | `3d` | `before/lady6.png` | `after/caricature/3d.jpg` |
 | `dancing-carc` | `before/lady6.png` | `after/caricature/dancing-carc.jpeg` |
+| `tiny-muscle-v1` | `before/man3.png` | `after/caricature/tiny-muscle1.jpg` |
+| `tiny-muscle-v2` | `before/man3.png` | `after/caricature/tiny-muscle2.jpeg` |
 | `90s-cartoon` | `before/toon.png` | `after/cartoons/toon.jpg` |
 | `chibi` | `before/chibi.png` | `after/cartoons/chibi.jpg` |
 | `classic-v1` | `before/lady4.png` | `after/cartoons/classic.jpg` |
@@ -197,7 +206,10 @@ Run `npm run build-comparison-assets` after adding or replacing source files. Fo
 | `3d-render-v1` | `before/teen.png` | `after/cartoons/3d-renderv1.jpg` |
 | `3d-render-v2` | `before/teen.png` | `after/cartoons/3d-renderv2.jpg` |
 | `3dclay` | `before/3dclay.png` | `after/3d/3dclay.jpg` |
-| `pixar-like` | `before/pxl.png` | `after/3d/pxl.jpg` |
+| `pixar-like` | `before/lady8.png` | `after/3d/pxl.png` |
+| `funko-pop` | `before/teen2.png` | `after/3d/funko.jpg` |
+| `aardman` | `before/couple.png` | `after/3d/Aardman.jpg` |
+| `modern-animation` | `before/lady13.png` | `after/3d/Modern-Animated.jpg` |
 | `3d-portrait-v1` | `before/lady2.png` | `after/3d/3d-portraitv1.jpg` |
 | `3d-portrait-v2` | `before/lady2.png` | `after/3d/3d-portraitv2.jpeg` |
 | `minime` | `before/lady6.png` | `after/3d/minime.jpeg` |
@@ -205,8 +217,8 @@ Run `npm run build-comparison-assets` after adding or replacing source files. Fo
 | `miniature` | `before/teen2.png` | `after/3d/miniature.jpg` |
 | `plastic-toy-v1` | `before/couple.png` | `after/3d/toyv1.jpg` |
 | `plastic-toy-v2` | `before/couple.png` | `after/3d/toyv2.jpeg` |
+| `figurine-v1` | `before/man10.png` | `after/3d/figurinev1.jpg` |
 | `figurine-v2` | `before/man10.png` | `after/3d/figurinev2.jpeg` |
-| `figurine-v2b` | `before/man10.png` | `after/3d/figurinev2.jpeg` |
 | `figurine-v3` | `before/teen2.png` | `after/3d/figurinev3.jpg` |
 | `figurine-v4` | `before/man10.png` | `after/3d/figurinev4.jpeg` |
 | `oil-paint` | `before/lady9.png` | `after/Paintings/oilpaint.jpg` |
@@ -249,6 +261,9 @@ Run `npm run build-comparison-assets` after adding or replacing source files. Fo
 | `surreal` | `before/lady9.png` | `after/Art/surreal.jpeg` |
 | `coloured-glass` | `before/lady10.png` | `after/Art/coloured-glass.jpg` |
 | `paste-up` | `before/lady11.png` | `after/Art/Paste-up.jpg` |
+| `pencil-sketch-v1` | `before/man9.png` | `after/Art/Pencil Sketch1.jpeg` |
+| `pencil-sketch-v2` | `before/man9.png` | `after/Art/Pencil Sketch2.jpeg` |
+| `origami` | `before/lady14.png` | `after/Art/origami.jpg` |
 | `monday-mood` | `before/lady3.png` | `after/Moods&Moments/mondays1.jpg`, `mondays2.jpeg`, `mondays3.jpeg` |
 | `friday-feeling` | `before/man9.png` | `after/Moods&Moments/fridays1.jpeg`, `fridays2.jpeg` |
 

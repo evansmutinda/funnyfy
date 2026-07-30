@@ -51,6 +51,14 @@ const CURATED_PAIR_PATHS = {
     before: 'before/lady6.png',
     after: 'after/caricature/dancing-carc.jpeg',
   },
+  'tiny-muscle-v1': {
+    before: 'before/man3.png',
+    after: 'after/caricature/tiny-muscle1.jpg',
+  },
+  'tiny-muscle-v2': {
+    before: 'before/man3.png',
+    after: 'after/caricature/tiny-muscle2.jpeg',
+  },
   '90s-cartoon': {
     before: 'before/toon.png',
     after: 'after/cartoons/toon.jpg',
@@ -124,8 +132,20 @@ const CURATED_PAIR_PATHS = {
     after: 'after/3d/3dclay.jpg',
   },
   'pixar-like': {
-    before: 'before/pxl.png',
-    after: 'after/3d/pxl.jpg',
+    before: 'before/lady8.png',
+    after: 'after/3d/pxl.png',
+  },
+  'funko-pop': {
+    before: 'before/teen2.png',
+    after: 'after/3d/funko.jpg',
+  },
+  'aardman': {
+    before: 'before/couple.png',
+    after: 'after/3d/Aardman.jpg',
+  },
+  'modern-animation': {
+    before: 'before/lady13.png',
+    after: 'after/3d/Modern-Animated.jpg',
   },
   '3d-portrait-v1': {
     before: 'before/lady2.png',
@@ -155,11 +175,11 @@ const CURATED_PAIR_PATHS = {
     before: 'before/couple.png',
     after: 'after/3d/toyv2.jpeg',
   },
-  'figurine-v2': {
+  'figurine-v1': {
     before: 'before/man10.png',
-    after: 'after/3d/figurinev2.jpeg',
+    after: 'after/3d/figurinev1.jpg',
   },
-  'figurine-v2b': {
+  'figurine-v2': {
     before: 'before/man10.png',
     after: 'after/3d/figurinev2.jpeg',
   },
@@ -330,6 +350,18 @@ const CURATED_PAIR_PATHS = {
   'paste-up': {
     before: 'before/lady11.png',
     after: 'after/Art/Paste-up.jpg',
+  },
+  'pencil-sketch-v1': {
+    before: 'before/man9.png',
+    after: 'after/Art/Pencil Sketch1.jpeg',
+  },
+  'pencil-sketch-v2': {
+    before: 'before/man9.png',
+    after: 'after/Art/Pencil Sketch2.jpeg',
+  },
+  'origami': {
+    before: 'before/lady14.png',
+    after: 'after/Art/origami.jpg',
   },
   'monday-mood': {
     before: 'before/lady3.png',
