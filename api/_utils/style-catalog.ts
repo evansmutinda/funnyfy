@@ -17,6 +17,7 @@ export const STYLE_CATEGORIES: StyleCategory[] = [
   { id: 'tinyme', label: "TinyMe" },
   { id: 'cartoons', label: "Cartoons" },
   { id: '3d-characters', label: "3D Characters" },
+  { id: 'sculptures', label: "Sculptures" },
   { id: 'anime-manga', label: "Anime & Manga" },
   { id: 'stickers-emojis', label: "Stickers & Emojis" },
   { id: 'paintings', label: "Paintings" },

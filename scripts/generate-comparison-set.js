@@ -52,6 +52,7 @@ const AFTER_CATEGORY_DIR = {
   caricatures: 'caricature',
   cartoons: 'cartoons',
   '3d-characters': '3d',
+  sculptures: 'Sculptures',
   paintings: 'Paintings',
   'anime-manga': 'Anime',
 };

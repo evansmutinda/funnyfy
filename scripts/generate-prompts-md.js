@@ -29,6 +29,7 @@ const CATEGORY_ORDER = [
   'paintings',
   'art',
   '3d-characters',
+  'sculptures',
   'anime-manga',
 ];
 
@@ -39,6 +40,7 @@ const CATEGORY_LABELS = {
   paintings: 'Paintings',
   art: 'Art',
   '3d-characters': '3D Characters',
+  sculptures: 'Sculptures',
   'anime-manga': 'Anime & Manga',
 };
 

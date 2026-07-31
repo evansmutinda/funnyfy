@@ -36,7 +36,7 @@ apps/mobile/assets/comparisons/source/before/<photo>.png
 apps/mobile/assets/comparisons/source/after/<categoryFolder>/<styled>.jpg
 ```
 
-Category folders: `caricature`, `cartoons`, `3d`, `Paintings`, `Art` (capital A for Art/Paintings).
+Category folders: `caricature`, `cartoons`, `3d`, `Sculptures`, `Paintings`, `Art` (capital A for Art/Paintings).
 
 See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets/comparisons/source/README.md`, `ToDo/COMPARISON_ASSETS.md`.
 
@@ -54,7 +54,7 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 
 ---
 
-## Enabled styles (97)
+## Enabled styles (110)
 
 | Id | Label | Category | Model | Comparison pair |
 |----|-------|----------|-------|-----------------|
@@ -134,6 +134,19 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 | `funko-pop` | Funko Pop | 3d-characters | flux-kontext-pro | ✅ |
 | `aardman` | Aardman | 3d-characters | seedream-4.5 | ✅ |
 | `modern-animation` | Modern Animation | 3d-characters | seedream-4.5 | ✅ |
+| `carved-stone` | Carved Stone | sculptures | flux-kontext-pro | ✅ |
+| `marble` | Marble | sculptures | nano-banana-2 | ✅ |
+| `black-granite` | Black Granite | sculptures | nano-banana-2 | ✅ |
+| `weathered-limestone` | Weathered Limestone | sculptures | nano-banana-2 | ✅ |
+| `sandstone` | Sand Stone | sculptures | nano-banana-2 | ✅ |
+| `sand-sculpture` | Sand | sculptures | flux-kontext-pro | ✅ |
+| `bronze-cast` | Bronze | sculptures | nano-banana-2 | ✅ |
+| `jade` | Jade | sculptures | nano-banana-2 | ✅ |
+| `ivory` | Ivory | sculptures | flux-kontext-pro | ✅ |
+| `crystal` | Crystal | sculptures | nano-banana-2 | ✅ |
+| `ice` | Ice | sculptures | nano-banana-2 | ✅ |
+| `metal` | Metal | sculptures | nano-banana-2 | ✅ |
+| `wood` | Wood | sculptures | nano-banana-2 | ✅ |
 | `3d-portrait-v1` | 3D Portrait V1 | 3d-characters | seedream-4.5 | ✅ |
 | `3d-portrait-v2` | 3D Portrait V2 | 3d-characters | nano-banana-2 | ✅ |
 | `minime` | Minime | 3d-characters | nano-banana-2 | ✅ |
@@ -210,6 +223,19 @@ Run `npm run build-comparison-assets` after adding or replacing source files. Fo
 | `funko-pop` | `before/teen2.png` | `after/3d/funko.jpg` |
 | `aardman` | `before/couple.png` | `after/3d/Aardman.jpg` |
 | `modern-animation` | `before/lady13.png` | `after/3d/Modern-Animated.jpg` |
+| `carved-stone` | `before/man5.png` | `after/Sculptures/curved-stone.jpg` |
+| `marble` | `before/lady4.png` | `after/Sculptures/Marble.jpeg` |
+| `black-granite` | `before/man8.png` | `after/Sculptures/Black-granite.jpeg` |
+| `weathered-limestone` | `before/man6.png` | `after/Sculptures/weathered-limestone.jpeg` |
+| `sandstone` | `before/lady3.png` | `after/Sculptures/sandstone sculpture.jpeg` |
+| `sand-sculpture` | `before/lady13.png` | `after/Sculptures/sand.jpg` |
+| `bronze-cast` | `before/man9.png` | `after/Sculptures/bronze.jpeg` |
+| `jade` | `before/lady14.png` | `after/Sculptures/jade.jpeg` |
+| `ivory` | `before/lady8.png` | `after/Sculptures/ivory.jpg` |
+| `crystal` | `before/lady4.png` | `after/Sculptures/crystal.jpeg` |
+| `ice` | `before/lady12.png` | `after/Sculptures/ice.jpeg` |
+| `metal` | `before/man8.png` | `after/Sculptures/metal.jpeg` |
+| `wood` | `before/man8.png` | `after/Sculptures/wood.jpeg` |
 | `3d-portrait-v1` | `before/lady2.png` | `after/3d/3d-portraitv1.jpg` |
 | `3d-portrait-v2` | `before/lady2.png` | `after/3d/3d-portraitv2.jpeg` |
 | `minime` | `before/lady6.png` | `after/3d/minime.jpeg` |

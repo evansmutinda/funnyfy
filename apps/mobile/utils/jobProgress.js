@@ -26,6 +26,7 @@ const CATEGORY_CREATING_NAME = {
   cartoons: 'cartoon',
   paintings: 'painting',
   '3d-characters': '3D character',
+  sculptures: 'sculpture',
   'anime-manga': 'anime',
   'stickers-emojis': 'sticker',
   'drawings-sketches': 'drawing',

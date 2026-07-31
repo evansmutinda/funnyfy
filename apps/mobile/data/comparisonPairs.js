@@ -147,6 +147,58 @@ const CURATED_PAIR_PATHS = {
     before: 'before/lady13.png',
     after: 'after/3d/Modern-Animated.jpg',
   },
+  'carved-stone': {
+    before: 'before/man5.png',
+    after: 'after/Sculptures/curved-stone.jpg',
+  },
+  'marble': {
+    before: 'before/lady4.png',
+    after: 'after/Sculptures/Marble.jpeg',
+  },
+  'black-granite': {
+    before: 'before/man8.png',
+    after: 'after/Sculptures/Black-granite.jpeg',
+  },
+  'weathered-limestone': {
+    before: 'before/man6.png',
+    after: 'after/Sculptures/weathered-limestone.jpeg',
+  },
+  'sandstone': {
+    before: 'before/lady3.png',
+    after: 'after/Sculptures/sandstone sculpture.jpeg',
+  },
+  'sand-sculpture': {
+    before: 'before/lady13.png',
+    after: 'after/Sculptures/sand.jpg',
+  },
+  'bronze-cast': {
+    before: 'before/man9.png',
+    after: 'after/Sculptures/bronze.jpeg',
+  },
+  'jade': {
+    before: 'before/lady14.png',
+    after: 'after/Sculptures/jade.jpeg',
+  },
+  'ivory': {
+    before: 'before/lady8.png',
+    after: 'after/Sculptures/ivory.jpg',
+  },
+  'crystal': {
+    before: 'before/lady4.png',
+    after: 'after/Sculptures/crystal.jpeg',
+  },
+  'ice': {
+    before: 'before/lady12.png',
+    after: 'after/Sculptures/ice.jpeg',
+  },
+  'metal': {
+    before: 'before/man8.png',
+    after: 'after/Sculptures/metal.jpeg',
+  },
+  'wood': {
+    before: 'before/man8.png',
+    after: 'after/Sculptures/wood.jpeg',
+  },
   '3d-portrait-v1': {
     before: 'before/lady2.png',
     after: 'after/3d/3d-portraitv1.jpg',

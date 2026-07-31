@@ -276,6 +276,19 @@ export const STYLE_CARD_IMAGE_PXL = require('./assets/comparisons/tiles/after/3d
 export const STYLE_CARD_IMAGE_FUNKO = require('./assets/comparisons/tiles/after/3d/funko.jpg');
 export const STYLE_CARD_IMAGE_AARDMAN = require('./assets/comparisons/tiles/after/3d/Aardman.jpg');
 export const STYLE_CARD_IMAGE_MODERN_ANIMATION = require('./assets/comparisons/tiles/after/3d/Modern-Animated.jpg');
+export const STYLE_CARD_IMAGE_CARVED_STONE = require('./assets/comparisons/tiles/after/Sculptures/curved-stone.jpg');
+export const STYLE_CARD_IMAGE_MARBLE = require('./assets/comparisons/tiles/after/Sculptures/Marble.jpg');
+export const STYLE_CARD_IMAGE_BLACK_GRANITE = require('./assets/comparisons/tiles/after/Sculptures/Black-granite.jpg');
+export const STYLE_CARD_IMAGE_WEATHERED_LIMESTONE = require('./assets/comparisons/tiles/after/Sculptures/weathered-limestone.jpg');
+export const STYLE_CARD_IMAGE_SANDSTONE = require('./assets/comparisons/tiles/after/Sculptures/sandstone sculpture.jpg');
+export const STYLE_CARD_IMAGE_SAND_SCULPTURE = require('./assets/comparisons/tiles/after/Sculptures/sand.jpg');
+export const STYLE_CARD_IMAGE_BRONZE_CAST = require('./assets/comparisons/tiles/after/Sculptures/bronze.jpg');
+export const STYLE_CARD_IMAGE_JADE = require('./assets/comparisons/tiles/after/Sculptures/jade.jpg');
+export const STYLE_CARD_IMAGE_IVORY = require('./assets/comparisons/tiles/after/Sculptures/ivory.jpg');
+export const STYLE_CARD_IMAGE_CRYSTAL = require('./assets/comparisons/tiles/after/Sculptures/crystal.jpg');
+export const STYLE_CARD_IMAGE_ICE = require('./assets/comparisons/tiles/after/Sculptures/ice.jpg');
+export const STYLE_CARD_IMAGE_METAL = require('./assets/comparisons/tiles/after/Sculptures/metal.jpg');
+export const STYLE_CARD_IMAGE_WOOD = require('./assets/comparisons/tiles/after/Sculptures/wood.jpg');
 export const STYLE_CARD_IMAGE_3D_PORTRAIT_V1 = require('./assets/comparisons/tiles/after/3d/3d-portraitv1.jpg');
 export const STYLE_CARD_IMAGE_3D_PORTRAIT_V2 = require('./assets/comparisons/tiles/after/3d/3d-portraitv2.jpg');
 export const STYLE_CARD_IMAGE_MINIME = require('./assets/comparisons/tiles/after/3d/minime.jpg');
@@ -381,6 +394,19 @@ const STYLE_IMAGE_BY_ID = {
   'funko-pop': STYLE_CARD_IMAGE_FUNKO,
   aardman: STYLE_CARD_IMAGE_AARDMAN,
   'modern-animation': STYLE_CARD_IMAGE_MODERN_ANIMATION,
+  'carved-stone': STYLE_CARD_IMAGE_CARVED_STONE,
+  marble: STYLE_CARD_IMAGE_MARBLE,
+  'black-granite': STYLE_CARD_IMAGE_BLACK_GRANITE,
+  'weathered-limestone': STYLE_CARD_IMAGE_WEATHERED_LIMESTONE,
+  sandstone: STYLE_CARD_IMAGE_SANDSTONE,
+  'sand-sculpture': STYLE_CARD_IMAGE_SAND_SCULPTURE,
+  'bronze-cast': STYLE_CARD_IMAGE_BRONZE_CAST,
+  jade: STYLE_CARD_IMAGE_JADE,
+  ivory: STYLE_CARD_IMAGE_IVORY,
+  crystal: STYLE_CARD_IMAGE_CRYSTAL,
+  ice: STYLE_CARD_IMAGE_ICE,
+  metal: STYLE_CARD_IMAGE_METAL,
+  wood: STYLE_CARD_IMAGE_WOOD,
   '3d-portrait-v1': STYLE_CARD_IMAGE_3D_PORTRAIT_V1,
   '3d-portrait-v2': STYLE_CARD_IMAGE_3D_PORTRAIT_V2,
   minime: STYLE_CARD_IMAGE_MINIME,
