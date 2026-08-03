@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FunnyFy System Flow — Diagrams</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --surface: #111827;
+      --border: #1f2937;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #818cf8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    header {
+      padding: 24px 32px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    header h1 { margin: 0 0 6px; font-size: 1.5rem; letter-spacing: -0.02em; }
+    header p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    nav a {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.82rem;
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: rgba(129, 140, 248, 0.08);
+    }
+    nav a:hover { background: rgba(129, 140, 248, 0.16); }
+    main { max-width: 1400px; margin: 0 auto; padding: 24px 32px 64px; }
+    section {
+      margin-bottom: 48px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    section h2 {
+      margin: 0;
+      padding: 16px 20px;
+      font-size: 1.1rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.02);
+    }
+    .diagram-wrap {
+      padding: 24px;
+      overflow-x: auto;
+      display: flex;
+      justify-content: center;
+    }
+    .mermaid { min-width: min(100%, 900px); }
+    .actions {
+      padding: 0 20px 16px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .actions a, .actions button {
+      font-size: 0.8rem;
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .actions a:hover, .actions button:hover { color: var(--text); border-color: var(--accent); }
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.8rem;
+      padding: 24px;
+    }
+    @media print {
+      header { position: static; }
+      section { break-inside: avoid; page-break-inside: avoid; }
+      nav, .actions { display: none; }
+      body { background: #fff; color: #111; }
+      section { border-color: #ccc; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>FunnyFy System Flow</h1>
+    <p>Visual diagrams — open this file in any browser. Pair with <code>MD/FUNNYFY_FLOW.md</code> for full notes.</p>
+    <nav>
+      <a href="#big-picture">Big picture</a>
+      <a href="#job-lifecycle">Job lifecycle</a>
+      <a href="#generation">Generation sequence</a>
+      <a href="#money">Money flow</a>
+      <a href="#billing">Billing sync</a>
+      <a href="#deploy">Deploy flow</a>
+    </nav>
+  </header>
+
+  <main>
+    <section id="big-picture">
+      <h2>1. The big picture</h2>
+      <div class="diagram-wrap"><pre class="mermaid">
+flowchart TB
+  subgraph Mobile["Mobile App"]
+    A[User opens app] --> B{Trial or paid?}
+    B -->|Trial| C[3 free gens]
+    B -->|Paid| D[Starter / Popular / Pro]
+    C --> E[Pick style + upload photo]
+    D --> E
+    E --> F[Subscribe via RevenueCat]
+    F --> G[Request generation]
+  end
+  subgraph API["Vercel API"]
+    G --> H["/api/enqueue"]
+    H --> I{Quota OK?}
+    I -->|No| J[Reject - limit reached]
+    I -->|Yes| K[Create job in DB - pending]
+    K --> L[Cron: process-queue]
+    L --> M{Daily spend cap OK?}
+    M -->|No| N[Pause queue]
+    M -->|Yes| O[process-job to Replicate]
+    O --> P{Result?}
+    P -->|Success| Q[Sightengine moderation]
+    P -->|Fail| R[Mark failed - $0 cost]
+    Q -->|Clean| S[Completed + image URL]
+    Q -->|NSFW| T[Ban / infringement log]
+    S --> U[finalizeJobCost + usage credit]
+  end
+  subgraph Billing["Billing"]
+    F -.-> RC[RevenueCat SDK]
+    RC --> WH["/api/webhooks/revenuecat"]
+    WH --> DB2[(users + subscriptions)]
+    DB2 --> D
+  end
+  subgraph Data["Supabase"]
+    K --> DB[(jobs)]
+    U --> DB
+    U --> UT[(usage_tracking)]
+    U --> CT[(cost_tracking)]
+    WH --> DB
+    WH --> SH[(subscription_history)]
+  end
+  subgraph Admin["Admin Dashboard"]
+    AD[Admin login] --> API2["/api/admin"]
+    API2 --> OV[Overview]
+    API2 --> FIN[Finance]
+    API2 --> GR[Growth]
+    API2 --> USR[Users / Jobs / Queue / Security]
+    API2 --> DB
+  end
+  S --> GAL[Gallery / Result screen]
+      </pre></div>
+      <div class="actions">
+        <a href="diagrams/01-big-picture.svg" download>Download SVG</a>
+        <a href="diagrams/01-big-picture.png" download>Download PNG</a>
+      </div>
+    </section>
+
+    <section id="job-lifecycle">
+      <h2>2. Generation job lifecycle</h2>
+      <div class="diagram-wrap"><pre class="mermaid">
+stateDiagram-v2
+  [*] --> pending: User taps Generate
+  pending --> processing: Queue worker picks job
+  processing --> completed: Replicate OK + moderation pass
+  processing --> failed: API error / policy / timeout
+  completed --> [*]: Cost recorded, quota +1
+  failed --> [*]: Cost = $0
+  failed --> pending: Admin retry
+      </pre></div>
+      <div class="actions">
+        <a href="diagrams/02-job-lifecycle.svg" download>Download SVG</a>
+        <a href="diagrams/02-job-lifecycle.png" download>Download PNG</a>
+      </div>
+    </section>
+
+    <section id="generation">
+      <h2>3. User generation flow (sequence)</h2>
+      <div class="diagram-wrap"><pre class="mermaid">
+sequenceDiagram
+  participant U as User
+  participant App as Mobile App
+  participant API as Vercel API
+  participant DB as Supabase
+  participant Q as process-queue
+  participant R as Replicate
+  participant SE as Sightengine
+  U->>App: Pick style, upload photo
+  App->>API: POST /api/enqueue
+  API->>DB: Check quota
+  API->>DB: INSERT job pending
+  API-->>App: job id
+  loop Poll status
+    App->>API: GET /api/job
+    API->>DB: Read job status
+    API-->>App: pending / processing
+  end
+  Q->>DB: Claim pending job
+  Q->>R: Run model
+  R-->>Q: output URL or error
+  alt Success
+    Q->>SE: Moderate output
+    SE-->>Q: pass / fail
+    Q->>DB: status completed
+    Q->>DB: cost + usage +1
+  else Failure
+    Q->>DB: status failed cost 0
+  end
+  App->>API: GET /api/job
+  API-->>App: completed + image URL
+  App->>U: Result / save to gallery
+      </pre></div>
+      <div class="actions">
+        <a href="diagrams/03-generation-sequence.svg" download>Download SVG</a>
+        <a href="diagrams/03-generation-sequence.png" download>Download PNG</a>
+      </div>
+    </section>
+
+    <section id="money">
+      <h2>4. Money flow</h2>
+      <div class="diagram-wrap"><pre class="mermaid">
+flowchart LR
+  subgraph In["Money in"]
+    U[User pays] --> RC[RevenueCat]
+    RC --> T5[Starter $5/mo]
+    RC --> T10[Popular $10/mo]
+    RC --> T25[Pro $25/mo]
+  end
+  subgraph Out["Money out"]
+    J[Each completed gen] --> M{Model?}
+    M -->|Flux / Seedream| C04[$0.04]
+    M -->|Nano Banana| C039[$0.039]
+    M -->|Nano Banana 2| C067[$0.067]
+    M -->|Failed| C0[$0.00]
+    C04 --> REP[Replicate bill]
+    C067 --> REP
+  end
+  subgraph AdminMath["Admin dashboard"]
+    T5 --> MRR[MRR estimate]
+    T10 --> MRR
+    T25 --> MRR
+    MRR --> ARR[ARR = MRR x 12]
+    C04 --> COST[Gen cost MTD]
+    C067 --> COST
+    MRR --> NET[Est net = MRR - costs]
+    COST --> NET
+  end
+      </pre></div>
+      <div class="actions">
+        <a href="diagrams/04-money-flow.svg" download>Download SVG</a>
+        <a href="diagrams/04-money-flow.png" download>Download PNG</a>
+      </div>
+    </section>
+
+    <section id="billing">
+      <h2>5. Billing &amp; subscription sync</h2>
+      <div class="diagram-wrap"><pre class="mermaid">
+flowchart LR
+  App[Mobile App] --> RCSDK[RevenueCat SDK]
+  RCSDK --> Stores[App Store / Play Store]
+  Stores --> RC[RevenueCat]
+  RC --> WH["/api/webhooks/revenuecat"]
+  WH --> U[(users)]
+  WH --> S[(subscriptions)]
+  WH --> H[(subscription_history)]
+  App --> Sync["/api/sync-subscription"]
+  Sync --> U
+      </pre></div>
+      <div class="actions">
+        <a href="diagrams/05-billing-sync.svg" download>Download SVG</a>
+        <a href="diagrams/05-billing-sync.png" download>Download PNG</a>
+      </div>
+    </section>
+
+    <section id="deploy">
+      <h2>6. Deploy flow</h2>
+      <div class="diagram-wrap"><pre class="mermaid">
+flowchart LR
+  Dev[Local changes] --> Git[git push origin Staging]
+  Git --> GH[GitHub]
+  GH --> Vercel[Vercel build]
+  Vercel --> Staging[funnyfy-staging.vercel.app]
+  Staging --> Prod[funnyfyapp.vercel.app]
+      </pre></div>
+      <div class="actions">
+        <a href="diagrams/06-deploy-flow.svg" download>Download SVG</a>
+        <a href="diagrams/06-deploy-flow.png" download>Download PNG</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>FunnyFy · MD/FUNNYFY_FLOW.html · Print this page (Ctrl+P) to export all diagrams</footer>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      themeVariables: {
+        primaryColor: '#1e293b',
+        primaryTextColor: '#e2e8f0',
+        primaryBorderColor: '#475569',
+        lineColor: '#64748b',
+        secondaryColor: '#111827',
+        tertiaryColor: '#0f172a',
+        fontFamily: 'Segoe UI, system-ui, sans-serif'
+      },
+      flowchart: { curve: 'basis', padding: 16 },
+      sequence: { actorMargin: 48, messageMargin: 32 }
+    });
+  </script>
+</body>
+</html>

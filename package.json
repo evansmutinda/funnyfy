@@ -3,16 +3,25 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "echo \"Use 'npx vercel dev' from the project root instead of 'npm run dev'\" && exit 1"
+    "dev": "echo \"Use 'npx vercel dev' from the project root instead of 'npm run dev'\" && exit 1",
+    "generate-secrets": "node scripts/generate-secrets.js",
+    "verify-env": "node scripts/verify-env.js",
+    "generate-comparisons": "node scripts/generate-comparison-set.js",
+    "build-comparison-assets": "node scripts/build-comparison-assets.js",
+    "generate-prompts-md": "node scripts/generate-prompts-md.js",
+    "typecheck": "npx tsc --noEmit"
   },
   "dependencies": {
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/node": "^20.10.0",
+    "@types/pg": "^8.6.6",
     "@vercel/node": "^2.3.0",
-    "@vercel/postgres": "^0.10.0",
-    "pg": "^8.16.3"
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.16.3",
+    "typescript": "^5.3.3",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@types/node": "^20.10.0",
-    "@types/pg": "^8.16.0",
-    "typescript": "^5.3.3"
+    "sharp": "^0.35.3"
   }
 }

@@ -1,0 +1,10 @@
+apps/mobile/
+MD/
+ToDo/
+scripts/
+build-apk-local.ps1
+build-apk.ps1
+sync-changes.ps1
+test-api.ps1
+*.ps1
+*.md

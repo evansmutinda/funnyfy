@@ -24,11 +24,16 @@ FunnyFy is a React Native mobile app (Android & iOS) that transforms user photos
 - `apps/mobile/hooks/useImagePicker.js` - Gallery/camera pick + OS crop (`expo-image-picker`)
 - `apps/mobile/components/NetworkProvider.js` - Connectivity state + global `OfflineBanner`
 - `apps/mobile/components/OfflineBanner.js` - Orange offline overlay (non-blocking)
-- `apps/mobile/utils/` - Style categories, subscription dates, trial warnings
+- `apps/mobile/utils/contactSupport.js` - Menu Contact us mailto helper
+- `apps/mobile/utils/funnyfyAlbum.js` - **`DCIM/Funnyfy` save/load** (MediaLibrary; see `MD/GALLERY_SCREEN.md`)
+- `apps/mobile/utils/` - Job progress, trial warnings, style categories, subscription dates
 - `api/_utils/styles-config.ts` - Enabled styles + prompts (server-side)
 - `api/_utils/style-catalog.ts` - Full catalog from spreadsheet
 - `scripts/generate-style-catalog.py` - Regenerate catalog from xlsx
 - `api/` - Vercel serverless functions
+- `api/_utils/admin-pages/` - Admin dashboard UI (HTML/JS; served by `api/admin.ts`)
+- `api/admin.ts` - Consolidated admin API + page router
+- `ToDo/` - Backlog, integration checklists, deferred security items
 - `build-apk.ps1` - EAS cloud APK build (`apps/mobile/`)
 - `build-apk-local.ps1` - Local Gradle APK build (repo root)
 - `MD/` - Development documentation
@@ -38,34 +43,48 @@ FunnyFy is a React Native mobile app (Android & iOS) that transforms user photos
 | File | Purpose |
 |------|---------|
 | `STATUS.md` | **Current app status and launch checklist** ⭐ |
+| `STYLES.md` | **Enabled styles, models, comparison pairs, deploy checklist** ⭐ |
+| `PROMPTS.md` | **All enabled style prompts (auto-generated)** ⭐ |
 | `UI_REDESIGN_2026_06.md` | **June 2026 mobile UI redesign reference** |
 | `CHANGELOG.md` | Version history |
-| `TESTING.md` | API, mobile, and versioning test guide |
+| `TESTING.md` | API, mobile, **versioning policy**, and test guide |
 | `DEVELOPMENT_PLAN.md` | Architecture and phases |
-| `ADDING_MORE_STYLES_GUIDE.md` | Enable catalog styles + thumbnails |
+| `ADDING_MORE_STYLES_GUIDE.md` | Enable catalog styles + thumbnails (see also `STYLES.md`) |
 | `BUILD_APK_GUIDE.md` | EAS and local APK builds (preferred over Expo Go) |
+| `GALLERY_SCREEN.md` | **My Gallery + `DCIM/Funnyfy` save/load path** ⭐ |
+| `FUNNYFY_FLOW.md` | **System flowcharts — app, API, billing, admin** ⭐ |
+| `FUNNYFY_FLOW.html` | **Rendered flow diagrams (open in browser)** |
 | `DATABASE_SCHEMA.md` | Supabase schema |
 | `DISASTER_RECOVERY.md` | RTO/RPO, rollback, health checks, incident playbooks |
 | `REVENUECAT_SETUP.md` | RevenueCat SDK + webhook |
 | `SECURITY_AUDIT.md` | Security audit findings + checklist |
 | `SECURITY.md` | Security implementation reference |
+| `ToDo/README.md` | Backlog index (integration + security deferred) |
+
+## Repo layout (docs only)
+
+| Path | Purpose |
+|------|---------|
+| `MD/` | Canonical documentation |
+| `ToDo/` | Actionable backlog & setup checklists |
+| `scripts/` | Style catalog, comparison assets, env helpers |
 
 ## Current Status
 
 **✅ Production-Ready – Awaiting App Store Submission**
 
-**Version**: 1.0.3 (`apps/mobile/version.json`) — auto-bumps on build
+**Version**: see [`apps/mobile/version.json`](../apps/mobile/version.json) — auto-bumps on dev changes and APK builds
 
 ### Implemented Features
 - ✅ React Native mobile app (Expo SDK 52)
-- ✅ **160-style catalog**, **18 enabled** live styles across 16 categories
+- ✅ **160-style catalog**; enabled count in [`MD/STYLES.md`](STYLES.md) / [`MD/PROMPTS.md`](PROMPTS.md)
 - ✅ **Netflix-style style picker**: dark `#0B0F19`, category rows + horizontal style carousels, "See all" grid
 - ✅ **Upload → Review** two-screen flow with `UploadFlowHeader` (back + style pill left + usage pill right)
 - ✅ **Photo tips**: auto-opens on Upload per style; "Do not show again" per style; OS crop via `expo-image-picker`
-- ✅ Before/after compare on result (no Before/After badges); **Try another style** restyle flow
-- ✅ Gallery, save/share, toast notifications (`warning` = orange for offline), ConfirmDialog
+- ✅ Before/after compare on result (no Before/After badges); **Try another style** restyle flow; **Try another photo** on result
+- ✅ Menu **Contact us**, **Share app**, **Request a style**; Gallery, save/share, toast notifications (`warning` = orange for offline), ConfirmDialog
 - ✅ RevenueCat subscriptions + backend sync
-- ✅ Usage quota, NSFW moderation, JWT auth, admin dashboard
+- ✅ Usage quota, NSFW moderation, JWT auth, **admin dashboard** (Finance, Growth, dark theme)
 - ✅ **Auto versioning** on local/EAS builds
 - ✅ **Sentry** mobile error tracking (staging)
 - ✅ **Offline UX**: orange global overlay banner; gallery/styles browse offline; generation blocked until online
@@ -84,10 +103,17 @@ Use a **local debug APK** (`.\build-apk-local.ps1`) instead of **Expo Go** when 
 2. **Review**: same header pills; photo preview; Remove / Choose another / **Generate**
 3. **Crop**: OS picker via `expo-image-picker` (`allowsEditing: true`) — all builds
 
+### Gallery / device saves
+- **Canonical Android path:** **`DCIM/Funnyfy/`** (album title `Funnyfy`)
+- **My Gallery** loads from `DCIM/Funnyfy` on every open (rescans device + merges in-app list)
+- Detail: [`MD/GALLERY_SCREEN.md`](GALLERY_SCREEN.md)
+
 ### Backend
 - **Staging**: `https://funnyfy-staging.vercel.app`
 - **Production**: `https://funnyfyapp.vercel.app`
+- **Admin**: `<env-url>/admin/login` — see `ToDo/ADMIN_DASHBOARD_SETUP.md`
 - **Styles API**: `GET /api/styles` returns enabled styles + `categories`
+- **Architecture**: `MD/FUNNYFY_FLOW.md` (diagrams: `MD/FUNNYFY_FLOW.html`)
 
 ### Pricing
 - Starter $5 / Popular $10 / Pro $25 per month
@@ -110,4 +136,4 @@ Use a **local debug APK** (`.\build-apk-local.ps1`) instead of **Expo Go** when 
 
 ---
 
-**Last Updated**: June 2026
+**Last Updated**: July 2026

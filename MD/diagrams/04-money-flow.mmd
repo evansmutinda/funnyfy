@@ -1,0 +1,28 @@
+flowchart LR
+  subgraph In["Money in"]
+    U[User pays] --> RC[RevenueCat]
+    RC --> T5[Starter $5/mo]
+    RC --> T10[Popular $10/mo]
+    RC --> T25[Pro $25/mo]
+  end
+
+  subgraph Out["Money out"]
+    J[Each completed gen] --> M{Model?}
+    M -->|Flux / Seedream| C04[$0.04]
+    M -->|Nano Banana| C039[$0.039]
+    M -->|Nano Banana 2| C067[$0.067]
+    M -->|Failed| C0[$0.00]
+    C04 --> REP[Replicate bill]
+    C067 --> REP
+  end
+
+  subgraph AdminMath["Admin dashboard"]
+    T5 --> MRR[MRR estimate]
+    T10 --> MRR
+    T25 --> MRR
+    MRR --> ARR[ARR = MRR x 12]
+    C04 --> COST[Gen cost MTD]
+    C067 --> COST
+    MRR --> NET[Est net = MRR - costs]
+    COST --> NET
+  end

@@ -1,0 +1,43 @@
+{
+  "functions": {
+    "api/admin.ts": {
+      "includeFiles": "api/_utils/admin-pages/**"
+    },
+    "api/enqueue.ts": {
+      "maxDuration": 10
+    },
+    "api/job.ts": {
+      "maxDuration": 10
+    },
+    "api/sync-subscription.ts": {
+      "maxDuration": 10
+    },
+    "api/auth/*.ts": {
+      "maxDuration": 10
+    },
+    "api/webhooks/*.ts": {
+      "maxDuration": 30
+    },
+    "api/cron/*.ts": {
+      "maxDuration": 60
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/admin/login-page.js",
+      "destination": "/api/admin?page=login-page.js"
+    },
+    {
+      "source": "/admin/dashboard-page.js",
+      "destination": "/api/admin?page=dashboard-page.js"
+    },
+    {
+      "source": "/admin/login",
+      "destination": "/api/admin?page=login"
+    },
+    {
+      "source": "/admin/dashboard",
+      "destination": "/api/admin?page=dashboard"
+    }
+  ]
+}

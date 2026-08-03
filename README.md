@@ -2,10 +2,10 @@
 
 AI caricature mobile app — React Native (Expo SDK 52) + Vercel serverless backend + Replicate.
 
-Transform photos into caricatures across **160 catalog styles** (18 enabled live), with RevenueCat subscriptions, usage quotas, NSFW moderation, and JWT auth.
+Transform photos into caricatures across **160 catalog styles** (enabled count in [`MD/STYLES.md`](MD/STYLES.md) / auto-generated [`MD/PROMPTS.md`](MD/PROMPTS.md)), with RevenueCat subscriptions, usage quotas, NSFW moderation, and JWT auth.
 
-**Status:** Feature-complete — awaiting app store submission (June 2026)  
-**Version:** 1.0.3 (`apps/mobile/version.json`)
+**Status:** Feature-complete — awaiting app store submission (July 2026)  
+**Version:** see [`apps/mobile/version.json`](apps/mobile/version.json) (single source of truth — do not hardcode semver in docs)
 
 ---
 
@@ -16,6 +16,8 @@ Transform photos into caricatures across **160 catalog styles** (18 enabled live
 | Staging API | https://funnyfy-staging.vercel.app |
 | Production API | https://funnyfyapp.vercel.app |
 | Health check | `GET /api/health` |
+| Admin (staging) | `https://funnyfy-staging.vercel.app/admin/login` |
+| System flowcharts | [`MD/FUNNYFY_FLOW.html`](MD/FUNNYFY_FLOW.html) |
 | Current status | [`MD/STATUS.md`](MD/STATUS.md) |
 | Testing guide | [`MD/TESTING.md`](MD/TESTING.md) |
 | Local APK build | [`MD/BUILD_APK_GUIDE.md`](MD/BUILD_APK_GUIDE.md) |
@@ -27,8 +29,10 @@ Transform photos into caricatures across **160 catalog styles** (18 enabled live
 ```
 apps/mobile/     React Native app (Expo SDK 52)
 api/             Vercel serverless functions (TypeScript)
+api/_utils/admin-pages/   Admin dashboard HTML/JS (served via api/admin.ts)
 MD/              Documentation
-ToDo/            Backlog & deferred security items
+ToDo/            Backlog & integration checklists
+scripts/         Build/catalog utilities (see MD/ADDING_MORE_STYLES_GUIDE.md)
 build-apk-local.ps1   Local debug APK (no EAS quota)
 ```
 
@@ -79,10 +83,10 @@ Deploy via Vercel. See `MD/ENV_SETUP.md` and `MD/SETUP_VERCEL_ENV.md` for enviro
 
 - Netflix-style style picker (16 categories, dark UI)
 - Upload → review → generate flow with OS crop (`expo-image-picker`)
-- Gallery, save/share, restyle from result
+- Gallery (**`DCIM/Funnyfy`** saves), save/share, restyle from result
 - RevenueCat paywall + backend subscription sync
 - Offline banner + generate guards
-- Admin dashboard, cron queue worker, webhook idempotency
+- Admin dashboard (Overview, Finance, Growth, Users, Jobs, Queue, Moderation, Security)
 - Infra: `/api/health`, CI typecheck, disaster recovery runbook
 
 ---
@@ -93,10 +97,15 @@ Deploy via Vercel. See `MD/ENV_SETUP.md` and `MD/SETUP_VERCEL_ENV.md` for enviro
 |-----|---------|
 | [`MD/STATUS.md`](MD/STATUS.md) | Launch checklist & current state |
 | [`MD/CHANGELOG.md`](MD/CHANGELOG.md) | Version history |
+| [`MD/TESTING.md`](MD/TESTING.md) | API, mobile, versioning, test guide |
+| [`MD/GALLERY_SCREEN.md`](MD/GALLERY_SCREEN.md) | My Gallery + **`DCIM/Funnyfy`** path |
 | [`MD/DEVELOPMENT_PLAN.md`](MD/DEVELOPMENT_PLAN.md) | Architecture & phases |
 | [`MD/SECURITY_AUDIT.md`](MD/SECURITY_AUDIT.md) | Security findings |
 | [`MD/DISASTER_RECOVERY.md`](MD/DISASTER_RECOVERY.md) | RTO/RPO & runbooks |
-| [`To do/SENTRY_INTEGRATION.md`](To%20do/SENTRY_INTEGRATION.md) | Mobile Sentry setup (live) |
+| [`MD/FUNNYFY_FLOW.md`](MD/FUNNYFY_FLOW.md) | **System architecture & flowcharts** ⭐ |
+| [`MD/FUNNYFY_FLOW.html`](MD/FUNNYFY_FLOW.html) | **Rendered diagrams (open in browser)** |
+| [`ToDo/README.md`](../ToDo/README.md) | Backlog & integration checklists |
+| [`ToDo/SENTRY_INTEGRATION.md`](ToDo/SENTRY_INTEGRATION.md) | Mobile Sentry setup (live) |
 | [`ToDo/security-deferred.md`](ToDo/security-deferred.md) | Remaining hardening backlog |
 
 Full doc index: [`MD/README.md`](MD/README.md)
@@ -121,4 +130,4 @@ Full doc index: [`MD/README.md`](MD/README.md)
 
 ---
 
-**Last updated:** June 2026
+**Last updated:** July 2026

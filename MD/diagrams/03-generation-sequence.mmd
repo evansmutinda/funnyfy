@@ -1,0 +1,37 @@
+sequenceDiagram
+  participant U as User
+  participant App as Mobile App
+  participant API as Vercel API
+  participant DB as Supabase
+  participant Q as process-queue
+  participant R as Replicate
+  participant SE as Sightengine
+
+  U->>App: Pick style, upload photo
+  App->>API: POST /api/enqueue
+  API->>DB: Check quota
+  API->>DB: INSERT job pending
+  API-->>App: job id
+
+  loop Poll status
+    App->>API: GET /api/job
+    API->>DB: Read job status
+    API-->>App: pending / processing
+  end
+
+  Q->>DB: Claim pending job
+  Q->>R: Run model
+  R-->>Q: output URL or error
+
+  alt Success
+    Q->>SE: Moderate output
+    SE-->>Q: pass / fail
+    Q->>DB: status completed
+    Q->>DB: cost + usage +1
+  else Failure
+    Q->>DB: status failed cost 0
+  end
+
+  App->>API: GET /api/job
+  API-->>App: completed + image URL
+  App->>U: Result / save to gallery

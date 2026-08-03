@@ -1,0 +1,54 @@
+flowchart TB
+  subgraph Mobile["Mobile App"]
+    A[User opens app] --> B{Trial or paid?}
+    B -->|Trial| C[3 free gens]
+    B -->|Paid| D[Starter / Popular / Pro]
+    C --> E[Pick style + upload photo]
+    D --> E
+    E --> F[Subscribe via RevenueCat]
+    F --> G[Request generation]
+  end
+
+  subgraph API["Vercel API"]
+    G --> H["/api/enqueue"]
+    H --> I{Quota OK?}
+    I -->|No| J[Reject - limit reached]
+    I -->|Yes| K[Create job in DB - pending]
+    K --> L[Cron: process-queue]
+    L --> M{Daily spend cap OK?}
+    M -->|No| N[Pause queue]
+    M -->|Yes| O[process-job to Replicate]
+    O --> P{Result?}
+    P -->|Success| Q[Sightengine moderation]
+    P -->|Fail| R[Mark failed - $0 cost]
+    Q -->|Clean| S[Completed + image URL]
+    Q -->|NSFW| T[Ban / infringement log]
+    S --> U[finalizeJobCost + usage credit]
+  end
+
+  subgraph Billing["Billing"]
+    F -.-> RC[RevenueCat SDK]
+    RC --> WH["/api/webhooks/revenuecat"]
+    WH --> DB2[(users + subscriptions)]
+    DB2 --> D
+  end
+
+  subgraph Data["Supabase"]
+    K --> DB[(jobs)]
+    U --> DB
+    U --> UT[(usage_tracking)]
+    U --> CT[(cost_tracking)]
+    WH --> DB
+    WH --> SH[(subscription_history)]
+  end
+
+  subgraph Admin["Admin Dashboard"]
+    AD[Admin login] --> API2["/api/admin"]
+    API2 --> OV[Overview]
+    API2 --> FIN[Finance]
+    API2 --> GR[Growth]
+    API2 --> USR[Users / Jobs / Queue / Security]
+    API2 --> DB
+  end
+
+  S --> GAL[Gallery / Result screen]

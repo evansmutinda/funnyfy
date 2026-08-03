@@ -1,189 +1,211 @@
 # FunnyFy App - Current Status
 
-**Last Updated**: January 2025  
-**Version**: MVP Complete  
-**Status**: Pre-Launch (Subscription Integration Phase)
+**Last Updated**: July 2026  
+**Version**: see [`apps/mobile/version.json`](../apps/mobile/version.json) (single source of truth — do not hardcode semver in docs)  
+**Status**: Feature-Complete – Ready for App Store Submission
 
 ---
 
 ## 🎯 Overview
 
-FunnyFy is a React Native mobile application that transforms user photos into AI-generated caricatures using the Replicate API. The app is feature-complete for MVP and ready for subscription integration before launch.
+FunnyFy is a React Native mobile application that transforms user photos into AI-generated caricatures using the Replicate API. The app has subscription integration via RevenueCat, usage tracking, quota enforcement, NSFW moderation, JWT authentication, and a fully polished UI.
 
 ---
 
 ## ✅ Completed Features
 
-### Mobile App (React Native/Expo)
+### Mobile App (React Native/Expo SDK 52)
 - ✅ Cross-platform app (Android & iOS)
-- ✅ Splash screen with branding
-- ✅ Style selection screen with 21 styles and preview images
-- ✅ Image upload (camera & gallery)
-- ✅ Real-time generation with progress tracking
-- ✅ Before/after comparison slider
-- ✅ Save to device functionality
-- ✅ Share functionality
+- ✅ **Native splash** (`expo-splash-screen`): solid `#0B0F19` until fonts + auth; no in-app splash component
+- ✅ **Netflix-style style picker**: category rows + horizontal tiles + "See all" grid; dark `#0B0F19` shell
+- ✅ **Discovery tiles** (`MediaTile`): image-only on style picker; **curated before/after crossfade** on 55 styles; row-focus sequencing on home and **See all** category grid
+- ✅ **Enabled styles** (160 in catalog; see [`MD/STYLES.md`](STYLES.md) / [`MD/PROMPTS.md`](PROMPTS.md) for current count)
+- ✅ **Two-step upload flow**: UploadScreen (comparison fade + Gallery/Camera) → PhotoReviewScreen (confirm + Generate); OS crop via `expo-image-picker`
+- ✅ **Upload/Review header** (`UploadFlowHeader.js`): back + **style pill** (left) + **usage pill** (right); no Photo tips chip
+- ✅ **Photo tips sheet**: auto-opens on Upload per style; "Do not show again" per style; pictorial placeholders
+- ✅ Before/after comparison slider on result + **4-phase job loading** (submit → queue → moderation → generate; title **Creating your {style}**)
+- ✅ **Try another style**: Regenerate same photo with a new style (restyle flow)
+- ✅ **Try another photo**: From result, pick a new photo for the same style
+- ✅ Save to device functionality — **`DCIM/Funnyfy/`** on Android via `saveToFunnyfyAlbum()` (see `MD/GALLERY_SCREEN.md`)
+- ✅ Share functionality (result + menu share sheet)
 - ✅ Error handling and user feedback
-- ✅ Modern, polished UI/UX
+- ✅ **Offline UX**: NetInfo connectivity, **orange global overlay** banner (non-blocking), generate/purchase guards, auto-refresh on reconnect
+- ✅ **Content-policy dialog** for NSFW blocks: **Content not permitted** + **Understood** CTA; clears photo and returns to upload (Sightengine, pre-Replicate)
+- ✅ Safe area handling: Bottom insets prevent overlap with navigation bar
+- ✅ **Gallery screen**: Dark theme; loads from **`DCIM/Funnyfy`** + in-app merge; full-screen swipe viewer; share from device URIs
+- ✅ **Save toast**: "View in Gallery" action after successful save
+- ✅ **Toast notification system**: Beautiful in-app toasts replace all system Alert.alert calls
+- ✅ **ConfirmDialog component**: Custom modal with optional neutral 3rd button
+- ✅ **NotificationContext**: App-wide toast/notification state via React Context
+- ✅ **Full Privacy Policy** and **Terms of Service** (13 sections each, in-app)
+- ✅ **Menu** (`MenuModal.js`): Gallery, Usage, Subscription, **Share app**, **Request a style**, Privacy, Terms, About, Contact us
+- ✅ **Dark-first UI** (`#0B0F19`): Style, Upload, Review, Result, Gallery, Info, Subscription, Splash, app shell
+- ✅ **Trial soft warnings**: Banner/toast when 1 free generation remains
+- ✅ **Auto versioning**: `version.json` + bump scripts + Cursor rule; About screen shows runtime version
+- ✅ **Android nav bar**: solid `#0B0F19` (matches app shell)
+
+### Auth System
+- ✅ `services/auth.js` — JWT auth service, persisted on device (use `auth.js` only; do not add `auth.ts`)
+- ✅ Backend creates real user in Supabase DB on first launch (`/api/auth/token`)
+- ✅ JWT token stored in device filesystem (not AsyncStorage)
+- ✅ Auth retries 3× before local fallback; `forceReAuth()` on stale/missing token
+- ✅ `ensureAuthenticated()` before purchases, generation, and API calls
+- ✅ Splash waits for auth to finish (prevents purchase before userId is set)
+- ✅ `Purchases.logIn(backendUserId)` links RevenueCat to backend UUID
+- ✅ Local UUID fallback only if backend/DB is unreachable
+- ✅ `resetAuthIfLocal()` clears local fallback when DB recovers
+
+### Paywall / Subscription UI
+- ✅ **Full-bleed dark paywall** (`SubscriptionScreen.js`): `#0B0F19` hero + `PaywallStyleMarquee`, compact tier cards, pinned white CTA, canceling state (red pill + manage link)
+- ✅ Subscription screen with Current Plan, Usage This Month, Available Plans
+- ✅ **Purchase → sync → refresh flow** (`/api/sync-subscription` + auto refresh)
+- ✅ Pricing: $5 / $10 / $25 (no .99)
+- ✅ Date format: dd/mmm/yyyy (e.g. 10/Feb/2025)
+- ✅ "Most popular" ribbon on Popular tier
+- ✅ **Restore Purchases** and **Refresh** buttons (Play Store policy)
+- ✅ **Tier selection fix**: handleSubscribe matches selected plan to RevenueCat package
+- ✅ **Subscription cancellation**: `/api/cancel-subscription` endpoint
 
 ### Backend (Vercel Serverless)
 - ✅ Serverless API endpoints
-- ✅ Style catalog API (`/api/styles`)
-- ✅ Generation API (`/api/test`)
-- ✅ 21 styles configured with protected prompts
-- ✅ API key security (server-side only)
-- ✅ CORS configuration
-- ✅ Error handling
+- ✅ Style catalog API (`/api/styles`) — returns `categoryId` + `categories`
+- ✅ Async generation: `POST /api/enqueue` → poll `GET /api/job?id=...`
+- ✅ Queue worker (`/api/cron/process-queue`) via `api/process-job.ts` — scheduled externally by [cron-job.org](https://cron-job.org/) (moved off Vercel cron)
+- ✅ User subscription API (`/api/user/subscription`)
+- ✅ Sync subscription, RevenueCat webhook handling
+- ✅ **160 styles in catalog**; enabled count in [`MD/STYLES.md`](STYLES.md) — protected prompts on server
+- ✅ Usage tracking, quota enforcement, **idempotent per-job credits** (`job_usage_credits`)
+- ✅ Queue worker: **atomic job claim** (`FOR UPDATE SKIP LOCKED`)
+- ✅ **JWT auth** (`/api/auth/token`)
+- ✅ **NSFW moderation** (Sightengine) in `api/process-job.ts`
+- ✅ **Image upload validation** in `api/enqueue.ts`
+- ✅ **Admin dashboard** (`/admin/login`) — dark UI via `api/_utils/admin-pages/`; pages: Overview, Finance, Growth, Users, Jobs, Queue, Moderation, Security; API `GET/POST /api/admin?resource=…`
 
-### Styles (21 Total)
-1. 90s Cartoon
-2. Chibi
-3. Neon
-4. Anime
-5. Custom 1
-6. 3D Clay
-7. Oil Paint
-8. Low-Poly Cartoon
-9. Water Color
-10. Pixar-like
-11. Funko Pop
-12. Custom 2
-13. Neanderthal
-14. Neanderthal 3D
-15. Hand-Drawn
-16. Superhero
-17. Super Villain
-18. Cyborg
+### Database (Supabase)
+- ✅ `users`, `subscriptions`, `usage_tracking`, `job_usage_credits`, `jobs` (incl. `cost_usd`, `model_version` for Finance)
+- ✅ `rate_limits`, `infringements`, `subscription_history`, `cost_tracking`, `security_logs`
+- ⬜ Run `api/migrations-job-cost.sql` on staging/prod if Finance cost columns missing
 
-**Models Used**: `black-forest-labs/flux-kontext-pro` and `google/nano-banana`
+### Styles — Enabled (30)
+
+Full table (ids, models, comparison pairs, deploy steps): **`MD/STYLES.md`**
+
+**Categories with recent additions:** Art (neon, lowpoly, mural, pop art v1–v3, graffiti, banksy, mosaic, e-glow), Caricatures (editorial, exaggerated, watercolor, handd, carc1).
+
+**Models:** `flux-kontext-pro` (default), `google/nano-banana`, `bytedance/seedream-4`.
+
+**Pending:** `coloured_pencil` disabled until comparison asset is added.
+
+**Catalog:** 160 styles from spreadsheet — enable individually in `api/_utils/styles-config.ts` as prompts and thumbnails are ready.
 
 ---
 
-## 🚧 In Progress
+## 📱 Recent Changes
 
-### Pre-Launch Requirements
-- [ ] Database setup (Vercel Postgres or Supabase)
-- [ ] User authentication system
-- [ ] Subscription management (RevenueCat or Stripe)
-- [ ] Usage tracking and quota enforcement
-- [ ] Queue and throttle system
-- [ ] Cost protection mechanisms
+### July 2026
+| Change | Description |
+|--------|-------------|
+| **Admin Finance + Growth** | MRR/ARR, MAU, churn, per-model gen costs, USD/KES toggle |
+| **Repo cleanup** | Removed `_archive/`, legacy `admin/` Next app, obsolete scripts |
+| **Flow docs** | `MD/FUNNYFY_FLOW.md` + rendered diagrams |
+| **ToDo merge** | Single `ToDo/` backlog folder |
+
+### June 2026
+
+| Change | Description |
+|--------|-------------|
+| **UI redesign (June 2026)** | Netflix-style StyleScreen, Upload→Review flow, dark theme app-wide, `pwd*` paywall — see `MD/UI_REDESIGN_2026_06.md` |
+| **Dead code cleanup** | Removed CropScreen, PhotoChooserScreen; pruned ~440 unused styles; `scripts/prune-unused-styles.js` |
+| **Menu + header polish** | Dark bottom sheet menu; style picker wordmark + icon-only burger; upload/review `UploadFlowHeader` pills |
+| **Result screen** | Three-band layout, real job progress, local preview cache, pinned actions |
+| **Style catalog expansion** | 16 categories, 160 styles; Netflix row navigation |
+| **Auto versioning** | `version.json`, `bump-version.js`, build script integration |
+| **90s label** | Renamed display label from "90s Cartoon" to **90s** |
+| **Usage counter fix** | `job_usage_credits` + atomic queue claim |
+| **Subscription sync fix** | `Purchases.logIn`, post-purchase sync, auth gating |
+| **Local APK builds** | `build-apk-local.ps1` + Gradle (`assembleDebug`) |
+| **Offline UX** | Orange global overlay banner (`NetworkProvider`); upload/review generate guard; reconnect refresh |
+| **Upload header pills** | `UploadFlowHeader.js` — style pill left, usage pill right; photo tips auto-sheet (no header chip) |
+| **Crop picker** | `expo-image-picker` only (removed `react-native-image-crop-picker`) |
+| **Local APK testing** | Prefer `build-apk-local.ps1` over Expo Go (SDK lock, RevenueCat, NetInfo) |
+
+---
+
+## 🚧 Deferred / Future
+
+- [ ] Enable more catalog styles (thumbnails + prompts per style)
+- [ ] Remaining style tile comparison pairs (8 of 19 enabled styles have curated assets — see `ToDo/COMPARISON_ASSETS.md`)
+- [ ] E003 high-demand error: friendly "generators busy" message
+- [ ] Analytics
+- [ ] Subscription trial (time-based 3-day trial via Play Store)
 
 ---
 
 ## 📋 Launch Checklist
 
 ### Technical
-- [ ] Database integration
-- [ ] User accounts and authentication
-- [ ] Subscription tiers implementation
-- [ ] Usage quota system (50/100/250 per month)
-- [ ] Rate limiting per tier
-- [ ] Queue management
-- [ ] Error tracking (Sentry)
-- [ ] Analytics integration
-- [ ] Performance optimization
-- [ ] Security audit
+- [x] Database integration (Supabase)
+- [x] Subscription tiers (RevenueCat)
+- [x] Usage quota system (50/100/250 per month)
+- [x] NSFW moderation (Sightengine)
+- [x] JWT authentication
+- [x] Auto versioning for builds
+- [x] Error tracking (Sentry mobile — `ToDo/SENTRY_INTEGRATION.md`)
+- [ ] Analytics
 
 ### Business
-- [ ] Finalize pricing (✅ Done: $5/$10/$25)
-- [ ] Privacy policy
-- [ ] Terms of service
-- [ ] App store assets (screenshots, descriptions)
-- [ ] Marketing materials
-- [ ] Beta testing program
+- [x] Finalize pricing ($5/$10/$25)
+- [x] Privacy policy & terms (in-app)
+- [ ] Host Privacy Policy on public URL (Play Store)
+- [ ] App store assets
 
 ### App Store
 - [ ] Google Play Store listing
 - [ ] Apple App Store listing
-- [ ] App store optimization (ASO)
-- [ ] Submission and review process
 
 ---
 
 ## 💰 Pricing (Finalized)
 
-| Tier | Price | Images/Month | Cost | Profit | Margin |
-|------|-------|--------------|------|--------|--------|
-| **Starter** | $5 | 50 | $2.00 | $3.00 | 60% |
-| **Popular** | $10 | 100 | $4.00 | $6.00 | 60% |
-| **Pro** | $25 | 250 | $10.00 | $15.00 | 60% |
-
-**Note**: No yearly plans initially - monitoring API usage first.
+| Tier    | Price | Images/Month |
+|---------|-------|--------------|
+| Starter | $5    | 50           |
+| Popular | $10   | 100          |
+| Pro     | $25   | 250          |
 
 ---
 
 ## 🏗️ Architecture
 
 ### Current Stack
-- **Mobile**: React Native (Expo)
-- **Backend**: Vercel serverless functions (Node.js/TypeScript)
-- **API**: Replicate API for image generation
-- **Storage**: TBD (for user data and job tracking)
-- **Database**: TBD (Vercel Postgres or Supabase recommended)
+- **Mobile**: React Native (Expo SDK 52)
+- **Backend**: Vercel serverless (Node.js/TypeScript)
+- **API**: Replicate for image generation
+- **Database**: Supabase (Postgres)
+- **Subscriptions**: RevenueCat
+- **Auth**: Custom JWT (`/api/auth/token`)
+- **NSFW**: Sightengine
+- **Hosting**: Vercel
 
-### Infrastructure
-- **Hosting**: Vercel (auto-scaling serverless)
-- **CDN**: Vercel Edge Network (included)
-- **API Keys**: Protected in Vercel environment variables
-- **Cost**: Pay-per-use model, scales automatically
-
----
-
-## 📊 Key Metrics to Track (Post-Launch)
-
-### Technical
-- API response time
-- Job completion rate
-- App crash rate
-- Image upload success rate
-- Queue depth and wait times
-
-### Business
-- Daily active users (DAU)
-- Monthly active users (MAU)
-- Subscription conversion rate
-- Monthly recurring revenue (MRR)
-- Customer lifetime value (LTV)
-- Churn rate
-
-### Usage
-- Generations per user
-- Most popular styles
-- Average generations per subscription tier
-- Peak usage times
-
----
-
-## 🎯 Next Steps
-
-1. **Immediate** (This Week):
-   - Set up database (Vercel Postgres)
-   - Implement basic user authentication
-   - Start subscription integration
-
-2. **Short Term** (This Month):
-   - Complete subscription system
-   - Implement quota tracking
-   - Add queue management
-   - Beta testing with small group
-
-3. **Launch** (Next Month):
-   - Final testing and bug fixes
-   - App store submissions
-   - Marketing launch
-   - Monitor and iterate
+### Key Endpoints
+- `GET /api/styles` – style catalog + categories
+- `POST /api/enqueue` – create generation job
+- `GET /api/job?id=...` – poll job status
+- `GET /api/user/subscription` – subscription + usage
+- `POST /api/sync-subscription` – manual RevenueCat → DB sync
+- `POST /api/auth/token` – JWT auth
 
 ---
 
 ## 📝 Notes
 
-- **App Name**: FunnyFy (capital F)
-- **Total Styles**: 21 (ready to launch with this number)
-- **Backend**: All queue/throttle logic will be on Vercel (server-side)
-- **Scalability**: Vercel can handle 100K+ users/day with proper optimization
-- **Cost per Generation**: ~$0.04 (conservative estimate including overhead)
+- **App name**: FunnyFy
+- **Package**: `com.evansks.funnyfyapp`
+- **Version source**: [`apps/mobile/version.json`](../apps/mobile/version.json) (bump via `apps/mobile/scripts/bump-version.js` or build scripts)
+- **Staging**: `https://funnyfy-staging.vercel.app`
+- **Production**: `https://funnyfyapp.vercel.app`
+- **Expo SDK**: 52 (not upgraded to 53/54 — breaking changes)
 
 ---
 
-**Status**: Ready for subscription integration and launch preparation.
+**Status**: Feature-complete. Ready for app store submission and production launch.

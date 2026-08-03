@@ -1,0 +1,60 @@
+# Canonical copy: repo-root /.easignore (EAS reads the root file for monorepo uploads).
+# Duplicated here so `eas build` from apps/mobile still finds a local .easignore.
+
+# --- Secrets & env ---
+.env
+.env.*
+.env*.local
+
+# --- Dependencies (EAS installs fresh) ---
+node_modules
+
+# --- Git metadata ---
+.git
+
+# --- Monorepo: not needed for the mobile app build ---
+/api
+/MD
+/scripts
+/ToDo
+/graphify-out
+/public
+/.cursor
+/.claude
+/.agents
+/.vscode
+/.idea
+/.vercel
+package.json
+package-lock.json
+README.md
+vercel.json
+tsconfig.json
+
+# --- Native projects (EAS runs prebuild on the server) ---
+apps/mobile/android
+apps/mobile/ios
+
+# --- Comparison originals (~95MB) — not bundled; hero + tiles are enough ---
+apps/mobile/assets/comparisons/source
+
+# --- Local Expo / Gradle / dev artifacts ---
+apps/mobile/.expo
+apps/mobile/.expo-shared
+apps/mobile/.expo-export-test
+apps/mobile/.expo-tmp-bundle
+apps/mobile/.gradle
+apps/mobile/.claude
+apps/mobile/.vercel
+apps/mobile/dist
+apps/mobile/web-build
+apps/mobile/build
+apps/mobile/.idea
+
+# --- Logs & caches ---
+*.log
+npm-debug.log*
+yarn-error.log*
+.cache
+*.tmp
+*.temp

@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <title>FunnyFy Admin</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      color-scheme: dark;
+      --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+      --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+      --bg: #0b0f14;
+      --surface: #131a24;
+      --surface-2: #1a2332;
+      --surface-3: #212d3d;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.14);
+      --text: #e8edf5;
+      --muted: #8b9cb3;
+      --accent: #6366f1;
+      --accent-hover: #818cf8;
+      --accent-soft: rgba(99, 102, 241, 0.18);
+      --sidebar: #080b10;
+      --sidebar-text: #7d8da6;
+      --sidebar-active: #f1f5f9;
+      --green: #34d399;
+      --green-soft: rgba(16, 185, 129, 0.14);
+      --red: #f87171;
+      --red-soft: rgba(239, 68, 68, 0.14);
+      --amber: #fbbf24;
+      --amber-soft: rgba(245, 158, 11, 0.14);
+      --radius: 12px;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .layout { display: flex; min-height: 100vh; }
+    .sidebar {
+      width: 232px;
+      background: var(--sidebar);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; bottom: 0; left: 0;
+      z-index: 20;
+    }
+    .sidebar-logo {
+      padding: 22px 20px 18px;
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: -0.02em;
+      color: var(--sidebar-active);
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .sidebar-logo span { color: var(--accent-hover); font-weight: 800; }
+    .sidebar nav { flex: 1; padding: 12px 10px; overflow-y: auto; }
+    .nav-section {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #4b5a70;
+      padding: 12px 12px 6px;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--sidebar-text);
+      font-weight: 500;
+      font-size: 13px;
+      margin-bottom: 2px;
+      transition: background-color 140ms var(--ease-out), color 140ms var(--ease-out);
+      user-select: none;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .nav-item:hover { background: rgba(255,255,255,.06); color: #cbd5e1; }
+    }
+    .nav-item.active { background: var(--accent-soft); color: var(--sidebar-active); }
+    .nav-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: .35;
+      flex-shrink: 0;
+    }
+    .nav-item.active .nav-dot { opacity: 1; background: #818cf8; }
+    .sidebar-footer { padding: 12px 10px 16px; border-top: 1px solid rgba(255,255,255,.06); }
+
+    .main { margin-left: 232px; flex: 1; min-width: 0; }
+    .topbar {
+      background: rgba(19, 26, 36, 0.82);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(12px);
+    }
+    .topbar-title { font-weight: 600; font-size: 16px; letter-spacing: -0.02em; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .content { padding: 28px; max-width: 1280px; }
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }
+    .badge-green { background: var(--green-soft); color: #6ee7b7; }
+    .badge-red { background: var(--red-soft); color: #fca5a5; }
+    .badge-amber { background: var(--amber-soft); color: #fcd34d; }
+    tr.row-trial td { background: rgba(251, 191, 36, 0.08); }
+    tr.row-trial td:first-child { font-weight: 600; color: #fcd34d; }
+    .badge-gray { background: rgba(148, 163, 184, 0.12); color: #94a3b8; }
+    .badge-indigo { background: var(--accent-soft); color: #a5b4fc; }
+
+    .alerts { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+    .alert {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateY(6px);
+      animation: alertIn 220ms var(--ease-out) forwards;
+    }
+    .alert-warn { border-color: rgba(251, 191, 36, 0.28); background: rgba(251, 191, 36, 0.08); }
+    .alert-danger { border-color: rgba(248, 113, 113, 0.28); background: rgba(239, 68, 68, 0.1); }
+    .alert-ok { border-color: rgba(74, 222, 128, 0.28); background: rgba(16, 185, 129, 0.08); }
+    .alert-title { font-weight: 600; font-size: 13px; }
+    .alert-body { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    @keyframes alertIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .alert { animation: none; opacity: 1; transform: none; }
+      .stat { animation: none !important; opacity: 1 !important; transform: none !important; }
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+    .stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateY(8px);
+      animation: statIn 240ms var(--ease-out) forwards;
+    }
+    .stats-row .stat:nth-child(1) { animation-delay: 0ms; }
+    .stats-row .stat:nth-child(2) { animation-delay: 40ms; }
+    .stats-row .stat:nth-child(3) { animation-delay: 80ms; }
+    .stats-row .stat:nth-child(4) { animation-delay: 120ms; }
+    .stats-row .stat:nth-child(5) { animation-delay: 160ms; }
+    .stats-row .stat:nth-child(6) { animation-delay: 200ms; }
+    .stats-row .stat:nth-child(7) { animation-delay: 240ms; }
+    .stats-row .stat:nth-child(8) { animation-delay: 280ms; }
+    @keyframes statIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .stat-label {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    .stat-value { font-size: 26px; font-weight: 700; letter-spacing: -0.03em; color: var(--text); white-space: nowrap; }
+    .stat-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+    @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+    }
+    .card-head {
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface-2);
+    }
+    .card-head h3 { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
+    .card-note {
+      padding: 14px 20px;
+      font-size: 12px;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+      background: var(--surface-2);
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      padding: 10px 16px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+    }
+    td { padding: 11px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    @media (hover: hover) and (pointer: fine) {
+      tbody tr:hover td { background: rgba(255, 255, 255, 0.03); }
+    }
+    .mono { font-family: ui-monospace, 'SF Mono', monospace; font-size: 12px; }
+
+    .controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+    input[type=text], select {
+      padding: 8px 11px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      outline: none;
+      background: var(--surface-2);
+      color: var(--text);
+      transition: border-color 140ms var(--ease-out), box-shadow 140ms var(--ease-out);
+    }
+    input[type=text]::placeholder { color: #5c6b82; }
+    input[type=text]:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.22);
+    }
+
+    .btn {
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: transform 140ms var(--ease-out), opacity 140ms var(--ease-out), background-color 140ms var(--ease-out);
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+    @media (hover: hover) and (pointer: fine) {
+      .btn-primary:hover { background: var(--accent-hover); }
+      .btn-danger:hover { background: #ef4444; }
+      .btn-success:hover { background: #10b981; }
+      .btn-ghost:hover { background: rgba(255, 255, 255, 0.06); border-color: var(--border-strong); }
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-danger { background: var(--red); color: #fff; }
+    .btn-success { background: var(--green); color: #fff; }
+    .btn-sm { padding: 5px 10px; font-size: 12px; }
+    .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .logout-btn {
+      width: 100%;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,.12);
+      color: var(--sidebar-text);
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: transform 140ms var(--ease-out), color 140ms var(--ease-out), border-color 140ms var(--ease-out);
+    }
+    .logout-btn:active { transform: scale(0.97); }
+    @media (hover: hover) and (pointer: fine) {
+      .logout-btn:hover { color: #fca5a5; border-color: rgba(252,165,165,.4); }
+    }
+
+    .pagination { display: flex; gap: 8px; align-items: center; padding: 12px 16px; }
+    .refresh-indicator { color: var(--muted); font-size: 12px; }
+    .fx-rate { color: var(--muted); font-size: 11px; white-space: nowrap; }
+
+    .currency-toggle {
+      display: inline-flex;
+      padding: 3px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      gap: 2px;
+    }
+    .currency-toggle button {
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 140ms var(--ease-out), color 140ms var(--ease-out), transform 140ms var(--ease-out);
+    }
+    .currency-toggle button:active { transform: scale(0.97); }
+    .currency-toggle button.active {
+      background: var(--accent-soft);
+      color: #c7d2fe;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .currency-toggle button:not(.active):hover { color: var(--text); }
+    }
+
+    .cap-track {
+      height: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+    .cap-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent), #818cf8);
+      transform-origin: left center;
+      transform: scaleX(0);
+      transition: transform 220ms var(--ease-out);
+    }
+    .cap-fill.warn { background: linear-gradient(90deg, var(--amber), #fbbf24); }
+    .cap-fill.danger { background: linear-gradient(90deg, var(--red), #f87171); }
+
+    .finance-hero {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      align-items: stretch;
+      gap: 14px;
+      margin-bottom: 20px;
+      overflow-x: auto;
+      scrollbar-width: thin;
+    }
+    .finance-hero .finance-card {
+      flex: 1 1 auto;
+      min-width: max(140px, min-content);
+    }
+    .growth-hero .finance-card {
+      min-width: max(120px, min-content);
+    }
+    @media (max-width: 768px) {
+      .finance-hero {
+        flex-wrap: wrap;
+        overflow-x: visible;
+      }
+      .finance-hero .finance-card {
+        flex: 1 1 calc(50% - 7px);
+        min-width: 140px;
+      }
+      .growth-hero .finance-card {
+        flex: 1 1 calc(50% - 7px);
+      }
+    }
+    .finance-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+    .finance-card .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+    .finance-card .value {
+      font-size: clamp(22px, 2.4vw, 32px);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin-top: 6px;
+      white-space: nowrap;
+      line-height: 1.15;
+    }
+    .finance-card .hint { font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.35; }
+
+    .placeholder-block {
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 32px 24px;
+      text-align: center;
+      color: var(--muted);
+      background: var(--surface-2);
+    }
+    .placeholder-block strong { display: block; color: var(--text); margin-bottom: 6px; font-size: 14px; }
+
+    .detail-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      z-index: 90;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 200ms var(--ease-out);
+    }
+    .detail-backdrop.open { opacity: 1; pointer-events: auto; }
+    .detail-panel {
+      position: fixed; right: 0; top: 0; bottom: 0;
+      width: min(480px, 100vw);
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      z-index: 100;
+      overflow-y: auto;
+      transform: translateX(100%);
+      transition: transform 220ms var(--ease-out);
+      box-shadow: -12px 0 40px rgba(0, 0, 0, 0.45);
+    }
+    .detail-panel.open { transform: translateX(0); }
+    .panel-head {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      background: var(--surface);
+      z-index: 1;
+    }
+    .panel-body { padding: 20px; }
+    .field-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .field-label { color: var(--muted); font-size: 13px; flex-shrink: 0; }
+    .field-value { font-size: 13px; font-weight: 500; text-align: right; word-break: break-all; }
+    .panel-actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin: 20px 0 10px;
+    }
+
+    .empty { text-align: center; padding: 40px; color: var(--muted); }
+    .spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .55s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) {
+      .spinner { animation-duration: 1.2s; }
+    }
+    .error-msg {
+      background: var(--red-soft);
+      color: #fca5a5;
+      border: 1px solid rgba(248, 113, 113, 0.25);
+      padding: 10px 14px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><span>Funny</span>Fy Admin</div>
+    <nav id="sidebar-nav">
+      <div class="nav-section">Monitor</div>
+      <div class="nav-item active" data-page="overview"><span class="nav-dot"></span> Overview</div>
+      <div class="nav-item" data-page="queue"><span class="nav-dot"></span> Queue</div>
+      <div class="nav-item" data-page="security"><span class="nav-dot"></span> Security</div>
+      <div class="nav-section">Business</div>
+      <div class="nav-item" data-page="finance"><span class="nav-dot"></span> Finance</div>
+      <div class="nav-item" data-page="growth"><span class="nav-dot"></span> Growth</div>
+      <div class="nav-item" data-page="users"><span class="nav-dot"></span> Users</div>
+      <div class="nav-section">Operations</div>
+      <div class="nav-item" data-page="jobs"><span class="nav-dot"></span> Jobs</div>
+      <div class="nav-item" data-page="moderation"><span class="nav-dot"></span> Moderation</div>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="logout-btn" type="button" id="logout-btn">Sign out</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="pageTitle">Overview</div>
+      <div class="topbar-right">
+        <span class="fx-rate" id="fx-rate-label" title="Exchange rate for display only"></span>
+        <div class="currency-toggle" id="currency-toggle" role="group" aria-label="Display currency">
+          <button type="button" data-currency="USD" class="active">USD</button>
+          <button type="button" data-currency="KES">KES</button>
+        </div>
+        <span class="refresh-indicator" id="lastRefresh"></span>
+        <span id="adminLabel" class="badge badge-indigo"></span>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="page active" id="page-overview">
+        <div class="alerts" id="overview-alerts"></div>
+        <div class="stats-row" id="overview-stats">
+          <div class="stat"><div class="stat-label">Total Users</div><div class="stat-value" id="ov-users">—</div></div>
+          <div class="stat"><div class="stat-label">New Today</div><div class="stat-value" id="ov-new-today">—</div></div>
+          <div class="stat"><div class="stat-label">New This Week</div><div class="stat-value" id="ov-new-week">—</div></div>
+          <div class="stat"><div class="stat-label">Active Subs</div><div class="stat-value" id="ov-active">—</div></div>
+          <div class="stat"><div class="stat-label">MRR (est.)</div><div class="stat-value" id="ov-mrr">—</div></div>
+          <div class="stat"><div class="stat-label">Jobs Today</div><div class="stat-value" id="ov-jobs-today">—</div></div>
+          <div class="stat"><div class="stat-label">Infringements</div><div class="stat-value" id="ov-infringements">—</div></div>
+          <div class="stat"><div class="stat-label">Banned</div><div class="stat-value" id="ov-banned">—</div></div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head"><h3>Users by Tier & Status</h3></div>
+            <table>
+              <thead><tr><th>Tier</th><th>Status</th><th>Count</th></tr></thead>
+              <tbody id="tier-table"><tr><td colspan="3" class="empty"><span class="spinner"></span></td></tr></tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Jobs Last 7 Days</h3></div>
+            <table>
+              <thead><tr><th>Date</th><th>Done</th><th>Failed</th></tr></thead>
+              <tbody id="jobs-trend"><tr><td colspan="3" class="empty"><span class="spinner"></span></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="page" id="page-finance">
+        <div class="finance-hero">
+          <div class="finance-card">
+            <div class="label">MRR (estimated)</div>
+            <div class="value" id="fin-mrr">—</div>
+            <div class="hint" id="fin-subs-hint">Active paid subscriptions</div>
+          </div>
+          <div class="finance-card">
+            <div class="label">Cost MTD</div>
+            <div class="value" id="fin-cost-mtd">—</div>
+            <div class="hint" id="fin-margin-hint">Replicate inference spend</div>
+          </div>
+          <div class="finance-card">
+            <div class="label">Est. Net (rough)</div>
+            <div class="value" id="fin-net">—</div>
+            <div class="hint" id="fin-net-hint">MRR minus month-to-date costs</div>
+          </div>
+        </div>
+
+        <div class="stats-row" style="grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); margin-bottom: 20px;">
+          <div class="stat"><div class="stat-label">Gens MTD</div><div class="stat-value" id="fin-gens-total" style="font-size:22px">—</div></div>
+          <div class="stat"><div class="stat-label">Completed</div><div class="stat-value" id="fin-gens-done" style="font-size:22px">—</div></div>
+          <div class="stat"><div class="stat-label">Failed ($0)</div><div class="stat-value" id="fin-gens-failed" style="font-size:22px">—</div></div>
+          <div class="stat"><div class="stat-label">Trial Cost MTD</div><div class="stat-value" id="fin-trial-cost" style="font-size:22px">—</div></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><h3>Month economics by user tier</h3></div>
+          <table>
+            <thead><tr><th>Tier</th><th>Active subs</th><th>Revenue (MRR)</th><th>Gens MTD</th><th>Gen cost MTD</th></tr></thead>
+            <tbody id="fin-economics-table"><tr><td colspan="5" class="empty"><span class="spinner"></span></td></tr></tbody>
+          </table>
+          <div class="card-note">Trial rows show generation cost with $0 subscription revenue. MRR is estimated from active subs at tier price.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><h3>Generation cost by model (MTD)</h3></div>
+          <table>
+            <thead><tr><th>Model</th><th>Done</th><th>Failed</th><th>Unit cost</th><th>Total cost</th></tr></thead>
+            <tbody id="fin-model-table"><tr><td colspan="5" class="empty"><span class="spinner"></span></td></tr></tbody>
+          </table>
+          <div class="card-note" id="fin-model-note">—</div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3>Today's Spend vs Cap</h3>
+            <span id="fin-cap-badge" class="badge badge-gray">—</span>
+          </div>
+          <div style="padding: 16px 20px">
+            <div style="display:flex;justify-content:space-between;font-size:13px">
+              <span id="fin-today-cost">—</span>
+              <span id="fin-today-cap" style="color:var(--muted)">—</span>
+            </div>
+            <div class="cap-track"><div class="cap-fill" id="fin-cap-bar"></div></div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head"><h3>Revenue by Tier</h3></div>
+            <table>
+              <thead><tr><th>Tier</th><th>Active</th><th>Unit</th><th>Subtotal</th></tr></thead>
+              <tbody id="fin-revenue-table"><tr><td colspan="4" class="empty"><span class="spinner"></span></td></tr></tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Spend Last 7 Days</h3><button class="btn btn-ghost btn-sm" type="button" data-refresh="finance">Refresh</button></div>
+            <table>
+              <thead><tr><th>Date</th><th>Cost</th><th>Jobs</th></tr></thead>
+              <tbody id="fin-spend-7"><tr><td colspan="3" class="empty"><span class="spinner"></span></td></tr></tbody>
+            </table>
+            <div class="card-note" id="fin-7-total">—</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><h3>Spend Last 30 Days</h3></div>
+          <table>
+            <thead><tr><th>Date</th><th>Cost</th><th>Jobs</th></tr></thead>
+            <tbody id="fin-spend-30"><tr><td colspan="3" class="empty"><span class="spinner"></span></td></tr></tbody>
+          </table>
+          <div class="card-note" id="fin-30-total">—</div>
+        </div>
+
+        <div class="placeholder-block">
+          <strong>Coming later</strong>
+          RevenueCat reconciliation, store fees, refunds, and per-style margin reports.
+        </div>
+      </div>
+
+      <div class="page" id="page-growth">
+        <div class="finance-hero growth-hero">
+          <div class="finance-card">
+            <div class="label">MAU</div>
+            <div class="value" id="gr-mau">—</div>
+            <div class="hint" id="gr-mau-hint">Monthly active users</div>
+          </div>
+          <div class="finance-card">
+            <div class="label">Total Users</div>
+            <div class="value" id="gr-total">—</div>
+            <div class="hint" id="gr-total-hint">All registered accounts</div>
+          </div>
+          <div class="finance-card">
+            <div class="label">MRR</div>
+            <div class="value" id="gr-mrr">—</div>
+            <div class="hint" id="gr-mrr-hint">Estimated monthly revenue</div>
+          </div>
+          <div class="finance-card">
+            <div class="label">ARR</div>
+            <div class="value" id="gr-arr">—</div>
+            <div class="hint" id="gr-arr-hint">MRR × 12</div>
+          </div>
+          <div class="finance-card">
+            <div class="label">Churn Rate</div>
+            <div class="value" id="gr-churn">—</div>
+            <div class="hint" id="gr-churn-hint">Paid subs lost MTD</div>
+          </div>
+        </div>
+
+        <div class="stats-row" style="grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); margin-bottom: 20px;">
+          <div class="stat"><div class="stat-label">Active Paid Subs</div><div class="stat-value" id="gr-active-paid" style="font-size:22px">—</div></div>
+          <div class="stat"><div class="stat-label">New Users MTD</div><div class="stat-value" id="gr-new-users" style="font-size:22px">—</div></div>
+          <div class="stat"><div class="stat-label">New Paid MTD</div><div class="stat-value" id="gr-new-paid" style="font-size:22px">—</div></div>
+          <div class="stat"><div class="stat-label">Churned MTD</div><div class="stat-value" id="gr-churned" style="font-size:22px">—</div></div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head"><h3>MAU — last 6 months</h3><button class="btn btn-ghost btn-sm" type="button" data-refresh="growth">Refresh</button></div>
+            <table>
+              <thead><tr><th>Month</th><th>Active users</th><th>% of total</th></tr></thead>
+              <tbody id="gr-mau-trend"><tr><td colspan="3" class="empty"><span class="spinner"></span></td></tr></tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>New signups — last 6 months</h3></div>
+            <table>
+              <thead><tr><th>Month</th><th>New users</th></tr></thead>
+              <tbody id="gr-signup-trend"><tr><td colspan="2" class="empty"><span class="spinner"></span></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head"><h3>Churn — last 6 months</h3></div>
+            <table>
+              <thead><tr><th>Month</th><th>Churned subs</th></tr></thead>
+              <tbody id="gr-churn-trend"><tr><td colspan="2" class="empty"><span class="spinner"></span></td></tr></tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Active subs by tier</h3></div>
+            <table>
+              <thead><tr><th>Tier</th><th>Active</th><th>Unit</th><th>MRR share</th></tr></thead>
+              <tbody id="gr-tier-table"><tr><td colspan="4" class="empty"><span class="spinner"></span></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card-note" id="gr-disclaimer" style="margin-top:8px">—</div>
+      </div>
+
+      <div class="page" id="page-users">
+        <div class="controls">
+          <input type="text" id="user-search" placeholder="Search by ID, email…" style="width:240px">
+          <select id="user-tier">
+            <option value="">All tiers</option>
+            <option value="trial">Trial</option>
+            <option value="starter">Starter</option>
+            <option value="popular">Popular</option>
+            <option value="pro">Pro</option>
+          </select>
+          <select id="user-status">
+            <option value="">All statuses</option>
+            <option value="trial">Trial</option>
+            <option value="active">Active</option>
+            <option value="canceled">Canceled</option>
+            <option value="expired">Expired</option>
+          </select>
+          <button class="btn btn-ghost" type="button" data-refresh="users">Refresh</button>
+        </div>
+        <div class="card">
+          <table>
+            <thead><tr><th>User ID</th><th>Email</th><th>Tier</th><th>Status</th><th>Usage</th><th>Joined</th><th></th></tr></thead>
+            <tbody id="users-table"><tr><td colspan="7" class="empty"><span class="spinner"></span></td></tr></tbody>
+          </table>
+          <div class="pagination" id="users-pagination"></div>
+        </div>
+      </div>
+
+      <div class="page" id="page-jobs">
+        <div class="controls">
+          <select id="job-status">
+            <option value="">All statuses</option>
+            <option value="pending">Pending</option>
+            <option value="processing">Processing</option>
+            <option value="completed">Completed</option>
+            <option value="failed">Failed</option>
+          </select>
+          <button class="btn btn-ghost" type="button" data-refresh="jobs">Refresh</button>
+        </div>
+        <div class="card">
+          <table>
+            <thead><tr><th>Job ID</th><th>User</th><th>Style</th><th>Status</th><th>Priority</th><th>Created</th><th>Actions</th></tr></thead>
+            <tbody id="jobs-table"><tr><td colspan="7" class="empty"><span class="spinner"></span></td></tr></tbody>
+          </table>
+          <div class="pagination" id="jobs-pagination"></div>
+        </div>
+      </div>
+
+      <div class="page" id="page-queue">
+        <div class="alerts" id="queue-alerts"></div>
+        <div class="stats-row">
+          <div class="stat"><div class="stat-label">Pending</div><div class="stat-value" id="q-pending">—</div></div>
+          <div class="stat"><div class="stat-label">Processing</div><div class="stat-value" id="q-processing">—</div></div>
+          <div class="stat"><div class="stat-label">Completed</div><div class="stat-value" id="q-completed">—</div></div>
+          <div class="stat"><div class="stat-label">Failed</div><div class="stat-value" id="q-failed">—</div></div>
+          <div class="stat"><div class="stat-label">Queue</div><div class="stat-value" id="q-status" style="font-size:16px">—</div></div>
+          <div class="stat"><div class="stat-label">Avg Wait</div><div class="stat-value" id="q-wait">—</div><div class="stat-sub">seconds</div></div>
+          <div class="stat"><div class="stat-label">Cost Today</div><div class="stat-value" id="q-cost">—</div></div>
+          <div class="stat"><div class="stat-label">Cap Usage</div><div class="stat-value" id="q-cap-pct">—</div></div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <h3>Spending Last 7 Days</h3>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <button class="btn btn-ghost btn-sm" type="button" id="q-resume-btn" style="display:none;">Resume queue</button>
+              <button class="btn btn-ghost btn-sm" type="button" data-refresh="queue">Refresh</button>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>Date</th><th>Cost (USD)</th><th>Jobs</th></tr></thead>
+            <tbody id="spending-table"><tr><td colspan="3" class="empty"><span class="spinner"></span></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="page" id="page-moderation">
+        <div class="stats-row" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">
+          <div class="stat"><div class="stat-label">Total Infringements</div><div class="stat-value" id="mod-total">—</div></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>Recent Infringements</h3><button class="btn btn-ghost btn-sm" type="button" data-refresh="moderation">Refresh</button></div>
+          <table>
+            <thead><tr><th>Time</th><th>Type</th><th>User</th><th>Tier</th><th>Details</th><th></th></tr></thead>
+            <tbody id="moderation-table"><tr><td colspan="6" class="empty"><span class="spinner"></span></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="page" id="page-security">
+        <div class="controls">
+          <select id="sec-type">
+            <option value="">All events</option>
+            <option value="auth_failed">Auth Failed</option>
+            <option value="auth_success">Auth Success</option>
+          </select>
+          <select id="sec-success">
+            <option value="">All outcomes</option>
+            <option value="false">Failures only</option>
+            <option value="true">Successes only</option>
+          </select>
+          <button class="btn btn-ghost" type="button" data-refresh="security">Refresh</button>
+        </div>
+        <div class="card">
+          <table>
+            <thead><tr><th>Time</th><th>Event</th><th>IP</th><th>User</th><th>Result</th></tr></thead>
+            <tbody id="security-table"><tr><td colspan="5" class="empty"><span class="spinner"></span></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<div class="detail-backdrop" id="panel-backdrop"></div>
+<div class="detail-panel" id="user-panel">
+  <div class="panel-head">
+    <strong>User Detail</strong>
+    <button class="btn btn-ghost btn-sm" type="button" id="close-panel-btn">Close</button>
+  </div>
+  <div class="panel-body" id="user-panel-body">Loading…</div>
+</div>
+
+<script src="/admin/dashboard-page.js?v=20260709" defer></script>
+</body>
+</html>

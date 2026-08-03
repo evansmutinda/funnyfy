@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <title>FunnyFy Admin - Login</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      color-scheme: dark;
+      --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+      --bg: #0b0f14;
+      --surface: #131a24;
+      --surface-2: #1a2332;
+      --text: #e8edf5;
+      --muted: #8b9cb3;
+      --accent: #6366f1;
+      --accent-hover: #818cf8;
+      --border: rgba(255, 255, 255, 0.1);
+      --red-soft: rgba(239, 68, 68, 0.14);
+      --green-soft: rgba(16, 185, 129, 0.14);
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      background-image:
+        radial-gradient(ellipse 80% 60% at 50% -10%, rgba(99, 102, 241, 0.28), transparent),
+        radial-gradient(ellipse 50% 40% at 100% 100%, rgba(99, 102, 241, 0.1), transparent);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      -webkit-font-smoothing: antialiased;
+      color: var(--text);
+    }
+    .login-container {
+      background: var(--surface);
+      border-radius: 16px;
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.45);
+      padding: 40px 36px;
+      width: 100%;
+      max-width: 400px;
+      border: 1px solid var(--border);
+    }
+    .brand {
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent-hover);
+      margin-bottom: 8px;
+    }
+    h1 {
+      color: var(--text);
+      margin-bottom: 6px;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+    .subtitle {
+      color: var(--muted);
+      margin-bottom: 28px;
+      font-size: 14px;
+    }
+    .form-group { margin-bottom: 18px; }
+    label {
+      display: block;
+      color: var(--text);
+      font-weight: 500;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+    input {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 14px;
+      background: var(--surface-2);
+      color: var(--text);
+      transition: border-color 140ms var(--ease-out), box-shadow 140ms var(--ease-out);
+    }
+    input::placeholder { color: #5c6b82; }
+    input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.22);
+    }
+    .help-text {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 6px;
+      line-height: 1.45;
+    }
+    .help-text a {
+      color: var(--accent-hover);
+      text-decoration: none;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .help-text a:hover { text-decoration: underline; }
+    }
+    .notice {
+      padding: 11px 14px;
+      border-radius: 10px;
+      margin-bottom: 18px;
+      font-size: 13px;
+      display: none;
+      line-height: 1.45;
+    }
+    .notice.show { display: block; }
+    .notice-error {
+      background: var(--red-soft);
+      color: #fca5a5;
+      border: 1px solid rgba(248, 113, 113, 0.25);
+    }
+    .notice-success {
+      background: var(--green-soft);
+      color: #6ee7b7;
+      border: 1px solid rgba(74, 222, 128, 0.25);
+    }
+    button[type=submit] {
+      width: 100%;
+      padding: 12px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 140ms var(--ease-out), background-color 140ms var(--ease-out);
+    }
+    button[type=submit]:active { transform: scale(0.97); }
+    @media (hover: hover) and (pointer: fine) {
+      button[type=submit]:hover { background: var(--accent-hover); }
+    }
+    button[type=submit]:disabled {
+      background: #334155;
+      color: #64748b;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .loading {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,.35);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .55s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) {
+      .loading { animation-duration: 1.2s; }
+      button[type=submit]:active { transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="brand">FunnyFy</div>
+    <h1>Admin</h1>
+    <p class="subtitle">Sign in with your authorized user ID</p>
+
+    <div class="notice notice-error" id="error"></div>
+    <div class="notice notice-success" id="success"></div>
+
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="userId">User ID</label>
+        <input
+          type="text"
+          id="userId"
+          name="userId"
+          placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+          required
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <p class="help-text">UUID from the same Supabase project as this deployment (staging vs production).</p>
+      </div>
+
+      <button type="submit" id="submitBtn">
+        <span id="btnText">Sign in</span>
+      </button>
+    </form>
+    <p class="help-text" style="text-align:center;margin-top:18px">
+      <a href="#" id="clearStoredLogin">Clear saved login</a>
+    </p>
+  </div>
+
+  <script src="/admin/login-page.js?v=20260705" defer></script>
+</body>
+</html>

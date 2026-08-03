@@ -1,0 +1,6 @@
+flowchart LR
+  Dev[Local changes] --> Git[git push origin Staging]
+  Git --> GH[GitHub]
+  GH --> Vercel[Vercel build]
+  Vercel --> Staging[funnyfy-staging.vercel.app]
+  Staging --> Prod[funnyfyapp.vercel.app]

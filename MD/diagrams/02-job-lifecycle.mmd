@@ -1,0 +1,8 @@
+stateDiagram-v2
+  [*] --> pending: User taps Generate
+  pending --> processing: Queue worker picks job
+  processing --> completed: Replicate OK + moderation pass
+  processing --> failed: API error / policy / timeout
+  completed --> [*]: Cost recorded, quota +1
+  failed --> [*]: Cost = $0
+  failed --> pending: Admin retry

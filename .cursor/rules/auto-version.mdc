@@ -1,0 +1,39 @@
+---
+description: Auto-bump FunnyFy mobile app version after shipped changes
+globs: apps/mobile/**
+alwaysApply: false
+---
+
+# Auto-version mobile app
+
+When you finish a **user-facing** change under `apps/mobile/` (feature, fix, UI tweak), bump the app version before ending the task.
+
+## How
+
+From `apps/mobile/`:
+
+```bash
+node scripts/bump-version.js --patch
+```
+
+This updates `version.json` (semver + Android `versionCode` + iOS `buildNumber`) and syncs `package.json`. `app.config.js` reads `version.json` automatically.
+
+## When to bump
+
+- New menu item, screen change, bug fix, subscription/gallery/save behavior, etc.
+- **Once per completed task** — not on every file edit in the same task.
+
+## When to skip
+
+- Docs-only, comments-only, or refactors with no release impact
+- API/backend-only work (`api/`, `admin/`)
+- User explicitly says not to bump
+
+## Build vs dev
+
+- **During development** (agent): `--patch` for visible changes
+- **APK builds** (`build-apk-local.ps1`): `--build` only (already wired; use `-NoVersionBump` to skip)
+
+Do not commit version files unless the user asks to commit.
+
+Do not update hardcoded semver in `MD/*.md` or `README.md` — those files should reference `apps/mobile/version.json` only.

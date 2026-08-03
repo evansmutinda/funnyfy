@@ -1,6 +1,7 @@
 # Expo
 .expo/
 .expo-shared/
+.expo-export-test/
 dist/
 web-build/
 
@@ -31,3 +32,5 @@ ios/
 node_modules/
 npm-debug.log
 yarn-error.log
+
+.env.local

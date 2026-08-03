@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { query } from './db';
+import { query } from './_utils/db';
 
 const allowedOrigin = process.env.ALLOWED_ORIGIN || '*';
 
@@ -21,6 +21,19 @@ export default async function handler(
 
   if (req.method !== 'GET') {
     return res.status(405).json({ ok: false, error: 'Only GET allowed' });
+  }
+
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret) {
+    return res.status(503).json({ ok: false, error: 'Health check not configured' });
+  }
+  const authHeader = req.headers['authorization'];
+  if (authHeader !== `Bearer ${cronSecret}`) {
+    return res.status(401).json({
+      ok: false,
+      error: 'Unauthorized',
+      hint: 'Send Authorization: Bearer <CRON_SECRET>',
+    });
   }
 
   try {

@@ -58,7 +58,7 @@ Think of it like:
    - Click "New repository"
 
 3. **Repository Settings:**
-   - **Repository name**: `funnyfyapp` (or whatever you want)
+   - **Repository name**: `funnyfy` (canonical repo: `evansmutinda/funnyfy`)
    - **Description**: "Funnyfy - Caricature generation app"
    - **Visibility**: 
      - 🔒 Private (recommended) - Only you can see it
@@ -69,7 +69,7 @@ Think of it like:
 
 4. **Copy the Repository URL:**
    - After creating, GitHub shows a page with instructions
-   - Copy the URL shown (looks like: `https://github.com/yourusername/funnyfyapp.git`)
+   - Copy the URL shown (looks like: `https://github.com/evansmutinda/funnyfy.git`)
    - Keep this handy!
 
 ---
@@ -81,13 +81,13 @@ Now we'll connect your local project folder to Git.
 ### Open PowerShell in your project folder:
 
 1. **Method 1 - Using File Explorer:**
-   - Navigate to `d:\Cursor\funnyfyapp` in File Explorer
+   - Navigate to `d:\Claude\funnyfyapp` in File Explorer
    - In the address bar, type: `powershell` and press Enter
    - PowerShell opens in that folder
 
 2. **Method 2 - Using PowerShell directly:**
    - Open PowerShell
-   - Type: `cd d:\Cursor\funnyfyapp`
+   - Type: `cd d:\Claude\funnyfyapp`
    - Press Enter
 
 ### Initialize Git and connect to GitHub:
@@ -117,7 +117,7 @@ git commit -m "Initial commit - Project setup"
 git branch -M main
 
 # 8. Connect to your GitHub repository (replace URL with YOUR repository URL)
-git remote add origin https://github.com/yourusername/funnyfyapp.git
+git remote add origin https://github.com/evansmutinda/funnyfy.git
 
 # 9. Push your code to GitHub
 git push -u origin main
@@ -161,7 +161,7 @@ GitHub requires a special password instead of your regular password:
 
 ## Step 6: Verify It Worked
 
-1. Go to your GitHub repository page: `https://github.com/yourusername/funnyfyapp`
+1. Go to your GitHub repository page: `https://github.com/evansmutinda/funnyfy`
 2. You should see all your files there!
 3. You should see the `MD` folder with your documentation files
 
