@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Image,
   StatusBar,
@@ -9,6 +9,7 @@ import {
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNotifications } from '../components/NotificationProvider';
+import PhotoCropModal from '../components/PhotoCropModal';
 import PressScale from '../components/PressScale';
 import UploadFlowHeader, { getUploadQuotaInfo } from '../components/UploadFlowHeader';
 import useImagePicker from '../hooks/useImagePicker';
@@ -41,6 +42,7 @@ export default function PhotoReviewScreen({
   const insets = useSafeAreaInsets();
   const { showToast, showDialog, closeDialog } = useNotifications();
   const { pickImage, picking } = useImagePicker();
+  const [cropVisible, setCropVisible] = useState(false);
 
   const getQuotaInfo = () => getUploadQuotaInfo(subscriptionInfo);
 
@@ -51,6 +53,13 @@ export default function PhotoReviewScreen({
 
   const handleChooseAnother = async () => {
     const next = await pickImage(false);
+    if (next && onReplacePhoto) {
+      onReplacePhoto(next);
+    }
+  };
+
+  const handleCropDone = (next) => {
+    setCropVisible(false);
     if (next && onReplacePhoto) {
       onReplacePhoto(next);
     }
@@ -86,7 +95,6 @@ export default function PhotoReviewScreen({
     <View style={styles.reviewRoot}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
-      {/* Header band — natural flow at top */}
       <View style={[styles.reviewHeaderBand, { paddingTop: insets.top + 8 }]}>
         <UploadFlowHeader
           onBack={onBack}
@@ -113,7 +121,6 @@ export default function PhotoReviewScreen({
         ) : null}
       </View>
 
-      {/* Centered preview — flex-grows to fill the gap between bands */}
       <View style={styles.reviewPreviewBand}>
         <View style={styles.reviewPreviewCard}>
           {imageUri ? (
@@ -125,9 +132,16 @@ export default function PhotoReviewScreen({
         </View>
       </View>
 
-      {/* Action band — natural flow at bottom */}
       <View style={[styles.reviewActionBand, { paddingBottom: Math.max(insets.bottom, 16) + 8 }]}>
         <View style={styles.uploadInlineActionsRow}>
+          <PressScale
+            onPress={() => setCropVisible(true)}
+            style={styles.uploadSmallGhostButton}
+            disabled={picking || !imageUri || isGenerating}
+          >
+            <Feather name="crop" size={14} color="#FFFFFF" />
+            <Text style={styles.uploadSmallGhostButtonText}>Crop</Text>
+          </PressScale>
           <PressScale
             onPress={handleChooseAnother}
             style={styles.uploadSmallGhostButton}
@@ -157,6 +171,13 @@ export default function PhotoReviewScreen({
           </Text>
         </PressScale>
       </View>
+
+      <PhotoCropModal
+        visible={cropVisible}
+        uri={imageUri}
+        onCancel={() => setCropVisible(false)}
+        onDone={handleCropDone}
+      />
     </View>
   );
 }

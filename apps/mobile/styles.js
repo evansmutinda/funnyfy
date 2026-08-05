@@ -3002,6 +3002,99 @@ const styles = StyleSheet.create({
     gap: 10,
   },
 
+  cropModalRoot: {
+    flex: 1,
+    backgroundColor: DARK_BG,
+  },
+
+  cropModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingBottom: 10,
+  },
+
+  cropModalHeaderBtn: {
+    minWidth: 72,
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+    alignItems: 'center',
+  },
+
+  cropModalHeaderBtnText: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 15,
+    fontWeight: '600',
+    color: DARK_MUTED,
+  },
+
+  cropModalHeaderBtnTextStrong: {
+    color: '#FFFFFF',
+    fontWeight: '800',
+  },
+
+  cropModalTitle: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: -0.2,
+  },
+
+  cropModalStage: {
+    flex: 1,
+    marginHorizontal: 8,
+    borderRadius: 16,
+    overflow: 'hidden',
+    backgroundColor: '#000000',
+  },
+
+  cropModalImage: {
+    width: '100%',
+    height: '100%',
+  },
+
+  cropDim: {
+    position: 'absolute',
+    backgroundColor: 'rgba(0,0,0,0.55)',
+  },
+
+  cropFrame: {
+    position: 'absolute',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
+
+  cropHandle: {
+    position: 'absolute',
+    width: 28,
+    height: 28,
+    borderRadius: 6,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: DARK_BG,
+  },
+
+  cropHandleTL: { top: -14, left: -14 },
+  cropHandleTR: { top: -14, right: -14 },
+  cropHandleBL: { bottom: -14, left: -14 },
+  cropHandleBR: { bottom: -14, right: -14 },
+
+  cropModalFooter: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+  },
+
+  cropModalHint: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 13,
+    fontWeight: '500',
+    color: DARK_MUTED,
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+
   
     discoveryCardCaption: {
     marginTop: 4,

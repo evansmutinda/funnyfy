@@ -9,11 +9,11 @@ import { useNotifications } from '../components/NotificationProvider';
  *
  *   allowsEditing: true
  *
- * Android opened a centered ~1:1 crop box (~75% of landscape shots), which
- * users had to expand every time. Product choice: use the full photo; no
- * in-app / optional crop step.
+ * Android opened a centered ~1:1 crop box (~75% of landscape shots).
+ * Product: full photo on pick; optional Crop on photo review
+ * (PhotoCropModal — starts on the full image).
  *
- * To restore OS crop: set ALLOWS_EDITING = true below.
+ * To restore OS crop on pick: set ALLOWS_EDITING = true below.
  */
 const ALLOWS_EDITING = false;
 
