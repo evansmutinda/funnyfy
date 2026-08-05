@@ -203,7 +203,7 @@ Run `npm run build-comparison-assets` after adding or replacing source files. Fo
 
 | styleId | before | after |
 |---------|--------|--------|
-| `handd` | `before/hdd.png` | `after/caricature/handd.jpeg` |
+| `handd` | `before/hdd.png` | `after/caricature/handd.jpg` |
 | `editorial` | `before/man.png` | `after/Art/editorial.jpeg` |
 | `exaggerated` | `before/man2.png` | `after/caricature/Exaggerated.jpeg` |
 | `watercolor` | `before/couple.png` | `after/caricature/Watercolor-c.jpg` |

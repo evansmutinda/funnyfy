@@ -21,7 +21,7 @@ const DEFAULT_BEFORE = require('../assets/realistic.jpeg');
 const CURATED_PAIR_PATHS = {
   'handd': {
     before: 'before/hdd.png',
-    after: 'after/caricature/handd.jpeg',
+    after: 'after/caricature/handd.jpg',
   },
   'editorial': {
     before: 'before/man.png',

@@ -96,7 +96,8 @@ Write-Host ""
 Write-Host "Verifying required assets..." -ForegroundColor Yellow
 $requiredAssets = @(
     "assets/icon.jpg",
-    "assets/handd.jpeg"
+    "assets/splash-transparent.png",
+    "assets/toon.jpg"
 )
 
 $missingAssets = @()

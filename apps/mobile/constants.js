@@ -202,7 +202,7 @@ export function getSavedImageFileName() {
 }
 
 export const STYLE_CARD_IMAGE_DEFAULT = require('./assets/toon.jpg');
-export const STYLE_CARD_IMAGE_CHIBI = require('./assets/chibi.jpg');
+export const STYLE_CARD_IMAGE_CHIBI = require('./assets/comparisons/tiles/after/cartoons/chibi.jpg');
 export const STYLE_CARD_IMAGE_CLASSIC_V1 = require('./assets/comparisons/tiles/after/cartoons/classic.jpg');
 export const STYLE_CARD_IMAGE_CLASSIC_V2 = require('./assets/comparisons/tiles/after/cartoons/classicv2.jpg');
 export const STYLE_CARD_IMAGE_SATURDAY_V1 = require('./assets/comparisons/tiles/after/cartoons/smv1.jpg');
@@ -219,12 +219,13 @@ export const STYLE_CARD_IMAGE_PIXEL = require('./assets/comparisons/tiles/after/
 export const STYLE_CARD_IMAGE_3D_RENDER_V1 = require('./assets/comparisons/tiles/after/cartoons/3d-renderv1.jpg');
 export const STYLE_CARD_IMAGE_3D_RENDER_V2 = require('./assets/comparisons/tiles/after/cartoons/3d-renderv2.jpg');
 export const STYLE_CARD_IMAGE_NEON = require('./assets/comparisons/tiles/after/Art/neon.jpg');
-export const STYLE_CARD_IMAGE_ANIME = require('./assets/anime.jpg');
-export const STYLE_CARD_IMAGE_HANDD = require('./assets/handd.jpeg');
+// No dedicated anime after-tile yet — use cute cartoon tile as card art.
+export const STYLE_CARD_IMAGE_ANIME = require('./assets/comparisons/tiles/after/cartoons/cute.jpg');
+export const STYLE_CARD_IMAGE_HANDD = require('./assets/comparisons/tiles/after/caricature/handd.jpg');
 export const STYLE_CARD_IMAGE_EDITORIAL = require('./assets/comparisons/tiles/after/Art/editorial.jpg');
 export const STYLE_CARD_IMAGE_EXAGGERATED = require('./assets/comparisons/tiles/after/caricature/Exaggerated.jpg');
 export const STYLE_CARD_IMAGE_WATERCOLOR_C = require('./assets/comparisons/tiles/after/caricature/Watercolor-c.jpg');
-export const STYLE_CARD_IMAGE_CARC1 = require('./assets/carc1.jpg');
+export const STYLE_CARD_IMAGE_CARC1 = require('./assets/comparisons/tiles/after/caricature/carc1.jpg');
 export const STYLE_CARD_IMAGE_CARC2 = require('./assets/comparisons/tiles/after/caricature/carc2.jpg');
 export const STYLE_CARD_IMAGE_CARC3 = require('./assets/comparisons/tiles/after/caricature/carc3.jpg');
 export const STYLE_CARD_IMAGE_CARC4 = require('./assets/comparisons/tiles/after/caricature/carc4.jpg');
@@ -232,8 +233,8 @@ export const STYLE_CARD_IMAGE_CARC5 = require('./assets/comparisons/tiles/after/
 export const STYLE_CARD_IMAGE_CARC6 = require('./assets/comparisons/tiles/after/caricature/carc6.jpg');
 export const STYLE_CARD_IMAGE_3D_BD = require('./assets/comparisons/tiles/after/caricature/3dbd.jpg');
 export const STYLE_CARD_IMAGE_3D = require('./assets/comparisons/tiles/after/caricature/3d.jpg');
-export const STYLE_CARD_IMAGE_3DCLAY = require('./assets/3dclay.jpg');
-export const STYLE_CARD_IMAGE_OILPAINT = require('./assets/oilpaint.jpg');
+export const STYLE_CARD_IMAGE_3DCLAY = require('./assets/comparisons/tiles/after/3d/3dclay.jpg');
+export const STYLE_CARD_IMAGE_OILPAINT = require('./assets/comparisons/tiles/after/Paintings/oilpaint.jpg');
 export const STYLE_CARD_IMAGE_LOWPOLY = require('./assets/comparisons/tiles/after/Art/lowpoly.jpg');
 export const STYLE_CARD_IMAGE_MURAL = require('./assets/comparisons/tiles/after/Art/mural.jpg');
 export const STYLE_CARD_IMAGE_POP_ART_V1 = require('./assets/comparisons/tiles/after/Art/portart-fkp.jpg');
@@ -255,7 +256,7 @@ export const STYLE_CARD_IMAGE_ORIGAMI = require('./assets/comparisons/tiles/afte
 export const STYLE_CARD_IMAGE_PAPER_CUT = require('./assets/comparisons/tiles/after/Art/paper-cut.jpg');
 export const STYLE_CARD_IMAGE_MONDAY = require('./assets/comparisons/tiles/after/Moods&Moments/mondays1.jpg');
 export const STYLE_CARD_IMAGE_FRIDAY = require('./assets/comparisons/tiles/after/Moods&Moments/fridays1.jpg');
-export const STYLE_CARD_IMAGE_WC = require('./assets/wc.jpg');
+export const STYLE_CARD_IMAGE_WC = require('./assets/comparisons/tiles/after/Paintings/wc.jpg');
 export const STYLE_CARD_IMAGE_ACRYLIC = require('./assets/comparisons/tiles/after/Paintings/Acrylic.jpg');
 export const STYLE_CARD_IMAGE_GOUACHE = require('./assets/comparisons/tiles/after/Paintings/Gouache.jpg');
 export const STYLE_CARD_IMAGE_EXPRESSIONIST = require('./assets/comparisons/tiles/after/Paintings/Expressionist.jpg');
