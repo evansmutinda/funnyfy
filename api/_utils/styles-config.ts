@@ -1310,7 +1310,7 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     description:
       'Style-matched caricature face transfer — applies a mug-style template look while keeping the subject recognizable',
     prompt:
-      "Using the 1st picture as a style reference and the 2nd picture as the subject: switch the face treatment of the 2nd picture's subject to duplicate the overall caricature style of the 1st picture. Caricaturize the subject's face to match the style of the 1st picture while maintaining the 2nd subject's facial features and identity. Do not include the hat or smoke pipe from the 1st picture.",
+      "Using the 1st picture as a style reference and the 2nd picture as the subject: switch the face treatment of the 2nd picture's subject to duplicate the overall caricature style of the 1st picture. Caricaturize the subject's face to match the style of the 1st picture while maintaining the 2nd subject's facial features and identity. Do not include the hat, sweat, or smoke pipe from the 1st picture.",
     model: NANO_BANANA_2,
     referenceImage: 'style-refs/mugface.jpg',
     enabled: true,
