@@ -4,6 +4,19 @@ import * as FileSystem from 'expo-file-system';
 import * as ExpoImagePicker from 'expo-image-picker';
 import { useNotifications } from '../components/NotificationProvider';
 
+/**
+ * REVERT — forced OS crop on every upload (pre-2026-08-05 trial):
+ *
+ *   allowsEditing: true
+ *
+ * Android opened a centered ~1:1 crop box (~75% of landscape shots), which
+ * users had to expand every time. Trial: full photo by default; optional
+ * in-app crop can be added later for styles that benefit from it.
+ *
+ * To restore OS crop: set ALLOWS_EDITING = true below.
+ */
+const ALLOWS_EDITING = false;
+
 async function uriToDataUrl(uri) {
   const base64 = await FileSystem.readAsStringAsync(uri, {
     encoding: FileSystem.EncodingType.Base64,
@@ -12,16 +25,18 @@ async function uriToDataUrl(uri) {
 }
 
 async function pickExpo(useCamera) {
+  const pickerOptions = {
+    mediaTypes: ['images'],
+    allowsEditing: ALLOWS_EDITING,
+    quality: 0.9,
+  };
+
   if (useCamera) {
     const { status } = await ExpoImagePicker.requestCameraPermissionsAsync();
     if (status !== 'granted') {
       throw new Error('Camera permission is required to take photos.');
     }
-    return ExpoImagePicker.launchCameraAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      quality: 0.9,
-    });
+    return ExpoImagePicker.launchCameraAsync(pickerOptions);
   }
 
   if (Platform.OS !== 'android') {
@@ -31,15 +46,12 @@ async function pickExpo(useCamera) {
     }
   }
 
-  return ExpoImagePicker.launchImageLibraryAsync({
-    mediaTypes: ['images'],
-    allowsEditing: true,
-    quality: 0.9,
-  });
+  return ExpoImagePicker.launchImageLibraryAsync(pickerOptions);
 }
 
 /**
- * Gallery / camera pick with OS crop via expo-image-picker.
+ * Gallery / camera pick via expo-image-picker.
+ * Default: full photo (ALLOWS_EDITING false). See REVERT note above.
  */
 export default function useImagePicker() {
   const { showToast } = useNotifications();

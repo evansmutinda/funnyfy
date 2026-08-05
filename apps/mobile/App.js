@@ -117,7 +117,7 @@ function AppContent({ fontsLoaded }) {
   const { isOnline } = useNetwork();
   const [screen, setScreen] = useState('style');
   const [style, setStyle] = useState(null);
-  // pickedImage: { uri, dataUrl } | null — OS-cropped photo for review → generate.
+  // pickedImage: { uri, dataUrl } | null — full photo from picker for review → generate.
   const [pickedImage, setPickedImage] = useState(null);
   const [original, setOriginal] = useState(null);
   const [result, setResult] = useState(null);

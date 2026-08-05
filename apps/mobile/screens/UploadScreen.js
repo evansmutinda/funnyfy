@@ -26,7 +26,7 @@ import styles from '../styles';
  * before/after comparison so the user can preview what they're
  * about to apply, then provides Gallery / Camera entry points.
  *
- * Gallery / Camera open the OS picker + crop, then `onPicked`.
+ * Gallery / Camera open the OS picker (full photo; no forced crop), then `onPicked`.
  */
 export default function UploadScreen({
   style,
@@ -157,7 +157,7 @@ export default function UploadScreen({
           <UploadSourceOption
             icon="folder"
             title="Photo library"
-            subtitle="Pick and crop from your albums"
+            subtitle="Pick from your albums"
             loading={picking && pickingSource === 'gallery'}
             onPress={() => handlePick(false)}
             disabled={picking}
@@ -165,7 +165,7 @@ export default function UploadScreen({
           <UploadSourceOption
             icon="camera"
             title="Camera"
-            subtitle="Take a shot, then crop"
+            subtitle="Take a photo"
             loading={picking && pickingSource === 'camera'}
             onPress={() => handlePick(true)}
             disabled={picking}
