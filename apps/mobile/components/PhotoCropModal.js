@@ -12,6 +12,7 @@ import * as FileSystem from 'expo-file-system';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PressScale from './PressScale';
+import { useNotifications } from './NotificationProvider';
 import styles from '../styles';
 
 const MIN_CROP_PX = 80;
@@ -47,6 +48,7 @@ function hitMode(crop, pageX, pageY, stagePage) {
  */
 export default function PhotoCropModal({ visible, uri, onCancel, onDone }) {
   const insets = useSafeAreaInsets();
+  const { showToast } = useNotifications();
   const [natural, setNatural] = useState(null);
   const [layout, setLayout] = useState(null);
   const [crop, setCrop] = useState(null);
@@ -205,7 +207,19 @@ export default function PhotoCropModal({ visible, uri, onCancel, onDone }) {
       });
     } catch (err) {
       console.error('[PhotoCropModal] crop failed:', err);
+      const msg = String(err?.message || err);
+      const needsRebuild =
+        msg.includes('not available') ||
+        msg.includes('native dependencies') ||
+        msg.includes('manipulateAsync');
       onCancel?.();
+      showToast(
+        'Crop unavailable',
+        needsRebuild
+          ? 'This install is missing crop support. Rebuild the debug APK (build-apk-local.ps1), then try again.'
+          : 'Could not crop this photo. Try again or use the full image.',
+        'error'
+      );
     } finally {
       setBusy(false);
     }
