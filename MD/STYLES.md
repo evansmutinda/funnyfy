@@ -171,6 +171,7 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 | `watercolor` | Watercolor | caricatures | seedream-4 | ✅ |
 | `carc1` | Caricature 1 | caricatures | seedream-4 | ✅ |
 | `carc2` | Caricature 2 | caricatures | nano-banana-2 | ✅ |
+| `mugface` | Mugface | caricatures | nano-banana-2 (+ style ref) | ✅ |
 | `carc3` | Caricature 3 | caricatures | nano-banana-2 | ✅ |
 | `carc4` | Caricature 4 | caricatures | nano-banana-2 | ✅ |
 | `carc5` | Caricature 5 | caricatures | seedream-4.5 | ✅ |
@@ -209,6 +210,7 @@ Run `npm run build-comparison-assets` after adding or replacing source files. Fo
 | `watercolor` | `before/couple.png` | `after/caricature/Watercolor-c.jpg` |
 | `carc1` | `before/toon.png` | `after/caricature/carc1.jpg` |
 | `carc2` | `before/man6.png` | `after/caricature/carc2.jpeg` |
+| `mugface` | `before/man6.png` | `after/caricature/mugface.jpeg` |
 | `carc3` | `before/lady7.png` | `after/caricature/carc3.jpeg` |
 | `carc4` | `before/man6.png` | `after/caricature/carc4.jpg` |
 | `carc5` | `before/man6.png` | `after/caricature/carc5.jpg` |

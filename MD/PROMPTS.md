@@ -8,7 +8,7 @@ Regenerate this file after prompt changes:
 node scripts/generate-prompts-md.js
 ```
 
-**Last generated:** 2026-08-05 · **122 enabled** · **1 disabled** in LEGACY_STYLES
+**Last generated:** 2026-08-05 · **123 enabled** · **1 disabled** in LEGACY_STYLES
 
 Prompts are server-side only — the mobile app never bundles them. When adding a style, copy/adapt a prompt here, then add it to `LEGACY_STYLES` and deploy staging.
 
@@ -252,6 +252,16 @@ Transform a person in a source photo into an ultra-realistic, highly detailed pr
 
 ```
 An exaggerated hybrid cartoon character combining sculpted 3D volume with expressive painted illustration style, featuring distorted stylized proportions and artistic facial deformation, freely adapting the person's appearance without realistic facial accuracy while keeping recognizable traits such as skin tone and hairstyle, the character captured in a dynamic dance pos full of motion and rhythm, flowing body ges and expressive posture, visible brush strok painted shadows and graphic textures layer over soft 3D forms, contemporary animated illustration aesthetic, solid blue studio background, stylized studio lighting translated into painterly highlights and shadows, energetic composition, textured paint surfaces and high-end hybrid 3D illustration render
+```
+
+#### `mugface` — Mugface
+
+- **Category:** caricatures
+- **Model:** NANO_BANANA_2
+- **Description:** Style-matched caricature face transfer — applies a mug-style template look while keeping the subject recognizable
+
+```
+Using the 1st picture as a style reference and the 2nd picture as the subject: switch the face treatment of the 2nd picture's subject to duplicate the overall caricature style of the 1st picture. Caricaturize the subject's face to match the style of the 1st picture while maintaining the 2nd subject's facial features and identity. Do not include the hat or smoke pipe from the 1st picture.
 ```
 
 #### `tiny-muscle-v1` — Tiny Muscle V1

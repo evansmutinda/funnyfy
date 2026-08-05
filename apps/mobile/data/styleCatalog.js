@@ -410,6 +410,7 @@ export const CATEGORY_BY_STYLE_ID = {
   "3d-bd": "caricatures",
   "3d": "caricatures",
   "dancing-carc": "caricatures",
+  "mugface": "caricatures",
   "tiny-muscle-v1": "caricatures",
   "tiny-muscle-v2": "caricatures",
 };
@@ -536,6 +537,7 @@ export const DEFAULT_ENABLED_STYLES = [
   { id: "3d-bd", label: "3D BD", categoryId: "caricatures", description: "Ultra-realistic premium BD caricature with exaggerated features and cinematic lighting" },
   { id: "3d", label: "3D", categoryId: "caricatures", description: "Ultra-realistic premium 3D caricature with exaggerated features and cinematic film-style rendering" },
   { id: "dancing-carc", label: "Dancing", categoryId: "caricatures", description: "Exaggerated hybrid 3D-illustration dancing caricature with dynamic motion and painterly textures" },
+  { id: "mugface", label: "Mugface", categoryId: "caricatures", description: "Style-matched caricature face transfer — applies a mug-style template look while keeping the subject recognizable" },
   { id: "tiny-muscle-v1", label: "Tiny Muscle V1", categoryId: "caricatures", description: "Humorous hyper-muscular cartoon caricature with oversized head and comic-book hero physique" },
   { id: "tiny-muscle-v2", label: "Tiny Muscle V2", categoryId: "caricatures", description: "Humorous hyper-muscular cartoon caricature with oversized head and comic-book hero physique" },
 ];

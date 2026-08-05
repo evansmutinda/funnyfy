@@ -227,6 +227,7 @@ export const STYLE_CARD_IMAGE_EXAGGERATED = require('./assets/comparisons/tiles/
 export const STYLE_CARD_IMAGE_WATERCOLOR_C = require('./assets/comparisons/tiles/after/caricature/Watercolor-c.jpg');
 export const STYLE_CARD_IMAGE_CARC1 = require('./assets/comparisons/tiles/after/caricature/carc1.jpg');
 export const STYLE_CARD_IMAGE_CARC2 = require('./assets/comparisons/tiles/after/caricature/carc2.jpg');
+export const STYLE_CARD_IMAGE_MUGFACE = require('./assets/comparisons/tiles/after/caricature/mugface.jpg');
 export const STYLE_CARD_IMAGE_CARC3 = require('./assets/comparisons/tiles/after/caricature/carc3.jpg');
 export const STYLE_CARD_IMAGE_CARC4 = require('./assets/comparisons/tiles/after/caricature/carc4.jpg');
 export const STYLE_CARD_IMAGE_CARC5 = require('./assets/comparisons/tiles/after/caricature/carc5.jpg');
@@ -356,6 +357,7 @@ const STYLE_IMAGE_BY_ID = {
   watercolor: STYLE_CARD_IMAGE_WATERCOLOR_C,
   carc1: STYLE_CARD_IMAGE_CARC1,
   carc2: STYLE_CARD_IMAGE_CARC2,
+  mugface: STYLE_CARD_IMAGE_MUGFACE,
   carc3: STYLE_CARD_IMAGE_CARC3,
   carc4: STYLE_CARD_IMAGE_CARC4,
   carc5: STYLE_CARD_IMAGE_CARC5,

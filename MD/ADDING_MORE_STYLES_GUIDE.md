@@ -37,6 +37,18 @@ Outputs:
 5. Deploy API to Vercel — app reads styles from `/api/styles` only (no local merge on success)
 6. Update `MD/STYLES.md`
 
+### Dual-image / style-reference styles (e.g. Mugface)
+
+Some styles need a **bundled template** (1st image) plus the **user photo** (2nd image):
+
+1. Put the template at `public/style-refs/{id}.jpg` (and keep a copy under `apps/mobile/assets/style-refs/` if useful for design)
+2. On the style in `styles-config.ts`, set `referenceImage: 'style-refs/{id}.jpg'` and a prompt that refers to the 1st / 2nd picture
+3. Use **nano-banana** or **seedream** (multi-`image_input`). Flux is single-image only.
+4. Optional: set Vercel env `STYLE_ASSETS_BASE_URL=https://funnyfy-staging.vercel.app` so refs resolve reliably
+5. Deploy so `/style-refs/{id}.jpg` is publicly reachable for Replicate
+
+---
+
 ### The Good News
 - ✅ **Prompts are server-side** — protected in `api/_utils/styles-config.ts`
 - ✅ **New enabled styles** appear via `/api/styles` without a full app update (thumbnails need app bundle if using local assets)

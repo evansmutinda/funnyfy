@@ -17,6 +17,12 @@ export interface StyleConfig {
   model: string;
   /** Optional pool — process-job picks one at random per generation. */
   models?: string[];
+  /**
+   * Optional style template image (public path or absolute URL).
+   * Sent as image_input[0]; the user's photo is image_input[1].
+   * Example: `style-refs/mugface.jpg` → served from /public on Vercel.
+   */
+  referenceImage?: string;
   premium?: boolean;
   enabled?: boolean;
 }
@@ -37,6 +43,28 @@ export function resolveStyleModel(style: StyleConfig): string {
   }
   if (pool.length === 1) return pool[0];
   return pool[Math.floor(Math.random() * pool.length)];
+}
+
+/** Public HTTPS URL for a style's bundled reference/template image. */
+export function resolveStyleReferenceUrl(style: StyleConfig): string | null {
+  const ref = style.referenceImage?.trim();
+  if (!ref) return null;
+  if (/^https?:\/\//i.test(ref)) return ref;
+
+  const base =
+    process.env.STYLE_ASSETS_BASE_URL?.replace(/\/$/, '') ||
+    process.env.PUBLIC_BASE_URL?.replace(/\/$/, '') ||
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : null) ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null);
+
+  if (!base) {
+    console.warn('[styles] No STYLE_ASSETS_BASE_URL / VERCEL_URL for reference image', style.id);
+    return null;
+  }
+
+  return `${base}/${ref.replace(/^\//, '')}`;
 }
 
 const DEFAULT_MODEL = 'black-forest-labs/flux-kontext-pro';
@@ -1272,6 +1300,19 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     prompt:
       "An exaggerated hybrid cartoon character combining sculpted 3D volume with expressive painted illustration style, featuring distorted stylized proportions and artistic facial deformation, freely adapting the person's appearance without realistic facial accuracy while keeping recognizable traits such as skin tone and hairstyle, the character captured in a dynamic dance pos full of motion and rhythm, flowing body ges and expressive posture, visible brush strok painted shadows and graphic textures layer over soft 3D forms, contemporary animated illustration aesthetic, solid blue studio background, stylized studio lighting translated into painterly highlights and shadows, energetic composition, textured paint surfaces and high-end hybrid 3D illustration render",
     model: NANO_BANANA_2,
+    enabled: true,
+    premium: false,
+  },
+  mugface: {
+    id: 'mugface',
+    label: 'Mugface',
+    categoryId: 'caricatures',
+    description:
+      'Style-matched caricature face transfer — applies a mug-style template look while keeping the subject recognizable',
+    prompt:
+      "Using the 1st picture as a style reference and the 2nd picture as the subject: switch the face treatment of the 2nd picture's subject to duplicate the overall caricature style of the 1st picture. Caricaturize the subject's face to match the style of the 1st picture while maintaining the 2nd subject's facial features and identity. Do not include the hat or smoke pipe from the 1st picture.",
+    model: NANO_BANANA_2,
+    referenceImage: 'style-refs/mugface.jpg',
     enabled: true,
     premium: false,
   },

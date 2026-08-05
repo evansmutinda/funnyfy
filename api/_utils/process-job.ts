@@ -2,7 +2,7 @@
 // Used by the async queue worker (api/cron/process-queue.ts)
 
 import { query } from './db';
-import { getStyleById, resolveStyleModel } from './styles-config';
+import { getStyleById, resolveStyleModel, resolveStyleReferenceUrl } from './styles-config';
 import {
   getImageUrlFromOutput,
   pollReplicatePrediction,
@@ -55,6 +55,7 @@ export async function processJob(job: JobRow): Promise<void> {
   let prompt = styleConfig.prompt;
   const imageUrl = job.input_image_url;
   const modelVersion = resolveStyleModel(styleConfig);
+  const referenceUrl = resolveStyleReferenceUrl(styleConfig);
 
   // Persist chosen model early so cost finalization uses the actual run, not the primary.
   await query(`UPDATE jobs SET model_version = $1 WHERE id = $2`, [modelVersion, job.id]);
@@ -65,13 +66,21 @@ export async function processJob(job: JobRow): Promise<void> {
 
   if (imageUrl) {
     if (modelVersion.includes('flux-kontext-pro') || modelVersion.includes('flux')) {
+      // Flux Kontext accepts a single input image — prefer the user photo.
       input.input_image = imageUrl;
       input.aspect_ratio = 'match_input_image';
+      if (referenceUrl) {
+        console.warn(
+          `[process-job] Style ${job.style_id} has referenceImage but model ${modelVersion} is single-image; using user photo only`
+        );
+      }
     } else if (modelVersion.includes('nano-banana')) {
-      input.image_input = [imageUrl];
+      // Dual-image styles: [style template, user photo] — prompt refers to 1st / 2nd pic.
+      input.image_input = referenceUrl ? [referenceUrl, imageUrl] : [imageUrl];
       input.image = imageUrl;
       input.image_url = imageUrl;
       if (
+        !referenceUrl &&
         !prompt.toLowerCase().includes('uploaded') &&
         !prompt.toLowerCase().includes('photo') &&
         !prompt.toLowerCase().includes('image') &&
@@ -82,7 +91,7 @@ export async function processJob(job: JobRow): Promise<void> {
         input.prompt = prompt;
       }
     } else if (modelVersion.includes('seedream')) {
-      input.image_input = [imageUrl];
+      input.image_input = referenceUrl ? [referenceUrl, imageUrl] : [imageUrl];
       input.aspect_ratio = 'match_input_image';
       input.sequential_image_generation = 'disabled';
       input.max_images = 1;
