@@ -3,8 +3,8 @@
 const CONTENT_POLICY_INLINE =
   "This photo couldn't be used. Try a different picture — false alarms happen sometimes.";
 
-const PROVIDER_OUTAGE_MESSAGE =
-  'Our image provider is having a temporary issue. Please try again in a few minutes.';
+const GENERATION_UNAVAILABLE_MESSAGE =
+  'Image generation is unavailable at the moment. Please try again in a few minutes.';
 
 function isProviderOutageError(lower: string): boolean {
   return (
@@ -23,7 +23,7 @@ export function humanizeJobError(message: string | null | undefined): string | n
   const lower = raw.toLowerCase();
 
   if (isProviderOutageError(lower)) {
-    return PROVIDER_OUTAGE_MESSAGE;
+    return GENERATION_UNAVAILABLE_MESSAGE;
   }
 
   if (
@@ -47,7 +47,7 @@ export function humanizeJobError(message: string | null | undefined): string | n
   }
 
   if (lower.includes('generation_unavailable') || lower.includes('temporarily unavailable')) {
-    return 'Generation is temporarily unavailable. Please try again later.';
+    return GENERATION_UNAVAILABLE_MESSAGE;
   }
 
   if (lower.includes('job_output_expired') || lower.includes('prediction expired')) {

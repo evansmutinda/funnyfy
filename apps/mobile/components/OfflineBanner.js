@@ -21,13 +21,13 @@ export default function OfflineBanner() {
       style={[styles.offlineBannerContainer, { paddingTop: insets.top + 8 }]}
       accessibilityRole="alert"
     >
-      <View style={styles.offlineBannerInner}>
-        <View style={styles.offlineBannerIconCircle}>
+      <View style={[styles.toastInner, styles.toastInnerWarning]}>
+        <View style={styles.toastWarningIconCircle}>
           <Feather name="wifi-off" size={15} color="#EA580C" />
         </View>
-        <View style={styles.offlineBannerTextWrap}>
-          <Text style={styles.offlineBannerTitle}>No connection</Text>
-          <Text style={styles.offlineBannerMessage}>
+        <View style={styles.toastTextWrap}>
+          <Text style={styles.toastTitleWarning}>No connection</Text>
+          <Text style={styles.toastMessageWarning}>
             Generation and purchases need internet
           </Text>
         </View>

@@ -27,6 +27,10 @@ import {
   JOB_PROGRESS_PHASE_COUNT,
   resolveCategoryCreatingPhrase,
 } from '../utils/jobProgress';
+import {
+  notificationAccentForTone,
+  notificationToneForApiError,
+} from '../utils/contentErrors';
 import styles from '../styles';
 
 export function getImageUrlFromOutput(output) {
@@ -76,6 +80,9 @@ export default function ResultScreen({
   const unloadableReportedRef = useRef(false);
   const hasResult = !!result && !!imageUrl;
   const maxRetriesReached = error && failedAttempts >= 3;
+  const errorTone = error ? notificationToneForApiError(error) : 'error';
+  const errorIconName = errorTone === 'warning' ? 'alert-triangle' : 'alert-circle';
+  const errorIconColor = notificationAccentForTone(errorTone);
   const displayUri = localPreviewUri || imageUrl;
   const showCompare = hasResult && !loading && !!displayUri && !previewError;
   const showLoadingOverlay = (loading && !hasResult) || (hasResult && !displayUri && !previewError);
@@ -535,7 +542,7 @@ export default function ResultScreen({
         {!loading && error && !maxRetriesReached ? (
           <View style={styles.errorRetryContainer}>
             <View style={styles.errorRetryHeader}>
-              <Feather name="alert-circle" size={18} color="#DC2626" />
+              <Feather name={errorIconName} size={18} color={errorIconColor} />
               <Text style={styles.errorRetryMessage}>{error}</Text>
             </View>
             <PressScale onPress={onRetry} style={styles.retryButton} disabled={loading}>

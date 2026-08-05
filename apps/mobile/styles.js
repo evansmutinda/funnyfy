@@ -9,6 +9,12 @@ const DARK_SURFACE = 'rgba(255,255,255,0.06)';
 const DARK_CHIP = 'rgba(255,255,255,0.08)';
 const DARK_BORDER = 'rgba(255,255,255,0.12)';
 const DARK_MUTED = 'rgba(255,255,255,0.65)';
+const TOAST_CARD = '#151B28';
+const ACCENT_SUCCESS = '#10B981';
+const ACCENT_ERROR = '#F87171';
+const ACCENT_WARNING = '#EA580C';
+const ACCENT_WARNING_BORDER = '#FDBA74';
+const ACCENT_INFO = '#A5B4FC';
 
 const styles = StyleSheet.create({
       safe: {
@@ -686,58 +692,6 @@ const styles = StyleSheet.create({
   },
 
   
-    offlineBannerInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#EA580C',
-    borderRadius: 14,
-    paddingVertical: 13,
-    paddingHorizontal: 14,
-    gap: 12,
-    borderWidth: 2,
-    borderColor: '#FDBA74',
-    shadowColor: '#EA580C',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.55,
-    shadowRadius: 14,
-    elevation: 12,
-  },
-
-  
-    offlineBannerIconCircle: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  
-    offlineBannerTextWrap: {
-    flex: 1,
-    gap: 2,
-  },
-
-  
-    offlineBannerTitle: {
-    fontFamily: FONT_PLUS_JAKARTA,
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '800',
-    letterSpacing: -0.1,
-  },
-
-  
-    offlineBannerMessage: {
-    fontFamily: FONT_PLUS_JAKARTA,
-    color: 'rgba(255,255,255,0.95)',
-    fontSize: 13,
-    fontWeight: '600',
-    lineHeight: 17,
-  },
-
-  
   menuBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.45)',
@@ -1251,48 +1205,83 @@ const styles = StyleSheet.create({
   toastInner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0F172A',
+    backgroundColor: TOAST_CARD,
     borderRadius: 14,
+    borderWidth: 1,
+    borderColor: DARK_BORDER,
     paddingVertical: 14,
     paddingHorizontal: 16,
     gap: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.35,
     shadowRadius: 16,
     elevation: 10,
   },
 
+  toastInnerSuccess: {
+    borderColor: 'rgba(16, 185, 129, 0.35)',
+  },
+
+  toastInnerError: {
+    borderColor: 'rgba(248, 113, 113, 0.35)',
+  },
+
+  toastInnerInfo: {
+    borderColor: 'rgba(165, 180, 252, 0.35)',
+  },
 
   toastInnerWarning: {
-    backgroundColor: '#EA580C',
+    backgroundColor: ACCENT_WARNING,
     borderWidth: 2,
-    borderColor: '#FDBA74',
-    shadowColor: '#EA580C',
+    borderColor: ACCENT_WARNING_BORDER,
+    shadowColor: ACCENT_WARNING,
     shadowOpacity: 0.45,
   },
 
-
-  toastTitleWarning: {
-    color: '#FFFFFF',
-  },
-
-
-  toastMessageWarning: {
-    color: 'rgba(255,255,255,0.92)',
-  },
-
-  
-  toastIconCircle: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+  toastWarningIconCircle: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
   },
 
-  
+  toastIconCircle: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    backgroundColor: DARK_CHIP,
+  },
+
+  toastIconCircleSuccess: {
+    backgroundColor: 'rgba(16, 185, 129, 0.18)',
+  },
+
+  toastIconCircleError: {
+    backgroundColor: 'rgba(248, 113, 113, 0.16)',
+  },
+
+  toastIconCircleInfo: {
+    backgroundColor: 'rgba(165, 180, 252, 0.16)',
+  },
+
+
+  toastTitleWarning: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    color: '#FFFFFF',
+  },
+
+  toastMessageWarning: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    color: 'rgba(255,255,255,0.92)',
+  },
+
   toastIconText: {
     color: '#FFFFFF',
     fontSize: 14,
@@ -1300,39 +1289,43 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
 
-  
   toastTextWrap: {
     flex: 1,
-    gap: 1,
+    gap: 2,
   },
 
-  
   toastTitle: {
+    fontFamily: FONT_PLUS_JAKARTA,
     color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 15,
+    fontWeight: '800',
     letterSpacing: -0.1,
   },
 
-  
   toastMessage: {
-    color: 'rgba(255,255,255,0.78)',
+    fontFamily: FONT_PLUS_JAKARTA,
+    color: DARK_MUTED,
     fontSize: 13,
     fontWeight: '500',
-    lineHeight: 17,
+    lineHeight: 18,
   },
 
   
   toastAction: {
     paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 8,
+    paddingHorizontal: 12,
+    borderRadius: 999,
     backgroundColor: 'rgba(255,255,255,0.14)',
     flexShrink: 0,
   },
 
+  toastActionWarning: {
+    backgroundColor: 'rgba(255,255,255,0.22)',
+  },
+
   
   toastActionText: {
+    fontFamily: FONT_PLUS_JAKARTA,
     color: PAPER,
     fontSize: 12,
     fontWeight: '700',

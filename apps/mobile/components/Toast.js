@@ -1,7 +1,35 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Text, TouchableOpacity, View } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import styles from '../styles';
+
+const TYPE_META = {
+  success: {
+    inner: [styles.toastInnerSuccess],
+    iconCircle: [styles.toastIconCircle, styles.toastIconCircleSuccess],
+    icon: 'check-circle',
+    iconColor: '#10B981',
+  },
+  error: {
+    inner: [styles.toastInnerError],
+    iconCircle: [styles.toastIconCircle, styles.toastIconCircleError],
+    icon: 'alert-circle',
+    iconColor: '#F87171',
+  },
+  warning: {
+    inner: [styles.toastInnerWarning],
+    iconCircle: [styles.toastWarningIconCircle],
+    icon: 'alert-triangle',
+    iconColor: '#EA580C',
+  },
+  info: {
+    inner: [styles.toastInnerInfo],
+    iconCircle: [styles.toastIconCircle, styles.toastIconCircleInfo],
+    icon: 'info',
+    iconColor: '#A5B4FC',
+  },
+};
 
 export default function Toast({
   visible,
@@ -15,6 +43,7 @@ export default function Toast({
   const slideAnim = useRef(new Animated.Value(-100)).current;
   const insets = useSafeAreaInsets();
   const hasAction = Boolean(actionLabel && onAction);
+  const meta = TYPE_META[type] || TYPE_META.info;
   const isWarning = type === 'warning';
 
   useEffect(() => {
@@ -37,19 +66,9 @@ export default function Toast({
       return () => clearTimeout(timer);
     }
     slideAnim.setValue(-100);
-  }, [visible, hasAction]);
+  }, [visible, hasAction, onHide, slideAnim]);
 
   if (!visible) return null;
-
-  const accent = type === 'success' ? '#10B981'
-    : type === 'error' ? '#DC2626'
-    : type === 'warning' ? '#FFFFFF'
-    : '#0F172A';
-
-  const icon = type === 'success' ? '✓'
-    : type === 'error' ? '!'
-    : type === 'warning' ? '!'
-    : 'i';
 
   const handleAction = () => {
     if (onAction) onAction();
@@ -67,18 +86,11 @@ export default function Toast({
         styles.toastContainer,
         { paddingTop: insets.top + 8, transform: [{ translateY: slideAnim }] },
       ]}
+      accessibilityRole="alert"
     >
-      <View style={[styles.toastInner, isWarning && styles.toastInnerWarning]}>
-        <View
-          style={[
-            styles.toastIconCircle,
-            { backgroundColor: accent },
-            isWarning && { borderWidth: 0 },
-          ]}
-        >
-          <Text style={[styles.toastIconText, isWarning && { color: '#EA580C' }]}>
-            {icon}
-          </Text>
+      <View style={[styles.toastInner, ...meta.inner]}>
+        <View style={meta.iconCircle}>
+          <Feather name={meta.icon} size={16} color={meta.iconColor} />
         </View>
         <View style={styles.toastTextWrap}>
           {title ? (
@@ -95,13 +107,11 @@ export default function Toast({
         {hasAction ? (
           <TouchableOpacity
             onPress={handleAction}
-            style={styles.toastAction}
+            style={[styles.toastAction, isWarning && styles.toastActionWarning]}
             activeOpacity={0.85}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Text style={[styles.toastActionText, isWarning && { color: '#FFFFFF' }]}>
-              {actionLabel}
-            </Text>
+            <Text style={styles.toastActionText}>{actionLabel}</Text>
           </TouchableOpacity>
         ) : null}
       </View>

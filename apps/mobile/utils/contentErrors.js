@@ -45,8 +45,31 @@ export const NSFW_INLINE_MESSAGE =
 const GENERIC_RETRY = 'Something went wrong. Please try again.';
 const GENERATION_RETRY = "We couldn't create your caricature this time. Please try again.";
 const GENERATION_SOFT = 'Something went wrong while creating your caricature. Please try again.';
-const PROVIDER_OUTAGE_MESSAGE =
-  'Our image provider is having a temporary issue. Please try again in a few minutes.';
+const GENERATION_UNAVAILABLE_MESSAGE =
+  'Image generation is unavailable at the moment. Please try again in a few minutes.';
+
+/** Toast / banner tone for inline generation errors (matches Toast types). */
+export function notificationToneForApiError(message) {
+  const lower = String(message || '').toLowerCase();
+  if (isProviderOutageError(lower)) return 'warning';
+  if (
+    lower.includes('generation is unavailable at the moment') ||
+    lower.includes('generation_unavailable') ||
+    lower.includes('temporarily unavailable') ||
+    lower.includes('server is busy') ||
+    lower.includes('longer than usual')
+  ) {
+    return 'warning';
+  }
+  return 'error';
+}
+
+export function notificationAccentForTone(tone) {
+  if (tone === 'warning') return '#EA580C';
+  if (tone === 'success') return '#10B981';
+  if (tone === 'info') return '#A5B4FC';
+  return '#F87171';
+}
 
 /** Replicate / upstream 5xx (e.g. {"detail":"Internal server error","status":500}). */
 function isProviderOutageError(lower) {
@@ -74,7 +97,7 @@ export function humanizeApiError(message) {
   const lower = raw.toLowerCase();
 
   if (isProviderOutageError(lower)) {
-    return PROVIDER_OUTAGE_MESSAGE;
+    return GENERATION_UNAVAILABLE_MESSAGE;
   }
 
   if (
@@ -98,7 +121,7 @@ export function humanizeApiError(message) {
   }
 
   if (lower.includes('generation_unavailable') || lower.includes('temporarily unavailable')) {
-    return 'Generation is temporarily unavailable. Please try again later.';
+    return GENERATION_UNAVAILABLE_MESSAGE;
   }
 
   if (lower.includes('job_output_expired') || lower.includes('prediction expired')) {
