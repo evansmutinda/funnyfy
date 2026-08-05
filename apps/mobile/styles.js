@@ -3045,6 +3045,7 @@ const styles = StyleSheet.create({
   cropModalStage: {
     flex: 1,
     marginHorizontal: 8,
+    marginBottom: 8,
     borderRadius: 16,
     overflow: 'hidden',
     backgroundColor: '#000000',
