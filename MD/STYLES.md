@@ -210,7 +210,7 @@ Run `npm run build-comparison-assets` after adding or replacing source files. Fo
 | `watercolor` | `before/couple.png` | `after/caricature/Watercolor-c.jpg` |
 | `carc1` | `before/toon.png` | `after/caricature/carc1.jpg` |
 | `carc2` | `before/man6.png` | `after/caricature/carc2.jpeg` |
-| `mugface` | `before/man6.png` | `after/caricature/mugface.jpeg` |
+| `mugface` | `before/man5.png` | `after/caricature/mugface.jpeg` |
 | `carc3` | `before/lady7.png` | `after/caricature/carc3.jpeg` |
 | `carc4` | `before/man6.png` | `after/caricature/carc4.jpg` |
 | `carc5` | `before/man6.png` | `after/caricature/carc5.jpg` |
