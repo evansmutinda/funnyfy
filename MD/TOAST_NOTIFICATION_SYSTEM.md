@@ -63,7 +63,9 @@ import { useNotifications } from '../components/NotificationProvider';
 | Upload / Review | Banner **hidden**; inline offline chip in flow |
 | Generate / subscribe offline | Orange **warning** toast |
 
-Do not use full-width in-flow red bars — they shift header/pill layout.
+## Generation failures
+
+Failed runs show a **top toast** (`notifyGenerationFailure` in `App.js`) — not an inline message on the result screen. The result action band keeps **Try again** only; after 3 failures, the “Please try again later” card appears.
 
 ---
 

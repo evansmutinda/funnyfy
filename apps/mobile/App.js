@@ -53,7 +53,7 @@ import {
 import { mergeServerStyles, getServerConfirmedStyleIds } from './utils/mergeServerStyles';
 import { readStylesCache, writeStylesCache } from './utils/stylesCache';
 import { getTrialRemaining, getTrialWarningMessage, isTrialUser } from './utils/trialWarnings';
-import { isNsfwContentError, humanizeApiError, buildContentPolicyDialog } from './utils/contentErrors';
+import { isNsfwContentError, buildContentPolicyDialog, notifyGenerationFailure } from './utils/contentErrors';
 import {
   isContentPolicyError,
   recordContentViolation,
@@ -122,7 +122,6 @@ function AppContent({ fontsLoaded }) {
   const [original, setOriginal] = useState(null);
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [pendingJobId, setPendingJobId] = useState(null);
   const [job, setJob] = useState(null);
@@ -181,7 +180,6 @@ function AppContent({ fontsLoaded }) {
           closeDialog();
           setPickedImage(null);
           setScreen('upload');
-          setError('');
           setFailedAttempts(0);
         },
       });
@@ -593,19 +591,24 @@ function AppContent({ fontsLoaded }) {
     () => {
       const run = async ({ imageDataUrl, styleId, _authRetried = false }) => {
         if (!styleId) {
-          setError('No style selected. Please choose a style and try again.');
+          showToast(
+            "Couldn't generate",
+            'No style selected. Please choose a style and try again.',
+            'error'
+          );
           return;
         }
 
         if (serverStyleIdsRef.current && !serverStyleIdsRef.current.has(styleId)) {
-          setError(
-            `"${styleId}" is not available on ${API_BASE} yet. Redeploy staging to pick up the latest styles.`
+          showToast(
+            "Couldn't generate",
+            `"${styleId}" is not available on ${API_BASE} yet. Redeploy staging to pick up the latest styles.`,
+            'error'
           );
           return;
         }
 
         setLoading(true);
-        setError('');
         setJob(null);
         setResult(null);
 
@@ -613,7 +616,11 @@ function AppContent({ fontsLoaded }) {
         const failsafeTimer = setTimeout(() => {
           console.warn('[callApi] Failsafe timeout reached - forcing loading off');
           setLoading(false);
-          setError('This is taking longer than usual. Tap Try again — we may still be finishing your caricature.');
+          showToast(
+            'Taking longer',
+            'This is taking longer than usual. Tap Try again — we may still be finishing your caricature.',
+            'warning'
+          );
         }, 200000);
 
         try {
@@ -636,7 +643,8 @@ function AppContent({ fontsLoaded }) {
             enqueueJson = JSON.parse(enqueueText);
           } catch (parseErr) {
             console.error('Enqueue - JSON parse error:', parseErr, enqueueText?.slice?.(0, 200));
-            setError(
+            notifyGenerationFailure(
+              showToast,
               'We had trouble talking to the server. Tap Try again — your caricature may still be processing.'
             );
             setFailedAttempts((prev) => prev + 1);
@@ -736,7 +744,7 @@ function AppContent({ fontsLoaded }) {
               rawErrorMessage: err.rawErrorMessage || null,
             });
           }
-          setError(humanizeApiError(errorMessage));
+          notifyGenerationFailure(showToast, err);
           setFailedAttempts((prev) => prev + 1);
         } finally {
           clearTimeout(failsafeTimer);
@@ -747,7 +755,7 @@ function AppContent({ fontsLoaded }) {
 
       return run;
     },
-    [showDialog, closeDialog, handleContentPolicyBlock]
+    [showDialog, closeDialog, handleContentPolicyBlock, showToast]
   );
 
   const handleSubscribe = async (selectedTier = null) => {
@@ -765,7 +773,6 @@ function AppContent({ fontsLoaded }) {
       return;
     }
     setSubscribeLoading(true);
-    setError('');
     try {
       const auth = await ensureAuthenticated();
       if (!auth?.userId || !auth?.token) {
@@ -958,7 +965,6 @@ function AppContent({ fontsLoaded }) {
     setOriginal({ imageUri, imageDataUrl, prompt: style?.prompt });
     setPendingJobId(null);
     setFailedAttempts(0);
-    setError('');
     setRestyleMode(false);
     setScreen('result');
     await callApi({ imageDataUrl, styleId: style?.id });
@@ -971,7 +977,6 @@ function AppContent({ fontsLoaded }) {
   const handleTryAnotherStyle = () => {
     setRestyleMode(true);
     setResult(null);
-    setError('');
     setFailedAttempts(0);
     setPendingJobId(null);
     setScreen('style');
@@ -982,7 +987,6 @@ function AppContent({ fontsLoaded }) {
     setPickedImage(null);
     setOriginal(null);
     setResult(null);
-    setError('');
     setFailedAttempts(0);
     setPendingJobId(null);
     setJob(null);
@@ -1029,7 +1033,7 @@ function AppContent({ fontsLoaded }) {
       });
 
       setResult(null);
-      setError(friendly);
+      notifyGenerationFailure(showToast, friendly);
       setFailedAttempts((prev) => prev + 1);
       setJob(null);
       setPendingJobId(null);
@@ -1054,21 +1058,23 @@ function AppContent({ fontsLoaded }) {
 
       setTimeout(() => refreshSubscription(), 500);
     },
-    [pendingJobId, result?.jobId, style?.id]
+    [pendingJobId, result?.jobId, style?.id, showToast]
   );
 
   const handleRetry = async () => {
     if (!pendingJobId) {
       if (original?.imageDataUrl && style?.id) {
-        setError('');
         callApi({ imageDataUrl: original.imageDataUrl, styleId: style.id });
         return;
       }
-      setError('Tap Generate to start again, or go back and choose another photo.');
+      showToast(
+        "Couldn't generate",
+        'Tap Generate to start again, or go back and choose another photo.',
+        'info'
+      );
       return;
     }
 
-    setError('');
     setLoading(true);
     setJob(null);
 
@@ -1114,7 +1120,7 @@ function AppContent({ fontsLoaded }) {
           rawErrorMessage: err.rawErrorMessage || null,
         });
       }
-      setError(humanizeApiError(errorMessage));
+      notifyGenerationFailure(showToast, err);
       setFailedAttempts((prev) => prev + 1);
     } finally {
       setLoading(false);
@@ -1188,7 +1194,6 @@ function AppContent({ fontsLoaded }) {
               }
               setRestyleMode(false);
               setResult(null);
-              setError('');
               setFailedAttempts(0);
               setPendingJobId(null);
               setOriginal((prev) => (prev ? { ...prev, prompt: s.prompt } : prev));
@@ -1356,7 +1361,6 @@ function AppContent({ fontsLoaded }) {
         result={result}
         loading={loading}
         job={job}
-        error={error}
         failedAttempts={failedAttempts}
         onRetry={handleRetry}
         subscriptionInfo={subscriptionInfo}
@@ -1367,14 +1371,12 @@ function AppContent({ fontsLoaded }) {
           setRestyleMode(false);
           setStyleReturnCategory(style?.categoryId || getStyleCategory(style?.id) || null);
           setScreen('style');
-          setError('');
           setFailedAttempts(0);
         }}
         onHome={() => {
           setRestyleMode(false);
           setStyleReturnCategory(null);
           setScreen('style');
-          setError('');
           setFailedAttempts(0);
         }}
         onOpenUsage={() => setScreen('usage')}

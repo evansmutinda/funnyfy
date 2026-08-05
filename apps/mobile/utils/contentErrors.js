@@ -71,6 +71,22 @@ export function notificationAccentForTone(tone) {
   return '#F87171';
 }
 
+/** User-facing copy for a failed generation (prefers raw API/job error when present). */
+export function resolveGenerationErrorMessage(err) {
+  if (typeof err === 'string') return humanizeApiError(err);
+  const raw = err?.rawErrorMessage || err?.message || String(err);
+  return humanizeApiError(raw);
+}
+
+/** Top toast — same pattern as save/share/purchase feedback. */
+export function notifyGenerationFailure(showToast, err) {
+  const friendly = resolveGenerationErrorMessage(err);
+  const tone = notificationToneForApiError(friendly);
+  const title = tone === 'warning' ? 'Unavailable' : "Couldn't generate";
+  showToast(title, friendly, tone);
+  return friendly;
+}
+
 /** Replicate / upstream 5xx (e.g. {"detail":"Internal server error","status":500}). */
 function isProviderOutageError(lower) {
   return (
