@@ -5,13 +5,13 @@ import * as ExpoImagePicker from 'expo-image-picker';
 import { useNotifications } from '../components/NotificationProvider';
 
 /**
- * REVERT — forced OS crop on every upload (pre-2026-08-05 trial):
+ * REVERT — forced OS crop on every upload (pre-2026-08-05):
  *
  *   allowsEditing: true
  *
  * Android opened a centered ~1:1 crop box (~75% of landscape shots), which
- * users had to expand every time. Trial: full photo by default; optional
- * in-app crop can be added later for styles that benefit from it.
+ * users had to expand every time. Product choice: use the full photo; no
+ * in-app / optional crop step.
  *
  * To restore OS crop: set ALLOWS_EDITING = true below.
  */
