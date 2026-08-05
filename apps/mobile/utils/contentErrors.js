@@ -78,13 +78,16 @@ export function resolveGenerationErrorMessage(err) {
   return humanizeApiError(raw);
 }
 
-/** Top toast — same pattern as save/share/purchase feedback. */
-export function notifyGenerationFailure(showToast, err) {
+/** ConfirmDialog copy for failed generation (same pattern as content-policy dialog). */
+export function buildGenerationFailedDialog(err) {
   const friendly = resolveGenerationErrorMessage(err);
   const tone = notificationToneForApiError(friendly);
-  const title = tone === 'warning' ? 'Unavailable' : "Couldn't generate";
-  showToast(title, friendly, tone);
-  return friendly;
+  return {
+    title: tone === 'warning' ? 'Unavailable' : "Couldn't generate",
+    message: friendly,
+    confirmLabel: 'Got it',
+    hideCancel: true,
+  };
 }
 
 /** Replicate / upstream 5xx (e.g. {"detail":"Internal server error","status":500}). */

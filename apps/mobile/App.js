@@ -53,7 +53,7 @@ import {
 import { mergeServerStyles, getServerConfirmedStyleIds } from './utils/mergeServerStyles';
 import { readStylesCache, writeStylesCache } from './utils/stylesCache';
 import { getTrialRemaining, getTrialWarningMessage, isTrialUser } from './utils/trialWarnings';
-import { isNsfwContentError, buildContentPolicyDialog, notifyGenerationFailure } from './utils/contentErrors';
+import { isNsfwContentError, buildContentPolicyDialog, buildGenerationFailedDialog } from './utils/contentErrors';
 import {
   isContentPolicyError,
   recordContentViolation,
@@ -183,6 +183,18 @@ function AppContent({ fontsLoaded }) {
           setFailedAttempts(0);
         },
       });
+    },
+    [showDialog, closeDialog]
+  );
+
+  const notifyGenerationFailure = useCallback(
+    (err) => {
+      const dialog = buildGenerationFailedDialog(err);
+      showDialog({
+        ...dialog,
+        onConfirm: closeDialog,
+      });
+      return dialog.message;
     },
     [showDialog, closeDialog]
   );
@@ -591,19 +603,13 @@ function AppContent({ fontsLoaded }) {
     () => {
       const run = async ({ imageDataUrl, styleId, _authRetried = false }) => {
         if (!styleId) {
-          showToast(
-            "Couldn't generate",
-            'No style selected. Please choose a style and try again.',
-            'error'
-          );
+          notifyGenerationFailure('No style selected. Please choose a style and try again.');
           return;
         }
 
         if (serverStyleIdsRef.current && !serverStyleIdsRef.current.has(styleId)) {
-          showToast(
-            "Couldn't generate",
-            `"${styleId}" is not available on ${API_BASE} yet. Redeploy staging to pick up the latest styles.`,
-            'error'
+          notifyGenerationFailure(
+            `"${styleId}" is not available on ${API_BASE} yet. Redeploy staging to pick up the latest styles.`
           );
           return;
         }
@@ -616,10 +622,8 @@ function AppContent({ fontsLoaded }) {
         const failsafeTimer = setTimeout(() => {
           console.warn('[callApi] Failsafe timeout reached - forcing loading off');
           setLoading(false);
-          showToast(
-            'Taking longer',
-            'This is taking longer than usual. Tap Try again — we may still be finishing your caricature.',
-            'warning'
+          notifyGenerationFailure(
+            'This is taking longer than usual. Tap Try again — we may still be finishing your caricature.'
           );
         }, 200000);
 
@@ -644,7 +648,6 @@ function AppContent({ fontsLoaded }) {
           } catch (parseErr) {
             console.error('Enqueue - JSON parse error:', parseErr, enqueueText?.slice?.(0, 200));
             notifyGenerationFailure(
-              showToast,
               'We had trouble talking to the server. Tap Try again — your caricature may still be processing.'
             );
             setFailedAttempts((prev) => prev + 1);
@@ -744,7 +747,7 @@ function AppContent({ fontsLoaded }) {
               rawErrorMessage: err.rawErrorMessage || null,
             });
           }
-          notifyGenerationFailure(showToast, err);
+          notifyGenerationFailure(err);
           setFailedAttempts((prev) => prev + 1);
         } finally {
           clearTimeout(failsafeTimer);
@@ -755,7 +758,7 @@ function AppContent({ fontsLoaded }) {
 
       return run;
     },
-    [showDialog, closeDialog, handleContentPolicyBlock, showToast]
+    [showDialog, closeDialog, handleContentPolicyBlock, notifyGenerationFailure]
   );
 
   const handleSubscribe = async (selectedTier = null) => {
@@ -1033,7 +1036,7 @@ function AppContent({ fontsLoaded }) {
       });
 
       setResult(null);
-      notifyGenerationFailure(showToast, friendly);
+      notifyGenerationFailure(friendly);
       setFailedAttempts((prev) => prev + 1);
       setJob(null);
       setPendingJobId(null);
@@ -1058,7 +1061,7 @@ function AppContent({ fontsLoaded }) {
 
       setTimeout(() => refreshSubscription(), 500);
     },
-    [pendingJobId, result?.jobId, style?.id, showToast]
+    [pendingJobId, result?.jobId, style?.id, notifyGenerationFailure]
   );
 
   const handleRetry = async () => {
@@ -1067,10 +1070,8 @@ function AppContent({ fontsLoaded }) {
         callApi({ imageDataUrl: original.imageDataUrl, styleId: style.id });
         return;
       }
-      showToast(
-        "Couldn't generate",
-        'Tap Generate to start again, or go back and choose another photo.',
-        'info'
+      notifyGenerationFailure(
+        'Tap Generate to start again, or go back and choose another photo.'
       );
       return;
     }
@@ -1120,7 +1121,7 @@ function AppContent({ fontsLoaded }) {
           rawErrorMessage: err.rawErrorMessage || null,
         });
       }
-      notifyGenerationFailure(showToast, err);
+      notifyGenerationFailure(err);
       setFailedAttempts((prev) => prev + 1);
     } finally {
       setLoading(false);

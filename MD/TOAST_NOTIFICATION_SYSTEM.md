@@ -65,7 +65,7 @@ import { useNotifications } from '../components/NotificationProvider';
 
 ## Generation failures
 
-Failed runs show a **top toast** (`notifyGenerationFailure` in `App.js`) — not an inline message on the result screen. The result action band keeps **Try again** only; after 3 failures, the “Please try again later” card appears.
+Failed runs use **ConfirmDialog** (`buildGenerationFailedDialog` → same card as content-policy: title, message, white **Got it** pill). The result action band keeps **Try again** only; after 3 failures, the “Please try again later” card appears.
 
 ---
 
