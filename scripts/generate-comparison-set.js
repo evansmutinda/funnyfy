@@ -61,6 +61,11 @@ const AFTER_CATEGORY_DIR = {
 const STYLE_AFTER_BASENAME = {
   handd: 'handd',
   carc1: 'carc1',
+  carc2: 'carc2',
+  carc3: 'carc3',
+  carc4: 'carc4',
+  carc5: 'carc5',
+  carc6: 'carc6',
   '90s-cartoon': 'toon',
   chibi: 'chibi',
   'classic-v1': 'classic',

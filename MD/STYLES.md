@@ -54,7 +54,7 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 
 ---
 
-## Enabled styles (110)
+## Enabled styles (123)
 
 | Id | Label | Category | Model | Comparison pair |
 |----|-------|----------|-------|-----------------|
@@ -102,12 +102,12 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 | `abstract-v1` | Abstract V1 | art | nano-banana | ✅ |
 | `abstract-v2` | Abstract V2 | art | seedream-4 | ✅ |
 | `geometric` | Geometric | art | seedream-4 | ✅ |
-| `surreal` | Surreal | art | nano-banana | ✅ |
 | `coloured-glass` | Coloured Glass | art | seedream-4 | ✅ |
 | `paste-up` | Paste-up | art | seedream-4 | ✅ |
 | `pencil-sketch-v1` | Pencil Sketch V1 | art | nano-banana | ✅ |
 | `pencil-sketch-v2` | Pencil Sketch V2 | art | nano-banana-2 | ✅ |
-| `origami` | Origami | art | seedream-4.5 | ✅ |
+| `origami` | Origami | 3d-characters | seedream-4.5 | ✅ |
+| `paper-cut` | Paper Cut | art | flux-kontext-pro | ✅ |
 | `water-color` | Water Color | paintings | flux-kontext-pro | ✅ |
 | `acrylic` | Acrylic | paintings | seedream-4 | ✅ |
 | `gouache` | Gouache | paintings | seedream-4 | ✅ |
@@ -147,22 +147,34 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 | `ice` | Ice | sculptures | nano-banana-2 | ✅ |
 | `metal` | Metal | sculptures | nano-banana-2 | ✅ |
 | `wood` | Wood | sculptures | nano-banana-2 | ✅ |
+| `gold` | Gold | sculptures | nano-banana-2 | ✅ |
+| `porcelain` | Porcelain | sculptures | seedream-4.5 | ✅ |
+| `voxel-block` | Voxel Block | 3d-characters | seedream-4.5 | ✅ |
 | `3d-portrait-v1` | 3D Portrait V1 | 3d-characters | seedream-4.5 | ✅ |
 | `3d-portrait-v2` | 3D Portrait V2 | 3d-characters | nano-banana-2 | ✅ |
 | `minime` | Minime | 3d-characters | nano-banana-2 | ✅ |
 | `dancing-3d` | Dancing | 3d-characters | seedream-4.5 | ✅ |
+| `yarn` | Yarn | 3d-characters | flux-kontext-pro | ✅ |
+| `vinyl` | Vinyl | 3d-characters | nano-banana-2 | ✅ |
+| `plush` | Plush | 3d-characters | nano-banana-2 | ✅ |
+| `bobblehead` | Bobblehead | 3d-characters | seedream-4.5 | ✅ |
 | `miniature` | Miniature | 3d-characters | seedream-4.5 | ✅ |
-| `plastic-toy-v1` | Plastic Toy | 3d-characters | seedream-4.5 | ✅ |
-| `plastic-toy-v2` | Plastic Toy | 3d-characters | nano-banana-2 | ✅ |
+| `plastic-toy-v1` | Plastic Toy V1 | 3d-characters | seedream-4.5 | ✅ |
+| `plastic-toy-v2` | Plastic Toy V2 | 3d-characters | nano-banana-2 | ✅ |
 | `figurine-v1` | Figurine V1 | 3d-characters | seedream-4.5 | ✅ |
 | `figurine-v2` | Figurine V2 | 3d-characters | nano-banana-2 | ✅ |
 | `figurine-v3` | Figurine V3 | 3d-characters | seedream-4.5 | ✅ |
 | `figurine-v4` | Figurine V4 | 3d-characters | nano-banana-2 | ✅ |
 | `handd` | Hand-Drawn | caricatures | nano-banana | ✅ |
-| `editorial` | Editorial | caricatures | nano-banana | ✅ |
+| `editorial` | Editorial | art | nano-banana | ✅ |
 | `exaggerated` | Exaggerated | caricatures | nano-banana | ✅ |
 | `watercolor` | Watercolor | caricatures | seedream-4 | ✅ |
-| `carc1` | Carc1 | caricatures | seedream-4 | ✅ |
+| `carc1` | Caricature 1 | caricatures | seedream-4 | ✅ |
+| `carc2` | Caricature 2 | caricatures | nano-banana-2 | ✅ |
+| `carc3` | Caricature 3 | caricatures | nano-banana-2 | ✅ |
+| `carc4` | Caricature 4 | caricatures | nano-banana-2 | ✅ |
+| `carc5` | Caricature 5 | caricatures | seedream-4.5 | ✅ |
+| `carc6` | Caricature 6 | caricatures | nano-banana | ✅ |
 | `3d-bd` | 3D BD | caricatures | nano-banana-2 | ✅ |
 | `3d` | 3D | caricatures | seedream-4.5 | ✅ |
 | `dancing-carc` | Dancing | caricatures | nano-banana-2 | ✅ |
@@ -192,10 +204,15 @@ Run `npm run build-comparison-assets` after adding or replacing source files. Fo
 | styleId | before | after |
 |---------|--------|--------|
 | `handd` | `before/hdd.png` | `after/caricature/handd.jpeg` |
-| `editorial` | `before/man.png` | `after/caricature/editorial.jpeg` |
+| `editorial` | `before/man.png` | `after/Art/editorial.jpeg` |
 | `exaggerated` | `before/man2.png` | `after/caricature/Exaggerated.jpeg` |
 | `watercolor` | `before/couple.png` | `after/caricature/Watercolor-c.jpg` |
 | `carc1` | `before/toon.png` | `after/caricature/carc1.jpg` |
+| `carc2` | `before/man6.png` | `after/caricature/carc2.jpeg` |
+| `carc3` | `before/lady7.png` | `after/caricature/carc3.jpeg` |
+| `carc4` | `before/man6.png` | `after/caricature/carc4.jpg` |
+| `carc5` | `before/man6.png` | `after/caricature/carc5.jpg` |
+| `carc6` | `before/lady7.png` | `after/caricature/carc6.jpeg` |
 | `3d-bd` | `before/lady.png` | `after/caricature/3dbd.jpeg` |
 | `3d` | `before/lady6.png` | `after/caricature/3d.jpg` |
 | `dancing-carc` | `before/lady6.png` | `after/caricature/dancing-carc.jpeg` |
@@ -236,10 +253,17 @@ Run `npm run build-comparison-assets` after adding or replacing source files. Fo
 | `ice` | `before/lady12.png` | `after/Sculptures/ice.jpeg` |
 | `metal` | `before/man8.png` | `after/Sculptures/metal.jpeg` |
 | `wood` | `before/man8.png` | `after/Sculptures/wood.jpeg` |
+| `gold` | `before/man9.png` | `after/Sculptures/gold.jpeg` |
+| `porcelain` | `before/lady3.png` | `after/Sculptures/porcelain.jpg` |
+| `voxel-block` | `before/lady6.png` | `after/3d/voxel-block.jpg` |
 | `3d-portrait-v1` | `before/lady2.png` | `after/3d/3d-portraitv1.jpg` |
 | `3d-portrait-v2` | `before/lady2.png` | `after/3d/3d-portraitv2.jpeg` |
 | `minime` | `before/lady6.png` | `after/3d/minime.jpeg` |
 | `dancing-3d` | `before/teen2.png` | `after/3d/dancing-3d.jpg` |
+| `yarn` | `before/lady9.png` | `after/3d/yarn.jpg` |
+| `vinyl` | `before/lady7.png` | `after/3d/vinyl.jpeg` |
+| `plush` | `before/lady7.png` | `after/3d/plush.jpeg` |
+| `bobblehead` | `before/man4.png` | `after/3d/bobblehead.jpg` |
 | `miniature` | `before/teen2.png` | `after/3d/miniature.jpg` |
 | `plastic-toy-v1` | `before/couple.png` | `after/3d/toyv1.jpg` |
 | `plastic-toy-v2` | `before/couple.png` | `after/3d/toyv2.jpeg` |
@@ -284,12 +308,12 @@ Run `npm run build-comparison-assets` after adding or replacing source files. Fo
 | `abstract-v1` | `before/lady8.png` | `after/Art/abstractv1.jpeg` |
 | `abstract-v2` | `before/lady8.png` | `after/Art/abstractv2.jpg` |
 | `geometric` | `before/man5.png` | `after/Art/geometric.jpg` |
-| `surreal` | `before/lady9.png` | `after/Art/surreal.jpeg` |
 | `coloured-glass` | `before/lady10.png` | `after/Art/coloured-glass.jpg` |
 | `paste-up` | `before/lady11.png` | `after/Art/Paste-up.jpg` |
 | `pencil-sketch-v1` | `before/man9.png` | `after/Art/Pencil Sketch1.jpeg` |
 | `pencil-sketch-v2` | `before/man9.png` | `after/Art/Pencil Sketch2.jpeg` |
-| `origami` | `before/lady14.png` | `after/Art/origami.jpg` |
+| `origami` | `before/lady14.png` | `after/3d/origami.jpg` |
+| `paper-cut` | `before/man5.png` | `after/Art/paper-cut.jpg` |
 | `monday-mood` | `before/lady3.png` | `after/Moods&Moments/mondays1.jpg`, `mondays2.jpeg`, `mondays3.jpeg` |
 | `friday-feeling` | `before/man9.png` | `after/Moods&Moments/fridays1.jpeg`, `fridays2.jpeg` |
 

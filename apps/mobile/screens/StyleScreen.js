@@ -74,8 +74,12 @@ function StyleScreenContent({
     setActiveCategory(initialActiveCategory);
   }, [initialActiveCategory]);
 
-  const browsingHome = !restyleMode && activeCategory === null;
+  const browsingHome = activeCategory === null;
   const activeCategoryMeta = BROWSE_CATEGORIES.find((cat) => cat.id === activeCategory);
+
+  useEffect(() => {
+    if (restyleMode) setActiveCategory(null);
+  }, [restyleMode]);
 
   const categoryRows = useMemo(() => {
     if (!browsingHome) return [];
@@ -93,9 +97,8 @@ function StyleScreenContent({
 
   const categoryStyles = useMemo(() => {
     if (browsingHome) return [];
-    if (restyleMode) return styleList;
     return styleList.filter((s) => resolveStyleCategory(s) === activeCategory);
-  }, [activeCategory, browsingHome, restyleMode, styleList]);
+  }, [activeCategory, browsingHome, styleList]);
 
   const onCategoryScroll = useCallback(() => {
     setCategoryScrollTick((tick) => tick + 1);
@@ -114,27 +117,27 @@ function StyleScreenContent({
     [categoryStyles],
   );
 
-  const categoryGridKey = restyleMode ? 'restyle' : activeCategory || 'category';
+  const categoryGridKey = activeCategory || 'category';
 
   useEffect(() => {
-    if (browsingHome || restyleMode) return undefined;
+    if (browsingHome) return undefined;
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
       setActiveCategory(null);
       return true;
     });
     return () => sub.remove();
-  }, [browsingHome, restyleMode]);
+  }, [browsingHome]);
 
   const handleCancel = () => {
     if (onCancelRestyle) onCancelRestyle();
   };
 
   const handleBack = () => {
-    if (restyleMode) {
-      handleCancel();
+    if (!browsingHome) {
+      setActiveCategory(null);
       return;
     }
-    setActiveCategory(null);
+    if (restyleMode) handleCancel();
   };
 
   return (
@@ -146,7 +149,7 @@ function StyleScreenContent({
 
       <View style={[styles.styleScreenHeader, { paddingTop: Math.max(insets.top, 8) }]}>
         <View style={styles.headerBar}>
-          {browsingHome ? (
+          {browsingHome && !restyleMode ? (
             <>
               <Text style={styles.wordmark}>FunnyFy</Text>
               <PressScale onPress={onOpenMenu} style={styles.menuButton} hitSlop={8}>
@@ -159,7 +162,9 @@ function StyleScreenContent({
                 <Feather name="chevron-left" size={22} color="#FFFFFF" />
               </PressScale>
               <Text style={styles.restyleHeaderTitle} numberOfLines={1}>
-                {restyleMode ? 'Same photo' : activeCategoryMeta?.label || 'Styles'}
+                {browsingHome && restyleMode
+                  ? 'Same photo'
+                  : activeCategoryMeta?.label || 'Styles'}
               </Text>
               <View style={{ width: 40 }} />
             </>
@@ -167,7 +172,7 @@ function StyleScreenContent({
         </View>
       </View>
 
-      {restyleMode ? (
+      {restyleMode && browsingHome ? (
         <View style={styles.restyleBanner}>
           <View style={styles.restyleBannerRow}>
             <View style={styles.restyleBannerBody}>

@@ -29,7 +29,7 @@ export const STYLE_CATEGORIES: StyleCategory[] = [
 ];
 
 export const STYLE_CATALOG: StyleCatalogEntry[] = [
-  { id: "editorial-caricature", label: "Editorial Caricature", categoryId: "caricatures" },
+  { id: "editorial-caricature", label: "Editorial Caricature", categoryId: "art" },
   { id: "exaggerated-caricature", label: "Exaggerated Caricature", categoryId: "caricatures" },
   { id: "big-head-small-body", label: "Big Head Small Body", categoryId: "caricatures" },
   { id: "political-cartoon-style", label: "Political Cartoon Style", categoryId: "caricatures" },
@@ -138,7 +138,6 @@ export const STYLE_CATALOG: StyleCatalogEntry[] = [
   { id: "low-poly-art", label: "Low Poly Art", categoryId: "art" },
   { id: "abstract-art", label: "Abstract Art", categoryId: "art" },
   { id: "geometric-art", label: "Geometric Art", categoryId: "art" },
-  { id: "surreal-art", label: "Surreal Art", categoryId: "art" },
   { id: "doctor", label: "Doctor", categoryId: "professions" },
   { id: "pilot", label: "Pilot", categoryId: "professions" },
   { id: "firefighter", label: "Firefighter", categoryId: "professions" },

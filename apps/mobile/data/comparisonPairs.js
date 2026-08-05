@@ -25,7 +25,7 @@ const CURATED_PAIR_PATHS = {
   },
   'editorial': {
     before: 'before/man.png',
-    after: 'after/caricature/editorial.jpeg',
+    after: 'after/Art/editorial.jpeg',
   },
   'exaggerated': {
     before: 'before/man2.png',
@@ -38,6 +38,26 @@ const CURATED_PAIR_PATHS = {
   'carc1': {
     before: 'before/toon.png',
     after: 'after/caricature/carc1.jpg',
+  },
+  'carc2': {
+    before: 'before/man6.png',
+    after: 'after/caricature/carc2.jpeg',
+  },
+  'carc3': {
+    before: 'before/lady7.png',
+    after: 'after/caricature/carc3.jpeg',
+  },
+  'carc4': {
+    before: 'before/man6.png',
+    after: 'after/caricature/carc4.jpg',
+  },
+  'carc5': {
+    before: 'before/man6.png',
+    after: 'after/caricature/carc5.jpg',
+  },
+  'carc6': {
+    before: 'before/lady7.png',
+    after: 'after/caricature/carc6.jpeg',
   },
   '3d-bd': {
     before: 'before/lady.png',
@@ -199,6 +219,18 @@ const CURATED_PAIR_PATHS = {
     before: 'before/man8.png',
     after: 'after/Sculptures/wood.jpeg',
   },
+  'gold': {
+    before: 'before/man9.png',
+    after: 'after/Sculptures/gold.jpeg',
+  },
+  'porcelain': {
+    before: 'before/lady3.png',
+    after: 'after/Sculptures/porcelain.jpg',
+  },
+  'voxel-block': {
+    before: 'before/lady6.png',
+    after: 'after/3d/voxel-block.jpg',
+  },
   '3d-portrait-v1': {
     before: 'before/lady2.png',
     after: 'after/3d/3d-portraitv1.jpg',
@@ -214,6 +246,22 @@ const CURATED_PAIR_PATHS = {
   'dancing-3d': {
     before: 'before/teen2.png',
     after: 'after/3d/dancing-3d.jpg',
+  },
+  'yarn': {
+    before: 'before/lady9.png',
+    after: 'after/3d/yarn.jpg',
+  },
+  'vinyl': {
+    before: 'before/lady7.png',
+    after: 'after/3d/vinyl.jpeg',
+  },
+  'plush': {
+    before: 'before/lady7.png',
+    after: 'after/3d/plush.jpeg',
+  },
+  'bobblehead': {
+    before: 'before/man4.png',
+    after: 'after/3d/bobblehead.jpg',
   },
   'miniature': {
     before: 'before/teen2.png',
@@ -391,10 +439,6 @@ const CURATED_PAIR_PATHS = {
     before: 'before/man5.png',
     after: 'after/Art/geometric.jpg',
   },
-  'surreal': {
-    before: 'before/lady9.png',
-    after: 'after/Art/surreal.jpeg',
-  },
   'coloured-glass': {
     before: 'before/lady10.png',
     after: 'after/Art/coloured-glass.jpg',
@@ -413,7 +457,11 @@ const CURATED_PAIR_PATHS = {
   },
   'origami': {
     before: 'before/lady14.png',
-    after: 'after/Art/origami.jpg',
+    after: 'after/3d/origami.jpg',
+  },
+  'paper-cut': {
+    before: 'before/man5.png',
+    after: 'after/Art/paper-cut.jpg',
   },
   'monday-mood': {
     before: 'before/lady3.png',

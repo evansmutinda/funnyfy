@@ -414,16 +414,6 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     enabled: true,
     premium: false,
   },
-  surreal: {
-    id: 'surreal',
-    label: 'Surreal',
-    categoryId: 'art',
-    description: 'Surreal art portrait with dreamlike forms and imaginative composition',
-    prompt: 'Make this a surreal art',
-    model: NANO_BANANA,
-    enabled: true,
-    premium: false,
-  },
   'coloured-glass': {
     id: 'coloured-glass',
     label: 'Coloured Glass',
@@ -471,12 +461,24 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
   origami: {
     id: 'origami',
     label: 'Origami',
-    categoryId: 'art',
+    categoryId: '3d-characters',
     description:
       'Elegant traditional origami sculpture of the subject from folded washi paper with museum-quality craftsmanship',
     prompt:
       "Preserve the uploaded person's identity exactly. Transform the person into an elegant traditional origami sculpture, handcrafted entirely from folded paper while maintaining their recognizable facial features, hairstyle, skin tone (represented through carefully chosen paper colours), clothing, accessories, and personality.\n\nConstruct the entire character exclusively from precisely folded sheets of paper, using authentic origami techniques without cutting, tearing, or sculpting. Every part of the figure—including the face, hair, clothing, shoes, and accessories—should be formed through intricate geometric folds, layered paper structures, sharp creases, crisp edges, and carefully engineered paper geometry.\n\nPreserve the person's facial identity by using sophisticated folded forms that suggest the eyes, eyebrows, nose, lips, jawline, hairstyle, and expression while remaining unmistakably handcrafted from paper. Hair should be represented through layered folded strips, pleats, curls, or angular paper sections that mimic the person's hairstyle.\n\nClothing should appear as folded paper garments with realistic collars, sleeves, seams, lapels, pockets, folds, and fabric draping recreated entirely through origami techniques. Accessories should also be folded from paper while remaining clearly recognizable.\n\nUse premium textured Japanese washi paper with subtle fibres, natural matte surfaces, delicate paper grain, and realistic fold stress along the creases. Employ harmonious paper colours with gentle tonal variation while preserving the person's clothing colours and overall appearance.\n\nDisplay the finished origami sculpture on a clean neutral surface with soft studio lighting that highlights the crisp folds, layered construction, realistic paper thickness, and intricate craftsmanship. Subtle contact shadows, shallow depth of field, professional macro photography, museum-quality paper sculpture, ultra-detailed handcrafted artistry, elegant composition, photorealistic materials, 8K quality, no glue, no tape, no text, no watermarks, and no visual defects.",
     model: SEEDREAM_4_5,
+    enabled: true,
+    premium: false,
+  },
+  'paper-cut': {
+    id: 'paper-cut',
+    label: 'Paper Cut',
+    categoryId: 'art',
+    description:
+      'Exquisite layered paper cut artwork with die-cut cardstock depth and handcrafted diorama look',
+    prompt:
+      "Preserve the uploaded person's identity exactly. Transform the uploaded person into an exquisite layered paper cut artwork, preserving their recognizable facial features, hairstyle, facial structure, expression, age, clothing, accessories, and distinctive characteristics while recreating the entire scene exclusively from intricately cut sheets of colored paper.\n\nEvery visible element—including the person, clothing, hair, skin, accessories, background, ground, buildings, trees, sky, clouds, furniture, shadows, and every object in the composition—must be constructed entirely from layered paper cutouts. Nothing should appear painted, illustrated, photographed, or three-dimensional beyond the depth created by stacked paper layers.\n\nThe person's facial identity should be recreated using precisely cut paper shapes with smooth flowing curves, crisp edges, layered contours, and carefully arranged color pieces that preserve their recognizable features. Hair should consist of individually cut layered paper sections that follow the natural hairstyle while maintaining the handcrafted paper aesthetic.\n\nRecreate the person's original clothing entirely from layered colored paper, preserving the realistic design, fit, tailoring, folds, seams, collars, buttons, pockets, wrinkles, layered garments, and accessories. Every garment should clearly appear handcrafted from precisely cut paper with visible stacked layers and clean die-cut edges.\n\nConstruct the entire environment from multiple layers of colored cardstock with varying depths that create a rich dimensional effect. Buildings, trees, rocks, water, furniture, vehicles, plants, and every background element should all be assembled from stacked paper pieces with visible layer separation, creating a handcrafted diorama appearance.\n\nUse premium textured cardstock and craft paper with subtle paper fibers, matte surfaces, crisp cut edges, clean silhouettes, and realistic paper thickness. Layer the paper to create natural depth, soft paper shadows, and a convincing handcrafted composition while maintaining a cohesive color palette.\n\nIlluminate the artwork with soft studio lighting that enhances the paper textures, layered construction, delicate shadows between paper layers, and handcrafted craftsmanship. Use a top-down or slightly angled perspective, realistic contact shadows, premium macro photography, shallow depth of field, and a clean composition.\n\nHyper-realistic layered paper cut artwork, handcrafted papercraft, premium cardstock, intricate die-cut details, visible paper layers, authentic paper textures, dimensional paper relief, exceptional craftsmanship, faithful identity preservation, elegant composition, professional studio photography, every subject and object made entirely from paper, no paint, no plastic, no fabric, no wood, no metal, no realistic materials, no text, no logos, no watermarks, and no visual defects.",
+    model: DEFAULT_MODEL,
     enabled: true,
     premium: false,
   },
@@ -905,6 +907,42 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     enabled: true,
     premium: false,
   },
+  gold: {
+    id: 'gold',
+    label: 'Gold',
+    categoryId: 'sculptures',
+    description:
+      'Life-sized solid 24-karat gold sculpture with warm metallic reflections and goldsmith finish',
+    prompt:
+      "Preserve the uploaded person's identity exactly. Transform the uploaded person into an extraordinary solid gold sculpture, faithfully preserving their recognizable facial features, hairstyle, facial structure, expression, age, clothing, accessories, and distinctive characteristics with exceptional sculptural precision.\n\nSculpt the entire person as a life-sized gold artwork in a natural standing, sitting, walking, or expressive pose that complements their appearance. Every facial feature—including the eyes, nose, lips, ears, eyebrows, hairstyle, facial hair (if present), clothing, and accessories—should be meticulously sculpted while maintaining the person's unmistakable identity.\n\nThe sculpture should be crafted entirely from solid 24-karat gold, featuring a rich, warm golden color with realistic metallic reflections, soft mirror-like highlights, subtle brushed and polished finishes, delicate casting details, fine surface textures, and exceptional artisan craftsmanship. The gold should appear dense, luxurious, and substantial, with authentic metallic depth and natural luster.\n\nRecreate the person's original clothing entirely in solid gold while preserving the realistic design, fit, tailoring, and construction of the garments. Every fold, seam, collar, button, zipper, pocket, cuff, wrinkle, layered garment, and accessory should be faithfully reproduced with exceptional sculptural precision. The clothing should retain the appearance of real garments while clearly being sculpted from solid gold, displaying refined metallic textures, crisp sculpted details, and master goldsmith craftsmanship.\n\nThe sculpture should exhibit authentic gold characteristics, including smooth polished surfaces, subtle hammered textures in selected areas, finely engraved details, realistic metallic reflections, soft edge highlights, and delicate craftsmanship. The gold should appear flawless, valuable, and exquisitely finished without appearing painted or artificial.\n\nPresent the sculpture against a clean, minimalist background that keeps the artwork as the unmistakable focal point. The composition should be elegant, luxurious, and uncluttered.\n\nIlluminate the sculpture with professional studio lighting that enhances the gold's warm metallic reflections, rich color, polished surfaces, and intricate sculptural details. Use realistic contact shadows, shallow depth of field, premium professional photography, elegant composition, and photorealistic rendering that showcases the brilliance and craftsmanship of solid gold.\n\nHyper-realistic solid gold sculpture, authentic precious metal, master goldsmith craftsmanship, realistic metallic reflections, luxurious polished finish, intricate sculptural detail, exceptional realism, premium professional photography, faithful identity preservation, elegant minimalist composition, no fantasy effects, no glowing magic, no text, no logos, no watermarks, and no visual defects.",
+    model: NANO_BANANA_2,
+    enabled: true,
+    premium: false,
+  },
+  porcelain: {
+    id: 'porcelain',
+    label: 'Porcelain',
+    categoryId: 'sculptures',
+    description:
+      'Exquisite handcrafted porcelain sculpture with random elegant glaze finishes and ceramic sheen',
+    prompt:
+      "Preserve the uploaded person's identity exactly. Transform the uploaded person into an exquisite handcrafted porcelain sculpture, faithfully preserving their recognizable facial features, hairstyle, facial structure, expression, age, clothing, accessories, and distinctive characteristics with exceptional sculptural precision.\n\nSculpt the entire person as an elegant porcelain figure in a natural standing, sitting, walking, or expressive pose that complements their appearance. Every facial feature—including the eyes, nose, lips, ears, eyebrows, hairstyle, facial hair (if present), clothing, and accessories—should be meticulously sculpted while maintaining the person's unmistakable identity.\n\nThe sculpture should be crafted from fine porcelain featuring a smooth glazed finish, subtle translucency around thinner edges, delicate ceramic depth, and an immaculate handcrafted appearance. For each generation, the porcelain should feature a randomly selected elegant finish, such as classic white porcelain, soft ivory, celadon, cobalt blue and white, floral hand-painted porcelain, pastel porcelain, black porcelain, or other refined porcelain styles. The finish should remain tasteful, elegant, and consistent across the entire sculpture.\n\nRecreate the person's original clothing entirely in porcelain while preserving the realistic design, fit, tailoring, folds, seams, collars, buttons, zippers, pockets, cuffs, wrinkles, layered garments, shoes, and accessories. The clothing should retain the appearance of real garments while clearly being sculpted from porcelain, with graceful flowing forms, crisp sculptural detailing, and beautifully glazed surfaces.\n\nThe sculpture should exhibit authentic porcelain characteristics, including flawless glazing, smooth reflective surfaces, subtle ceramic sheen, refined hand-finished details, delicate relief work, elegant contours, and exceptional artisan craftsmanship. Where appropriate, include tasteful hand-painted decorative patterns or fine gold accents that complement the chosen porcelain style without obscuring the person's identity.\n\nPresent the sculpture against a clean, minimalist background that keeps the artwork as the unmistakable focal point. The composition should be elegant, refined, and uncluttered.\n\nIlluminate the sculpture with soft professional studio lighting that enhances the glazed porcelain surface, delicate reflections, subtle translucency, intricate sculptural details, and premium craftsmanship. Use realistic contact shadows, shallow depth of field, elegant composition, premium professional photography, and photorealistic rendering.\n\nHyper-realistic handcrafted porcelain sculpture, authentic fine porcelain, luxurious glazed ceramic finish, subtle translucency, exceptional sculptural craftsmanship, refined artisan detailing, premium professional photography, faithful identity preservation, elegant minimalist composition, no cracks unless naturally decorative, no fantasy materials, no text, no logos, no watermarks, and no visual defects.",
+    model: SEEDREAM_4_5,
+    enabled: true,
+    premium: false,
+  },
+  'voxel-block': {
+    id: 'voxel-block',
+    label: 'Voxel Block',
+    categoryId: '3d-characters',
+    description:
+      'Extraordinary voxel block character built entirely from precisely aligned colored cubic voxels',
+    prompt:
+      "Preserve the uploaded person's identity exactly. Transform the uploaded person into an extraordinary voxel block character, faithfully preserving their recognizable facial features, hairstyle, facial structure, expression, age, clothing, accessories, and distinctive characteristics while recreating the entire figure entirely from precisely arranged colored cubic voxels.\n\nConstruct the entire person using thousands of perfectly aligned three-dimensional cubes of uniform size. Every facial feature—including the eyes, nose, lips, ears, eyebrows, hairstyle, facial hair (if present), clothing, and accessories—should be recreated entirely from colored voxel blocks while maintaining the person's unmistakable identity.\n\nRecreate the person's original clothing exactly, preserving the realistic design, fit, tailoring, folds, seams, collars, buttons, zippers, pockets, cuffs, wrinkles, layered garments, shoes, and accessories. Every garment should be constructed entirely from colored voxel cubes, using carefully arranged blocks to represent fabric textures, folds, and contours while maintaining the unmistakable voxel aesthetic.\n\nEvery visible element in the composition—including the ground, trees, buildings, furniture, vehicles, sky, clouds, rocks, water, shadows, and all surrounding objects—should also be constructed entirely from voxel cubes. Nothing should appear smooth, organic, painted, or realistically sculpted. The entire world should share a consistent voxel construction.\n\nUse a rich color palette with subtle gradients achieved through carefully arranged colored cubes rather than smooth shading. The voxel structure should remain clearly visible, with crisp cube edges, perfectly aligned geometry, and authentic block-based construction throughout the entire scene.\n\nPosition the character naturally within a fully voxel-built environment that complements the subject while keeping them as the primary focus. The composition should feel like a handcrafted digital voxel world rather than a realistic environment.\n\nIlluminate the scene with soft directional lighting that creates realistic shadows between individual cubes, subtle ambient occlusion, crisp edge highlights, and believable depth. Use shallow depth of field, premium digital rendering, elegant composition, and exceptional attention to voxel detail.\n\nHyper-realistic voxel artwork, premium block-based construction, thousands of precisely aligned cubic voxels, authentic digital voxel aesthetic, crisp cube geometry, exceptional craftsmanship, faithful identity preservation, fully voxelized environment, premium 3D rendering, clean composition, every subject and object made entirely from voxel cubes, no smooth surfaces, no rounded geometry, no LEGO studs, no fantasy effects, no text, no logos, no watermarks, and no visual defects.",
+    model: SEEDREAM_4_5,
+    enabled: true,
+    premium: false,
+  },
   '3d-portrait-v1': {
     id: '3d-portrait-v1',
     label: '3D Portrait V1',
@@ -951,6 +989,54 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     enabled: true,
     premium: false,
   },
+  yarn: {
+    id: 'yarn',
+    label: 'Yarn',
+    categoryId: '3d-characters',
+    description:
+      'Charming handcrafted yarn artwork with knitted, crocheted, and textile materials throughout the scene',
+    prompt:
+      "Preserve the uploaded person's identity exactly. Transform the uploaded person into a charming handcrafted yarn artwork, faithfully preserving their recognizable facial features, hairstyle, facial structure, expression, age, clothing, accessories, and distinctive characteristics while recreating the entire scene exclusively from yarn, knitted fabric, crochet, and textile materials.\n\nEvery visible element—including the person, clothing, hair, skin, accessories, background, ground, buildings, trees, sky, clouds, furniture, vehicles, plants, animals, shadows, and every object in the composition—must be constructed entirely from yarn and textile materials. Nothing should appear as real skin, plastic, metal, stone, wood, or painted surfaces.\n\nThe person's face should be recreated using carefully stitched yarn with soft knitted textures, embroidered facial details, layered wool fibers, and subtle fabric contours that preserve their recognizable identity. Hair should be formed from realistic strands of yarn, braided wool, knitted loops, crocheted curls, or woven textile fibers that naturally follow the person's hairstyle.\n\nRecreate the person's original clothing entirely from knitted or crocheted fabric while preserving the realistic design, fit, tailoring, seams, collars, buttons, pockets, wrinkles, layered garments, and accessories. Every garment should clearly appear handcrafted from yarn with visible stitches, woven fibers, knitted patterns, crochet loops, ribbing, cable knit textures, and soft fabric folds.\n\nConstruct the entire environment from yarn and textile materials. Trees should have knitted trunks and pom-pom foliage, clouds should be fluffy wool, buildings should resemble stitched fabric structures, flowers should be crocheted, grass should consist of loose yarn fibers, rocks should be felted wool, and every background object should maintain the handcrafted textile aesthetic.\n\nUse premium wool, cotton yarn, felt, crochet, embroidery, knitted fabric, woven textiles, and soft fiber materials throughout the scene. Showcase realistic yarn fibers, stitch patterns, fabric weave, knitted loops, crochet detailing, embroidery thread, felt textures, and handcrafted imperfections that celebrate traditional textile craftsmanship.\n\nIlluminate the artwork with soft diffused lighting that enhances the rich textile textures, soft fibers, knitted depth, and handcrafted details. Use realistic contact shadows, shallow depth of field, premium studio photography, elegant composition, and photorealistic rendering that emphasizes the warmth and tactile beauty of yarn art.\n\nHyper-realistic handcrafted yarn artwork, knitted and crocheted craftsmanship, authentic wool fibers, embroidered details, premium textile materials, visible stitches, woven textures, felted surfaces, layered fabric construction, exceptional realism, faithful identity preservation, cozy handcrafted aesthetic, professional studio photography, every subject and object made entirely from yarn and textile materials, no plastic, no metal, no wood, no stone, no paper, no painted surfaces, no text, no logos, no watermarks, and no visual defects.",
+    model: DEFAULT_MODEL,
+    enabled: true,
+    premium: false,
+  },
+  vinyl: {
+    id: 'vinyl',
+    label: 'Vinyl',
+    categoryId: '3d-characters',
+    description:
+      'Premium designer vinyl figurine collectible with stylized proportions and studio product photography',
+    prompt:
+      "Preserve the uploaded person's identity exactly. Transform the uploaded person into a premium designer vinyl figurine, faithfully preserving their recognizable facial features, hairstyle, facial structure, expression, age, clothing, accessories, and distinctive characteristics while reimagining them as a high-end collectible art toy.\n\nSculpt the entire figure with elegant stylized proportions typical of premium designer vinyl collectibles. The head should be slightly enlarged, the body simplified yet well-balanced, and the limbs smoothly proportioned while maintaining the person's unmistakable identity. The overall appearance should be charming, expressive, and collectible without becoming cartoonishly exaggerated.\n\nFaithfully recreate every facial feature—including the eyes, nose, lips, ears, eyebrows, hairstyle, facial hair (if present), and accessories such as glasses, hats, jewellery, or watches—with clean sculpted forms and smooth vinyl contours. Preserve the person's unique likeness while subtly simplifying small details into premium toy-quality sculpting.\n\nRecreate the person's original clothing exactly, preserving the realistic design, fit, tailoring, folds, seams, collars, buttons, zippers, pockets, layered garments, shoes, and accessories. Every garment should be expertly sculpted as molded vinyl while retaining the appearance of real clothing through refined sculptural detail.\n\nThe figurine should be manufactured from premium vinyl with smooth molded surfaces, subtle satin and semi-gloss finishes, realistic injection-molded construction, crisp sculpted details, clean part separation lines, precision paint application, and exceptional craftsmanship. The figure should resemble a genuine limited-edition designer collectible sold in premium art toy galleries.\n\nPosition the figurine standing naturally on a simple round display base that complements the figure without distracting from it. The pose should feel balanced, confident, and display-ready.\n\nPresent the figurine in a clean minimalist studio environment that keeps the collectible as the unmistakable focal point. The background should remain simple and uncluttered.\n\nIlluminate the figurine with soft professional studio lighting that enhances the vinyl material, subtle reflections, sculpted details, realistic paint finish, and premium craftsmanship. Use realistic contact shadows, shallow depth of field, premium commercial product photography, elegant composition, and photorealistic rendering.\n\nHyper-realistic designer vinyl collectible, premium art toy, authentic vinyl materials, smooth molded surfaces, precision paint application, realistic manufacturing quality, exceptional sculptural craftsmanship, faithful identity preservation, luxury collectible photography, clean minimalist composition, no packaging, no branding, no logos, no text, no watermarks, and no visual defects.",
+    model: NANO_BANANA_2,
+    enabled: true,
+    premium: false,
+  },
+  plush: {
+    id: 'plush',
+    label: 'Plush',
+    categoryId: '3d-characters',
+    description:
+      'Adorable handcrafted plush toy with soft stuffed fabrics and a cozy textile world',
+    prompt:
+      "Preserve the uploaded person's identity exactly. Transform the uploaded person into an adorable handcrafted plush toy, faithfully preserving their recognizable facial features, hairstyle, facial structure, expression, age, clothing, accessories, and distinctive characteristics while recreating the entire figure as a premium stuffed plush collectible.\n\nConstruct the entire person from soft plush fabrics filled with realistic stuffing, giving the figure a cuddly, rounded appearance with gentle proportions and a huggable feel. Every facial feature—including the eyes, nose, lips, ears, eyebrows, hairstyle, facial hair (if present), clothing, and accessories—should be recreated using embroidered stitching, appliqué fabric, plush textures, and carefully sewn construction while maintaining the person's unmistakable identity.\n\nRecreate the person's original clothing exactly, preserving the realistic design, fit, tailoring, seams, collars, buttons, zippers, pockets, cuffs, wrinkles, layered garments, shoes, and accessories. Every garment should be handcrafted from soft fabric, felt, fleece, velvet, or plush textiles, with visible stitching, embroidered details, quilted textures, and realistic fabric construction while remaining unmistakably soft and stuffed.\n\nEvery visible element in the composition—including furniture, plants, buildings, trees, clouds, ground, and all surrounding objects—should also be made entirely from plush fabrics, felt, stuffing, and stitched textiles. Nothing should appear as plastic, metal, wood, stone, paper, or realistic natural materials. The entire world should share a consistent handcrafted plush aesthetic.\n\nUse premium soft fabrics with realistic fleece, velvet, felt, microfiber, cotton, and plush textures. Include visible stitched seams, embroidered details, fabric grain, soft wrinkles, padded contours, quilted sections, plush pile, and gentle handcrafted imperfections that enhance realism.\n\nPosition the plush character naturally within a fully plush-crafted environment that complements the subject while keeping them as the primary focus. The composition should feel warm, cozy, playful, and handcrafted.\n\nIlluminate the scene with soft diffused studio lighting that enhances the fabric textures, stitched details, fluffy surfaces, and soft rounded forms. Use realistic contact shadows, shallow depth of field, premium professional photography, elegant composition, and photorealistic rendering that emphasizes the tactile beauty of plush materials.\n\nHyper-realistic handcrafted plush toy, authentic stuffed fabric construction, premium plush materials, realistic embroidered details, visible stitched seams, soft padded textures, exceptional craftsmanship, faithful identity preservation, cozy handcrafted aesthetic, premium studio photography, every subject and object made entirely from plush fabric and textile materials, no plastic, no metal, no wood, no stone, no paper, no rigid materials, no text, no logos, no watermarks, and no visual defects.",
+    model: NANO_BANANA_2,
+    enabled: true,
+    premium: false,
+  },
+  bobblehead: {
+    id: 'bobblehead',
+    label: 'Bobblehead',
+    categoryId: '3d-characters',
+    description:
+      'Premium bobblehead collectible with oversized spring-mounted head and hand-painted finish',
+    prompt:
+      "Preserve the uploaded person's identity exactly. Transform the uploaded person into a premium bobblehead collectible figurine, faithfully preserving their recognizable facial features, hairstyle, facial structure, expression, age, clothing, accessories, and distinctive characteristics while reimagining them as a professionally manufactured collectible.\n\nSculpt the figure with classic bobblehead proportions, featuring an oversized head approximately two to three times larger than natural proportion, mounted on a visible spring or hidden bobble mechanism above a compact, realistically proportioned body. The head should appear slightly heavier than the body, emphasizing the iconic bobblehead aesthetic while maintaining perfect balance.\n\nFaithfully recreate every facial feature—including the eyes, eyebrows, nose, lips, ears, hairstyle, facial hair (if present), glasses, hats, jewellery, and accessories—with exceptional sculptural accuracy. Preserve the person's identity with remarkable realism while subtly simplifying fine details to resemble a premium hand-painted collectible. The face should remain expressive, lifelike, and instantly recognizable.\n\nRecreate the person's original clothing exactly, preserving the realistic design, fit, tailoring, folds, seams, collars, buttons, zippers, pockets, cuffs, wrinkles, layered garments, shoes, and accessories. Every garment should be expertly sculpted with crisp details and professionally hand-painted finishes while retaining the appearance of real clothing.\n\nThe figurine should be manufactured from premium resin or vinyl with smooth molded surfaces, precise sculptural detailing, subtle satin finishes, realistic paint application, clean part lines, and exceptional collectible quality. The head should clearly appear capable of bobbling while remaining securely attached to the body.\n\nPosition the figure standing naturally on a premium display base that complements the subject without distracting from the collectible. The base should feel professionally designed and suitable for display.\n\nPresent the bobblehead in a clean minimalist studio environment that keeps the collectible as the unmistakable focal point.\n\nIlluminate the figurine with soft professional studio lighting that enhances the sculpted details, painted surfaces, realistic materials, and premium craftsmanship. Use realistic contact shadows, shallow depth of field, premium commercial product photography, elegant composition, and photorealistic rendering.\n\nHyper-realistic premium bobblehead collectible, oversized spring-mounted head, authentic collectible craftsmanship, realistic sculpted likeness, premium hand-painted finish, professional manufacturing quality, faithful identity preservation, luxury product photography, elegant minimalist composition, no packaging, no branding, no logos, no text, no watermarks, and no visual defects.",
+    model: SEEDREAM_4_5,
+    enabled: true,
+    premium: false,
+  },
   miniature: {
     id: 'miniature',
     label: 'Miniature',
@@ -965,7 +1051,7 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
   },
   'plastic-toy-v1': {
     id: 'plastic-toy-v1',
-    label: 'Plastic Toy',
+    label: 'Plastic Toy V1',
     categoryId: '3d-characters',
     description:
       'Premium stylized plastic toy render preserving the original scene, pose, and composition',
@@ -977,7 +1063,7 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
   },
   'plastic-toy-v2': {
     id: 'plastic-toy-v2',
-    label: 'Plastic Toy',
+    label: 'Plastic Toy V2',
     categoryId: '3d-characters',
     description:
       'Premium stylized plastic toy render preserving the original scene, pose, and composition',
@@ -1049,7 +1135,7 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
   editorial: {
     id: 'editorial',
     label: 'Editorial',
-    categoryId: 'caricatures',
+    categoryId: 'art',
     description:
       'Sophisticated magazine editorial caricature with ink linework and watercolor washes',
     prompt:
@@ -1090,13 +1176,67 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
   },
   carc1: {
     id: 'carc1',
-    label: 'Carc1',
+    label: 'Caricature 1',
     categoryId: 'caricatures',
     description:
       'Full-body stylized 3D caricature with oversized head, slim proportions, and premium character shading',
     prompt:
       'Using the uploaded photo as the sole identity reference, create a full-body stylized 3D caricature that faithfully preserves the person\'s recognizable facial features, body type, skin tone, ethnicity, hairstyle, facial hair, clothing, footwear, and accessories. The character should unmistakably resemble the person in the reference photo. Maintain a clean studio composition with the character standing upright in a relaxed pose, facing forward, with the entire body visible from head to toe. Apply a cohesive stylized character design with: An oversized head (approximately 1.8–2.2× realistic size), A very long, slim neck, A smaller, simplified torso, Long, thin arms and legs, Large expressive hands, Slightly oversized shoes, Gentle exaggeration of the person\'s natural facial features (nose, ears, jawline, cheeks, eyes, lips, eyebrows) while preserving identity, Expressive but believable proportions. Preserve the person\'s actual: race and skin tone, facial structure, hairstyle, facial hair, age appearance, body build (slim, average, muscular, heavy-set, etc.), clothing style, colors, textures and logos (unless copyright-safe replacements are required), accessories. Render using premium stylized 3D character artwork with: physically based materials, soft cinematic lighting, subtle skin texture, realistic fabric folds, clean matte surfaces, high-quality sculpted details, smooth stylized anatomy, slightly enlarged eyes with expressive brows. The expression should be natural and personality-driven rather than exaggerated into comedy. Keep the background completely transparent with no floor, shadows, props, or scenery. The final image should resemble a collectible animated film character or high-end stylized game character while remaining an unmistakable caricature of the person in the uploaded photograph.',
     model: SEEDREAM_4,
+    enabled: true,
+    premium: false,
+  },
+  carc2: {
+    id: 'carc2',
+    label: 'Caricature 2',
+    categoryId: 'caricatures',
+    description: 'Hilarious caricature with exaggerated facial features',
+    prompt: 'create a hilarious caricature of the subject, exaggerated facial features',
+    model: NANO_BANANA_2,
+    enabled: true,
+    premium: false,
+  },
+  carc3: {
+    id: 'carc3',
+    label: 'Caricature 3',
+    categoryId: 'caricatures',
+    description:
+      'Hilarious caricature that exaggerates the subject’s most distinctive facial proportions',
+    prompt:
+      "create a hilarious caricature of the subject, Analyze the subject's naturally distinctive facial proportions and exaggerate their unique characteristics rather than applying generic oversized eyes or a uniformly enlarged head. Preserve identity while amplifying the person's most recognizable features in a humorous, flattering, and expressive way.",
+    model: NANO_BANANA_2,
+    enabled: true,
+    premium: false,
+  },
+  carc4: {
+    id: 'carc4',
+    label: 'Caricature 4',
+    categoryId: 'caricatures',
+    description:
+      'Hilarious caricature that exaggerates the subject’s most distinctive facial proportions',
+    prompt:
+      "create a hilarious caricature of the subject, Analyze the subject's naturally distinctive facial proportions and exaggerate their unique characteristics rather than applying generic oversized eyes or a uniformly enlarged head. Preserve identity while amplifying the person's most recognizable features in a humorous, flattering, and expressive way.",
+    model: NANO_BANANA_2,
+    enabled: true,
+    premium: false,
+  },
+  carc5: {
+    id: 'carc5',
+    label: 'Caricature 5',
+    categoryId: 'caricatures',
+    description: 'Hilarious caricature with exaggerated facial features',
+    prompt: 'create a hilarious caricature of the subject, exaggerated facial features',
+    model: SEEDREAM_4_5,
+    enabled: true,
+    premium: false,
+  },
+  carc6: {
+    id: 'carc6',
+    label: 'Caricature 6',
+    categoryId: 'caricatures',
+    description: 'Hilarious caricature with exaggerated facial features',
+    prompt: 'create a hilarious caricature of the subject, exaggerated facial features',
+    model: NANO_BANANA,
     enabled: true,
     premium: false,
   },
