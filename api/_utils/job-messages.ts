@@ -3,11 +3,28 @@
 const CONTENT_POLICY_INLINE =
   "This photo couldn't be used. Try a different picture — false alarms happen sometimes.";
 
+const PROVIDER_OUTAGE_MESSAGE =
+  'Our image provider is having a temporary issue. Please try again in a few minutes.';
+
+function isProviderOutageError(lower: string): boolean {
+  return (
+    lower.includes('internal server error') ||
+    lower.includes('service unavailable') ||
+    lower.includes('bad gateway') ||
+    lower.includes('gateway timeout') ||
+    /"status"\s*:\s*50[0234]/.test(lower)
+  );
+}
+
 export function humanizeJobError(message: string | null | undefined): string | null {
   const raw = String(message || '').trim();
   if (!raw) return null;
 
   const lower = raw.toLowerCase();
+
+  if (isProviderOutageError(lower)) {
+    return PROVIDER_OUTAGE_MESSAGE;
+  }
 
   if (
     lower.includes('content_not_allowed') ||

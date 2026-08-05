@@ -323,6 +323,7 @@ Real errors (e.g. failed generation) appear via `captureAppError` in `App.js`.
 | Offline at launch | Top banner appears; default styles load; no blocking dialog |
 | Gradle `com.facebook.react.settings` / Java `25` error | Set `JAVA_HOME` to JDK 17; use `build-apk-local.ps1` (auto-detects) |
 | Sentry Issues page empty | Confirm `EXPO_PUBLIC_SENTRY_ENABLED=true` in `.env`, rebuild APK; check **react-native** project (not web) |
+| `(NOBRIDGE) ERROR API error: GenerationFailedError` | Job `failed` on server (usually Replicate). Metro `[API error detail]` → `rawErrorMessage`; check [Replicate Status](https://status.replicate.com/). Users see provider-outage copy when `rawErrorMessage` is a 5xx / “Internal server error” JSON |
 
 ---
 

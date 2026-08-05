@@ -720,6 +720,14 @@ function AppContent({ fontsLoaded }) {
           }
 
           console.error('API error:', err);
+          if (err?.rawErrorMessage || err?.jobId) {
+            console.error('[API error detail]', {
+              name: err?.name,
+              jobId: err?.jobId ?? null,
+              styleId: err?.styleId ?? styleId ?? null,
+              rawErrorMessage: err?.rawErrorMessage ?? null,
+            });
+          }
           if (!/invalid_style_id/i.test(errorMessage)) {
             captureAppError(err, {
               flow: 'generate',

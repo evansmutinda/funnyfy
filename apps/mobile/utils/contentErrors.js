@@ -45,6 +45,19 @@ export const NSFW_INLINE_MESSAGE =
 const GENERIC_RETRY = 'Something went wrong. Please try again.';
 const GENERATION_RETRY = "We couldn't create your caricature this time. Please try again.";
 const GENERATION_SOFT = 'Something went wrong while creating your caricature. Please try again.';
+const PROVIDER_OUTAGE_MESSAGE =
+  'Our image provider is having a temporary issue. Please try again in a few minutes.';
+
+/** Replicate / upstream 5xx (e.g. {"detail":"Internal server error","status":500}). */
+function isProviderOutageError(lower) {
+  return (
+    lower.includes('internal server error') ||
+    lower.includes('service unavailable') ||
+    lower.includes('bad gateway') ||
+    lower.includes('gateway timeout') ||
+    /"status"\s*:\s*50[0234]/.test(lower)
+  );
+}
 
 /**
  * Map technical API / server messages to user-friendly copy.
@@ -59,6 +72,10 @@ export function humanizeApiError(message) {
   }
 
   const lower = raw.toLowerCase();
+
+  if (isProviderOutageError(lower)) {
+    return PROVIDER_OUTAGE_MESSAGE;
+  }
 
   if (
     lower.includes('invalid response') ||
