@@ -240,6 +240,7 @@ export const STYLE_CARD_IMAGE_CARC12 = require('./assets/comparisons/tiles/after
 export const STYLE_CARD_IMAGE_CARC13 = require('./assets/comparisons/tiles/after/caricature/carc13.jpg');
 export const STYLE_CARD_IMAGE_CARC14 = require('./assets/comparisons/tiles/after/caricature/carc14.jpg');
 export const STYLE_CARD_IMAGE_CARC15 = require('./assets/comparisons/tiles/after/caricature/carc15.jpg');
+export const STYLE_CARD_IMAGE_CARC16 = require('./assets/comparisons/tiles/after/caricature/carc16.jpg');
 export const STYLE_CARD_IMAGE_3D_BD = require('./assets/comparisons/tiles/after/caricature/3dbd.jpg');
 export const STYLE_CARD_IMAGE_3D = require('./assets/comparisons/tiles/after/caricature/3d.jpg');
 export const STYLE_CARD_IMAGE_3DCLAY = require('./assets/comparisons/tiles/after/3d/3dclay.jpg');
@@ -378,6 +379,7 @@ const STYLE_IMAGE_BY_ID = {
   carc13: STYLE_CARD_IMAGE_CARC13,
   carc14: STYLE_CARD_IMAGE_CARC14,
   carc15: STYLE_CARD_IMAGE_CARC15,
+  carc16: STYLE_CARD_IMAGE_CARC16,
   '3d-bd': STYLE_CARD_IMAGE_3D_BD,
   '3d': STYLE_CARD_IMAGE_3D,
   '3dclay': STYLE_CARD_IMAGE_3DCLAY,
