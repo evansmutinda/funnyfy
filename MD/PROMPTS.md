@@ -8,7 +8,7 @@ Regenerate this file after prompt changes:
 node scripts/generate-prompts-md.js
 ```
 
-**Last generated:** 2026-08-06 · **128 enabled** · **1 disabled** in LEGACY_STYLES
+**Last generated:** 2026-08-06 · **129 enabled** · **1 disabled** in LEGACY_STYLES
 
 Prompts are server-side only — the mobile app never bundles them. When adding a style, copy/adapt a prompt here, then add it to `LEGACY_STYLES` and deploy staging.
 
@@ -262,6 +262,16 @@ Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd pic
 
 ```
 Using the 1st picture as a style reference and the 2nd picture as the subject: switch the face treatment of the 2nd picture's subject to duplicate the overall caricature style of the 1st picture. Caricaturize the subject's face to match the style of the 1st picture while maintaining the 2nd subject's overall facial features, race, and sex. Maintain the caricature cartoon style. Don't add the cigarette.
+```
+
+#### `carc13` — Caricature 13
+
+- **Category:** caricatures
+- **Model:** NANO_BANANA_2
+- **Description:** Style-matched caricature face transfer — applies a cartoon template look while keeping race, sex, clothing, and facial identity
+
+```
+Using the 1st picture as a style reference and the 2nd picture as the subject: switch the face treatment of the 2nd picture's subject to duplicate the overall caricature style of the 1st picture. Caricaturize the subject's face to match the style of the 1st picture while maintaining the 2nd subject's overall facial features, race, and sex. Maintain the caricature cartoon style. Don't add the cigarette. Maintain the 2nd subject's clothing. Use a solid colorful background.
 ```
 
 #### `3d-bd` — 3D BD
