@@ -1457,7 +1457,7 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     description:
       'Style-matched caricature with solid colorful background — keeps exaggerated features, clothing, and facial identity',
     prompt:
-      "Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Set a solid colorful background. If the subject is solo on the 2nd picture, do not add any other characters. Keep the 2nd subject's clothes if they have any, include pants. No text. Maintain the 1st picture's exaggerated features. Maintain the 2nd picture's facial features. Keep gender on the 2nd picture in mind. Don't add the tattoo.",
+      "Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Set a solid colorful background. If the subject is solo on the 2nd picture, do not add any other characters. Keep the 2nd subject's clothes if they have any, include pants. No text. Maintain the 1st picture's exaggerated features. Maintain the 2nd picture's facial features. Keep gender on the 2nd picture in mind. Don't add the tattoo, glasses and chain.",
     model: NANO_BANANA_2,
     referenceImage: 'style-refs/carc22.jpg',
     enabled: true,
