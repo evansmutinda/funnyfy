@@ -1355,7 +1355,7 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     prompt:
       "Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Maintain the background of the 1st picture. If the subject is solo on the 2nd picture, do not add any other characters. No text. Don't add the rings. Maintain the 1st picture's exaggerated features.",
     model: NANO_BANANA_2,
-    referenceImage: 'style-refs/carc14.jpg',
+    referenceImage: 'style-refs/carc14.webp',
     enabled: true,
     premium: false,
   },
