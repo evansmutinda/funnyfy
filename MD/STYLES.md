@@ -168,7 +168,7 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 | `handd` | Hand-Drawn | caricatures | nano-banana | ✅ |
 | `editorial` | Editorial | art | nano-banana | ✅ |
 | `exaggerated` | Exaggerated | caricatures | nano-banana | ✅ |
-| `watercolor` | Watercolor | caricatures | seedream-4 | ✅ |
+| `watercolor` | Watercolor | cartoons | seedream-4 | ✅ |
 | `carc1` | Caricature 1 | caricatures | seedream-4 | ✅ |
 | `carc2` | Caricature 2 | caricatures | nano-banana-2 | ✅ |
 | `mugface` | Mugface | caricatures | nano-banana-2 (+ style ref) | ✅ |
@@ -186,7 +186,7 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 | `tiny-muscle-v1` | Tiny Muscle V1 | caricatures | seedream-4.5 | ✅ |
 | `tiny-muscle-v2` | Tiny Muscle V2 | caricatures | nano-banana | ✅ |
 
-**Note:** `watercolor` (caricatures) and `water-color` (paintings) are different styles.
+**Note:** `watercolor` (cartoons) and `water-color` (paintings) are different styles.
 
 ---
 

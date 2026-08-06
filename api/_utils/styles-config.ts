@@ -1195,7 +1195,7 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
   watercolor: {
     id: 'watercolor',
     label: 'Watercolor',
-    categoryId: 'caricatures',
+    categoryId: 'cartoons',
     description: 'Watercolor caricature with soft painterly washes and stylized shading',
     prompt: 'Make this a Watercolor caricature',
     model: SEEDREAM_4,

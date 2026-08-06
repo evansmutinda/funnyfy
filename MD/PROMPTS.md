@@ -154,16 +154,6 @@ Using the uploaded photo as the visual reference, create a hand-drawn editorial 
 Make this an Exaggerated 3d cartoon caricature
 ```
 
-#### `watercolor` — Watercolor
-
-- **Category:** caricatures
-- **Model:** SEEDREAM_4
-- **Description:** Watercolor caricature with soft painterly washes and stylized shading
-
-```
-Make this a Watercolor caricature
-```
-
 #### `carc1` — Caricature 1
 
 - **Category:** caricatures
@@ -494,6 +484,16 @@ make this a Comic Book Style cartoon
 
 ```
 make this a Comic Book Style cartoon
+```
+
+#### `watercolor` — Watercolor
+
+- **Category:** cartoons
+- **Model:** SEEDREAM_4
+- **Description:** Watercolor caricature with soft painterly washes and stylized shading
+
+```
+Make this a Watercolor caricature
 ```
 
 ### Paintings
