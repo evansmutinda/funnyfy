@@ -238,7 +238,7 @@ Run `npm run build-comparison-assets` after adding or replacing source files. Fo
 | `carc13` | `before/man6.png` | `after/caricature/carc13.jpeg` |
 | `carc14` | `before/lady4.png` | `after/caricature/carc14.jpeg` |
 | `carc15` | `before/lady9.png` | `after/caricature/carc15.jpeg` |
-| `carc16` | `before/lady8.png` | `after/caricature/carc16.jpeg` |
+| `carc16` | `before/man3.png` | `after/caricature/carc16.jpeg` |
 | `carc17` | `before/dude.png` | `after/caricature/carc17.jpeg` |
 | `carc18` | `before/teen.png` | `after/caricature/carc18.jpeg` |
 | `carc19` | `before/dude.png` | `after/caricature/carc19.jpeg` |
