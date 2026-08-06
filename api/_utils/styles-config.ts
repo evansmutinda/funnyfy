@@ -1411,6 +1411,19 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     enabled: true,
     premium: false,
   },
+  carc19: {
+    id: 'carc19',
+    label: 'Caricature 19',
+    categoryId: 'caricatures',
+    description:
+      'Style-matched caricature into a template scene — keeps the reference background, clothing, and exaggerated features while preserving subject identity',
+    prompt:
+      "Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Maintain the background of the 1st photo. If the subject is solo on the 2nd picture, do not add any other characters. Keep the 2nd subject's clothes if they have any, including pants. No text. Don't add the basketball. Maintain the 1st picture's exaggerated features.",
+    model: NANO_BANANA_2,
+    referenceImage: 'style-refs/carc19.webp',
+    enabled: true,
+    premium: false,
+  },
   '3d-bd': {
     id: '3d-bd',
     label: '3D BD',
