@@ -33,7 +33,7 @@ const CURATED_PAIR_PATHS = {
   },
   'watercolor': {
     before: 'before/couple.png',
-    after: 'after/caricature/Watercolor-c.jpg',
+    after: 'after/cartoons/Watercolor-c.jpg',
   },
   'carc1': {
     before: 'before/toon.png',

@@ -211,7 +211,7 @@ Run `npm run build-comparison-assets` after adding or replacing source files. Fo
 | `handd` | `before/hdd.png` | `after/caricature/handd.jpg` |
 | `editorial` | `before/man.png` | `after/Art/editorial.jpeg` |
 | `exaggerated` | `before/man2.png` | `after/caricature/Exaggerated.jpeg` |
-| `watercolor` | `before/couple.png` | `after/caricature/Watercolor-c.jpg` |
+| `watercolor` | `before/couple.png` | `after/cartoons/Watercolor-c.jpg` |
 | `carc1` | `before/toon.png` | `after/caricature/carc1.jpg` |
 | `carc2` | `before/man6.png` | `after/caricature/carc2.jpeg` |
 | `mugface` | `before/man5.png` | `after/caricature/mugface.jpeg` |
