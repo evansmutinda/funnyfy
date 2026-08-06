@@ -8,7 +8,7 @@ Regenerate this file after prompt changes:
 node scripts/generate-prompts-md.js
 ```
 
-**Last generated:** 2026-08-06 · **136 enabled** · **1 disabled** in LEGACY_STYLES
+**Last generated:** 2026-08-06 · **137 enabled** · **1 disabled** in LEGACY_STYLES
 
 Prompts are server-side only — the mobile app never bundles them. When adding a style, copy/adapt a prompt here, then add it to `LEGACY_STYLES` and deploy staging.
 
@@ -342,6 +342,16 @@ Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd pic
 
 ```
 Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Maintain the background of the 1st photo. If the subject is solo on the 2nd picture, do not add any other characters. Keep the 2nd subject's clothes if they have any, include pants. No text. Maintain the 1st picture's exaggerated features. Maintain the 2nd picture's facial features. Keep gender on the 2nd picture in mind.
+```
+
+#### `carc21` — Caricature 21
+
+- **Category:** caricatures
+- **Model:** NANO_BANANA_2
+- **Description:** Style-matched caricature with solid colorful background — keeps exaggerated features, clothing, and facial identity
+
+```
+Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Set a solid colorful background. If the subject is solo on the 2nd picture, do not add any other characters. Keep the 2nd subject's clothes if they have any, include pants. No text. Maintain the 1st picture's exaggerated features. Maintain the 2nd picture's facial features. Keep gender on the 2nd picture in mind. Don't add the chain and ring. Don't copy the left hand gesture.
 ```
 
 #### `3d-bd` — 3D BD
