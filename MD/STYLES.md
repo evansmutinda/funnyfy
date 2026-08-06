@@ -178,6 +178,7 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 | `carc6` | Caricature 6 | caricatures | nano-banana | ✅ |
 | `carc7` | Caricature 7 | caricatures | nano-banana-2 (+ style ref) | ✅ |
 | `carc8` | Caricature 8 | caricatures | nano-banana-2 (+ style ref) | ✅ |
+| `carc9` | Caricature 9 | caricatures | nano-banana-2 (+ style ref) | ✅ |
 | `3d-bd` | 3D BD | caricatures | nano-banana-2 | ✅ |
 | `3d` | 3D | caricatures | seedream-4.5 | ✅ |
 | `dancing-carc` | Dancing | caricatures | nano-banana-2 | ✅ |
@@ -219,6 +220,7 @@ Run `npm run build-comparison-assets` after adding or replacing source files. Fo
 | `carc6` | `before/lady7.png` | `after/caricature/carc6.jpeg` |
 | `carc7` | `before/dude2.png` | `after/caricature/carc7.jpeg` |
 | `carc8` | `before/man6.png` | `after/caricature/carc8.jpeg` |
+| `carc9` | `before/man9.png` | `after/caricature/carc9.jpeg` |
 | `3d-bd` | `before/lady.png` | `after/caricature/3dbd.jpeg` |
 | `3d` | `before/lady6.png` | `after/caricature/3d.jpg` |
 | `dancing-carc` | `before/lady6.png` | `after/caricature/dancing-carc.jpeg` |
