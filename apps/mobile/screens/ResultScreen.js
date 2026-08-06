@@ -476,11 +476,6 @@ export default function ResultScreen({
                 <Text style={styles.resultLoadingSubtitle}>
                   {progressCopy.subtitle}
                 </Text>
-                {progressCopy.statusHint ? (
-                  <Text style={styles.resultLoadingStatusHint}>
-                    {progressCopy.statusHint}
-                  </Text>
-                ) : null}
                 <View style={styles.resultLoadingDots}>
                   {Array.from({ length: JOB_PROGRESS_PHASE_COUNT }).map((_, index) => (
                     <View
