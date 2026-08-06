@@ -232,7 +232,7 @@ Run `npm run build-comparison-assets` after adding or replacing source files. Fo
 | `carc13` | `before/man6.png` | `after/caricature/carc13.jpeg` |
 | `carc14` | `before/lady4.png` | `after/caricature/carc14.jpeg` |
 | `carc15` | `before/lady9.png` | `after/caricature/carc15.jpeg` |
-| `carc16` | `before/lady9.png` | `after/caricature/carc16.jpeg` |
+| `carc16` | `before/lady8.png` | `after/caricature/carc16.jpeg` |
 | `3d-bd` | `before/lady.png` | `after/caricature/3dbd.jpeg` |
 | `3d` | `before/lady6.png` | `after/caricature/3d.jpg` |
 | `dancing-carc` | `before/lady6.png` | `after/caricature/dancing-carc.jpeg` |

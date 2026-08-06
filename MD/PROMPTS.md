@@ -301,7 +301,7 @@ Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd pic
 - **Description:** Style-matched caricature into a template scene — keeps the reference background and exaggerated features while preserving subject clothing and identity
 
 ```
-Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Maintain the background of the 1st picture. If the subject is solo on the 2nd picture, do not add any other characters. No text. Don't add the rings. Maintain the 1st picture's exaggerated features. Keep the 2nd subject's clothes if they have any.
+Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Maintain the background of the 1st picture. If the subject is solo on the 2nd picture, do not add any other characters. No text. Don't add the rings. Maintain the 1st picture's exaggerated features. Keep the 2nd subject's clothes if they have any. Keep in mind the 2nd subject(s) sex.
 ```
 
 #### `3d-bd` — 3D BD
