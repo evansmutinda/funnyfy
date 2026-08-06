@@ -1398,6 +1398,19 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     enabled: true,
     premium: false,
   },
+  carc18: {
+    id: 'carc18',
+    label: 'Caricature 18',
+    categoryId: 'caricatures',
+    description:
+      'Style-matched caricature into a template scene — keeps the reference background and exaggerated features while preserving subject identity',
+    prompt:
+      "Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Maintain the background of the 1st photo. If the subject is solo on the 2nd picture, do not add any other characters. No text. Don't add the earrings. Maintain the 1st picture's exaggerated features.",
+    model: NANO_BANANA_2,
+    referenceImage: 'style-refs/carc18.webp',
+    enabled: true,
+    premium: false,
+  },
   '3d-bd': {
     id: '3d-bd',
     label: '3D BD',
