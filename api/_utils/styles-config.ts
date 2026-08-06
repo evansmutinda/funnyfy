@@ -1372,19 +1372,6 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     enabled: true,
     premium: false,
   },
-  carc16: {
-    id: 'carc16',
-    label: 'Caricature 16',
-    categoryId: 'caricatures',
-    description:
-      'Style-matched caricature into a template scene — keeps the reference background and exaggerated features while preserving subject clothing and identity',
-    prompt:
-      "Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Maintain the background of the 1st picture. If the subject is solo on the 2nd picture, do not add any other characters. No text. Don't add the rings. Maintain the 1st picture's exaggerated features. Keep the 2nd subject's clothes if they have any. Keep in mind the 2nd subject(s) sex.",
-    model: NANO_BANANA_2,
-    referenceImage: 'style-refs/carc16.jpg',
-    enabled: true,
-    premium: false,
-  },
   carc17: {
     id: 'carc17',
     label: 'Caricature 17',
@@ -1532,6 +1519,19 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     prompt:
       "Preserve the uploaded person's identity exactly. Transform the person into a humorous hyper-muscular cartoon caricature while maintaining their recognizable face, hairstyle, skin tone, facial hair, and personality.\n\nExaggerate characteristic facial features to the extreme: enlarge the head relative to the body, make facial expressions more expressive, but don't distort the person beyond recognition. Emphasize the shape of the eyes (make them huge), eyebrows, nose (make it big), lips, cheekbones, and jawline, while maintaining natural proportions and visual similarity to the reference.\n\nDramatically exaggerate the physique with enormous rounded shoulders, gigantic biceps, thick forearms, massive chest, oversized trapezius muscles, a powerful V-shaped torso, sculpted eight-pack abs, broad back, muscular thighs, and athletic calves. The proportions should be intentionally exaggerated and cartoonishly powerful while remaining visually appealing and cohesive. The body should look like an impossibly muscular comic-book hero rather than a realistic bodybuilder.\n\nPreserve the person's facial identity, but subtly enhance the expression with a confident grin, determined eyes, and strong jawline without over-distorting their unique facial features.\n\nRender smooth, clean muscle contours with glossy skin highlights, rounded anatomical forms, and premium digital illustration quality. Emphasize heroic proportions, dynamic anatomy, exaggerated strength, and energetic visual appeal. Rich colour gradients, soft studio lighting, subtle ambient occlusion, crisp edges, and high-detail digital painting with a polished commercial illustration finish. Humorous yet impressive, premium character design, ultra-detailed, vibrant, 8K quality.",
     model: NANO_BANANA,
+    enabled: true,
+    premium: false,
+  },
+  'tiny-muscle-v3': {
+    id: 'tiny-muscle-v3',
+    label: 'Tiny Muscle V3',
+    categoryId: 'caricatures',
+    description:
+      'Style-matched caricature into a template scene — keeps the reference background and exaggerated features while preserving subject clothing and identity',
+    prompt:
+      "Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Maintain the background of the 1st picture. If the subject is solo on the 2nd picture, do not add any other characters. No text. Don't add the rings. Maintain the 1st picture's exaggerated features. Keep the 2nd subject's clothes if they have any. Keep in mind the 2nd subject(s) sex.",
+    model: NANO_BANANA_2,
+    referenceImage: 'style-refs/carc16.jpg',
     enabled: true,
     premium: false,
   },

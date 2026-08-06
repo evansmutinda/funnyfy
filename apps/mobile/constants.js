@@ -240,7 +240,6 @@ export const STYLE_CARD_IMAGE_CARC12 = require('./assets/comparisons/tiles/after
 export const STYLE_CARD_IMAGE_CARC13 = require('./assets/comparisons/tiles/after/caricature/carc13.jpg');
 export const STYLE_CARD_IMAGE_CARC14 = require('./assets/comparisons/tiles/after/caricature/carc14.jpg');
 export const STYLE_CARD_IMAGE_CARC15 = require('./assets/comparisons/tiles/after/caricature/carc15.jpg');
-export const STYLE_CARD_IMAGE_CARC16 = require('./assets/comparisons/tiles/after/caricature/carc16.jpg');
 export const STYLE_CARD_IMAGE_CARC17 = require('./assets/comparisons/tiles/after/caricature/carc17.jpg');
 export const STYLE_CARD_IMAGE_CARC18 = require('./assets/comparisons/tiles/after/caricature/carc18.jpg');
 export const STYLE_CARD_IMAGE_CARC19 = require('./assets/comparisons/tiles/after/caricature/carc19.jpg');
@@ -325,6 +324,7 @@ export const STYLE_CARD_IMAGE_BOBBLEHEAD = require('./assets/comparisons/tiles/a
 export const STYLE_CARD_IMAGE_DANCING_CARC = require('./assets/comparisons/tiles/after/caricature/dancing-carc.jpg');
 export const STYLE_CARD_IMAGE_TINY_MUSCLE_V1 = require('./assets/comparisons/tiles/after/caricature/tiny-muscle1.jpg');
 export const STYLE_CARD_IMAGE_TINY_MUSCLE_V2 = require('./assets/comparisons/tiles/after/caricature/tiny-muscle2.jpg');
+export const STYLE_CARD_IMAGE_TINY_MUSCLE_V3 = require('./assets/comparisons/tiles/after/caricature/tiny-muscle3.jpg');
 export const STYLE_CARD_IMAGE_MINIATURE = require('./assets/comparisons/tiles/after/3d/miniature.jpg');
 export const STYLE_CARD_IMAGE_PLASTIC_TOY_V1 = require('./assets/comparisons/tiles/after/3d/toyv1.jpg');
 export const STYLE_CARD_IMAGE_PLASTIC_TOY_V2 = require('./assets/comparisons/tiles/after/3d/toyv2.jpg');
@@ -385,7 +385,6 @@ const STYLE_IMAGE_BY_ID = {
   carc13: STYLE_CARD_IMAGE_CARC13,
   carc14: STYLE_CARD_IMAGE_CARC14,
   carc15: STYLE_CARD_IMAGE_CARC15,
-  carc16: STYLE_CARD_IMAGE_CARC16,
   carc17: STYLE_CARD_IMAGE_CARC17,
   carc18: STYLE_CARD_IMAGE_CARC18,
   carc19: STYLE_CARD_IMAGE_CARC19,
@@ -471,6 +470,7 @@ const STYLE_IMAGE_BY_ID = {
   'dancing-carc': STYLE_CARD_IMAGE_DANCING_CARC,
   'tiny-muscle-v1': STYLE_CARD_IMAGE_TINY_MUSCLE_V1,
   'tiny-muscle-v2': STYLE_CARD_IMAGE_TINY_MUSCLE_V2,
+  'tiny-muscle-v3': STYLE_CARD_IMAGE_TINY_MUSCLE_V3,
   miniature: STYLE_CARD_IMAGE_MINIATURE,
   'plastic-toy-v1': STYLE_CARD_IMAGE_PLASTIC_TOY_V1,
   'plastic-toy-v2': STYLE_CARD_IMAGE_PLASTIC_TOY_V2,

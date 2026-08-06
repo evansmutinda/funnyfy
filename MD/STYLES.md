@@ -184,7 +184,6 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 | `carc13` | Caricature 13 | caricatures | nano-banana-2 (+ style ref) | ✅ |
 | `carc14` | Caricature 14 | caricatures | nano-banana-2 (+ style ref) | ✅ |
 | `carc15` | Caricature 15 | caricatures | nano-banana-2 (+ style ref) | ✅ |
-| `carc16` | Caricature 16 | caricatures | nano-banana-2 (+ style ref) | ✅ |
 | `carc17` | Caricature 17 | caricatures | nano-banana-2 (+ style ref) | ✅ |
 | `carc18` | Caricature 18 | caricatures | nano-banana-2 (+ style ref) | ✅ |
 | `carc19` | Caricature 19 | caricatures | nano-banana-2 (+ style ref) | ✅ |
@@ -196,6 +195,7 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 | `dancing-carc` | Dancing | caricatures | nano-banana-2 | ✅ |
 | `tiny-muscle-v1` | Tiny Muscle V1 | caricatures | seedream-4.5 | ✅ |
 | `tiny-muscle-v2` | Tiny Muscle V2 | caricatures | nano-banana | ✅ |
+| `tiny-muscle-v3` | Tiny Muscle V3 | caricatures | nano-banana-2 (+ style ref) | ✅ |
 
 **Note:** `watercolor` (cartoons) and `water-color` (paintings) are different styles.
 
@@ -238,7 +238,6 @@ Run `npm run build-comparison-assets` after adding or replacing source files. Fo
 | `carc13` | `before/man6.png` | `after/caricature/carc13.jpeg` |
 | `carc14` | `before/lady4.png` | `after/caricature/carc14.jpeg` |
 | `carc15` | `before/lady9.png` | `after/caricature/carc15.jpeg` |
-| `carc16` | `before/man3.png` | `after/caricature/carc16.jpeg` |
 | `carc17` | `before/dude.png` | `after/caricature/carc17.jpeg` |
 | `carc18` | `before/teen.png` | `after/caricature/carc18.jpeg` |
 | `carc19` | `before/dude.png` | `after/caricature/carc19.jpeg` |
@@ -250,6 +249,7 @@ Run `npm run build-comparison-assets` after adding or replacing source files. Fo
 | `dancing-carc` | `before/lady6.png` | `after/caricature/dancing-carc.jpeg` |
 | `tiny-muscle-v1` | `before/man3.png` | `after/caricature/tiny-muscle1.jpg` |
 | `tiny-muscle-v2` | `before/man3.png` | `after/caricature/tiny-muscle2.jpeg` |
+| `tiny-muscle-v3` | `before/man3.png` | `after/caricature/tiny-muscle3.jpeg` |
 | `90s-cartoon` | `before/toon.png` | `after/cartoons/toon.jpg` |
 | `chibi` | `before/chibi.png` | `after/cartoons/chibi.jpg` |
 | `classic-v1` | `before/lady4.png` | `after/cartoons/classic.jpg` |

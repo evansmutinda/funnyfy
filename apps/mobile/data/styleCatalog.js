@@ -415,7 +415,6 @@ export const CATEGORY_BY_STYLE_ID = {
   "carc13": "caricatures",
   "carc14": "caricatures",
   "carc15": "caricatures",
-  "carc16": "caricatures",
   "carc17": "caricatures",
   "carc18": "caricatures",
   "carc19": "caricatures",
@@ -428,6 +427,7 @@ export const CATEGORY_BY_STYLE_ID = {
   "mugface": "caricatures",
   "tiny-muscle-v1": "caricatures",
   "tiny-muscle-v2": "caricatures",
+  "tiny-muscle-v3": "caricatures",
 };
 
 /** Offline fallback — matches enabled legacy styles on the server */
@@ -557,7 +557,6 @@ export const DEFAULT_ENABLED_STYLES = [
   { id: "carc13", label: "Caricature 13", categoryId: "caricatures", description: "Style-matched caricature face transfer — applies a cartoon template look while keeping race, sex, clothing, and facial identity" },
   { id: "carc14", label: "Caricature 14", categoryId: "caricatures", description: "Style-matched caricature into a template scene — keeps the reference background and exaggerated features while preserving subject identity" },
   { id: "carc15", label: "Caricature 15", categoryId: "caricatures", description: "Style-matched caricature into a template scene — keeps the reference background and exaggerated features while preserving subject identity" },
-  { id: "carc16", label: "Caricature 16", categoryId: "caricatures", description: "Style-matched caricature into a template scene — keeps the reference background and exaggerated features while preserving subject clothing and identity" },
   { id: "carc17", label: "Caricature 17", categoryId: "caricatures", description: "Roman caricature style transfer — keeps subject identity, expression, clothing, and sex while applying the reference scene style" },
   { id: "carc18", label: "Caricature 18", categoryId: "caricatures", description: "Style-matched caricature into a template scene — keeps the reference background and exaggerated features while preserving subject identity" },
   { id: "carc19", label: "Caricature 19", categoryId: "caricatures", description: "Style-matched caricature into a template scene — keeps the reference background, clothing, and exaggerated features while preserving subject identity" },
@@ -570,6 +569,7 @@ export const DEFAULT_ENABLED_STYLES = [
   { id: "mugface", label: "Mugface", categoryId: "caricatures", description: "Style-matched caricature face transfer — applies a mug-style template look while keeping the subject recognizable" },
   { id: "tiny-muscle-v1", label: "Tiny Muscle V1", categoryId: "caricatures", description: "Humorous hyper-muscular cartoon caricature with oversized head and comic-book hero physique" },
   { id: "tiny-muscle-v2", label: "Tiny Muscle V2", categoryId: "caricatures", description: "Humorous hyper-muscular cartoon caricature with oversized head and comic-book hero physique" },
+  { id: "tiny-muscle-v3", label: "Tiny Muscle V3", categoryId: "caricatures", description: "Style-matched caricature into a template scene — keeps the reference background and exaggerated features while preserving subject clothing and identity" },
 ];
 
 export const HERO_STYLE_IDS = ['anime', '90s-cartoon', 'modern-anime', 'chibi-cartoon'];
