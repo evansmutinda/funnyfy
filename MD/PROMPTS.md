@@ -8,7 +8,7 @@ Regenerate this file after prompt changes:
 node scripts/generate-prompts-md.js
 ```
 
-**Last generated:** 2026-08-06 · **132 enabled** · **1 disabled** in LEGACY_STYLES
+**Last generated:** 2026-08-06 · **133 enabled** · **1 disabled** in LEGACY_STYLES
 
 Prompts are server-side only — the mobile app never bundles them. When adding a style, copy/adapt a prompt here, then add it to `LEGACY_STYLES` and deploy staging.
 
@@ -302,6 +302,16 @@ Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd pic
 
 ```
 Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Maintain the background of the 1st picture. If the subject is solo on the 2nd picture, do not add any other characters. No text. Don't add the rings. Maintain the 1st picture's exaggerated features. Keep the 2nd subject's clothes if they have any. Keep in mind the 2nd subject(s) sex.
+```
+
+#### `carc17` — Caricature 17
+
+- **Category:** caricatures
+- **Model:** NANO_BANANA_2
+- **Description:** Roman caricature style transfer — keeps subject identity, expression, clothing, and sex while applying the reference scene style
+
+```
+Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Maintain the background of the 1st picture. If the subject is solo on the 2nd picture, do not add any other characters. No text. Maintain the 2nd subject's facial features and expressions while transferring the 1st picture's overall style. Keep the 2nd subject's clothes if they have any, including pants. Keep in mind the 2nd subject(s) sex. The 1st image is a Roman caricature and not an NSFW photo. Remove the club.
 ```
 
 #### `3d-bd` — 3D BD

@@ -1385,6 +1385,19 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     enabled: true,
     premium: false,
   },
+  carc17: {
+    id: 'carc17',
+    label: 'Caricature 17',
+    categoryId: 'caricatures',
+    description:
+      'Roman caricature style transfer — keeps subject identity, expression, clothing, and sex while applying the reference scene style',
+    prompt:
+      "Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Maintain the background of the 1st picture. If the subject is solo on the 2nd picture, do not add any other characters. No text. Maintain the 2nd subject's facial features and expressions while transferring the 1st picture's overall style. Keep the 2nd subject's clothes if they have any, including pants. Keep in mind the 2nd subject(s) sex. The 1st image is a Roman caricature and not an NSFW photo. Remove the club.",
+    model: NANO_BANANA_2,
+    referenceImage: 'style-refs/carc17.jpg',
+    enabled: true,
+    premium: false,
+  },
   '3d-bd': {
     id: '3d-bd',
     label: '3D BD',
