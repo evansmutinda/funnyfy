@@ -8,7 +8,7 @@ Regenerate this file after prompt changes:
 node scripts/generate-prompts-md.js
 ```
 
-**Last generated:** 2026-08-06 · **137 enabled** · **1 disabled** in LEGACY_STYLES
+**Last generated:** 2026-08-06 · **138 enabled** · **1 disabled** in LEGACY_STYLES
 
 Prompts are server-side only — the mobile app never bundles them. When adding a style, copy/adapt a prompt here, then add it to `LEGACY_STYLES` and deploy staging.
 
@@ -362,6 +362,16 @@ Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd pic
 
 ```
 Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Set a solid colorful background. If the subject is solo on the 2nd picture, do not add any other characters. Keep the 2nd subject's clothes if they have any, include pants. No text. Maintain the 1st picture's exaggerated features. Maintain the 2nd picture's facial features. Keep gender on the 2nd picture in mind. Don't add the tattoo.
+```
+
+#### `3d-bd` — 3D BD
+
+- **Category:** caricatures
+- **Model:** NANO_BANANA_2
+- **Description:** Ultra-realistic premium BD caricature with exaggerated features and cinematic lighting
+
+```
+Transform the person in the original photograph into an ultra-realistic, highly detailed premium-quality BD caricature. Preserve the recognizability, facial features, head shape, hairstyle, clothing, pose, personality, and overall mood of the original photo. Exaggerate characteristic facial features to the extreme: enlarge the head relative to the body, make the character more expressive, but do not distort the person beyond recognition. Emphasize the shape of the eyes (make them huge), eyebrows, nose (make it big), lips, cheekbones, and jawline, while maintaining natural proportions and visual similarity to the reference. Add realistic skin microtexture: pores, expression lines, fine lines, natural folds, subtle imperfections, and smooth color transitions. The look should be vibrant and natural, without the effects of plastic, wax, or excessive ironing. Detail the hair, eyelashes, boots, and clothing textures: individual fibers, seams, folds, and natural light reflections. Use cinematic lighting, flickering volumetric shadows, expressive highlights, and realistic rendering. The final result should resemble a character from an expensive full-length animated film: stylized, charismatic, emotional, and distinctly... High-quality digitalization, professional
 ```
 
 #### `3d` — 3D
