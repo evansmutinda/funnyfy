@@ -8,7 +8,7 @@ Regenerate this file after prompt changes:
 node scripts/generate-prompts-md.js
 ```
 
-**Last generated:** 2026-08-06 · **130 enabled** · **1 disabled** in LEGACY_STYLES
+**Last generated:** 2026-08-06 · **131 enabled** · **1 disabled** in LEGACY_STYLES
 
 Prompts are server-side only — the mobile app never bundles them. When adding a style, copy/adapt a prompt here, then add it to `LEGACY_STYLES` and deploy staging.
 
@@ -275,6 +275,16 @@ Using the 1st picture as a style reference and the 2nd picture as the subject: s
 ```
 
 #### `carc14` — Caricature 14
+
+- **Category:** caricatures
+- **Model:** NANO_BANANA_2
+- **Description:** Style-matched caricature into a template scene — keeps the reference background and exaggerated features while preserving subject identity
+
+```
+Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Maintain the background of the 1st picture. If the subject is solo on the 2nd picture, do not add any other characters. No text. Don't add the rings. Maintain the 1st picture's exaggerated features.
+```
+
+#### `carc15` — Caricature 15
 
 - **Category:** caricatures
 - **Model:** NANO_BANANA_2
