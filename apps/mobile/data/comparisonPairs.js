@@ -67,6 +67,10 @@ const CURATED_PAIR_PATHS = {
     before: 'before/dude2.png',
     after: 'after/caricature/carc7.jpeg',
   },
+  'carc8': {
+    before: 'before/man6.png',
+    after: 'after/caricature/carc8.jpeg',
+  },
   '3d-bd': {
     before: 'before/lady.png',
     after: 'after/caricature/3dbd.jpeg',
