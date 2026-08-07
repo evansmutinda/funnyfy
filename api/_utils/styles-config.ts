@@ -20,7 +20,7 @@ export interface StyleConfig {
   /**
    * Optional style template image (public path or absolute URL).
    * Sent as image_input[0]; the user's photo is image_input[1].
-   * Example: `style-refs/mugface.jpg` → served from /public on Vercel.
+   * Example: `style-refs/caricatures/mugface.jpg` → served from /public on Vercel.
    */
   referenceImage?: string;
   premium?: boolean;
@@ -327,6 +327,18 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     categoryId: 'art',
     description: 'Street mural graffiti portrait of the subject',
     prompt: 'make a street mural graffiti of the subject/s',
+    model: NANO_BANANA,
+    enabled: true,
+    premium: false,
+  },
+  illustration: {
+    id: 'illustration',
+    label: 'Illustration',
+    categoryId: 'art',
+    description:
+      'Whimsical pastel storybook portrait illustration with soft hand-drawn linework and dreamy floral scenes',
+    prompt:
+      'Using the uploaded image as the visual reference, create a whimsical pastel storybook-style portrait illustration of the same subject while preserving her recognizable facial structure, proportions, hairstyle, expression, and overall youthful appearance. Maintain the soft hand-drawn aesthetic with delicate linework, subtle watercolor-style shading, large expressive eyes, rosy cheeks, and smooth rounded facial features.\n\nThe composition should feel dynamic and varied rather than identical to the reference. Change the pose, head angle, hand placement, outfit details, floral arrangement, background elements, and scene composition creatively while staying faithful to the original artistic style. The subject can be shown interacting naturally with the environment — surrounded by blooming flowers, floating petals, vines, butterflies, seasonal plants, or dreamy decorative elements.\n\nKeep the same muted pastel color palette featuring soft coral pinks, dusty teal greens, warm creams, light peach skin tones, and gentle earthy accents. Preserve the airy, cozy, feminine illustration feel commonly seen in premium nursery art, greeting cards, and modern fairytale illustrations.',
     model: NANO_BANANA,
     enabled: true,
     premium: false,
@@ -923,6 +935,30 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     enabled: true,
     premium: false,
   },
+  chrome: {
+    id: 'chrome',
+    label: 'Chrome',
+    categoryId: 'sculptures',
+    description:
+      'Polished mirror-chrome sculpture with ultra-smooth reflective surfaces and photorealistic CGI finish',
+    prompt:
+      'Transform the uploaded subject into a polished mirror-chrome sculpture while preserving their identity and facial proportions. Render the entire subject as if sculpted from flawless reflective chrome with ultra-smooth surfaces, seamless contours, crisp specular highlights, and realistic mirror reflections. The metallic material should appear highly polished with no paint or texture, emphasizing elegant sculptural forms and a futuristic contemporary-art aesthetic. Ultra-detailed, photorealistic CGI, premium product-render quality. Chrome effect includes hair and beard.',
+    model: NANO_BANANA_2,
+    enabled: true,
+    premium: false,
+  },
+  mountain: {
+    id: 'mountain',
+    label: 'Mountain',
+    categoryId: 'sculptures',
+    description:
+      'Colossal original granite mountain monument carved with the uploaded subject(s) only, in a national-park setting',
+    prompt:
+      "Preserve the uploaded person's identity exactly. If multiple people are uploaded, preserve each person's identity exactly. Transform the uploaded subject(s) into a colossal granite mountain monument inspired by the monumental rock-carving style of a colossal American-style granite mountain monument with monumental rock-carved portraits, but create an entirely original monument. The uploaded subject(s) must be the ONLY faces carved into the mountain. Completely replace any existing or recognizable mountain carvings. Do not include George Washington, Thomas Jefferson, Theodore Roosevelt, Abraham Lincoln, or any historical figures. Do not recreate the real Mount Rushmore monument. Instead, carve only the uploaded subject(s) into a massive natural granite cliff, faithfully preserving their facial features, hairstyles, expressions, and proportions. The carvings should appear expertly sculpted from solid granite with realistic chisel marks, weathering, cracks, layered rock formations, and natural stone textures. The mountain should exist in a beautiful national-park landscape with pine trees, rocky cliffs, and dramatic blue skies. At the base of the monument, include a large scenic viewing plaza filled with tourists taking photos, pointing, walking, and admiring the monument to emphasize its immense scale. Include observation decks, railings, pathways, park signage, and natural surroundings. Cinematic wide-angle composition, ultra-photorealistic, highly detailed, realistic daylight, epic scale, clean composition, no text, no logos, no watermarks.",
+    model: NANO_BANANA,
+    enabled: true,
+    premium: false,
+  },
   wood: {
     id: 'wood',
     label: 'Wood',
@@ -1277,7 +1313,7 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     prompt:
       "Using the 1st picture as a style reference and the 2nd picture as the subject: switch the face treatment of the 2nd picture's subject to duplicate the overall caricature style of the 1st picture. Caricaturize the subject's face to match the style of the 1st picture while maintaining the 2nd subject's overall facial features, race, and sex. Maintain the caricature cartoon style.",
     model: NANO_BANANA_2,
-    referenceImage: 'style-refs/carc7.webp',
+    referenceImage: 'style-refs/caricatures/carc7.webp',
     enabled: true,
     premium: false,
   },
@@ -1290,7 +1326,7 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     prompt:
       "Using the 1st picture as a style reference and the 2nd picture as the subject: switch the face treatment of the 2nd picture's subject to duplicate the overall caricature style of the 1st picture. Caricaturize the subject's face to match the style of the 1st picture while maintaining the 2nd subject's overall facial features, race, and sex. Maintain the caricature cartoon style.",
     model: NANO_BANANA_2,
-    referenceImage: 'style-refs/carc8.jpg',
+    referenceImage: 'style-refs/caricatures/carc8.jpg',
     enabled: true,
     premium: false,
   },
@@ -1303,7 +1339,7 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     prompt:
       "Using the 1st picture as a style reference and the 2nd picture as the subject: switch the face treatment of the 2nd picture's subject to duplicate the overall caricature style of the 1st picture. Caricaturize the subject's face to match the style of the 1st picture while maintaining the 2nd subject's overall facial features, race, and sex. Maintain the caricature cartoon style. No text.",
     model: NANO_BANANA_2,
-    referenceImage: 'style-refs/carc9.jpg',
+    referenceImage: 'style-refs/caricatures/carc9.jpg',
     enabled: true,
     premium: false,
   },
@@ -1316,7 +1352,20 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     prompt:
       "Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Maintain the background of the 1st picture. If the subject is solo on the 2nd picture, do not add any other characters. No text.",
     model: NANO_BANANA_2,
-    referenceImage: 'style-refs/carc10.jpg',
+    referenceImage: 'style-refs/caricatures/carc10.jpg',
+    enabled: true,
+    premium: false,
+  },
+  carc11: {
+    id: 'carc11',
+    label: 'Caricature 11',
+    categoryId: 'caricatures',
+    description:
+      'Style-matched caricature into a template scene — keeps the reference background and artistic expression while preserving subject facial identity',
+    prompt:
+      "Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Maintain the background of the 1st picture. If the subject is solo on the 2nd picture, do not add any other characters. No text. Try as much as possible to maintain facial identity of the 2nd picture's subject(s) facial features.",
+    model: NANO_BANANA_2,
+    referenceImage: 'style-refs/caricatures/carc11.jpg',
     enabled: true,
     premium: false,
   },
@@ -1329,7 +1378,7 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     prompt:
       "Using the 1st picture as a style reference and the 2nd picture as the subject: switch the face treatment of the 2nd picture's subject to duplicate the overall caricature style of the 1st picture. Caricaturize the subject's face to match the style of the 1st picture while maintaining the 2nd subject's overall facial features, race, and sex. Maintain the caricature cartoon style. Don't add the cigarette.",
     model: NANO_BANANA_2,
-    referenceImage: 'style-refs/carc12.jpg',
+    referenceImage: 'style-refs/caricatures/carc12.jpg',
     enabled: true,
     premium: false,
   },
@@ -1342,7 +1391,7 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     prompt:
       "Using the 1st picture as a style reference and the 2nd picture as the subject: switch the face treatment of the 2nd picture's subject to duplicate the overall caricature style of the 1st picture. Caricaturize the subject's face to match the style of the 1st picture while maintaining the 2nd subject's overall facial features, race, and sex. Maintain the caricature cartoon style. Don't add the cigarette. Maintain the 2nd subject's clothing. Use a solid colorful background.",
     model: NANO_BANANA_2,
-    referenceImage: 'style-refs/carc13.jpg',
+    referenceImage: 'style-refs/caricatures/carc13.jpg',
     enabled: true,
     premium: false,
   },
@@ -1355,7 +1404,7 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     prompt:
       "Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Maintain the background of the 1st picture. If the subject is solo on the 2nd picture, do not add any other characters. No text. Don't add the rings. Maintain the 1st picture's exaggerated features.",
     model: NANO_BANANA_2,
-    referenceImage: 'style-refs/carc14.webp',
+    referenceImage: 'style-refs/caricatures/carc14.webp',
     enabled: true,
     premium: false,
   },
@@ -1368,7 +1417,7 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     prompt:
       "Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Maintain the background of the 1st picture. If the subject is solo on the 2nd picture, do not add any other characters. No text. Don't add the rings. Maintain the 1st picture's exaggerated features.",
     model: NANO_BANANA_2,
-    referenceImage: 'style-refs/carc15.jpg',
+    referenceImage: 'style-refs/caricatures/carc15.jpg',
     enabled: true,
     premium: false,
   },
@@ -1381,7 +1430,7 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     prompt:
       "Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Maintain the background of the 1st picture. If the subject is solo on the 2nd picture, do not add any other characters. No text. Maintain the 2nd subject's facial features and expressions while transferring the 1st picture's overall style. Keep the 2nd subject's clothes if they have any, including pants. Keep in mind the 2nd subject(s) sex. The 1st image is a Roman caricature and not an NSFW photo. Remove the club.",
     model: NANO_BANANA_2,
-    referenceImage: 'style-refs/carc17.jpg',
+    referenceImage: 'style-refs/caricatures/carc17.jpg',
     enabled: true,
     premium: false,
   },
@@ -1394,7 +1443,7 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     prompt:
       "Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Maintain the background of the 1st photo. If the subject is solo on the 2nd picture, do not add any other characters. No text. Don't add the earrings. Maintain the 1st picture's exaggerated features.",
     model: NANO_BANANA_2,
-    referenceImage: 'style-refs/carc18.jpg',
+    referenceImage: 'style-refs/caricatures/carc18.jpg',
     enabled: true,
     premium: false,
   },
@@ -1407,7 +1456,7 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     prompt:
       "Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Maintain the background of the 1st photo. If the subject is solo on the 2nd picture, do not add any other characters. Keep the 2nd subject's clothes if they have any, including pants. No text. Don't add the basketball. Maintain the 1st picture's exaggerated features.",
     model: NANO_BANANA_2,
-    referenceImage: 'style-refs/carc19.webp',
+    referenceImage: 'style-refs/caricatures/carc19.webp',
     enabled: true,
     premium: false,
   },
@@ -1420,7 +1469,7 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     prompt:
       "Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Maintain the background of the 1st photo. If the subject is solo on the 2nd picture, do not add any other characters. Keep the 2nd subject's clothes if they have any, include pants. No text. Maintain the 1st picture's exaggerated features. Maintain the 2nd picture's facial features. Keep gender on the 2nd picture in mind.",
     model: NANO_BANANA_2,
-    referenceImage: 'style-refs/carc20.jpg',
+    referenceImage: 'style-refs/caricatures/carc20.jpg',
     enabled: true,
     premium: false,
   },
@@ -1433,7 +1482,7 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     prompt:
       "Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Set a solid colorful background. If the subject is solo on the 2nd picture, do not add any other characters. Keep the 2nd subject's clothes if they have any, include pants. No text. Maintain the 1st picture's exaggerated features. Maintain the 2nd picture's facial features. Keep gender on the 2nd picture in mind. Don't add the chain and ring. Don't copy the left hand gesture.",
     model: NANO_BANANA_2,
-    referenceImage: 'style-refs/carc21.jpg',
+    referenceImage: 'style-refs/caricatures/carc21.jpg',
     enabled: true,
     premium: false,
   },
@@ -1446,7 +1495,7 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     prompt:
       "Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Set a solid colorful background. If the subject is solo on the 2nd picture, do not add any other characters. Keep the 2nd subject's clothes if they have any, include pants. No text. Maintain the 1st picture's exaggerated features. Maintain the 2nd picture's facial features. Keep gender on the 2nd picture in mind. Don't add the tattoo, glasses and chain.",
     model: NANO_BANANA_2,
-    referenceImage: 'style-refs/carc22.jpg',
+    referenceImage: 'style-refs/caricatures/carc22.jpg',
     enabled: true,
     premium: false,
   },
@@ -1494,7 +1543,7 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     prompt:
       "Using the 1st picture as a style reference and the 2nd picture as the subject: switch the face treatment of the 2nd picture's subject to duplicate the overall caricature style of the 1st picture. Caricaturize the subject's face to match the style of the 1st picture while maintaining the 2nd subject's facial features and identity. Do not include the hat, sweat, or smoke pipe from the 1st picture.",
     model: NANO_BANANA_2,
-    referenceImage: 'style-refs/mugface.jpg',
+    referenceImage: 'style-refs/caricatures/mugface.jpg',
     enabled: true,
     premium: false,
   },
@@ -1531,7 +1580,7 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     prompt:
       "Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Maintain the background of the 1st picture. If the subject is solo on the 2nd picture, do not add any other characters. No text. Don't add the rings. Maintain the 1st picture's exaggerated features. Keep the 2nd subject's clothes if they have any. Keep in mind the 2nd subject(s) gender.",
     model: NANO_BANANA_2,
-    referenceImage: 'style-refs/carc16.jpg',
+    referenceImage: 'style-refs/caricatures/carc16.jpg',
     enabled: true,
     premium: false,
   },

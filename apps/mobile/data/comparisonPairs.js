@@ -72,12 +72,16 @@ const CURATED_PAIR_PATHS = {
     after: 'after/caricature/carc8.jpeg',
   },
   'carc9': {
-    before: 'before/man9.png',
+    before: 'before/man8.png',
     after: 'after/caricature/carc9.jpeg',
   },
   'carc10': {
     before: 'before/lady7.png',
     after: 'after/caricature/carc10.jpeg',
+  },
+  'carc11': {
+    before: 'before/man4.png',
+    after: 'after/caricature/carc11.jpeg',
   },
   'carc12': {
     before: 'before/man6.png',
@@ -279,6 +283,14 @@ const CURATED_PAIR_PATHS = {
     before: 'before/man8.png',
     after: 'after/Sculptures/metal.jpeg',
   },
+  'chrome': {
+    before: 'before/man6.png',
+    after: 'after/Sculptures/chrome.jpeg',
+  },
+  'mountain': {
+    before: 'before/man6.png',
+    after: 'after/Sculptures/mountain.jpeg',
+  },
   'wood': {
     before: 'before/man8.png',
     after: 'after/Sculptures/wood.jpeg',
@@ -450,6 +462,10 @@ const CURATED_PAIR_PATHS = {
   'mural': {
     before: 'before/lady2.png',
     after: 'after/Art/mural.jpeg',
+  },
+  'illustration': {
+    before: 'before/lady3.png',
+    after: 'after/Art/illustration.jpeg',
   },
   'neon': {
     before: 'before/lady3.png',

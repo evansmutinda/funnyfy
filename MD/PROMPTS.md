@@ -254,6 +254,16 @@ Using the 1st picture as a style reference and the 2nd picture as the subject: s
 Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Maintain the background of the 1st picture. If the subject is solo on the 2nd picture, do not add any other characters. No text.
 ```
 
+#### `carc11` — Caricature 11
+
+- **Category:** caricatures
+- **Model:** NANO_BANANA_2
+- **Description:** Style-matched caricature into a template scene — keeps the reference background and artistic expression while preserving subject facial identity
+
+```
+Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Maintain the background of the 1st picture. If the subject is solo on the 2nd picture, do not add any other characters. No text. Try as much as possible to maintain facial identity of the 2nd picture's subject(s) facial features.
+```
+
 #### `carc12` — Caricature 12
 
 - **Category:** caricatures
@@ -870,6 +880,20 @@ make this a low-poly cartoon, make background plain color if none.
 make a street mural graffiti of the subject/s
 ```
 
+#### `illustration` — Illustration
+
+- **Category:** art
+- **Model:** NANO_BANANA
+- **Description:** Whimsical pastel storybook portrait illustration with soft hand-drawn linework and dreamy floral scenes
+
+```
+Using the uploaded image as the visual reference, create a whimsical pastel storybook-style portrait illustration of the same subject while preserving her recognizable facial structure, proportions, hairstyle, expression, and overall youthful appearance. Maintain the soft hand-drawn aesthetic with delicate linework, subtle watercolor-style shading, large expressive eyes, rosy cheeks, and smooth rounded facial features.
+
+The composition should feel dynamic and varied rather than identical to the reference. Change the pose, head angle, hand placement, outfit details, floral arrangement, background elements, and scene composition creatively while staying faithful to the original artistic style. The subject can be shown interacting naturally with the environment — surrounded by blooming flowers, floating petals, vines, butterflies, seasonal plants, or dreamy decorative elements.
+
+Keep the same muted pastel color palette featuring soft coral pinks, dusty teal greens, warm creams, light peach skin tones, and gentle earthy accents. Preserve the airy, cozy, feminine illustration feel commonly seen in premium nursery art, greeting cards, and modern fairytale illustrations.
+```
+
 #### `pop-art-v1` — Pop Art V1
 
 - **Category:** art
@@ -1382,6 +1406,26 @@ Preserve the uploaded person's identity exactly. Transform the uploaded person i
 
 ```
 Preserve the uploaded person's identity exactly. Transform the uploaded person into an extraordinary handcrafted metal sculpture, faithfully preserving their recognizable facial features, hairstyle, facial structure, expression, age, clothing, accessories, and distinctive characteristics with exceptional sculptural precision.nnSculpt the entire person as a life-sized metal artwork in a natural standing, sitting, walking, or expressive pose that complements their appearance. Every facial feature—including the eyes, nose, lips, ears, eyebrows, hairstyle, facial hair (if present), clothing, and accessories—should be meticulously sculpted while maintaining the person's unmistakable identity.nnThe sculpture should be crafted from a randomly selected premium metal, with each generation featuring a different realistic metal finish. Materials may include polished stainless steel, brushed aluminum, forged iron, polished chrome, titanium, copper, brass, blackened steel, weathered steel, gunmetal, or other authentic metals. The surface should display realistic metallic reflections, subtle natural imperfections, machining marks, brushed grain, polished finishes, oxidation where appropriate, and exceptional craftsmanship.nnRecreate the person's original clothing entirely in metal while preserving every fold, seam, collar, button, pocket, wrinkle, layered garment, and accessory with remarkable sculptural detail. Flowing garments should appear elegantly formed from solid metal while maintaining realistic contours and intricate craftsmanship.nnThe sculpture should exhibit authentic metal characteristics, including crisp edges, precision detailing, smooth polished surfaces, brushed textures, realistic welds or cast details where appropriate, subtle surface wear, fine machining marks, and convincing metallic reflections. The chosen metal should appear solid, weighty, and expertly crafted.nnPresent the sculpture in a clean, minimalist environment that keeps the artwork as the unmistakable focal point. The background should remain simple and uncluttered.nnIlluminate the sculpture with professional studio lighting that enhances metallic reflections, surface texture, polished highlights, and realistic shadows. Use shallow depth of field, elegant composition, premium professional photography, and photorealistic rendering that showcases the beauty of the chosen metal.nnHyper-realistic handcrafted metal sculpture, authentic metallic materials, master artisan craftsmanship, realistic reflections, polished and brushed metal finishes, exceptional sculptural detail, premium professional photography, faithful identity preservation, elegant minimalist composition, no fantasy materials, no glowing effects, no text, no logos, no watermarks, and no visual defects.
+```
+
+#### `chrome` — Chrome
+
+- **Category:** sculptures
+- **Model:** NANO_BANANA_2
+- **Description:** Polished mirror-chrome sculpture with ultra-smooth reflective surfaces and photorealistic CGI finish
+
+```
+Transform the uploaded subject into a polished mirror-chrome sculpture while preserving their identity and facial proportions. Render the entire subject as if sculpted from flawless reflective chrome with ultra-smooth surfaces, seamless contours, crisp specular highlights, and realistic mirror reflections. The metallic material should appear highly polished with no paint or texture, emphasizing elegant sculptural forms and a futuristic contemporary-art aesthetic. Ultra-detailed, photorealistic CGI, premium product-render quality. Chrome effect includes hair and beard.
+```
+
+#### `mountain` — Mountain
+
+- **Category:** sculptures
+- **Model:** NANO_BANANA
+- **Description:** Colossal original granite mountain monument carved with the uploaded subject(s) only, in a national-park setting
+
+```
+Preserve the uploaded person's identity exactly. If multiple people are uploaded, preserve each person's identity exactly. Transform the uploaded subject(s) into a colossal granite mountain monument inspired by the monumental rock-carving style of a colossal American-style granite mountain monument with monumental rock-carved portraits, but create an entirely original monument. The uploaded subject(s) must be the ONLY faces carved into the mountain. Completely replace any existing or recognizable mountain carvings. Do not include George Washington, Thomas Jefferson, Theodore Roosevelt, Abraham Lincoln, or any historical figures. Do not recreate the real Mount Rushmore monument. Instead, carve only the uploaded subject(s) into a massive natural granite cliff, faithfully preserving their facial features, hairstyles, expressions, and proportions. The carvings should appear expertly sculpted from solid granite with realistic chisel marks, weathering, cracks, layered rock formations, and natural stone textures. The mountain should exist in a beautiful national-park landscape with pine trees, rocky cliffs, and dramatic blue skies. At the base of the monument, include a large scenic viewing plaza filled with tourists taking photos, pointing, walking, and admiring the monument to emphasize its immense scale. Include observation decks, railings, pathways, park signage, and natural surroundings. Cinematic wide-angle composition, ultra-photorealistic, highly detailed, realistic daylight, epic scale, clean composition, no text, no logos, no watermarks.
 ```
 
 #### `wood` — Wood

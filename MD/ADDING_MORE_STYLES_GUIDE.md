@@ -41,11 +41,11 @@ Outputs:
 
 Some styles need a **bundled template** (1st image) plus the **user photo** (2nd image):
 
-1. Put the template at `public/style-refs/{id}.jpg` (and keep a copy under `apps/mobile/assets/style-refs/` if useful for design)
-2. On the style in `styles-config.ts`, set `referenceImage: 'style-refs/{id}.jpg'` and a prompt that refers to the 1st / 2nd picture
+1. Put the template at `public/style-refs/caricatures/{id}.jpg` (and keep a copy under `apps/mobile/assets/style-refs/caricatures/` if useful for design)
+2. On the style in `styles-config.ts`, set `referenceImage: 'style-refs/caricatures/{id}.jpg'` and a prompt that refers to the 1st / 2nd picture
 3. Use **nano-banana** or **seedream** (multi-`image_input`). Flux is single-image only.
 4. Optional: set Vercel env `STYLE_ASSETS_BASE_URL=https://funnyfy-staging.vercel.app` so refs resolve reliably
-5. Deploy so `/style-refs/{id}.jpg` is publicly reachable for Replicate
+5. Deploy so `/style-refs/caricatures/{id}.jpg` is publicly reachable for Replicate
 
 ---
 

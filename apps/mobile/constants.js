@@ -236,6 +236,7 @@ export const STYLE_CARD_IMAGE_CARC7 = require('./assets/comparisons/tiles/after/
 export const STYLE_CARD_IMAGE_CARC8 = require('./assets/comparisons/tiles/after/caricature/carc8.jpg');
 export const STYLE_CARD_IMAGE_CARC9 = require('./assets/comparisons/tiles/after/caricature/carc9.jpg');
 export const STYLE_CARD_IMAGE_CARC10 = require('./assets/comparisons/tiles/after/caricature/carc10.jpg');
+export const STYLE_CARD_IMAGE_CARC11 = require('./assets/comparisons/tiles/after/caricature/carc11.jpg');
 export const STYLE_CARD_IMAGE_CARC12 = require('./assets/comparisons/tiles/after/caricature/carc12.jpg');
 export const STYLE_CARD_IMAGE_CARC13 = require('./assets/comparisons/tiles/after/caricature/carc13.jpg');
 export const STYLE_CARD_IMAGE_CARC14 = require('./assets/comparisons/tiles/after/caricature/carc14.jpg');
@@ -252,6 +253,7 @@ export const STYLE_CARD_IMAGE_3DCLAY = require('./assets/comparisons/tiles/after
 export const STYLE_CARD_IMAGE_OILPAINT = require('./assets/comparisons/tiles/after/Paintings/oilpaint.jpg');
 export const STYLE_CARD_IMAGE_LOWPOLY = require('./assets/comparisons/tiles/after/Art/lowpoly.jpg');
 export const STYLE_CARD_IMAGE_MURAL = require('./assets/comparisons/tiles/after/Art/mural.jpg');
+export const STYLE_CARD_IMAGE_ILLUSTRATION = require('./assets/comparisons/tiles/after/Art/illustration.jpg');
 export const STYLE_CARD_IMAGE_POP_ART_V1 = require('./assets/comparisons/tiles/after/Art/portart-fkp.jpg');
 export const STYLE_CARD_IMAGE_POP_ART_V2 = require('./assets/comparisons/tiles/after/Art/popart-sr4.jpg');
 export const STYLE_CARD_IMAGE_POP_ART_V3 = require('./assets/comparisons/tiles/after/Art/popart-nbn.jpg');
@@ -309,6 +311,8 @@ export const STYLE_CARD_IMAGE_IVORY = require('./assets/comparisons/tiles/after/
 export const STYLE_CARD_IMAGE_CRYSTAL = require('./assets/comparisons/tiles/after/Sculptures/crystal.jpg');
 export const STYLE_CARD_IMAGE_ICE = require('./assets/comparisons/tiles/after/Sculptures/ice.jpg');
 export const STYLE_CARD_IMAGE_METAL = require('./assets/comparisons/tiles/after/Sculptures/metal.jpg');
+export const STYLE_CARD_IMAGE_CHROME = require('./assets/comparisons/tiles/after/Sculptures/chrome.jpg');
+export const STYLE_CARD_IMAGE_MOUNTAIN = require('./assets/comparisons/tiles/after/Sculptures/mountain.jpg');
 export const STYLE_CARD_IMAGE_WOOD = require('./assets/comparisons/tiles/after/Sculptures/wood.jpg');
 export const STYLE_CARD_IMAGE_GOLD = require('./assets/comparisons/tiles/after/Sculptures/gold.jpg');
 export const STYLE_CARD_IMAGE_PORCELAIN = require('./assets/comparisons/tiles/after/Sculptures/porcelain.jpg');
@@ -381,6 +385,7 @@ const STYLE_IMAGE_BY_ID = {
   carc8: STYLE_CARD_IMAGE_CARC8,
   carc9: STYLE_CARD_IMAGE_CARC9,
   carc10: STYLE_CARD_IMAGE_CARC10,
+  carc11: STYLE_CARD_IMAGE_CARC11,
   carc12: STYLE_CARD_IMAGE_CARC12,
   carc13: STYLE_CARD_IMAGE_CARC13,
   carc14: STYLE_CARD_IMAGE_CARC14,
@@ -398,6 +403,7 @@ const STYLE_IMAGE_BY_ID = {
   lowpoly: STYLE_CARD_IMAGE_LOWPOLY,
   'low-poly': STYLE_CARD_IMAGE_LOWPOLY,
   mural: STYLE_CARD_IMAGE_MURAL,
+  illustration: STYLE_CARD_IMAGE_ILLUSTRATION,
   graffiti: STYLE_CARD_IMAGE_GRAFFITI,
   banksy: STYLE_CARD_IMAGE_BANKSY,
   mosaic: STYLE_CARD_IMAGE_MOSAIC,
@@ -455,6 +461,8 @@ const STYLE_IMAGE_BY_ID = {
   crystal: STYLE_CARD_IMAGE_CRYSTAL,
   ice: STYLE_CARD_IMAGE_ICE,
   metal: STYLE_CARD_IMAGE_METAL,
+  chrome: STYLE_CARD_IMAGE_CHROME,
+  mountain: STYLE_CARD_IMAGE_MOUNTAIN,
   wood: STYLE_CARD_IMAGE_WOOD,
   gold: STYLE_CARD_IMAGE_GOLD,
   porcelain: STYLE_CARD_IMAGE_PORCELAIN,

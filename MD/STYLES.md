@@ -91,6 +91,7 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 | `oil-paint` | Oil Paint | paintings | flux-kontext-pro | ✅ |
 | `lowpoly` | Low Poly | art | seedream-4 | ✅ |
 | `mural` | Mural | art | nano-banana | ✅ |
+| `illustration` | Illustration | art | nano-banana | ✅ |
 | `pop-art-v1` | Pop Art V1 | art | flux-kontext-pro | ✅ |
 | `pop-art-v2` | Pop Art V2 | art | seedream-4 | ✅ |
 | `pop-art-v3` | Pop Art V3 | art | nano-banana | ✅ |
@@ -146,6 +147,8 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 | `crystal` | Crystal | sculptures | nano-banana-2 | ✅ |
 | `ice` | Ice | sculptures | nano-banana-2 | ✅ |
 | `metal` | Metal | sculptures | nano-banana-2 | ✅ |
+| `chrome` | Chrome | sculptures | nano-banana-2 | ✅ |
+| `mountain` | Mountain | sculptures | nano-banana | ✅ |
 | `wood` | Wood | sculptures | nano-banana-2 | ✅ |
 | `gold` | Gold | sculptures | nano-banana-2 | ✅ |
 | `porcelain` | Porcelain | sculptures | seedream-4.5 | ✅ |
@@ -180,6 +183,7 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 | `carc8` | Caricature 8 | caricatures | nano-banana-2 (+ style ref) | ✅ |
 | `carc9` | Caricature 9 | caricatures | nano-banana-2 (+ style ref) | ✅ |
 | `carc10` | Caricature 10 | caricatures | nano-banana-2 (+ style ref) | ✅ |
+| `carc11` | Caricature 11 | caricatures | nano-banana-2 (+ style ref) | ✅ |
 | `carc12` | Caricature 12 | caricatures | nano-banana-2 (+ style ref) | ✅ |
 | `carc13` | Caricature 13 | caricatures | nano-banana-2 (+ style ref) | ✅ |
 | `carc14` | Caricature 14 | caricatures | nano-banana-2 (+ style ref) | ✅ |
@@ -232,8 +236,9 @@ Run `npm run build-comparison-assets` after adding or replacing source files. Fo
 | `carc6` | `before/lady7.png` | `after/caricature/carc6.jpeg` |
 | `carc7` | `before/dude2.png` | `after/caricature/carc7.jpeg` |
 | `carc8` | `before/man6.png` | `after/caricature/carc8.jpeg` |
-| `carc9` | `before/man9.png` | `after/caricature/carc9.jpeg` |
+| `carc9` | `before/man8.png` | `after/caricature/carc9.jpeg` |
 | `carc10` | `before/lady7.png` | `after/caricature/carc10.jpeg` |
+| `carc11` | `before/man4.png` | `after/caricature/carc11.jpeg` |
 | `carc12` | `before/man6.png` | `after/caricature/carc12.jpeg` |
 | `carc13` | `before/man6.png` | `after/caricature/carc13.jpeg` |
 | `carc14` | `before/lady4.png` | `after/caricature/carc14.jpeg` |
@@ -284,6 +289,8 @@ Run `npm run build-comparison-assets` after adding or replacing source files. Fo
 | `crystal` | `before/lady4.png` | `after/Sculptures/crystal.jpeg` |
 | `ice` | `before/lady12.png` | `after/Sculptures/ice.jpeg` |
 | `metal` | `before/man8.png` | `after/Sculptures/metal.jpeg` |
+| `chrome` | `before/man6.png` | `after/Sculptures/chrome.jpeg` |
+| `mountain` | `before/man6.png` | `after/Sculptures/mountain.jpeg` |
 | `wood` | `before/man8.png` | `after/Sculptures/wood.jpeg` |
 | `gold` | `before/man9.png` | `after/Sculptures/gold.jpeg` |
 | `porcelain` | `before/lady3.png` | `after/Sculptures/porcelain.jpg` |
@@ -327,6 +334,7 @@ Run `npm run build-comparison-assets` after adding or replacing source files. Fo
 | `sesshu` | `before/lady5.png` | `after/Paintings/Sesshū.jpeg` |
 | `wc-marker` | `before/lady3.png` | `after/Paintings/wc-marker.jpg` |
 | `mural` | `before/lady2.png` | `after/Art/mural.jpeg` |
+| `illustration` | `before/lady3.png` | `after/Art/illustration.jpeg` |
 | `neon` | `before/lady3.png` | `after/Art/neon.jpg` |
 | `lowpoly` | `before/lady4.png` | `after/Art/lowpoly.jpg` |
 | `pop-art-v1` | `before/lady5.png` | `after/Art/portart-fkp.jpg` |
