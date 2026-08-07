@@ -179,9 +179,9 @@ const CURATED_PAIR_PATHS = {
     before: 'before/hdd.png',
     after: 'after/cartoons/cute.jpg',
   },
-  'dc': {
+  'comic-v3': {
     before: 'before/man3.png',
-    after: 'after/cartoons/dc.jpg',
+    after: 'after/cartoons/comic-v3.jpg',
   },
   'cyberpunk-v1': {
     before: 'before/lady5.png',
@@ -194,6 +194,22 @@ const CURATED_PAIR_PATHS = {
   'disney': {
     before: 'before/lady3.png',
     after: 'after/cartoons/disney.jpg',
+  },
+  'anime': {
+    before: 'before/lady8.png',
+    after: 'after/cartoons/anime.jpg',
+  },
+  'manga': {
+    before: 'before/lady12.png',
+    after: 'after/cartoons/manga.jpg',
+  },
+  'genndy-v1': {
+    before: 'before/man6.png',
+    after: 'after/cartoons/genndyv1.jpg',
+  },
+  'genndy-v2': {
+    before: 'before/man6.png',
+    after: 'after/cartoons/genndyv2.jpeg',
   },
   'pixel': {
     before: 'before/lady15.png',

@@ -211,7 +211,7 @@ export const STYLE_CARD_IMAGE_COMIC = require('./assets/comparisons/tiles/after/
 export const STYLE_CARD_IMAGE_COMIC_V1 = require('./assets/comparisons/tiles/after/cartoons/comic-v1.jpg');
 export const STYLE_CARD_IMAGE_COMIC_V2 = require('./assets/comparisons/tiles/after/cartoons/comic-v2.jpg');
 export const STYLE_CARD_IMAGE_CUTE = require('./assets/comparisons/tiles/after/cartoons/cute.jpg');
-export const STYLE_CARD_IMAGE_DC = require('./assets/comparisons/tiles/after/cartoons/dc.jpg');
+export const STYLE_CARD_IMAGE_COMIC_V3 = require('./assets/comparisons/tiles/after/cartoons/comic-v3.jpg');
 export const STYLE_CARD_IMAGE_CYBERPUNK_V1 = require('./assets/comparisons/tiles/after/cartoons/cyberpunkv1.jpg');
 export const STYLE_CARD_IMAGE_CYBERPUNK_V2 = require('./assets/comparisons/tiles/after/cartoons/cyberpunkv2.jpg');
 export const STYLE_CARD_IMAGE_DISNEY = require('./assets/comparisons/tiles/after/cartoons/disney.jpg');
@@ -219,8 +219,10 @@ export const STYLE_CARD_IMAGE_PIXEL = require('./assets/comparisons/tiles/after/
 export const STYLE_CARD_IMAGE_3D_RENDER_V1 = require('./assets/comparisons/tiles/after/cartoons/3d-renderv1.jpg');
 export const STYLE_CARD_IMAGE_3D_RENDER_V2 = require('./assets/comparisons/tiles/after/cartoons/3d-renderv2.jpg');
 export const STYLE_CARD_IMAGE_NEON = require('./assets/comparisons/tiles/after/Art/neon.jpg');
-// No dedicated anime after-tile yet — use cute cartoon tile as card art.
-export const STYLE_CARD_IMAGE_ANIME = require('./assets/comparisons/tiles/after/cartoons/cute.jpg');
+export const STYLE_CARD_IMAGE_ANIME = require('./assets/comparisons/tiles/after/cartoons/anime.jpg');
+export const STYLE_CARD_IMAGE_MANGA = require('./assets/comparisons/tiles/after/cartoons/manga.jpg');
+export const STYLE_CARD_IMAGE_GENNDY_V1 = require('./assets/comparisons/tiles/after/cartoons/genndyv1.jpg');
+export const STYLE_CARD_IMAGE_GENNDY_V2 = require('./assets/comparisons/tiles/after/cartoons/genndyv2.jpg');
 export const STYLE_CARD_IMAGE_HANDD = require('./assets/comparisons/tiles/after/caricature/handd.jpg');
 export const STYLE_CARD_IMAGE_EDITORIAL = require('./assets/comparisons/tiles/after/Art/editorial.jpg');
 export const STYLE_CARD_IMAGE_EXAGGERATED = require('./assets/comparisons/tiles/after/caricature/Exaggerated.jpg');
@@ -359,7 +361,6 @@ const STYLE_IMAGE_BY_ID = {
   'saturday-v2': STYLE_CARD_IMAGE_SATURDAY_V2,
   comic: STYLE_CARD_IMAGE_COMIC,
   cute: STYLE_CARD_IMAGE_CUTE,
-  dc: STYLE_CARD_IMAGE_DC,
   'cyberpunk-v1': STYLE_CARD_IMAGE_CYBERPUNK_V1,
   'cyberpunk-v2': STYLE_CARD_IMAGE_CYBERPUNK_V2,
   disney: STYLE_CARD_IMAGE_DISNEY,
@@ -368,8 +369,12 @@ const STYLE_IMAGE_BY_ID = {
   '3d-render-v2': STYLE_CARD_IMAGE_3D_RENDER_V2,
   'comic-v1': STYLE_CARD_IMAGE_COMIC_V1,
   'comic-v2': STYLE_CARD_IMAGE_COMIC_V2,
+  'comic-v3': STYLE_CARD_IMAGE_COMIC_V3,
   neon: STYLE_CARD_IMAGE_NEON,
   anime: STYLE_CARD_IMAGE_ANIME,
+  manga: STYLE_CARD_IMAGE_MANGA,
+  'genndy-v1': STYLE_CARD_IMAGE_GENNDY_V1,
+  'genndy-v2': STYLE_CARD_IMAGE_GENNDY_V2,
   handd: STYLE_CARD_IMAGE_HANDD,
   editorial: STYLE_CARD_IMAGE_EDITORIAL,
   exaggerated: STYLE_CARD_IMAGE_EXAGGERATED,

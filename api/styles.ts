@@ -27,6 +27,16 @@ export default async function handler(
   // Get all enabled styles from shared config
   const styles = getEnabledStyles();
 
+  // Public catalog — safe to cache at Vercel edge (no auth / user data).
+  // s-maxage: edge TTL; stale-while-revalidate: serve stale while refreshing.
+  res.setHeader(
+    'Cache-Control',
+    'public, s-maxage=300, stale-while-revalidate=86400'
+  );
+  if (allowedOrigin !== '*') {
+    res.setHeader('Vary', 'Origin');
+  }
+
   // Return styles (prompts are protected on server - not sent to client)
   return res.status(200).json({
     ok: true,

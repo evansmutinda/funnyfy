@@ -46,7 +46,7 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 
 | Constant | Replicate model | Used for |
 |----------|-----------------|----------|
-| `DEFAULT_MODEL` | `black-forest-labs/flux-kontext-pro` | Most cartoon / art styles, dc |
+| `DEFAULT_MODEL` | `black-forest-labs/flux-kontext-pro` | Most cartoon / art styles |
 | `NANO_BANANA` | `google/nano-banana` | Caricatures, mural, pop art v3, video-game styles, classic-v2, saturday-v1 |
 | `NANO_BANANA_2` | `google/nano-banana-2` | renoir, impasto, expressive-impasto, hokusai-v2, hiroshige, sesshu, cyberpunk-v2, disney |
 | `SEEDREAM_4` | `bytedance/seedream-4` | lowpoly, pop art v2, graffiti, banksy, mosaic, watercolor, acrylic, gouache, expressionist, impressionist, baroque, van-gogh, monet, classic-v1, saturday-v2, carc1 |
@@ -77,16 +77,19 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 | `comic` | Comic | cartoons | seedream-4.5 | ✅ |
 | `comic-v1` | Comic V1 | cartoons | flux-kontext-pro | ✅ |
 | `comic-v2` | Comic V2 | cartoons | seedream-4.5 | ✅ |
+| `comic-v3` | Comic V3 | cartoons | flux-kontext-pro | ✅ |
 | `cute` | Cute | cartoons | seedream-4.5 | ✅ |
-| `dc` | DC | cartoons | flux-kontext-pro | ✅ |
 | `cyberpunk-v1` | Cyberpunk V1 | cartoons | seedream-4.5 | ✅ |
 | `cyberpunk-v2` | Cyberpunk V2 | cartoons | nano-banana-2 | ✅ |
 | `disney` | Disney | cartoons | nano-banana-2 | ✅ |
+| `anime` | Anime | cartoons | flux-kontext-pro | ✅ |
+| `manga` | Manga | cartoons | flux-kontext-pro | ✅ |
+| `genndy-v1` | Genndy V1 | cartoons | flux-kontext-pro | ✅ |
+| `genndy-v2` | Genndy V2 | cartoons | nano-banana-2 | ✅ |
 | `pixel` | Pixel | cartoons | seedream-4.5 | ✅ |
 | `3d-render-v1` | 3D Render V1 | cartoons | flux-kontext-pro | ✅ |
 | `3d-render-v2` | 3D Render V2 | cartoons | seedream-4.5 | ✅ |
 | `neon` | Neon | art | flux-kontext-pro | ✅ |
-| `anime` | Anime | anime-manga | flux-kontext-pro | — |
 | `3dclay` | 3D Clay | 3d-characters | flux-kontext-pro | ✅ |
 | `oil-paint` | Oil Paint | paintings | flux-kontext-pro | ✅ |
 | `lowpoly` | Low Poly | art | seedream-4 | ✅ |
@@ -264,11 +267,15 @@ Run `npm run build-comparison-assets` after adding or replacing source files. Fo
 | `comic` | `before/3dclay.png` | `after/cartoons/comic.jpg` |
 | `comic-v1` | `before/man7.png` | `after/cartoons/comic-v1.jpg` |
 | `comic-v2` | `before/man7.png` | `after/cartoons/comic-v2.jpg` |
+| `comic-v3` | `before/man3.png` | `after/cartoons/comic-v3.jpg` |
 | `cute` | `before/hdd.png` | `after/cartoons/cute.jpg` |
-| `dc` | `before/man3.png` | `after/cartoons/dc.jpg` |
 | `cyberpunk-v1` | `before/lady5.png` | `after/cartoons/cyberpunkv1.jpg` |
 | `cyberpunk-v2` | `before/dude.png` | `after/cartoons/cyberpunkv2.jpeg` |
 | `disney` | `before/lady3.png` | `after/cartoons/disney.jpg` |
+| `anime` | `before/lady8.png` | `after/cartoons/anime.jpg` |
+| `manga` | `before/lady12.png` | `after/cartoons/manga.jpg` |
+| `genndy-v1` | `before/man6.png` | `after/cartoons/genndyv1.jpg` |
+| `genndy-v2` | `before/man6.png` | `after/cartoons/genndyv2.jpeg` |
 | `pixel` | `before/lady15.png` | `after/cartoons/pixel.jpg` |
 | `3d-render-v1` | `before/teen.png` | `after/cartoons/3d-renderv1.jpg` |
 | `3d-render-v2` | `before/teen.png` | `after/cartoons/3d-renderv2.jpg` |

@@ -516,16 +516,6 @@ make this a comic Cartoon
 make this a cute Cartoon
 ```
 
-#### `dc` — DC
-
-- **Category:** cartoons
-- **Model:** DEFAULT_MODEL
-- **Description:** DC style cartoon with bold superhero comic-book character design
-
-```
-make this a DC style Cartoon
-```
-
 #### `cyberpunk-v1` — Cyberpunk V1
 
 - **Category:** cartoons
@@ -554,6 +544,46 @@ make this a cyberpunk style cartoon, no extra text
 
 ```
 make this a disney style cartoon, no extra text
+```
+
+#### `anime` — Anime
+
+- **Category:** cartoons
+- **Model:** DEFAULT_MODEL
+- **Description:** Anime-style cartoon
+
+```
+Make this an anime cartoon, maintaining poster and facial features
+```
+
+#### `manga` — Manga
+
+- **Category:** cartoons
+- **Model:** DEFAULT_MODEL
+- **Description:** Manga-style cartoon
+
+```
+Make this a manga cartoon, maintaining poster and facial features, no text
+```
+
+#### `genndy-v1` — Genndy V1
+
+- **Category:** cartoons
+- **Model:** DEFAULT_MODEL
+- **Description:** Genndy Tartakovsky-stylized 2D caricature with elongated faces, sharp angles, and noir-inspired shading
+
+```
+make a Genndy Tartakovsky-stylized 2D caricature character with elongated faces, and sharp angular features. Bold clean lineart, and dramatic noir-inspired shading. Character in suit and vintage outfit, placed inside a vertical color panel. Big expressive eyes, strong eyebrows, and a retro detective cartoon vibe. High-contrast, graphic, stylized character design. no text
+```
+
+#### `genndy-v2` — Genndy V2
+
+- **Category:** cartoons
+- **Model:** NANO_BANANA_2
+- **Description:** Genndy Tartakovsky-stylized 2D caricature with elongated faces, sharp angles, and noir-inspired shading
+
+```
+make a Genndy Tartakovsky-stylized 2D caricature character with elongated faces, and sharp angular features. Bold clean lineart, and dramatic noir-inspired shading. Character in suit and vintage outfit, placed inside a vertical color panel. Big expressive eyes, strong eyebrows, and a retro detective cartoon vibe. High-contrast, graphic, stylized character design. no text
 ```
 
 #### `pixel` — Pixel
@@ -604,6 +634,16 @@ make this a Comic Book Style cartoon
 
 ```
 make this a Comic Book Style cartoon
+```
+
+#### `comic-v3` — Comic V3
+
+- **Category:** cartoons
+- **Model:** DEFAULT_MODEL
+- **Description:** Comic book style cartoon with bold superhero comic-book character design
+
+```
+make this a DC style Cartoon
 ```
 
 #### `watercolor` — Watercolor
@@ -1456,18 +1496,6 @@ Preserve the uploaded person's identity exactly. Transform the uploaded person i
 
 ```
 Preserve the uploaded person's identity exactly. Transform the uploaded person into an exquisite handcrafted porcelain sculpture, faithfully preserving their recognizable facial features, hairstyle, facial structure, expression, age, clothing, accessories, and distinctive characteristics with exceptional sculptural precision.nnSculpt the entire person as an elegant porcelain figure in a natural standing, sitting, walking, or expressive pose that complements their appearance. Every facial feature—including the eyes, nose, lips, ears, eyebrows, hairstyle, facial hair (if present), clothing, and accessories—should be meticulously sculpted while maintaining the person's unmistakable identity.nnThe sculpture should be crafted from fine porcelain featuring a smooth glazed finish, subtle translucency around thinner edges, delicate ceramic depth, and an immaculate handcrafted appearance. For each generation, the porcelain should feature a randomly selected elegant finish, such as classic white porcelain, soft ivory, celadon, cobalt blue and white, floral hand-painted porcelain, pastel porcelain, black porcelain, or other refined porcelain styles. The finish should remain tasteful, elegant, and consistent across the entire sculpture.nnRecreate the person's original clothing entirely in porcelain while preserving the realistic design, fit, tailoring, folds, seams, collars, buttons, zippers, pockets, cuffs, wrinkles, layered garments, shoes, and accessories. The clothing should retain the appearance of real garments while clearly being sculpted from porcelain, with graceful flowing forms, crisp sculptural detailing, and beautifully glazed surfaces.nnThe sculpture should exhibit authentic porcelain characteristics, including flawless glazing, smooth reflective surfaces, subtle ceramic sheen, refined hand-finished details, delicate relief work, elegant contours, and exceptional artisan craftsmanship. Where appropriate, include tasteful hand-painted decorative patterns or fine gold accents that complement the chosen porcelain style without obscuring the person's identity.nnPresent the sculpture against a clean, minimalist background that keeps the artwork as the unmistakable focal point. The composition should be elegant, refined, and uncluttered.nnIlluminate the sculpture with soft professional studio lighting that enhances the glazed porcelain surface, delicate reflections, subtle translucency, intricate sculptural details, and premium craftsmanship. Use realistic contact shadows, shallow depth of field, elegant composition, premium professional photography, and photorealistic rendering.nnHyper-realistic handcrafted porcelain sculpture, authentic fine porcelain, luxurious glazed ceramic finish, subtle translucency, exceptional sculptural craftsmanship, refined artisan detailing, premium professional photography, faithful identity preservation, elegant minimalist composition, no cracks unless naturally decorative, no fantasy materials, no text, no logos, no watermarks, and no visual defects.
-```
-
-### Anime & Manga
-
-#### `anime` — Anime
-
-- **Category:** anime-manga
-- **Model:** DEFAULT_MODEL
-- **Description:** Anime-style cartoon
-
-```
-Make this an anime cartoon, maintaining poster and facial features
 ```
 
 ---

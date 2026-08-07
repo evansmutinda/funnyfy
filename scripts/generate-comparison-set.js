@@ -54,7 +54,6 @@ const AFTER_CATEGORY_DIR = {
   '3d-characters': '3d',
   sculptures: 'Sculptures',
   paintings: 'Paintings',
-  'anime-manga': 'Anime',
 };
 
 /** Output basename per style when it differs from the before filename. */
@@ -75,11 +74,15 @@ const STYLE_AFTER_BASENAME = {
   comic: 'comic',
   'comic-v1': 'comic-v1',
   'comic-v2': 'comic-v2',
+  'comic-v3': 'comic-v3',
   cute: 'cute',
-  dc: 'dc',
   'cyberpunk-v1': 'cyberpunkv1',
   'cyberpunk-v2': 'cyberpunkv2',
   disney: 'disney',
+  anime: 'anime',
+  manga: 'manga',
+  'genndy-v1': 'genndyv1',
+  'genndy-v2': 'genndyv2',
   pixel: 'pixel',
   '3d-render-v1': '3d-renderv1',
   '3d-render-v2': '3d-renderv2',

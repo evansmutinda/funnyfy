@@ -30,7 +30,6 @@ const CATEGORY_ORDER = [
   'art',
   '3d-characters',
   'sculptures',
-  'anime-manga',
 ];
 
 const CATEGORY_LABELS = {
@@ -41,7 +40,6 @@ const CATEGORY_LABELS = {
   art: 'Art',
   '3d-characters': '3D Characters',
   sculptures: 'Sculptures',
-  'anime-manga': 'Anime & Manga',
 };
 
 function extractLegacyBlock(source) {
