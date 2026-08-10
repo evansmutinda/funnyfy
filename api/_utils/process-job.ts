@@ -4,6 +4,7 @@
 import { query } from './db';
 import { getStyleById, resolveStyleModel, resolveStyleReferenceUrl } from './styles-config';
 import {
+  buildReplicateWebhookUrl,
   getImageUrlFromOutput,
   pollReplicatePrediction,
   saveReplicatePredictionId,
@@ -108,10 +109,19 @@ export async function processJob(job: JobRow): Promise<void> {
     }
   }
 
-  const upstreamBody = {
+  const webhookUrl = buildReplicateWebhookUrl(job.id);
+  const upstreamBody: Record<string, unknown> = {
     version: modelVersion,
     input: input,
   };
+  if (webhookUrl) {
+    upstreamBody.webhook = webhookUrl;
+    upstreamBody.webhook_events_filter = ['completed'];
+  } else {
+    console.warn(
+      '[process-job] Replicate webhook not configured (PUBLIC_API_URL/ALLOWED_ORIGIN + REPLICATE_WEBHOOK_SECRET) — relying on poll/sync only'
+    );
+  }
 
   if (imageUrl && sightengineUser && sightengineSecret) {
     try {

@@ -47,10 +47,10 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 | Constant | Replicate model | Used for |
 |----------|-----------------|----------|
 | `DEFAULT_MODEL` | `black-forest-labs/flux-kontext-pro` | Most cartoon / art styles |
-| `NANO_BANANA` | `google/nano-banana` | Caricatures, mural, pop art v3, video-game styles, classic-v2, saturday-v1 |
+| `NANO_BANANA` | `google/nano-banana` | Caricatures, mural, video-game styles, classic-v2, saturday-v1 |
 | `NANO_BANANA_2` | `google/nano-banana-2` | renoir, impasto, expressive-impasto, hokusai-v2, hiroshige, sesshu, cyberpunk-v2, disney |
 | `SEEDREAM_4` | `bytedance/seedream-4` | lowpoly, pop art v2, graffiti, banksy, mosaic, watercolor, acrylic, gouache, expressionist, impressionist, baroque, van-gogh, monet, classic-v1, saturday-v2, carc1 |
-| `SEEDREAM_4_5` | `bytedance/seedream-4.5` | cezanne, gauguin, matisse, seurat, ink-wash, hokusai-v1, comic, cute, cyberpunk-v1, expressive-impasto-v2 |
+| `SEEDREAM_4_5` | `bytedance/seedream-4.5` | cezanne, gauguin, matisse, seurat, ink-wash, hokusai-v1, comic, cute, cyberpunk-v1, expressive-impasto-v2, pop-art-v3 |
 
 ---
 
@@ -97,7 +97,7 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 | `illustration` | Illustration | art | nano-banana | ✅ |
 | `pop-art-v1` | Pop Art V1 | art | flux-kontext-pro | ✅ |
 | `pop-art-v2` | Pop Art V2 | art | seedream-4 | ✅ |
-| `pop-art-v3` | Pop Art V3 | art | nano-banana | ✅ |
+| `pop-art-v3` | Pop Art V3 | art | seedream-4.5 | ✅ |
 | `graffiti` | Graffiti | art | seedream-4 | ✅ |
 | `banksy` | Banksy | art | seedream-4 | ✅ |
 | `mosaic` | Mosaic | art | seedream-4 | ✅ |
@@ -346,7 +346,7 @@ Run `npm run build-comparison-assets` after adding or replacing source files. Fo
 | `lowpoly` | `before/lady4.png` | `after/Art/lowpoly.jpg` |
 | `pop-art-v1` | `before/lady5.png` | `after/Art/portart-fkp.jpg` |
 | `pop-art-v2` | `before/man3.png` | `after/Art/popart-sr4.jpg` |
-| `pop-art-v3` | `before/dude.png` | `after/Art/popart-nbn.jpeg` |
+| `pop-art-v3` | `before/man8.png` | `after/Art/popartv3.jpg` |
 | `graffiti` | `before/dude2.png` | `after/Art/graffiti.jpg` |
 | `banksy` | `before/lady6.png` | `after/Art/banksy.jpg` |
 | `mosaic` | `before/man4.png` | `after/Art/mosaic.jpg` |

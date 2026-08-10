@@ -2995,6 +2995,16 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
 
+  reviewPreviewCaption: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 12,
+    fontWeight: '600',
+    color: DARK_MUTED,
+    textAlign: 'center',
+    marginTop: 10,
+    paddingHorizontal: 8,
+  },
+
   
     reviewActionBand: {
     paddingHorizontal: 16,
@@ -3094,6 +3104,8 @@ const styles = StyleSheet.create({
     color: DARK_MUTED,
     textAlign: 'center',
     lineHeight: 18,
+    paddingHorizontal: 16,
+    paddingBottom: 8,
   },
 
   

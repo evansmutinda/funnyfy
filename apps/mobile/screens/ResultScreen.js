@@ -80,6 +80,8 @@ export default function ResultScreen({
   const showCompare = hasResult && !loading && !!displayUri && !previewError;
   const showLoadingOverlay = (loading && !hasResult) || (hasResult && !displayUri && !previewError);
   const actionsBusy = loading || saving || sharing;
+  const previewPending = hasResult && !displayUri && !previewError;
+  const saveDisabled = !hasResult || actionsBusy || previewError || previewPending;
 
   const creatingPhrase = useMemo(() => resolveCategoryCreatingPhrase(style), [style]);
 
@@ -565,10 +567,10 @@ export default function ResultScreen({
             style={[
               styles.resultActionButton,
               hasBeenSaved && styles.resultActionButtonSaved,
-              (!hasResult || actionsBusy || previewError) && styles.buttonDisabled,
+              saveDisabled && styles.buttonDisabled,
             ]}
             onPress={() => handleDownload()}
-            disabled={!hasResult || actionsBusy || previewError}
+            disabled={saveDisabled}
           >
             {saving ? (
               <ActivityIndicator size="small" color="#0F172A" />
@@ -593,10 +595,10 @@ export default function ResultScreen({
           <PressScale
             style={[
               styles.resultActionButton,
-              (!hasResult || actionsBusy || previewError) && styles.buttonDisabled,
+              saveDisabled && styles.buttonDisabled,
             ]}
             onPress={handleShare}
-            disabled={!hasResult || actionsBusy || previewError}
+            disabled={saveDisabled}
           >
             {sharing ? (
               <ActivityIndicator size="small" color="#0F172A" />

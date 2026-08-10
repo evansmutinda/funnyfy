@@ -24,19 +24,43 @@ export const REPLICATE_PREDICTION_MAX_AGE_MS = 55 * 60 * 1000;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+function isHttpUrl(value: string): boolean {
+  return /^https?:\/\//i.test(value.trim());
+}
+
+/** Pull the first usable image URL from Replicate's varied output shapes. */
 export function getImageUrlFromOutput(output: unknown): string | null {
   if (!output) return null;
-  if (typeof output === 'string') return output;
-  if (Array.isArray(output) && output.length > 0) {
-    return getImageUrlFromOutput(output[0]);
+
+  if (typeof output === 'string') {
+    const trimmed = output.trim();
+    return isHttpUrl(trimmed) ? trimmed : null;
   }
-  if (output && typeof output === 'object') {
+
+  if (Array.isArray(output)) {
+    for (const item of output) {
+      const url = getImageUrlFromOutput(item);
+      if (url) return url;
+    }
+    return null;
+  }
+
+  if (typeof output === 'object') {
     const obj = output as Record<string, unknown>;
-    if (typeof obj.url === 'string') return obj.url;
-    if (typeof obj.uri === 'string') return obj.uri;
-    if (typeof obj.href === 'string') return obj.href;
-    if (typeof obj.output === 'string') return obj.output;
+    for (const key of ['url', 'uri', 'href', 'image', 'image_url', 'output']) {
+      const url = getImageUrlFromOutput(obj[key]);
+      if (url) return url;
+    }
+
+    // Some File-like payloads stringify to the delivery URL.
+    if (typeof (obj as { toString?: () => string }).toString === 'function') {
+      const asString = String(obj).trim();
+      if (asString && asString !== '[object Object]' && isHttpUrl(asString)) {
+        return asString;
+      }
+    }
   }
+
   return null;
 }
 
@@ -150,7 +174,7 @@ function predictionAgeMs(job: JobSyncRow): number {
   return Date.now() - new Date(anchor).getTime();
 }
 
-async function markJobCompleted(jobId: string, outputUrl: string, replicateId: string | null) {
+export async function markJobCompleted(jobId: string, outputUrl: string, replicateId: string | null) {
   const validation = await validateOutputImageUrl(outputUrl);
   if (!validation.ok) {
     console.warn('[replicate-sync] Output failed validation:', validation);
@@ -162,13 +186,19 @@ async function markJobCompleted(jobId: string, outputUrl: string, replicateId: s
     return;
   }
 
-  await query(
+  const updated = await query<{ id: string }>(
     `UPDATE jobs SET status = 'completed', output_image_url = $1,
      replicate_prediction_id = COALESCE($2, replicate_prediction_id),
      error_message = NULL, completed_at = NOW()
-     WHERE id = $3`,
+     WHERE id = $3
+       AND (status IS DISTINCT FROM 'completed' OR output_image_url IS NULL)
+     RETURNING id`,
     [outputUrl, replicateId, jobId]
   );
+  if (updated.rows.length === 0) {
+    return;
+  }
+
   const jobRow = await query<{ user_id: string | null; style_id: string }>(
     `SELECT user_id, style_id FROM jobs WHERE id = $1`,
     [jobId]
@@ -185,16 +215,94 @@ async function markJobCompleted(jobId: string, outputUrl: string, replicateId: s
   await finalizeJobCost(jobId, styleId, 'completed');
 }
 
-async function markJobFailed(jobId: string, errorMessage: string, replicateId: string | null) {
-  await query(
+export async function markJobFailed(jobId: string, errorMessage: string, replicateId: string | null) {
+  const updated = await query<{ id: string; style_id: string }>(
     `UPDATE jobs SET status = 'failed', error_message = $1,
      replicate_prediction_id = COALESCE($2, replicate_prediction_id),
      completed_at = NOW()
-     WHERE id = $3`,
+     WHERE id = $3
+       AND status IN ('pending', 'processing')
+     RETURNING id, style_id`,
     [errorMessage.slice(0, 1000), replicateId, jobId]
   );
-  const jobRow = await query<{ style_id: string }>(`SELECT style_id FROM jobs WHERE id = $1`, [jobId]);
-  await finalizeJobCost(jobId, jobRow.rows[0]?.style_id ?? null, 'failed');
+  if (updated.rows.length === 0) {
+    return;
+  }
+  await finalizeJobCost(jobId, updated.rows[0]?.style_id ?? null, 'failed');
+}
+
+/**
+ * Apply a terminal Replicate prediction payload to the matching job.
+ * Used by polling sync and the Replicate webhook.
+ */
+export async function applyReplicatePredictionToJob(
+  job: JobSyncRow,
+  data: Record<string, unknown>
+): Promise<JobSyncRow | null> {
+  const status = String(data.status || '');
+  const outputUrl = getImageUrlFromOutput(data.output);
+  const replicateId = String(data.id || job.replicate_prediction_id || '');
+
+  if (status === 'succeeded') {
+    if (outputUrl) {
+      await markJobCompleted(job.id, outputUrl, replicateId || null);
+      return loadJobById(job.id);
+    }
+    // Generation succeeded on Replicate but no image URL — fail fast (no limbo until expiry).
+    await markJobFailed(job.id, 'Replicate did not return an image', replicateId || null);
+    return loadJobById(job.id);
+  }
+
+  if (status === 'failed' || status === 'canceled') {
+    const detail = data.error ?? data.logs ?? 'No details';
+    const rawError = `Replicate ${status}: ${typeof detail === 'string' ? detail : JSON.stringify(detail)}`;
+    if (isReplicateContentPolicyError(rawError)) {
+      await handleContentPolicyViolation(job.id, job.user_id, {
+        source: 'replicate',
+        error: rawError.slice(0, 500),
+      });
+      return loadJobById(job.id);
+    }
+    await markJobFailed(job.id, rawError, replicateId || null);
+    return loadJobById(job.id);
+  }
+
+  return job;
+}
+
+/** Stable public base URL for Replicate to call back into. */
+export function getPublicApiBaseUrl(): string | null {
+  const candidates = [
+    process.env.PUBLIC_API_URL,
+    process.env.WEBHOOK_BASE_URL,
+    process.env.ALLOWED_ORIGIN,
+    process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL.replace(/^https?:\/\//, '')}`
+      : null,
+  ];
+
+  for (const raw of candidates) {
+    const value = String(raw || '')
+      .trim()
+      .replace(/\/$/, '');
+    if (value.startsWith('https://') && value !== 'https://*') {
+      return value;
+    }
+  }
+  return null;
+}
+
+/** Webhook URL registered on each prediction create (null = polling-only fallback). */
+export function buildReplicateWebhookUrl(jobId?: string): string | null {
+  const base = getPublicApiBaseUrl();
+  const secret = (process.env.REPLICATE_WEBHOOK_SECRET || '').trim();
+  if (!base || !secret) return null;
+  const url = new URL('/api/webhooks/replicate', base);
+  url.searchParams.set('token', secret);
+  if (jobId) {
+    url.searchParams.set('jobId', jobId);
+  }
+  return url.toString();
 }
 
 /**
@@ -249,27 +357,11 @@ export async function syncJobWithReplicate(job: JobSyncRow): Promise<JobSyncRow 
     }
 
     const data = fetched.data;
+    const replicateId = String(data.id || job.replicate_prediction_id || '');
     const status = String(data.status || '');
-    const outputUrl = getImageUrlFromOutput(data.output);
-    const replicateId = String(data.id || job.replicate_prediction_id);
 
-    if (status === 'succeeded' && outputUrl) {
-      await markJobCompleted(job.id, outputUrl, replicateId);
-      return loadJobById(job.id);
-    }
-
-    if (status === 'failed' || status === 'canceled') {
-      const detail = data.error ?? data.logs ?? 'No details';
-      const rawError = `Replicate ${status}: ${typeof detail === 'string' ? detail : JSON.stringify(detail)}`;
-      if (isReplicateContentPolicyError(rawError)) {
-        await handleContentPolicyViolation(job.id, job.user_id, {
-          source: 'replicate',
-          error: rawError.slice(0, 500),
-        });
-        return loadJobById(job.id);
-      }
-      await markJobFailed(job.id, rawError, replicateId);
-      return loadJobById(job.id);
+    if (status === 'succeeded' || status === 'failed' || status === 'canceled') {
+      return applyReplicatePredictionToJob(job, data);
     }
 
     // Still processing on Replicate — persist id if missing

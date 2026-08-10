@@ -61,12 +61,12 @@ export default function Toast({
           duration: 220,
           useNativeDriver: true,
         }).start(() => onHide && onHide());
-      }, hasAction ? 5000 : 2800);
+      }, hasAction ? 5500 : type === 'error' || type === 'warning' ? 5000 : 2800);
 
       return () => clearTimeout(timer);
     }
     slideAnim.setValue(-100);
-  }, [visible, hasAction, onHide, slideAnim]);
+  }, [visible, hasAction, onHide, slideAnim, type]);
 
   if (!visible) return null;
 

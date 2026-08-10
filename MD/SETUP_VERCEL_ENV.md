@@ -31,8 +31,10 @@ DATABASE_URL
 TARGET_API_URL
 TARGET_API_KEY
 ALLOWED_ORIGIN
+PUBLIC_API_URL
 JWT_SECRET
 REVENUECAT_WEBHOOK_SECRET
+REPLICATE_WEBHOOK_SECRET
 CRON_SECRET
 ```
 
@@ -43,8 +45,10 @@ DATABASE_URL (staging database)
 TARGET_API_URL
 TARGET_API_KEY
 ALLOWED_ORIGIN (https://funnyfy-staging.vercel.app)
+PUBLIC_API_URL (https://funnyfy-staging.vercel.app)
 JWT_SECRET (different from production)
 REVENUECAT_WEBHOOK_SECRET (staging secret)
+REPLICATE_WEBHOOK_SECRET (staging secret)
 CRON_SECRET (different from production)
 ```
 
@@ -57,6 +61,8 @@ CRON_SECRET (different from production)
 | `JWT_SECRET` | Generate: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
 | `CRON_SECRET` | Same as JWT_SECRET (generate new one). Also paste into [cron-job.org](https://cron-job.org/) → your job → **Authorization** header as `Bearer <CRON_SECRET>` |
 | `REVENUECAT_WEBHOOK_SECRET` | RevenueCat → Project Settings → Webhooks → Webhook Secret |
+| `REPLICATE_WEBHOOK_SECRET` | Generate with the same `crypto.randomBytes` command; used as `?token=` on `/api/webhooks/replicate` |
+| `PUBLIC_API_URL` | Your public API host (e.g. `https://funnyfy-staging.vercel.app`) so Replicate can POST completion webhooks |
 | `ALLOWED_ORIGIN` | Your Vercel deployment URL (e.g., `https://funnyfyapp.vercel.app`) |
 
 ### 5. After Adding Variables

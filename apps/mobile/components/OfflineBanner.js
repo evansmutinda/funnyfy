@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNetwork } from './NetworkProvider';
 import styles from '../styles';
+
+/** Ignore brief NetInfo flaps during API failures (looked like a flash toast). */
+const OFFLINE_SHOW_DELAY_MS = 1500;
 
 /**
  * Non-blocking top overlay when offline — matches toast styling and does not
@@ -12,8 +15,19 @@ import styles from '../styles';
 export default function OfflineBanner() {
   const { isOnline } = useNetwork();
   const insets = useSafeAreaInsets();
+  const [showBanner, setShowBanner] = useState(false);
 
-  if (isOnline) return null;
+  useEffect(() => {
+    if (isOnline) {
+      setShowBanner(false);
+      return undefined;
+    }
+
+    const timer = setTimeout(() => setShowBanner(true), OFFLINE_SHOW_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [isOnline]);
+
+  if (!showBanner) return null;
 
   return (
     <View

@@ -500,8 +500,8 @@ const CURATED_PAIR_PATHS = {
     after: 'after/Art/popart-sr4.jpg',
   },
   'pop-art-v3': {
-    before: 'before/dude.png',
-    after: 'after/Art/popart-nbn.jpeg',
+    before: 'before/man8.png',
+    after: 'after/Art/popartv3.jpg',
   },
   'graffiti': {
     before: 'before/dude2.png',

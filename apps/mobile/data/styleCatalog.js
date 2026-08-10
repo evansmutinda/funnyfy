@@ -477,7 +477,7 @@ export const DEFAULT_ENABLED_STYLES = [
   { id: "illustration", label: "Illustration", categoryId: "art", description: "Whimsical pastel storybook portrait illustration with soft hand-drawn linework and dreamy floral scenes" },
   { id: "pop-art-v1", label: "Pop Art V1", categoryId: "art", description: "Pop art portrait rendered with bold flat colors" },
   { id: "pop-art-v2", label: "Pop Art V2", categoryId: "art", description: "Pop art portrait with vibrant graphic styling" },
-  { id: "pop-art-v3", label: "Pop Art V3", categoryId: "art", description: "Pop art portrait with bold comic-inspired color blocks" },
+  { id: "pop-art-v3", label: "Pop Art V3", categoryId: "art", description: "Minimalist pop art with bold black-and-white contrast, halftone shading, and a solid pastel background" },
   { id: "graffiti", label: "Graffiti", categoryId: "art", description: "Graffiti art portrait with bold street-art styling" },
   { id: "banksy", label: "Banksy", categoryId: "art", description: "Banksy-style stencil street art portrait" },
   { id: "mosaic", label: "Mosaic", categoryId: "art", description: "Mosaic installation art portrait with tiled color fragments" },

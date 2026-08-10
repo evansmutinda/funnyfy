@@ -127,9 +127,14 @@ export default function PhotoReviewScreen({
             <Image
               source={{ uri: imageUri }}
               style={styles.reviewPreviewImage}
+              resizeMode="contain"
+              accessibilityLabel="Selected photo preview"
             />
           ) : null}
         </View>
+        <Text style={styles.reviewPreviewCaption}>
+          Preview shows exactly what will be generated
+        </Text>
       </View>
 
       <View style={[styles.reviewActionBand, { paddingBottom: Math.max(insets.bottom, 16) + 8 }]}>

@@ -338,10 +338,10 @@ Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd pic
 
 - **Category:** caricatures
 - **Model:** NANO_BANANA_2
-- **Description:** Style-matched caricature into a template scene — keeps reference background, exaggerated features, clothing, and facial identity
+- **Description:** Style-matched caricature into a template scene — keeps reference background and exaggeration, subject clothes, face and body identity
 
 ```
-Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Maintain the background of the 1st photo. If the subject is solo on the 2nd picture, do not add any other characters. Keep the 2nd subject's clothes if they have any, include pants. No text. Maintain the 1st picture's exaggerated features. Maintain the 2nd picture's facial features. Keep gender on the 2nd picture in mind.
+Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Maintain the background of the 1st photo. If the subject is solo on the 2nd picture, do not add any other characters. Keep the 2nd subject's clothes if they have any, include pants. No text. Maintain the 1st picture's exaggerated features. Maintain the 2nd picture's facial and body features. Keep gender on the 2nd picture in mind. do not transfer any facial and body likeness of the 1st pic.
 ```
 
 #### `carc21` — Caricature 21
@@ -957,11 +957,11 @@ make this a pop art.
 #### `pop-art-v3` — Pop Art V3
 
 - **Category:** art
-- **Model:** NANO_BANANA
-- **Description:** Pop art portrait with bold comic-inspired color blocks
+- **Model:** SEEDREAM_4_5
+- **Description:** Minimalist pop art with bold black-and-white contrast, halftone shading, and a solid pastel background
 
 ```
-make this a pop art.
+Convert this portrait photo into a minimalist pop art illustration. Use bold black-and-white contrast with halftone shading on the face. Keep the background a solid pastel color, outlined in black, with clean geometric lines. The overall style should be flat, graphic, and modern, similar to retro comic book art.
 ```
 
 #### `graffiti` — Graffiti

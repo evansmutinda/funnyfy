@@ -16,29 +16,40 @@ import { useNotifications } from './NotificationProvider';
 import styles from '../styles';
 
 const MIN_CROP_PX = 80;
-const CORNER_HIT = 44;
+/** Edge/corner grab size in stage coordinates (larger = easier top/side handles). */
+const EDGE_HIT = 52;
 
 function clamp(n, min, max) {
   return Math.max(min, Math.min(max, n));
 }
 
-function hitMode(crop, pageX, pageY, stagePage) {
-  if (!crop || !stagePage) return 'br';
-  const lx = pageX - stagePage.x;
-  const ly = pageY - stagePage.y;
-  const nearL = Math.abs(lx - crop.x) <= CORNER_HIT;
-  const nearR = Math.abs(lx - (crop.x + crop.w)) <= CORNER_HIT;
-  const nearT = Math.abs(ly - crop.y) <= CORNER_HIT;
-  const nearB = Math.abs(ly - (crop.y + crop.h)) <= CORNER_HIT;
+/**
+ * Hit-test using locationX/Y relative to the stage (not page coords).
+ * Page+measureInWindow was racing and defaulting misses to bottom-right.
+ */
+function hitMode(crop, lx, ly) {
+  if (!crop) return 'move';
+
+  const left = crop.x;
+  const right = crop.x + crop.w;
+  const top = crop.y;
+  const bottom = crop.y + crop.h;
+
+  const nearL = lx >= left - EDGE_HIT && lx <= left + EDGE_HIT;
+  const nearR = lx >= right - EDGE_HIT && lx <= right + EDGE_HIT;
+  const nearT = ly >= top - EDGE_HIT && ly <= top + EDGE_HIT;
+  const nearB = ly >= bottom - EDGE_HIT && ly <= bottom + EDGE_HIT;
+  const inX = lx >= left - EDGE_HIT && lx <= right + EDGE_HIT;
+  const inY = ly >= top - EDGE_HIT && ly <= bottom + EDGE_HIT;
 
   if (nearT && nearL) return 'tl';
   if (nearT && nearR) return 'tr';
   if (nearB && nearL) return 'bl';
   if (nearB && nearR) return 'br';
-  if (nearL) return 'l';
-  if (nearR) return 'r';
-  if (nearT) return 't';
-  if (nearB) return 'b';
+  if (nearT && inX) return 't';
+  if (nearB && inX) return 'b';
+  if (nearL && inY) return 'l';
+  if (nearR && inY) return 'r';
   return 'move';
 }
 
@@ -54,8 +65,6 @@ export default function PhotoCropModal({ visible, uri, onCancel, onDone }) {
   const [crop, setCrop] = useState(null);
   const [busy, setBusy] = useState(false);
 
-  const stageRef = useRef(null);
-  const stagePageRef = useRef(null);
   const fittedRef = useRef(null);
   const cropRef = useRef(null);
   const dragStartRef = useRef(null);
@@ -100,20 +109,10 @@ export default function PhotoCropModal({ visible, uri, onCancel, onDone }) {
       onMoveShouldSetPanResponderCapture: () => true,
       onPanResponderTerminationRequest: () => false,
       onPanResponderGrant: (evt) => {
-        const { pageX, pageY } = evt.nativeEvent;
-        const finishGrant = () => {
-          const current = cropRef.current;
-          modeRef.current = hitMode(current, pageX, pageY, stagePageRef.current);
-          dragStartRef.current = current ? { ...current } : null;
-        };
-        if (stageRef.current) {
-          stageRef.current.measureInWindow((x, y) => {
-            stagePageRef.current = { x, y };
-            finishGrant();
-          });
-        } else {
-          finishGrant();
-        }
+        const { locationX, locationY } = evt.nativeEvent;
+        const current = cropRef.current;
+        modeRef.current = hitMode(current, locationX, locationY);
+        dragStartRef.current = current ? { ...current } : null;
       },
       onPanResponderMove: (_evt, gesture) => {
         const fitted = fittedRef.current;
@@ -156,9 +155,6 @@ export default function PhotoCropModal({ visible, uri, onCancel, onDone }) {
   const onStageLayout = (e) => {
     const { width, height } = e.nativeEvent.layout;
     setLayout({ width, height });
-    stageRef.current?.measureInWindow((x, y) => {
-      stagePageRef.current = { x, y };
-    });
   };
 
   const handleApply = async () => {
@@ -245,8 +241,9 @@ export default function PhotoCropModal({ visible, uri, onCancel, onDone }) {
           </PressScale>
         </View>
 
+        <Text style={styles.cropModalHint}>Drag corners or edges to adjust · move inside to reposition</Text>
+
         <View
-          ref={stageRef}
           style={styles.cropModalStage}
           onLayout={onStageLayout}
           {...panResponder.panHandlers}
@@ -287,6 +284,28 @@ export default function PhotoCropModal({ visible, uri, onCancel, onDone }) {
                 <View style={[styles.cropHandle, styles.cropHandleBL]} />
                 <View style={[styles.cropHandle, styles.cropHandleBR]} />
               </View>
+              <View
+                pointerEvents="none"
+                style={[styles.cropHandle, { left: crop.x + crop.w / 2 - 14, top: crop.y - 14 }]}
+              />
+              <View
+                pointerEvents="none"
+                style={[
+                  styles.cropHandle,
+                  { left: crop.x + crop.w / 2 - 14, top: crop.y + crop.h - 14 },
+                ]}
+              />
+              <View
+                pointerEvents="none"
+                style={[styles.cropHandle, { left: crop.x - 14, top: crop.y + crop.h / 2 - 14 }]}
+              />
+              <View
+                pointerEvents="none"
+                style={[
+                  styles.cropHandle,
+                  { left: crop.x + crop.w - 14, top: crop.y + crop.h / 2 - 14 },
+                ]}
+              />
             </View>
           ) : null}
         </View>

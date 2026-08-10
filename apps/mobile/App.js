@@ -142,6 +142,7 @@ function AppContent({ fontsLoaded }) {
   const authTokenRef = useRef(null);
   const authInitPromiseRef = useRef(null);
   const resultBackHandlerRef = useRef(null);
+  const pendingFailureDialogRef = useRef(null);
   const subscriptionRefreshSeqRef = useRef(0);
   const revenueCatExpirationRef = useRef(null);
   const wasOnlineRef = useRef(true);
@@ -198,6 +199,15 @@ function AppContent({ fontsLoaded }) {
     },
     [showDialog, closeDialog]
   );
+
+  // Present deferred failure dialogs after loading UI settles (Android Modal race).
+  useEffect(() => {
+    if (loading) return;
+    const pending = pendingFailureDialogRef.current;
+    if (!pending) return;
+    pendingFailureDialogRef.current = null;
+    notifyGenerationFailure(pending);
+  }, [loading, notifyGenerationFailure]);
 
   const applyAuthState = (auth) => {
     if (!auth?.userId) return auth;
@@ -622,9 +632,8 @@ function AppContent({ fontsLoaded }) {
         const failsafeTimer = setTimeout(() => {
           console.warn('[callApi] Failsafe timeout reached - forcing loading off');
           setLoading(false);
-          notifyGenerationFailure(
-            'This is taking longer than usual. Tap Try again — we may still be finishing your caricature.'
-          );
+          pendingFailureDialogRef.current =
+            'This is taking longer than usual. Tap Try again — we may still be finishing your caricature.';
         }, 200000);
 
         try {
@@ -647,9 +656,8 @@ function AppContent({ fontsLoaded }) {
             enqueueJson = JSON.parse(enqueueText);
           } catch (parseErr) {
             console.error('Enqueue - JSON parse error:', parseErr, enqueueText?.slice?.(0, 200));
-            notifyGenerationFailure(
-              'We had trouble talking to the server. Tap Try again — your caricature may still be processing.'
-            );
+            pendingFailureDialogRef.current =
+              'We had trouble talking to the server. Tap Try again — your caricature may still be processing.';
             setFailedAttempts((prev) => prev + 1);
             return;
           }
@@ -747,7 +755,9 @@ function AppContent({ fontsLoaded }) {
               rawErrorMessage: err.rawErrorMessage || null,
             });
           }
-          notifyGenerationFailure(err);
+          // Defer dialog until after loading=false so Android Modal isn't swallowed
+          // by the ResultScreen loading → error transition (users only saw it after Save).
+          pendingFailureDialogRef.current = err;
           setFailedAttempts((prev) => prev + 1);
         } finally {
           clearTimeout(failsafeTimer);
@@ -1121,7 +1131,7 @@ function AppContent({ fontsLoaded }) {
           rawErrorMessage: err.rawErrorMessage || null,
         });
       }
-      notifyGenerationFailure(err);
+      pendingFailureDialogRef.current = err;
       setFailedAttempts((prev) => prev + 1);
     } finally {
       setLoading(false);
