@@ -24,6 +24,10 @@
   },
   "rewrites": [
     {
+      "source": "/api/db-test",
+      "destination": "/api/health?check=db"
+    },
+    {
       "source": "/admin/login-page.js",
       "destination": "/api/admin?page=login-page.js"
     },
