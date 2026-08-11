@@ -1,21 +1,47 @@
 import { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 import * as FileSystem from 'expo-file-system';
 import * as ExpoImagePicker from 'expo-image-picker';
 import { useNotifications } from '../components/NotificationProvider';
 
 /**
- * REVERT — forced OS crop on every upload (pre-2026-08-05):
- *
- *   allowsEditing: true
- *
- * Android opened a centered ~1:1 crop box (~75% of landscape shots).
- * Product: full photo on pick; optional Crop on photo review
- * (PhotoCropModal — starts on the full image).
- *
- * To restore OS crop on pick: set ALLOWS_EDITING = true below.
+ * react-native-image-crop-picker is compiled into dev/production builds only.
+ * Expo Go has no RNCImageCropPicker native module — fall back to expo-image-picker.
  */
-const ALLOWS_EDITING = false;
+const IS_EXPO_GO = Constants.appOwnership === 'expo';
+
+let ImageCropPicker = null;
+if (!IS_EXPO_GO) {
+  ImageCropPicker = require('react-native-image-crop-picker').default;
+}
+
+const PICKER_BASE = {
+  mediaType: 'photo',
+  compressImageQuality: 0.9,
+  compressImageMaxWidth: 2048,
+  compressImageMaxHeight: 2048,
+  includeBase64: true,
+};
+
+const CROP_UI = {
+  ...PICKER_BASE,
+  freeStyleCropEnabled: true,
+  avoidEmptySpaceAroundImage: false,
+  cropperToolbarTitle: 'Crop photo',
+  cropperToolbarColor: '#0B0F19',
+  cropperToolbarWidgetColor: '#FFFFFF',
+  cropperActiveWidgetColor: '#FFFFFF',
+  cropperStatusBarLight: false,
+  cropperNavigationBarLight: false,
+  cropperTintColor: '#FFFFFF',
+  showCropGuidelines: true,
+  forceJpg: true,
+};
+
+function isCancelled(err) {
+  return err?.code === 'E_PICKER_CANCELLED';
+}
 
 async function uriToDataUrl(uri) {
   const base64 = await FileSystem.readAsStringAsync(uri, {
@@ -24,19 +50,43 @@ async function uriToDataUrl(uri) {
   return { uri, dataUrl: `data:image/jpeg;base64,${base64}` };
 }
 
-async function pickExpo(useCamera) {
-  const pickerOptions = {
-    mediaTypes: ['images'],
-    allowsEditing: ALLOWS_EDITING,
-    quality: 0.9,
-  };
+async function cropPickerToResult(image) {
+  const uri = image.path.startsWith('file://') ? image.path : `file://${image.path}`;
+  const mime = image.mime || 'image/jpeg';
+  if (image.data) {
+    return { uri, dataUrl: `data:${mime};base64,${image.data}` };
+  }
+  return uriToDataUrl(uri);
+}
 
+async function pickRawNative(useCamera) {
+  if (useCamera) {
+    return ImageCropPicker.openCamera({ ...PICKER_BASE, cropping: false });
+  }
+  return ImageCropPicker.openPicker({ ...PICKER_BASE, cropping: false });
+}
+
+async function pickThenCropNative(useCamera) {
+  const picked = await pickRawNative(useCamera);
+  return ImageCropPicker.openCropper({
+    path: picked.path,
+    width: picked.width,
+    height: picked.height,
+    ...CROP_UI,
+  });
+}
+
+async function pickExpo(useCamera) {
   if (useCamera) {
     const { status } = await ExpoImagePicker.requestCameraPermissionsAsync();
     if (status !== 'granted') {
       throw new Error('Camera permission is required to take photos.');
     }
-    return ExpoImagePicker.launchCameraAsync(pickerOptions);
+    return ExpoImagePicker.launchCameraAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      quality: 0.9,
+    });
   }
 
   if (Platform.OS !== 'android') {
@@ -46,12 +96,29 @@ async function pickExpo(useCamera) {
     }
   }
 
-  return ExpoImagePicker.launchImageLibraryAsync(pickerOptions);
+  return ExpoImagePicker.launchImageLibraryAsync({
+    mediaTypes: ['images'],
+    allowsEditing: true,
+    quality: 0.9,
+  });
+}
+
+async function pickImageImpl(useCamera) {
+  if (IS_EXPO_GO) {
+    const result = await pickExpo(useCamera);
+    if (result.canceled || !result.assets?.[0]) return null;
+    return uriToDataUrl(result.assets[0].uri);
+  }
+
+  const image = await pickThenCropNative(useCamera);
+  return cropPickerToResult(image);
 }
 
 /**
- * Gallery / camera pick via expo-image-picker.
- * Default: full photo (ALLOWS_EDITING false). See REVERT note above.
+ * Gallery / camera pick with crop.
+ *
+ * Dev/production build: react-native-image-crop-picker (full-image crop default)
+ * Expo Go: expo-image-picker fallback (OS crop)
  */
 export default function useImagePicker() {
   const { showToast } = useNotifications();
@@ -76,10 +143,9 @@ export default function useImagePicker() {
     setError('');
 
     try {
-      const result = await pickExpo(useCamera);
-      if (result.canceled || !result.assets?.[0]) return null;
-      return uriToDataUrl(result.assets[0].uri);
+      return await pickImageImpl(useCamera);
     } catch (err) {
+      if (isCancelled(err)) return null;
       console.error('Image pick error:', err);
       const message = err?.message?.includes('permission')
         ? err.message
