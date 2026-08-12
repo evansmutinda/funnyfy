@@ -27,7 +27,7 @@ const CATEGORY_CREATING_NAME = {
   paintings: 'painting',
   '3d-characters': '3D character',
   sculptures: 'sculpture',
-  'stickers-emojis': 'sticker',
+  'stickers': 'sticker',
   'drawings-sketches': 'drawing',
   historical: 'historical portrait',
   art: 'artwork',

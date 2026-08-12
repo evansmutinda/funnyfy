@@ -1,19 +1,32 @@
 import { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
-import Constants from 'expo-constants';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import * as FileSystem from 'expo-file-system';
 import * as ExpoImagePicker from 'expo-image-picker';
 import { useNotifications } from '../components/NotificationProvider';
 
 /**
- * react-native-image-crop-picker is compiled into dev/production builds only.
- * Expo Go has no RNCImageCropPicker native module — fall back to expo-image-picker.
+ * Native builds: react-native-image-crop-picker → uCrop.
+ * Omit width/height so uCrop uses SOURCE_IMAGE_ASPECT_RATIO (full photo selected).
+ * freeStyleCropEnabled lets the user shrink the crop when needed.
+ *
+ * Expo Go: no native uCrop — pick full photo only (OS crop cannot default to full).
  */
-const IS_EXPO_GO = Constants.appOwnership === 'expo';
+const IS_EXPO_GO =
+  Constants.executionEnvironment === ExecutionEnvironment.StoreClient ||
+  Constants.appOwnership === 'expo';
 
 let ImageCropPicker = null;
+let hasNativeCropPicker = false;
 if (!IS_EXPO_GO) {
-  ImageCropPicker = require('react-native-image-crop-picker').default;
+  try {
+    ImageCropPicker = require('react-native-image-crop-picker').default;
+    hasNativeCropPicker = !!ImageCropPicker?.openCropper;
+  } catch (err) {
+    console.warn('[useImagePicker] native crop picker unavailable:', err?.message || err);
+    ImageCropPicker = null;
+    hasNativeCropPicker = false;
+  }
 }
 
 const PICKER_BASE = {
@@ -66,27 +79,32 @@ async function pickRawNative(useCamera) {
   return ImageCropPicker.openPicker({ ...PICKER_BASE, cropping: false });
 }
 
+/**
+ * Pick then open uCrop. Do not pass width/height — that would call
+ * withAspectRatio(w,h) and (without our patch) force-resize/stretch.
+ * With no aspect set, uCrop uses SOURCE_IMAGE_ASPECT_RATIO = full photo.
+ */
 async function pickThenCropNative(useCamera) {
   const picked = await pickRawNative(useCamera);
   return ImageCropPicker.openCropper({
     path: picked.path,
-    width: picked.width,
-    height: picked.height,
     ...CROP_UI,
   });
 }
 
 async function pickExpo(useCamera) {
+  const pickerOptions = {
+    mediaTypes: ['images'],
+    allowsEditing: false,
+    quality: 0.9,
+  };
+
   if (useCamera) {
     const { status } = await ExpoImagePicker.requestCameraPermissionsAsync();
     if (status !== 'granted') {
       throw new Error('Camera permission is required to take photos.');
     }
-    return ExpoImagePicker.launchCameraAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      quality: 0.9,
-    });
+    return ExpoImagePicker.launchCameraAsync(pickerOptions);
   }
 
   if (Platform.OS !== 'android') {
@@ -96,15 +114,11 @@ async function pickExpo(useCamera) {
     }
   }
 
-  return ExpoImagePicker.launchImageLibraryAsync({
-    mediaTypes: ['images'],
-    allowsEditing: true,
-    quality: 0.9,
-  });
+  return ExpoImagePicker.launchImageLibraryAsync(pickerOptions);
 }
 
 async function pickImageImpl(useCamera) {
-  if (IS_EXPO_GO) {
+  if (IS_EXPO_GO || !hasNativeCropPicker) {
     const result = await pickExpo(useCamera);
     if (result.canceled || !result.assets?.[0]) return null;
     return uriToDataUrl(result.assets[0].uri);
@@ -115,10 +129,8 @@ async function pickImageImpl(useCamera) {
 }
 
 /**
- * Gallery / camera pick with crop.
- *
- * Dev/production build: react-native-image-crop-picker (full-image crop default)
- * Expo Go: expo-image-picker fallback (OS crop)
+ * Gallery / camera pick with integrated uCrop (native builds).
+ * Toolbar title: "Crop photo". Selector starts on the full image.
  */
 export default function useImagePicker() {
   const { showToast } = useNotifications();

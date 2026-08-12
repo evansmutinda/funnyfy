@@ -1,0 +1,16 @@
+diff --git a/node_modules/react-native-image-crop-picker/android/src/main/java/com/reactnative/ivpusic/imagepicker/ImageCropPicker.java b/node_modules/react-native-image-crop-picker/android/src/main/java/com/reactnative/ivpusic/imagepicker/ImageCropPicker.java
+index b9c494e..4b13717 100644
+--- a/node_modules/react-native-image-crop-picker/android/src/main/java/com/reactnative/ivpusic/imagepicker/ImageCropPicker.java
++++ b/node_modules/react-native-image-crop-picker/android/src/main/java/com/reactnative/ivpusic/imagepicker/ImageCropPicker.java
+@@ -841,7 +841,10 @@ class ImageCropPicker implements ActivityEventListener {
+ 
+             if (resultUri != null) {
+                 try {
+-                    if (width > 0 && height > 0) {
++                    // Freestyle crops can use a different aspect than width/height.
++                    // Forcing createScaledBitmap(width, height) stretches the result.
++                    // Prefer omitting width/height from JS so uCrop uses source-image aspect.
++                    if (width > 0 && height > 0 && !freeStyleCropEnabled) {
+                         File resized = null;
+                         try{
+                             resized = compression.resize(this.reactContext, resultUri.getPath(), width, height, width, height, 100);

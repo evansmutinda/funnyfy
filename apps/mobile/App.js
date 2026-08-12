@@ -779,7 +779,7 @@ function AppContent({ fontsLoaded }) {
     }
     if (!isOnline) {
       showToast(
-        'No connection',
+        'Check your internet connectivity',
         'Connect to the internet to purchase or restore subscriptions.',
         'warning',
       );
@@ -907,7 +907,7 @@ function AppContent({ fontsLoaded }) {
   const handleRestorePurchases = async () => {
     if (!isOnline) {
       showToast(
-        'No connection',
+        'Check your internet connectivity',
         'Connect to the internet to restore purchases.',
         'warning',
       );
@@ -961,7 +961,7 @@ function AppContent({ fontsLoaded }) {
   const handleUploadStart = async ({ imageUri, imageDataUrl }) => {
     if (!isOnline) {
       showToast(
-        'No connection',
+        'Check your internet connectivity',
         'Connect to the internet to generate caricatures.',
         'warning',
       );
@@ -1197,7 +1197,7 @@ function AppContent({ fontsLoaded }) {
             if (restyleMode && original?.imageDataUrl) {
               if (!isOnline) {
                 showToast(
-                  'No connection',
+                  'Check your internet connectivity',
                   'Connect to the internet to generate caricatures.',
                   'warning',
                 );

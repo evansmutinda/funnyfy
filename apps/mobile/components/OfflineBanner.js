@@ -40,7 +40,7 @@ export default function OfflineBanner() {
           <Feather name="wifi-off" size={15} color="#EA580C" />
         </View>
         <View style={styles.toastTextWrap}>
-          <Text style={styles.toastTitleWarning}>No connection</Text>
+          <Text style={styles.toastTitleWarning}>Check your internet connectivity</Text>
           <Text style={styles.toastMessageWarning}>
             Generation and purchases need internet
           </Text>

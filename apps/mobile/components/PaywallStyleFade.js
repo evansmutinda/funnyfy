@@ -16,8 +16,8 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
-const HOLD_MS = 3200;
-const FADE_MS = 1300;
+const HOLD_MS = 4800;
+const FADE_MS = 1800;
 
 /**
  * Cycles style previews using the same two-layer crossfade as ComparisonFade.

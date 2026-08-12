@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Image,
   StatusBar,
   Text,
   TouchableOpacity,
@@ -15,7 +16,8 @@ import UploadFlowHeader, { getUploadQuotaInfo } from '../components/UploadFlowHe
 import ComparisonFade from '../components/ComparisonFade';
 import PhotoTipsSheet from '../components/PhotoTipsSheet';
 import useImagePicker from '../hooks/useImagePicker';
-import { getComparisonPair } from '../data/comparisonPairs';
+import { getStyleImage } from '../constants';
+import { getComparisonPair, usesComparisonPreview } from '../data/comparisonPairs';
 import { getStylePhotoTips } from '../data/stylePhotoTips';
 import { getTrialRemaining, getTrialWarningMessage, isTrialUser } from '../utils/trialWarnings';
 import { isPhotoTipsDismissed, setPhotoTipsDismissed } from '../utils/photoTipsPrefs';
@@ -26,7 +28,8 @@ import styles from '../styles';
  * before/after comparison so the user can preview what they're
  * about to apply, then provides Gallery / Camera entry points.
  *
- * Gallery / Camera open the OS picker (full photo; no forced crop), then `onPicked`.
+ * Gallery / Camera open the picker, then integrated uCrop on native builds
+ * (full photo selected by default). Then `onPicked`.
  */
 export default function UploadScreen({
   style,
@@ -77,7 +80,9 @@ export default function UploadScreen({
 
   const quotaInfo = getQuotaInfo();
   const trialRemaining = isTrialUser(subscriptionInfo) ? getTrialRemaining(subscriptionInfo) : null;
-  const comparisonPair = getComparisonPair(style);
+  const showComparison = usesComparisonPreview(style);
+  const comparisonPair = showComparison ? getComparisonPair(style) : null;
+  const stickerPreview = showComparison ? null : getStyleImage(style);
 
   const handlePick = async (useCamera) => {
     const picked = await pickImage(useCamera);
@@ -97,16 +102,24 @@ export default function UploadScreen({
     <View style={styles.uploadRoot}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
-      {/* Comparison background — looping before/after for the selected style */}
-      <ComparisonFade
-        beforeSource={comparisonPair.before}
-        afterSource={comparisonPair.after}
-        afterSources={comparisonPair.afters}
-        style={styles.uploadBackgroundFill}
-        imageStyle={styles.uploadBackgroundImage}
-        holdMs={1800}
-        fadeMs={1000}
-      />
+      {/* Comparison background — looping before/after, or static sticker thumb */}
+      {showComparison ? (
+        <ComparisonFade
+          beforeSource={comparisonPair.before}
+          afterSource={comparisonPair.after}
+          afterSources={comparisonPair.afters}
+          style={styles.uploadBackgroundFill}
+          imageStyle={styles.uploadBackgroundImage}
+          holdMs={1800}
+          fadeMs={1000}
+        />
+      ) : (
+        <Image
+          source={stickerPreview}
+          style={[styles.uploadBackgroundFill, styles.uploadBackgroundImage]}
+          resizeMode="contain"
+        />
+      )}
 
       {/* Top scrim — improves legibility of header chips */}
       <LinearGradient

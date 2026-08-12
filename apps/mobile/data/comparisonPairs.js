@@ -8,6 +8,7 @@
 
 import { getStyleImage } from '../constants';
 import { COMPARISON_HERO_ASSETS, COMPARISON_TILE_ASSETS } from './comparisonPairAssets.generated';
+import { getStyleCategory } from './styleCatalog';
 
 /** Canonical upload comparison aspect (width / height). */
 export const COMPARISON_ASPECT_RATIO = 2 / 3;
@@ -602,6 +603,16 @@ export function hasCuratedComparisonPair(style, tier = 'tiles') {
   return Boolean(resolveCuratedPair(style.id, tier));
 }
 
+/** Stickers use a static thumb only — no before/after comparison loop. */
+export function usesComparisonPreview(style) {
+  if (!style) return false;
+  const categoryId = String(
+    style.categoryId || getStyleCategory(style.id) || '',
+  ).toLowerCase();
+  if (categoryId === 'stickers') return false;
+  return true;
+}
+
 /**
  * Returns the { before, after } image pair for a given style. Falls back
  * to the shared "before" portrait + the style's thumbnail when no
@@ -610,6 +621,10 @@ export function hasCuratedComparisonPair(style, tier = 'tiles') {
 export function getComparisonPair(style, tier = 'hero') {
   if (!style) {
     return { before: DEFAULT_BEFORE, after: DEFAULT_BEFORE };
+  }
+  if (!usesComparisonPreview(style)) {
+    const after = getStyleImage(style);
+    return { before: after, after };
   }
   const curated = resolveCuratedPair(style.id, tier);
   if (curated) return curated;

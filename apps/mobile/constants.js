@@ -297,6 +297,35 @@ export const STYLE_CARD_IMAGE_HOKUSAI_V2 = require('./assets/comparisons/tiles/a
 export const STYLE_CARD_IMAGE_HIROSHIGE = require('./assets/comparisons/tiles/after/Paintings/Hiroshige.jpg');
 export const STYLE_CARD_IMAGE_SESSHU = require('./assets/comparisons/tiles/after/Paintings/Sesshū.jpg');
 export const STYLE_CARD_IMAGE_WC_MARKER = require('./assets/comparisons/tiles/after/Paintings/wc-marker.jpg');
+export const STYLE_CARD_IMAGE_ANGRY = require('./assets/comparisons/source/after/stickers/angry.png');
+export const STYLE_CARD_IMAGE_BORED = require('./assets/comparisons/source/after/stickers/bored.png');
+export const STYLE_CARD_IMAGE_CELEBRATE = require('./assets/comparisons/source/after/stickers/celebrate.png');
+export const STYLE_CARD_IMAGE_CONFUSED = require('./assets/comparisons/source/after/stickers/confused.png');
+export const STYLE_CARD_IMAGE_COOL = require('./assets/comparisons/source/after/stickers/cool.png');
+export const STYLE_CARD_IMAGE_CRYING = require('./assets/comparisons/source/after/stickers/crying.png');
+export const STYLE_CARD_IMAGE_DISGUSTED = require('./assets/comparisons/source/after/stickers/disgusted.png');
+export const STYLE_CARD_IMAGE_EXCITED = require('./assets/comparisons/source/after/stickers/excited.png');
+export const STYLE_CARD_IMAGE_FACEPALM = require('./assets/comparisons/source/after/stickers/Facepalm.png');
+export const STYLE_CARD_IMAGE_HAPPY = require('./assets/comparisons/source/after/stickers/happy.png');
+export const STYLE_CARD_IMAGE_LAUGHING = require('./assets/comparisons/source/after/stickers/laughing.png');
+export const STYLE_CARD_IMAGE_LOVE = require('./assets/comparisons/source/after/stickers/love.png');
+export const STYLE_CARD_IMAGE_MIND_BLOWN = require('./assets/comparisons/source/after/stickers/mind-blown.png');
+export const STYLE_CARD_IMAGE_NEED_COFFEE = require('./assets/comparisons/source/after/stickers/need-coffee.png');
+export const STYLE_CARD_IMAGE_NERVOUS = require('./assets/comparisons/source/after/stickers/nervous.png');
+export const STYLE_CARD_IMAGE_PROUD = require('./assets/comparisons/source/after/stickers/proud.png');
+export const STYLE_CARD_IMAGE_SAD = require('./assets/comparisons/source/after/stickers/sad.png');
+export const STYLE_CARD_IMAGE_SARCASTIC = require('./assets/comparisons/source/after/stickers/sarcastic.png');
+export const STYLE_CARD_IMAGE_SCARED = require('./assets/comparisons/source/after/stickers/scared.png');
+export const STYLE_CARD_IMAGE_SHOCKED = require('./assets/comparisons/source/after/stickers/shocked.png');
+export const STYLE_CARD_IMAGE_SKEPTICAL = require('./assets/comparisons/source/after/stickers/Skeptical.png');
+export const STYLE_CARD_IMAGE_SLEEPY = require('./assets/comparisons/source/after/stickers/sleepy.png');
+export const STYLE_CARD_IMAGE_SMIRK = require('./assets/comparisons/source/after/stickers/smirk.png');
+export const STYLE_CARD_IMAGE_SORRY = require('./assets/comparisons/source/after/stickers/sorry.png');
+export const STYLE_CARD_IMAGE_SURPRISED = require('./assets/comparisons/source/after/stickers/surprised.png');
+export const STYLE_CARD_IMAGE_THINKING = require('./assets/comparisons/source/after/stickers/thinking.png');
+export const STYLE_CARD_IMAGE_THUMBS_DOWN = require('./assets/comparisons/source/after/stickers/thumbs-down.png');
+export const STYLE_CARD_IMAGE_THUMBS_UP = require('./assets/comparisons/source/after/stickers/thumbs-up.png');
+export const STYLE_CARD_IMAGE_WINK = require('./assets/comparisons/source/after/stickers/wink.png');
 export const STYLE_CARD_IMAGE_PXL = require('./assets/comparisons/tiles/after/3d/pxl.jpg');
 export const STYLE_CARD_IMAGE_FUNKO = require('./assets/comparisons/tiles/after/3d/funko.jpg');
 export const STYLE_CARD_IMAGE_AARDMAN = require('./assets/comparisons/tiles/after/3d/Aardman.jpg');
@@ -353,6 +382,35 @@ export const PAYWALL_MARQUEE_IMAGES = [
 
 /** Primary thumbnail lookup by style id (enabled + common aliases). */
 const STYLE_IMAGE_BY_ID = {
+  'angry': STYLE_CARD_IMAGE_ANGRY,
+  'bored': STYLE_CARD_IMAGE_BORED,
+  'celebrate': STYLE_CARD_IMAGE_CELEBRATE,
+  'confused': STYLE_CARD_IMAGE_CONFUSED,
+  'cool': STYLE_CARD_IMAGE_COOL,
+  'crying': STYLE_CARD_IMAGE_CRYING,
+  'disgusted': STYLE_CARD_IMAGE_DISGUSTED,
+  'excited': STYLE_CARD_IMAGE_EXCITED,
+  'facepalm': STYLE_CARD_IMAGE_FACEPALM,
+  'happy': STYLE_CARD_IMAGE_HAPPY,
+  'laughing': STYLE_CARD_IMAGE_LAUGHING,
+  'love': STYLE_CARD_IMAGE_LOVE,
+  'mind-blown': STYLE_CARD_IMAGE_MIND_BLOWN,
+  'need-coffee': STYLE_CARD_IMAGE_NEED_COFFEE,
+  'nervous': STYLE_CARD_IMAGE_NERVOUS,
+  'proud': STYLE_CARD_IMAGE_PROUD,
+  'sad': STYLE_CARD_IMAGE_SAD,
+  'sarcastic': STYLE_CARD_IMAGE_SARCASTIC,
+  'scared': STYLE_CARD_IMAGE_SCARED,
+  'shocked': STYLE_CARD_IMAGE_SHOCKED,
+  'skeptical': STYLE_CARD_IMAGE_SKEPTICAL,
+  'sleepy': STYLE_CARD_IMAGE_SLEEPY,
+  'smirk': STYLE_CARD_IMAGE_SMIRK,
+  'sorry': STYLE_CARD_IMAGE_SORRY,
+  'surprised': STYLE_CARD_IMAGE_SURPRISED,
+  'thinking': STYLE_CARD_IMAGE_THINKING,
+  'thumbs-down': STYLE_CARD_IMAGE_THUMBS_DOWN,
+  'thumbs-up': STYLE_CARD_IMAGE_THUMBS_UP,
+  'wink': STYLE_CARD_IMAGE_WINK,
   '90s-cartoon': STYLE_CARD_IMAGE_DEFAULT,
   chibi: STYLE_CARD_IMAGE_CHIBI,
   'classic-v1': STYLE_CARD_IMAGE_CLASSIC_V1,

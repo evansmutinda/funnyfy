@@ -20,7 +20,7 @@ export interface StyleConfig {
   /**
    * Optional style template image (public path or absolute URL).
    * Sent as image_input[0]; the user's photo is image_input[1].
-   * Example: `style-refs/caricatures/mugface.jpg` → served from /public on Vercel.
+   * Example: `style-refs/caricatures/mugface.png` → served from /public on Vercel.
    */
   referenceImage?: string;
   premium?: boolean;
@@ -93,6 +93,176 @@ function catalogPlaceholders(): Record<string, StyleConfig> {
         prompt: placeholderPrompt(entry.label),
         model: DEFAULT_MODEL,
         enabled: false,
+        premium: false,
+      },
+    ]),
+  );
+}
+
+
+const STICKER_PROMPT_BASE =
+  "Create a premium Pixar-style 3D sticker of the exact same person from the uploaded image, using the uploaded photo as the only facial reference. Preserve the person's exact facial structure, hairstyle, grooming details, skin tone, proportions, and all unique identifying features with very high likeness accuracy. Do not over-beautify, heavily stylize, or alter identity beyond recognition.\n\nOutput a single sticker only — not a grid, collage, or sheet. Use a 1:1 square composition suitable for a digital sticker (tight head-and-shoulders portrait only; no full-body or mid-body). Place the character on a fully transparent background. Use a clean die-cut silhouette with a smooth rounded bottom / semi-curved sticker base. Optional: a very subtle soft drop shadow under the figure only (no floor, no cream backdrop, no scene).\n\nRender in a high-end Pixar-inspired 3D animation style with glossy shading, soft global illumination, detailed facial textures, bold clean outlines, and slightly exaggerated cartoon proportions. Use soft studio lighting with subtle rim light so the sticker reads clearly at small size. Dress the subject in modern casual clothing with a slightly stylized fashion look — clean, minimal, and sticker-friendly. No text, logos, watermarks, or extra characters.";
+
+const STICKER_EXPRESSIONS: { id: string; label: string; expression: string }[] = [
+  {
+    "id": "angry",
+    "label": "Angry",
+    "expression": "Angry"
+  },
+  {
+    "id": "bored",
+    "label": "Bored",
+    "expression": "Bored"
+  },
+  {
+    "id": "celebrate",
+    "label": "Celebrate",
+    "expression": "Celebrate"
+  },
+  {
+    "id": "confused",
+    "label": "Confused",
+    "expression": "Confused"
+  },
+  {
+    "id": "cool",
+    "label": "Cool",
+    "expression": "Cool"
+  },
+  {
+    "id": "crying",
+    "label": "Crying",
+    "expression": "Crying"
+  },
+  {
+    "id": "disgusted",
+    "label": "Disgusted",
+    "expression": "Disgusted"
+  },
+  {
+    "id": "excited",
+    "label": "Excited",
+    "expression": "Excited"
+  },
+  {
+    "id": "facepalm",
+    "label": "Facepalm",
+    "expression": "Facepalm"
+  },
+  {
+    "id": "happy",
+    "label": "Happy",
+    "expression": "Happy"
+  },
+  {
+    "id": "laughing",
+    "label": "Laughing",
+    "expression": "Laughing"
+  },
+  {
+    "id": "love",
+    "label": "Love",
+    "expression": "Love"
+  },
+  {
+    "id": "mind-blown",
+    "label": "Mind Blown",
+    "expression": "Mind Blown"
+  },
+  {
+    "id": "need-coffee",
+    "label": "Need Coffee",
+    "expression": "Need Coffee"
+  },
+  {
+    "id": "nervous",
+    "label": "Nervous",
+    "expression": "Nervous"
+  },
+  {
+    "id": "proud",
+    "label": "Proud",
+    "expression": "Proud"
+  },
+  {
+    "id": "sad",
+    "label": "Sad",
+    "expression": "Sad"
+  },
+  {
+    "id": "sarcastic",
+    "label": "Sarcastic",
+    "expression": "Sarcastic"
+  },
+  {
+    "id": "scared",
+    "label": "Scared",
+    "expression": "Scared"
+  },
+  {
+    "id": "shocked",
+    "label": "Shocked",
+    "expression": "Shocked"
+  },
+  {
+    "id": "skeptical",
+    "label": "Skeptical",
+    "expression": "Skeptical"
+  },
+  {
+    "id": "sleepy",
+    "label": "Sleepy",
+    "expression": "Sleepy"
+  },
+  {
+    "id": "smirk",
+    "label": "Smirk",
+    "expression": "Smirk"
+  },
+  {
+    "id": "sorry",
+    "label": "Sorry",
+    "expression": "Sorry"
+  },
+  {
+    "id": "surprised",
+    "label": "Surprised",
+    "expression": "Surprised"
+  },
+  {
+    "id": "thinking",
+    "label": "Thinking",
+    "expression": "Thinking"
+  },
+  {
+    "id": "thumbs-down",
+    "label": "Thumbs Down",
+    "expression": "Thumbs Down"
+  },
+  {
+    "id": "thumbs-up",
+    "label": "Thumbs Up",
+    "expression": "Thumbs Up"
+  },
+  {
+    "id": "wink",
+    "label": "Wink",
+    "expression": "Wink"
+  }
+];
+
+function buildStickerStyles(): Record<string, StyleConfig> {
+  return Object.fromEntries(
+    STICKER_EXPRESSIONS.map(({ id, label, expression }) => [
+      id,
+      {
+        id,
+        label,
+        categoryId: 'stickers',
+        description: `Pixar-style 3D die-cut sticker — ${expression} expression`,
+        prompt: `${STICKER_PROMPT_BASE}\n\nUse ${expression} expression.`,
+        model: NANO_BANANA,
+        enabled: true,
         premium: false,
       },
     ]),
@@ -1412,9 +1582,9 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     description:
       'Style-matched caricature face transfer — applies a cartoon template look while keeping race, sex, and facial identity',
     prompt:
-      "Using the 1st picture as a style reference and the 2nd picture as the subject: switch the face treatment of the 2nd picture's subject to duplicate the overall caricature style of the 1st picture. Caricaturize the subject's face to match the style of the 1st picture while maintaining the 2nd subject's overall facial features, race, and sex. Maintain the caricature cartoon style. Don't add the cigarette.",
+      "Using the 1st picture as a style reference and the 2nd picture as the subject: switch the face treatment of the 2nd picture's subject to duplicate the overall caricature style of the 1st picture. Caricaturize the subject's face to match the style of the 1st picture while maintaining the 2nd subject's overall facial features, race, and sex. Maintain the caricature cartoon style.",
     model: NANO_BANANA_2,
-    referenceImage: 'style-refs/caricatures/carc12.jpg',
+    referenceImage: 'style-refs/caricatures/carc12.png',
     enabled: true,
     premium: false,
   },
@@ -1425,9 +1595,9 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     description:
       'Style-matched caricature face transfer — applies a cartoon template look while keeping race, sex, clothing, and facial identity',
     prompt:
-      "Using the 1st picture as a style reference and the 2nd picture as the subject: switch the face treatment of the 2nd picture's subject to duplicate the overall caricature style of the 1st picture. Caricaturize the subject's face to match the style of the 1st picture while maintaining the 2nd subject's overall facial features, race, and sex. Maintain the caricature cartoon style. Don't add the cigarette. Maintain the 2nd subject's clothing. Use a solid colorful background.",
+      "Using the 1st picture as a style reference and the 2nd picture as the subject: switch the face treatment of the 2nd picture's subject to duplicate the overall caricature style of the 1st picture. Caricaturize the subject's face to match the style of the 1st picture while maintaining the 2nd subject's overall facial features, race, and sex. Maintain the caricature cartoon style. Maintain the 2nd subject's clothing. Use a solid colorful background.",
     model: NANO_BANANA_2,
-    referenceImage: 'style-refs/caricatures/carc13.jpg',
+    referenceImage: 'style-refs/caricatures/carc13.png',
     enabled: true,
     premium: false,
   },
@@ -1577,9 +1747,9 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     description:
       'Style-matched caricature face transfer — applies a mug-style template look while keeping the subject recognizable',
     prompt:
-      "Using the 1st picture as a style reference and the 2nd picture as the subject: switch the face treatment of the 2nd picture's subject to duplicate the overall caricature style of the 1st picture. Caricaturize the subject's face to match the style of the 1st picture while maintaining the 2nd subject's facial features and identity. Do not include the hat, sweat, or smoke pipe from the 1st picture.",
+      "Using the 1st picture as a style reference and the 2nd picture as the subject: switch the face treatment of the 2nd picture's subject to duplicate the overall caricature style of the 1st picture. Caricaturize the subject's face to match the style of the 1st picture while maintaining the 2nd subject's facial features and identity. Do not include the hat from the 1st picture.",
     model: NANO_BANANA_2,
-    referenceImage: 'style-refs/caricatures/mugface.jpg',
+    referenceImage: 'style-refs/caricatures/mugface.png',
     enabled: true,
     premium: false,
   },
@@ -1732,6 +1902,7 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     enabled: true,
     premium: false,
   },
+  ...buildStickerStyles(),
 };
 
 export const STYLES_CONFIG: Record<string, StyleConfig> = {

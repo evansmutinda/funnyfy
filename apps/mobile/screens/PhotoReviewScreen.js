@@ -16,13 +16,7 @@ import { isTrialUser, getTrialRemaining } from '../utils/trialWarnings';
 import styles from '../styles';
 
 /**
- * Post-pick review of a photo. Solid dark surface (no comparison
- * fade), with a header band, a flex-grown middle that centers the
- * picked photo, and a bottom action band — so the preview card is
- * always symmetric within the space between header and actions
- * regardless of safe-area insets.
- *
- * Reuses upload* styles for visual parity with UploadScreen.
+ * Post-pick review of a photo. Crop happens during pick (uCrop on native builds).
  */
 export default function PhotoReviewScreen({
   style,
@@ -59,7 +53,7 @@ export default function PhotoReviewScreen({
   const handleGenerate = () => {
     if (!isOnline) {
       showToast(
-        'No connection',
+        'Check your internet connectivity',
         'Connect to the internet to generate caricatures.',
         'warning',
       );
@@ -86,7 +80,6 @@ export default function PhotoReviewScreen({
     <View style={styles.reviewRoot}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
-      {/* Header band — natural flow at top */}
       <View style={[styles.reviewHeaderBand, { paddingTop: insets.top + 8 }]}>
         <UploadFlowHeader
           onBack={onBack}
@@ -113,7 +106,6 @@ export default function PhotoReviewScreen({
         ) : null}
       </View>
 
-      {/* Centered preview — flex-grows to fill the gap between bands */}
       <View style={styles.reviewPreviewBand}>
         <View style={styles.reviewPreviewCard}>
           {imageUri ? (
@@ -125,7 +117,6 @@ export default function PhotoReviewScreen({
         </View>
       </View>
 
-      {/* Action band — natural flow at bottom */}
       <View style={[styles.reviewActionBand, { paddingBottom: Math.max(insets.bottom, 16) + 8 }]}>
         <View style={styles.uploadInlineActionsRow}>
           <PressScale

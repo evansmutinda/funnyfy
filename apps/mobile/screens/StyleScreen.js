@@ -16,6 +16,7 @@ import { BOTTOM_INSET_MIN, getStyleImage } from '../constants';
 import {
   getTileComparisonPair,
   hasCuratedComparisonPair,
+  usesComparisonPreview,
 } from '../data/comparisonPairs';
 import {
   STYLE_CATEGORIES,
@@ -283,7 +284,7 @@ function StylePickerTile({
   comparisonActive,
   interactionPaused,
 }) {
-  const hasPair = hasCuratedComparisonPair(item);
+  const hasPair = usesComparisonPreview(item) && hasCuratedComparisonPair(item);
   return (
     <PressScale
       onPress={() => onSelect(item)}
@@ -317,7 +318,7 @@ function DiscoveryGridRow({
   return (
     <View ref={rowRef} onLayout={onRowLayout} style={styles.discoveryGridRow}>
       {styleList.map((item) => {
-        const hasPair = hasCuratedComparisonPair(item);
+        const hasPair = usesComparisonPreview(item) && hasCuratedComparisonPair(item);
         return (
           <View key={item.id} style={styles.discoveryCard}>
             <PressScale onPress={() => onSelect(item)} style={styles.styleCardOuter}>
@@ -366,6 +367,9 @@ function CategoryRow({
 
   const isTileActive = (styleId, index) => {
     if (!isRowActive) return false;
+    if (!usesComparisonPreview({ id: styleId, categoryId: getStyleCategory(styleId) })) {
+      return false;
+    }
     if (!hasCuratedComparisonPair({ id: styleId })) return false;
     if (!viewableIds) return index < 3;
     return viewableIds.has(styleId);
