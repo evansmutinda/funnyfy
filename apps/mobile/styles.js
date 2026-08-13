@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
   
     styleCardImageShellSelected: {
     borderColor: PAPER,
-    borderWidth: 2,
+    borderWidth: 2.5,
     shadowOpacity: 0.1,
     shadowRadius: 14,
     elevation: 4,
@@ -3284,7 +3284,210 @@ const styles = StyleSheet.create({
   
     pwdManageLinkTextCancel: {
     fontWeight: '700',
-  }
+  },
+
+  stickerSelectMark: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.92)',
+    backgroundColor: 'rgba(15, 23, 42, 0.28)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 3,
+  },
+
+  stickerSelectMarkOn: {
+    borderColor: PAPER,
+    backgroundColor: PAPER,
+  },
+
+  stickerSelectedStrip: {
+    paddingRight: 4,
+    gap: 8,
+    alignItems: 'center',
+  },
+
+  stickerSelectedChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    maxWidth: 148,
+    paddingVertical: 6,
+    paddingLeft: 6,
+    paddingRight: 10,
+    borderRadius: 999,
+    backgroundColor: DARK_CHIP,
+    borderWidth: 1,
+    borderColor: DARK_BORDER,
+  },
+
+  stickerSelectedChipImage: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#1A2233',
+  },
+
+  stickerSelectedChipLabel: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 12,
+    fontWeight: '700',
+    color: PAPER,
+    flexShrink: 1,
+  },
+
+  stickerPackBar: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 12,
+    gap: 8,
+    backgroundColor: DARK_BG,
+    borderTopWidth: 1,
+    borderTopColor: DARK_BORDER,
+  },
+
+  stickerPackBarText: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 13,
+    fontWeight: '600',
+    color: DARK_MUTED,
+    textAlign: 'center',
+  },
+
+  stickerPackBarActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+
+  stickerPackBarGhost: {
+    minHeight: 48,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.22)',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 8,
+  },
+
+  stickerPackBarGhostText: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+
+  stickerPackBarButton: {
+    minHeight: 48,
+    borderRadius: 16,
+    backgroundColor: PAPER,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 8,
+  },
+
+  stickerPackBarButtonText: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 15,
+    fontWeight: '700',
+    color: INK,
+  },
+
+  stickerSheetPreview: {
+    width: '100%',
+    aspectRatio: 1,
+    borderRadius: 20,
+    backgroundColor: '#151B28',
+  },
+
+  stickerPackContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    gap: 14,
+  },
+
+  stickerPackLead: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 15,
+    fontWeight: '600',
+    color: PAPER,
+    letterSpacing: -0.2,
+    lineHeight: 22,
+  },
+
+  stickerPackProgress: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 13,
+    fontWeight: '600',
+    color: ACCENT_INFO,
+  },
+
+  stickerPackError: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 13,
+    fontWeight: '600',
+    color: ACCENT_ERROR,
+    lineHeight: 18,
+  },
+
+  stickerPackHint: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 12,
+    fontWeight: '500',
+    color: DARK_MUTED,
+    lineHeight: 18,
+  },
+
+  stickerPackGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+
+  stickerPackCard: {
+    width: '31%',
+    aspectRatio: 1,
+    borderRadius: 18,
+    overflow: 'hidden',
+    backgroundColor: DARK_SURFACE,
+    borderWidth: 1,
+    borderColor: DARK_BORDER,
+  },
+
+  stickerPackThumb: {
+    width: '100%',
+    height: '100%',
+  },
+
+  stickerPackCardLabel: {
+    position: 'absolute',
+    left: 8,
+    right: 8,
+    bottom: 8,
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 11,
+    fontWeight: '700',
+    color: PAPER,
+  },
+
+  stickerPackCardOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(11,15,25,0.45)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  stickerPackActions: {
+    gap: 10,
+  },
 });
 
 export default styles;

@@ -96,6 +96,7 @@ CREATE TABLE IF NOT EXISTS jobs (
   priority                INTEGER      NOT NULL DEFAULT 1,          -- Higher = processed first (Pro=10, Popular=5, Starter=1)
   replicate_prediction_id VARCHAR(255),
   input_image_url         TEXT,
+  sheet_expressions       TEXT,
   output_image_url        TEXT,
   error_message           TEXT,
   created_at              TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
@@ -266,3 +267,5 @@ GROUP BY status;
 -- 3. Set JWT_SECRET in Vercel for auth token signing.
 -- 4. Set CRON_SECRET in Vercel to secure the queue processor cron endpoint.
 -- 5. Set DAILY_SPENDING_CAP (default 100 = $100/day) to limit Replicate costs.
+
+ALTER TABLE jobs ADD COLUMN IF NOT EXISTS sheet_expressions TEXT;

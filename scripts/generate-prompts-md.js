@@ -38,7 +38,7 @@ const CATEGORY_LABELS = {
   cartoons: 'Cartoons',
   paintings: 'Paintings',
   art: 'Art',
-  '3d-characters': '3D Characters',
+  '3d-characters': '3D',
   sculptures: 'Sculptures',
 };
 

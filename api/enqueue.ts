@@ -4,7 +4,12 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { query } from './_utils/db';
-import { getStyleById } from './_utils/styles-config';
+import { STICKER_SHEET_STYLE_ID, getStyleById } from './_utils/styles-config';
+import {
+  ensureJobSheetExpressionsColumn,
+  normalizeStickerExpressionIds,
+  validateStickerSheetExpressions,
+} from './_utils/sticker-pack';
 import { applyMiddleware, parseBody, validateGenerateRequest } from './_utils/middleware';
 import { requireAuth } from './_utils/auth';
 import { safeErrorResponse } from './_utils/security';
@@ -44,6 +49,16 @@ export default async function handler(
   }
 
   const { styleId, imageUrl } = validation.data;
+  const sheetExpressions =
+    styleId === STICKER_SHEET_STYLE_ID
+      ? normalizeStickerExpressionIds(payload.expressions)
+      : [];
+  if (styleId === STICKER_SHEET_STYLE_ID) {
+    const sheetError = validateStickerSheetExpressions(sheetExpressions);
+    if (sheetError) {
+      return safeErrorResponse(res, 400, 'INVALID_STICKER_SHEET', sheetError);
+    }
+  }
 
   // Hard-block new jobs while queue is paused (billing or daily cap)
   try {
@@ -108,7 +123,11 @@ export default async function handler(
   // Validate style exists
   const styleConfig = getStyleById(styleId);
   if (!styleConfig) {
-    return safeErrorResponse(res, 400, 'INVALID_STYLE_ID', `Invalid styleId: ${styleId}`);
+    return res.status(400).json({
+      ok: false,
+      error: 'INVALID_STYLE_ID',
+      message: `Invalid styleId: ${styleId}`,
+    });
   }
 
   // Determine user tier and quota
@@ -178,13 +197,22 @@ export default async function handler(
   const priority = userTier === 'pro' ? 10 : userTier === 'popular' ? 5 : 1;
 
   try {
+    if (styleId === STICKER_SHEET_STYLE_ID) {
+      await ensureJobSheetExpressionsColumn();
+    }
     const insertResult = await query<{ id: string }>(
       `
-        INSERT INTO jobs (user_id, style_id, status, priority, input_image_url, created_at)
-        VALUES ($1, $2, 'pending', $3, $4, NOW())
+        INSERT INTO jobs (user_id, style_id, status, priority, input_image_url, created_at, sheet_expressions)
+        VALUES ($1, $2, 'pending', $3, $4, NOW(), $5)
         RETURNING id
       `,
-      [userId, styleId, priority, imageUrl]
+      [
+        userId,
+        styleId,
+        priority,
+        imageUrl,
+        styleId === STICKER_SHEET_STYLE_ID ? sheetExpressions.join(',') : null,
+      ]
     );
 
     const jobId = insertResult.rows[0]?.id;

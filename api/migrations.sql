@@ -40,7 +40,8 @@ CREATE TABLE IF NOT EXISTS jobs (
   error_message TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   started_at TIMESTAMP WITH TIME ZONE,
-  completed_at TIMESTAMP WITH TIME ZONE
+  completed_at TIMESTAMP WITH TIME ZONE,
+  sheet_expressions TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_jobs_status_priority
@@ -48,6 +49,8 @@ CREATE INDEX IF NOT EXISTS idx_jobs_status_priority
 
 CREATE INDEX IF NOT EXISTS idx_jobs_user_id
   ON jobs (user_id);
+
+ALTER TABLE jobs ADD COLUMN IF NOT EXISTS sheet_expressions TEXT;
 
 -- rate_limits table (optional, for IP/user-based rate limiting)
 CREATE TABLE IF NOT EXISTS rate_limits (

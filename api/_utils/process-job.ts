@@ -2,7 +2,15 @@
 // Used by the async queue worker (api/cron/process-queue.ts)
 
 import { query } from './db';
-import { getStyleById, resolveStyleModel, resolveStyleReferenceUrl } from './styles-config';
+import {
+  STICKER_SHEET_STYLE_ID,
+  buildStickerSheetPrompt,
+  getStyleById,
+  parseSheetExpressions,
+  resolveStyleModel,
+  resolveStyleReferenceUrl,
+} from './styles-config';
+import { ensureJobSheetExpressionsColumn } from './sticker-pack';
 import {
   buildReplicateWebhookUrl,
   getImageUrlFromOutput,
@@ -41,6 +49,7 @@ export interface JobRow {
   user_id: string | null;
   style_id: string;
   input_image_url: string | null;
+  sheet_expressions?: string | null;
 }
 
 export async function processJob(job: JobRow): Promise<void> {
@@ -54,6 +63,21 @@ export async function processJob(job: JobRow): Promise<void> {
   }
 
   let prompt = styleConfig.prompt;
+  if (job.style_id === STICKER_SHEET_STYLE_ID) {
+    await ensureJobSheetExpressionsColumn();
+    let expressionIds = parseSheetExpressions(job.sheet_expressions);
+    if (!expressionIds.length) {
+      const stored = await query<{ sheet_expressions: string | null }>(
+        `SELECT sheet_expressions FROM jobs WHERE id = $1`,
+        [job.id],
+      );
+      expressionIds = parseSheetExpressions(stored.rows[0]?.sheet_expressions);
+    }
+    if (expressionIds.length !== 4 && expressionIds.length !== 9) {
+      throw new Error('Sticker sheet jobs need 4 or 9 expressions.');
+    }
+    prompt = buildStickerSheetPrompt(expressionIds);
+  }
   const imageUrl = job.input_image_url;
   const modelVersion = resolveStyleModel(styleConfig);
   const referenceUrl = resolveStyleReferenceUrl(styleConfig);
@@ -80,6 +104,9 @@ export async function processJob(job: JobRow): Promise<void> {
       input.image_input = referenceUrl ? [referenceUrl, imageUrl] : [imageUrl];
       input.image = imageUrl;
       input.image_url = imageUrl;
+      if (job.style_id === STICKER_SHEET_STYLE_ID) {
+        input.aspect_ratio = '1:1';
+      }
       if (
         !referenceUrl &&
         !prompt.toLowerCase().includes('uploaded') &&

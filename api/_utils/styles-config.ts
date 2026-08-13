@@ -251,6 +251,45 @@ const STICKER_EXPRESSIONS: { id: string; label: string; expression: string }[] =
   }
 ];
 
+export const STICKER_SHEET_STYLE_ID = 'sticker-sheet';
+
+export function parseSheetExpressions(raw: string | null | undefined): string[] {
+  return String(raw || '')
+    .split(',')
+    .map((id) => id.trim())
+    .filter(Boolean);
+}
+
+export function buildStickerSheetPrompt(expressionIds: string[]): string {
+  const count = expressionIds.length;
+  const cols = count === 4 ? 2 : 3;
+  const rows = cols;
+  const lines = expressionIds.map((id, index) => {
+    const meta = STICKER_EXPRESSIONS.find((item) => item.id === id);
+    return `${index + 1}. ${meta?.expression || meta?.label || id}`;
+  });
+
+  return `Create a premium Pixar-style 3D sticker sheet of the exact same person from the uploaded image, using the uploaded photo as the only facial reference. Preserve the person's exact facial structure, hairstyle, grooming details, skin tone, proportions, and all unique identifying features with very high likeness accuracy. Do not over-beautify, heavily stylize, or alter identity beyond recognition.
+
+Output one square sticker sheet only — a ${rows}x${cols} grid of exactly ${count} die-cut stickers. Same person in every cell. Even gutters, identical cell size, aligned rows and columns, no labels, no captions, no numbers, no text, no collage bleed, no extra characters. Use a 1:1 square composition filling the entire image. Place every character on a fully transparent or plain off-white background. Each cell is a clean die-cut silhouette with a smooth rounded bottom / semi-curved sticker base. Optional: a very subtle soft drop shadow under each figure only (no floor, no scene).
+
+Render in a high-end Pixar-inspired 3D animation style with glossy shading, soft global illumination, detailed facial textures, bold clean outlines, and slightly exaggerated cartoon proportions. Use soft studio lighting with subtle rim light so each sticker reads clearly at small size. Dress each cell in modern casual clothing with a slightly stylized fashion look — clean, minimal, and sticker-friendly. Clothing may vary by cell. No text, logos, watermarks, or extra characters.
+
+Grid, left to right, top to bottom:
+${lines.join('\n')}`;
+}
+
+const STICKER_SHEET_STYLE: StyleConfig = {
+  id: STICKER_SHEET_STYLE_ID,
+  label: 'Sticker pack',
+  categoryId: 'stickers',
+  description: 'Pixar-style 3D sticker sheet for WhatsApp / Telegram packs',
+  prompt: buildStickerSheetPrompt(['happy', 'laughing', 'cool', 'angry', 'surprised', 'thinking', 'love', 'wink', 'thumbs-up']),
+  model: NANO_BANANA,
+  enabled: true,
+  premium: false,
+};
+
 function buildStickerStyles(): Record<string, StyleConfig> {
   return Object.fromEntries(
     STICKER_EXPRESSIONS.map(({ id, label, expression }) => [
@@ -1903,6 +1942,7 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     premium: false,
   },
   ...buildStickerStyles(),
+  [STICKER_SHEET_STYLE_ID]: STICKER_SHEET_STYLE,
 };
 
 export const STYLES_CONFIG: Record<string, StyleConfig> = {
@@ -1911,6 +1951,7 @@ export const STYLES_CONFIG: Record<string, StyleConfig> = {
 };
 
 export function getStyleById(styleId: string): StyleConfig | null {
+  if (styleId === STICKER_SHEET_STYLE_ID) return STICKER_SHEET_STYLE;
   const style = STYLES_CONFIG[styleId];
   if (!style || !style.enabled) {
     return null;
@@ -1919,7 +1960,9 @@ export function getStyleById(styleId: string): StyleConfig | null {
 }
 
 export function getEnabledStyles(): StyleConfig[] {
-  return Object.values(STYLES_CONFIG).filter((style) => style.enabled !== false);
+  return Object.values(STYLES_CONFIG).filter(
+    (style) => style.enabled !== false && style.id !== STICKER_SHEET_STYLE_ID,
+  );
 }
 
 export function getFreeStyles(): StyleConfig[] {

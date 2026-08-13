@@ -7,7 +7,7 @@
       "maxDuration": 10
     },
     "api/job.ts": {
-      "maxDuration": 10
+      "maxDuration": 60
     },
     "api/sync-subscription.ts": {
       "maxDuration": 10
