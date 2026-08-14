@@ -1540,6 +1540,25 @@ const styles = StyleSheet.create({
     gap: 10,
   },
 
+  styleRowComingSoon: {
+    marginHorizontal: 16,
+    minHeight: 88,
+    borderRadius: 20,
+    backgroundColor: DARK_CHIP,
+    borderWidth: 1,
+    borderColor: DARK_BORDER,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+  },
+
+  styleRowComingSoonText: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 14,
+    fontWeight: '600',
+    color: DARK_MUTED,
+  },
+
   
     styleRowCard: {
     width: 110,
@@ -3309,36 +3328,51 @@ const styles = StyleSheet.create({
   stickerSelectedStrip: {
     paddingRight: 4,
     gap: 8,
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
 
   stickerSelectedChip: {
-    flexDirection: 'row',
+    width: 76,
     alignItems: 'center',
-    gap: 8,
-    maxWidth: 148,
-    paddingVertical: 6,
-    paddingLeft: 6,
-    paddingRight: 10,
-    borderRadius: 999,
-    backgroundColor: DARK_CHIP,
+    gap: 6,
+    paddingTop: 8,
+    paddingBottom: 8,
+    paddingHorizontal: 6,
+    borderRadius: 16,
+    backgroundColor: '#151B28',
     borderWidth: 1,
     borderColor: DARK_BORDER,
+    overflow: 'hidden',
   },
 
   stickerSelectedChipImage: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 52,
+    height: 52,
+    borderRadius: 12,
     backgroundColor: '#1A2233',
+    overflow: 'hidden',
   },
 
   stickerSelectedChipLabel: {
     fontFamily: FONT_PLUS_JAKARTA,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
     color: PAPER,
-    flexShrink: 1,
+    textAlign: 'center',
+    width: '100%',
+    lineHeight: 14,
+  },
+
+  stickerSelectedChipRemove: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: 'rgba(11,15,25,0.82)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   stickerPackBar: {
@@ -3408,6 +3442,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#151B28',
   },
 
+  stickerPackLoadingCard: {
+    width: '100%',
+    minHeight: 280,
+    borderRadius: 20,
+    backgroundColor: '#151B28',
+    borderWidth: 1,
+    borderColor: DARK_BORDER,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    paddingHorizontal: 24,
+    paddingVertical: 36,
+  },
+
   stickerPackContainer: {
     paddingHorizontal: 16,
     paddingTop: 8,
@@ -3421,13 +3469,6 @@ const styles = StyleSheet.create({
     color: PAPER,
     letterSpacing: -0.2,
     lineHeight: 22,
-  },
-
-  stickerPackProgress: {
-    fontFamily: FONT_PLUS_JAKARTA,
-    fontSize: 13,
-    fontWeight: '600',
-    color: ACCENT_INFO,
   },
 
   stickerPackError: {
@@ -3485,9 +3526,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  stickerPackActions: {
-    gap: 10,
-  },
 });
 
 export default styles;

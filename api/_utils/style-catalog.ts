@@ -94,6 +94,7 @@ export const STYLE_CATALOG: StyleCatalogEntry[] = [
   { id: "crying", label: "Crying", categoryId: "stickers" },
   { id: "disgusted", label: "Disgusted", categoryId: "stickers" },
   { id: "excited", label: "Excited", categoryId: "stickers" },
+  { id: "eyeroll", label: "Eye Roll", categoryId: "stickers" },
   { id: "facepalm", label: "Facepalm", categoryId: "stickers" },
   { id: "happy", label: "Happy", categoryId: "stickers" },
   { id: "laughing", label: "Laughing", categoryId: "stickers" },

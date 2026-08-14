@@ -45,10 +45,10 @@ import StickerPackScreen from './screens/StickerPackScreen';
 import { getStyleCategory } from './utils/styleCategories';
 import {
   STICKER_PACK_MAX,
+  STICKER_PACK_SIZE_HINT,
   STICKER_SHEET_STYLE_ID,
   canBuildStickerPack,
   isStickerStyle,
-  stickerPackProgressLabel,
   stickerPackQuotaMessage,
   stickerSheetStyle,
   toggleStickerSelection,
@@ -146,10 +146,7 @@ function AppContent({ fontsLoaded }) {
   const [restyleMode, setRestyleMode] = useState(false);
   const [styleReturnCategory, setStyleReturnCategory] = useState(null);
   const [selectedStickerIds, setSelectedStickerIds] = useState([]);
-  const [stickerPackResults, setStickerPackResults] = useState([]);
-  const [stickerPack, setStickerPack] = useState(null);
   const [stickerPackError, setStickerPackError] = useState('');
-  const [stickerPackProgress, setStickerPackProgress] = useState('');
   const [stickerPackPending, setStickerPackPending] = useState(false);
   const [stickerPackSheetUrl, setStickerPackSheetUrl] = useState(null);
   const [userId, setUserId] = useState(null);
@@ -1070,14 +1067,12 @@ function AppContent({ fontsLoaded }) {
       .filter((item) => item && isStickerStyle(item));
     const imageDataUrl = photoDataUrl || original?.imageDataUrl || pickedImage?.dataUrl;
     if (!canBuildStickerPack(selected.length) || !imageDataUrl) {
-      setStickerPackError('Select 4 or 9 sticker styles and a photo.');
+      setStickerPackError(`Select ${STICKER_PACK_SIZE_HINT} sticker styles and a photo.`);
       return;
     }
 
     setStickerPackPending(false);
-    setStickerPack(null);
     setStickerPackError('');
-    setStickerPackResults([]);
     setStickerPackSheetUrl(null);
     setScreen('sticker-pack');
     setLoading(true);
@@ -1085,7 +1080,6 @@ function AppContent({ fontsLoaded }) {
     try {
       const sheetStyle = stickerSheetStyle();
       setStyle(sheetStyle);
-      setStickerPackProgress(stickerPackProgressLabel(0, selected.length, 'Creating sticker sheet…'));
       const pollResult = await callApi({
         imageDataUrl,
         styleId: STICKER_SHEET_STYLE_ID,
@@ -1093,48 +1087,12 @@ function AppContent({ fontsLoaded }) {
         manageLoading: false,
       });
       const sheetUrl = pollResult?.output || pollResult?.jobInfo?.outputImageUrl || null;
-      const sheetJobId = pollResult?.jobInfo?.id || pollResult?.jobId || null;
       if (!sheetUrl) {
         throw new Error('Could not generate the sticker sheet.');
       }
       setStickerPackSheetUrl(sheetUrl);
-
-      setStickerPackProgress('Splitting into stickers…');
-      const packRes = await fetch(`${API_BASE}/api/job?action=create-sticker-pack`, {
-        method: 'POST',
-        headers: getApiHeaders(),
-        body: JSON.stringify({
-          action: 'create-sticker-pack',
-          title: 'FunnyFy Stickers',
-          jobId: sheetJobId,
-          expressions: selected.map((item) => item.id),
-        }),
-      });
-      const packJson = await packRes.json().catch(() => ({}));
-      if (!packRes.ok || !packJson.ok) {
-        throw new Error(
-          packJson?.message ||
-            (packJson?.error === 'UNKNOWN_ACTION'
-              ? 'Could not split the sticker sheet. Try again.'
-              : packJson?.error) ||
-            'Could not split the sticker sheet.',
-        );
-      }
-      const pack = packJson.pack || {};
-      setStickerPack(pack);
-      if (Array.isArray(pack.stickers) && pack.stickers.length) {
-        setStickerPackResults(
-          pack.stickers.map((sticker) => ({
-            styleId: sticker.styleId,
-            label: sticker.label,
-            outputUrl: `data:image/webp;base64,${sticker.webpBase64}`,
-          })),
-        );
-      }
-      setStickerPackProgress('');
     } catch (err) {
       setStickerPackError(err?.message || 'Could not finish the sticker pack.');
-      setStickerPackProgress('');
     } finally {
       setLoading(false);
     }
@@ -1147,8 +1105,8 @@ function AppContent({ fontsLoaded }) {
       .filter((item) => item && isStickerStyle(item));
     if (!canBuildStickerPack(selected.length)) {
       showToast(
-        'Pick 4 or 9 stickers',
-        'A pack sheet needs exactly 4 or 9 expressions.',
+        `Pick ${STICKER_PACK_SIZE_HINT} stickers`,
+        `A pack sheet needs exactly ${STICKER_PACK_SIZE_HINT} expressions.`,
         'warning',
       );
       return;
@@ -1159,7 +1117,12 @@ function AppContent({ fontsLoaded }) {
       setStyleReturnCategory('stickers');
       setPickedImage(null);
       setScreen('upload');
-      showToast('Photo first', 'Pick a photo, then we will generate your sticker pack.', 'info');
+      showToast(
+        'Photo first',
+        'Pick a photo, then we will generate your sticker pack.',
+        'info',
+        { duration: 10000 },
+      );
       return;
     }
     const quotaMessage = stickerPackQuotaMessage(subscriptionInfo, selected.length);
@@ -1428,11 +1391,9 @@ function AppContent({ fontsLoaded }) {
       <AppShell>
         <StickerPackScreen
           selectedStyles={packStyles}
-          results={stickerPackResults}
           loading={loading}
-          progressLabel={stickerPackProgress}
+          job={job}
           errorMessage={stickerPackError}
-          pack={stickerPack}
           sheetUrl={stickerPackSheetUrl}
           subscriptionInfo={subscriptionInfo}
           onOpenUsage={() => setScreen('usage')}

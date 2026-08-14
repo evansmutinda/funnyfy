@@ -24,6 +24,7 @@ import {
   getStyleCategory,
 } from '../utils/styleCategories';
 import {
+  STICKER_PACK_SIZE_HINT,
   canBuildStickerPack,
   isStickerStyle,
 } from '../utils/stickerPack';
@@ -126,7 +127,7 @@ function StyleScreenContent({
     }
     return BROWSE_CATEGORIES
       .map((cat) => ({ ...cat, styles: byCategory.get(cat.id) || [] }))
-      .filter((row) => row.styles.length > 0);
+      .filter((row) => row.styles.length > 0 || row.id === 'drawings-sketches');
   }, [browsingHome, styleList]);
 
   const categoryStyles = useMemo(() => {
@@ -286,7 +287,7 @@ function StyleScreenContent({
                   Math.max(insets.bottom, BOTTOM_INSET_MIN) +
                   (activeCategory === 'stickers'
                     ? packSelectMode && selectedStickerCount > 0
-                      ? 176
+                      ? 228
                       : 108
                     : 8),
               },
@@ -348,20 +349,24 @@ function StyleScreenContent({
                       <Image
                         source={getStyleImage(item)}
                         style={styles.stickerSelectedChipImage}
-                        resizeMode="cover"
+                        resizeMode="contain"
                       />
-                      <Text style={styles.stickerSelectedChipLabel} numberOfLines={1}>
+                      <Text style={styles.stickerSelectedChipLabel} numberOfLines={2}>
                         {item.label}
                       </Text>
-                      <Feather name="x" size={12} color="rgba(255,255,255,0.7)" />
+                      <View style={styles.stickerSelectedChipRemove}>
+                        <Feather name="x" size={11} color="#FFFFFF" />
+                      </View>
                     </PressScale>
                   ))}
                 </ScrollView>
               ) : null}
               <Text style={styles.stickerPackBarText}>
                 {selectedStickerCount === 0
-                  ? 'Select 4 or 9 expressions'
-                  : `${selectedStickerCount} selected · pick 4 or 9`}
+                  ? `Select ${STICKER_PACK_SIZE_HINT} expressions`
+                  : stickerPackReady
+                    ? `${selectedStickerCount} selected · ready`
+                    : `${selectedStickerCount} selected · pick ${STICKER_PACK_SIZE_HINT}`}
               </Text>
               <View style={styles.stickerPackBarActions}>
                 <PressScale onPress={exitPackSelectMode} style={[styles.stickerPackBarGhost, { flex: 1 }]}>
@@ -488,6 +493,7 @@ function CategoryRow({
 }) {
   const hasOverflow = styleList.length > ROW_PREVIEW_COUNT;
   const visibleStyles = hasOverflow ? styleList.slice(0, ROW_PREVIEW_COUNT) : styleList;
+  const isEmptyCategory = styleList.length === 0;
   const showSeeAll = styleList.length > 0;
   const { rowRef, isRowActive, onRowLayout } = useCategoryRowFocus(category.id, rowIndex);
   const [viewableIds, setViewableIds] = useState(null);
@@ -534,9 +540,21 @@ function CategoryRow({
                 <Feather name="chevron-right" size={14} color="rgba(255,255,255,0.65)" />
               </View>
             </PressScale>
+          ) : isEmptyCategory ? (
+            <PressScale onPress={onSeeAll} hitSlop={8}>
+              <View style={styles.styleRowSeeAll}>
+                <Text style={styles.styleRowSeeAllText}>Coming soon</Text>
+                <Feather name="chevron-right" size={14} color="rgba(255,255,255,0.65)" />
+              </View>
+            </PressScale>
           ) : null}
         </View>
 
+        {isEmptyCategory ? (
+          <PressScale onPress={onSeeAll} style={styles.styleRowComingSoon}>
+            <Text style={styles.styleRowComingSoonText}>Styles coming soon</Text>
+          </PressScale>
+        ) : (
         <FlatList
           data={visibleStyles}
           horizontal
@@ -576,6 +594,7 @@ function CategoryRow({
             ) : null
           }
         />
+        )}
       </Animated.View>
     </View>
   );

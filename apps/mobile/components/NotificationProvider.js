@@ -20,6 +20,7 @@ const EMPTY_TOAST = {
   type: 'info',
   actionLabel: null,
   onAction: null,
+  duration: null,
 };
 
 export default function NotificationProvider({ children }) {
@@ -36,6 +37,7 @@ export default function NotificationProvider({ children }) {
       type,
       actionLabel: options.actionLabel || null,
       onAction: options.onAction || null,
+      duration: Number.isFinite(options.duration) ? options.duration : null,
     });
   }, []);
 
@@ -91,6 +93,7 @@ export default function NotificationProvider({ children }) {
         type={toast.type}
         actionLabel={toast.actionLabel}
         onAction={toast.onAction}
+        duration={toast.duration}
         onHide={hideToast}
       />
       <ConfirmDialog

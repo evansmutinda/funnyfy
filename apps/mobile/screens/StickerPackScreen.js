@@ -1,8 +1,8 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
-  Linking,
+  Platform,
   ScrollView,
   StatusBar,
   Text,
@@ -14,24 +14,28 @@ import * as Sharing from 'expo-sharing';
 import { Feather } from '@expo/vector-icons';
 import PressScale from '../components/PressScale';
 import { useNotifications } from '../components/NotificationProvider';
-import { BOTTOM_INSET_MIN, getStyleImage } from '../constants';
-import { isStickerStyle } from '../utils/stickerPack';
+import { saveToGallery } from './GalleryScreen';
+import {
+  BOTTOM_INSET_MIN,
+  FUNNYFY_FOLDER_NAME,
+  getSavedImageFileName,
+  getStyleImage,
+  SAVED_IMAGE_MIME,
+  saveToFunnyfyAlbum,
+} from '../constants';
+import { isStickerStyle, stickerSheetAspectRatio } from '../utils/stickerPack';
+import {
+  JOB_PROGRESS_PHASE_COUNT,
+  getJobProgressCopy,
+  resolveCategoryCreatingPhrase,
+} from '../utils/jobProgress';
 import styles from '../styles';
-
-function writeWebpFile(base64, name) {
-  const path = `${FileSystem.cacheDirectory}${name}`;
-  return FileSystem.writeAsStringAsync(path, base64, {
-    encoding: FileSystem.EncodingType.Base64,
-  }).then(() => path);
-}
 
 export default function StickerPackScreen({
   selectedStyles = [],
-  results = [],
   loading = false,
-  progressLabel = '',
+  job = null,
   errorMessage = '',
-  pack = null,
   sheetUrl = null,
   onBack,
   onOpenUsage,
@@ -39,85 +43,102 @@ export default function StickerPackScreen({
 }) {
   const insets = useSafeAreaInsets();
   const { showToast } = useNotifications();
-  const [sharingTarget, setSharingTarget] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [sharing, setSharing] = useState(false);
+  const [hasBeenSaved, setHasBeenSaved] = useState(false);
+  const [progressTick, setProgressTick] = useState(0);
 
-  const completed = useMemo(
-    () => results.filter((item) => item?.outputUrl),
-    [results],
+  const previewStyles = useMemo(
+    () => selectedStyles.filter(isStickerStyle),
+    [selectedStyles],
+  );
+  const creatingPhrase = useMemo(
+    () => resolveCategoryCreatingPhrase({ id: 'sticker-sheet', categoryId: 'stickers' }),
+    [],
+  );
+  const progressCopy = useMemo(
+    () => getJobProgressCopy(job, {
+      creatingPhrase,
+      loading,
+      now: Date.now(),
+    }),
+    [job, creatingPhrase, loading, progressTick],
   );
 
-  const previewStyles = selectedStyles.filter(isStickerStyle);
+  useEffect(() => {
+    if (!loading || job?.status !== 'processing') return undefined;
+    const id = setInterval(() => setProgressTick((t) => t + 1), 1000);
+    return () => clearInterval(id);
+  }, [loading, job?.status]);
 
-  const shareSticker = async (sticker, dialogTitle) => {
-    const path = await writeWebpFile(sticker.webpBase64, `funnyfy-${sticker.styleId}.webp`);
-    const available = await Sharing.isAvailableAsync();
-    if (!available) {
-      throw new Error('Share is unavailable on this device.');
+  const actionsBusy = saving || sharing || loading;
+  const saveDisabled = !sheetUrl || actionsBusy;
+  const sheetReady = Boolean(sheetUrl) && !loading;
+
+  const albumPathLabel = Platform.OS === 'android'
+    ? `Gallery › ${FUNNYFY_FOLDER_NAME} album`
+    : 'Photos';
+
+  const downloadSheet = async () => {
+    const fileName = getSavedImageFileName();
+    const localPath = FileSystem.documentDirectory + fileName;
+    const resultDl = await FileSystem.downloadAsync(sheetUrl, localPath);
+    if (resultDl.status !== 200) {
+      throw new Error(`Download failed (${resultDl.status})`);
     }
-    await Sharing.shareAsync(path, {
-      mimeType: 'image/webp',
-      dialogTitle,
-      UTI: 'public.webp',
-    });
+    return resultDl.uri;
   };
 
-  const handleShareWhatsApp = async () => {
-    if (!pack?.stickers?.length) return;
-    setSharingTarget('whatsapp');
+  const handleShare = async () => {
+    if (saveDisabled) return;
+    setSharing(true);
     try {
-      await shareSticker(pack.stickers[0], 'Add FunnyFy sticker to WhatsApp');
-      showToast(
-        'WhatsApp',
-        'Tap a sticker above to share the next WebP, or use a sticker-maker app for the full pack.',
-        'info',
-      );
+      const uri = await downloadSheet();
+      const available = await Sharing.isAvailableAsync();
+      if (!available) {
+        throw new Error('Share is unavailable on this device.');
+      }
+      await Sharing.shareAsync(uri, {
+        mimeType: SAVED_IMAGE_MIME,
+        dialogTitle: 'Check out my FunnyFy sticker pack!',
+      });
     } catch (err) {
-      showToast('Share failed', err?.message || 'Could not share stickers.', 'error');
+      console.error('Share error:', err);
+      showToast('Share failed', err?.message || 'Could not share the sticker sheet.', 'error');
     } finally {
-      setSharingTarget(null);
+      setSharing(false);
     }
   };
 
-  const handleShareTelegram = async () => {
-    if (!pack?.stickers?.length) return;
-    setSharingTarget('telegram');
+  const handleSave = async () => {
+    if (saveDisabled || hasBeenSaved) return;
+    setSaving(true);
     try {
-      if (pack.telegram?.botUrl) {
-        await Linking.openURL(pack.telegram.botUrl);
+      const uri = await downloadSheet();
+      const saveResult = await saveToFunnyfyAlbum(uri);
+      if (!saveResult?.ok) {
+        showToast(
+          'Could not save',
+          'Allow FunnyFy to save photos to your gallery, then try again.',
+          'error',
+        );
         return;
       }
-      await shareSticker(pack.stickers[0], 'Add FunnyFy sticker to Telegram');
-      showToast('Telegram', 'Tap a sticker above to share the next WebP into Telegram.', 'info');
+      await saveToGallery({
+        imageUrl: sheetUrl,
+        styleLabel: 'Sticker pack',
+        styleId: 'sticker-sheet',
+        mediaAssetId: saveResult.assetId || null,
+      }).catch((galleryErr) => {
+        console.warn('[Gallery] sticker sheet save failed (non-fatal):', galleryErr);
+      });
+      setHasBeenSaved(true);
+      showToast('Saved', albumPathLabel, 'success');
     } catch (err) {
-      showToast('Telegram', err?.message || 'Could not open Telegram.', 'error');
+      console.error('Save error:', err);
+      showToast('Save failed', err?.message || 'Could not save the sticker sheet.', 'error');
     } finally {
-      setSharingTarget(null);
-    }
-  };
-
-  const handleShareAll = async () => {
-    if (!pack?.stickers?.length) return;
-    setSharingTarget('all');
-    try {
-      await shareSticker(pack.stickers[0], 'Share FunnyFy sticker');
-      showToast('Share', 'Tap any sticker above to share its WebP.', 'info');
-    } catch (err) {
-      showToast('Share failed', err?.message || 'Could not share the sticker pack.', 'error');
-    } finally {
-      setSharingTarget(null);
-    }
-  };
-
-  const handleShareOne = async (styleId) => {
-    const sticker = pack?.stickers?.find((item) => item.styleId === styleId);
-    if (!sticker || sharingTarget) return;
-    setSharingTarget(styleId);
-    try {
-      await shareSticker(sticker, `Share ${sticker.label || 'sticker'}`);
-    } catch (err) {
-      showToast('Share failed', err?.message || 'Could not share this sticker.', 'error');
-    } finally {
-      setSharingTarget(null);
+      setSaving(false);
     }
   };
 
@@ -146,92 +167,109 @@ export default function StickerPackScreen({
       >
         <Text style={styles.stickerPackLead}>
           {loading
-            ? sheetUrl
-              ? 'Splitting the sheet into stickers…'
-              : 'Generating your sticker sheet…'
-            : pack
-              ? `${pack.stickers.length} WebP stickers ready to share.`
-              : 'Pick 4 or 9 expressions, then generate a pack.'}
+            ? progressCopy.title
+            : sheetReady
+              ? `${previewStyles.length} stickers on one sheet — save or share.`
+              : 'Pick 4, 9, or 12 expressions, then generate a pack.'}
         </Text>
 
-        {sheetUrl ? (
+        {loading ? (
+          <View style={styles.stickerPackLoadingCard}>
+            <ActivityIndicator size="large" color="#FFFFFF" />
+            <Text style={styles.resultLoadingSubtitle}>{progressCopy.subtitle}</Text>
+            <View style={styles.resultLoadingDots}>
+              {Array.from({ length: JOB_PROGRESS_PHASE_COUNT }).map((_, index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.resultLoadingDot,
+                    index <= progressCopy.phaseIndex && styles.resultLoadingDotActive,
+                  ]}
+                />
+              ))}
+            </View>
+            {progressCopy.statusHint ? (
+              <Text style={styles.resultLoadingStatusHint}>{progressCopy.statusHint}</Text>
+            ) : null}
+          </View>
+        ) : sheetUrl ? (
           <Image
             source={{ uri: sheetUrl }}
-            style={styles.stickerSheetPreview}
+            style={[
+              styles.stickerSheetPreview,
+              { aspectRatio: stickerSheetAspectRatio(previewStyles.length) },
+            ]}
             resizeMode="contain"
           />
-        ) : null}
-
-        {progressLabel ? (
-          <Text style={styles.stickerPackProgress}>{progressLabel}</Text>
         ) : null}
 
         {errorMessage ? (
           <Text style={styles.stickerPackError}>{errorMessage}</Text>
         ) : null}
 
-        <View style={styles.stickerPackGrid}>
-          {previewStyles.map((item) => {
-            const done = completed.find((entry) => entry.styleId === item.id);
-            const ready = Boolean(pack?.stickers?.some((sticker) => sticker.styleId === item.id));
-            return (
-              <PressScale
-                key={item.id}
-                style={styles.stickerPackCard}
-                onPress={() => (ready ? handleShareOne(item.id) : null)}
-                disabled={!ready || Boolean(sharingTarget)}
-              >
+        {previewStyles.length ? (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.stickerSelectedStrip}
+          >
+            {previewStyles.map((item) => (
+              <View key={item.id} style={styles.stickerSelectedChip}>
                 <Image
-                  source={done?.outputUrl ? { uri: done.outputUrl } : getStyleImage(item)}
-                  style={styles.stickerPackThumb}
+                  source={getStyleImage(item)}
+                  style={styles.stickerSelectedChipImage}
                   resizeMode="contain"
                 />
-                <Text style={styles.stickerPackCardLabel} numberOfLines={1}>
+                <Text style={styles.stickerSelectedChipLabel} numberOfLines={2}>
                   {item.label}
                 </Text>
-                {loading && !done ? (
-                  <View style={styles.stickerPackCardOverlay}>
-                    <ActivityIndicator size="small" color="#FFFFFF" />
-                  </View>
-                ) : null}
-              </PressScale>
-            );
-          })}
-        </View>
+              </View>
+            ))}
+          </ScrollView>
+        ) : null}
 
-        {pack ? (
-          <View style={styles.stickerPackActions}>
+        {sheetReady ? (
+          <View style={styles.resultActionRow}>
             <PressScale
-              style={[styles.resultActionButton, sharingTarget && styles.buttonDisabled]}
-              onPress={handleShareWhatsApp}
-              disabled={Boolean(sharingTarget)}
+              style={[
+                styles.resultActionButton,
+                hasBeenSaved && styles.resultActionButtonSaved,
+                saveDisabled && styles.buttonDisabled,
+              ]}
+              onPress={handleSave}
+              disabled={saveDisabled || hasBeenSaved}
             >
-              {sharingTarget === 'whatsapp' ? (
+              {saving ? (
                 <ActivityIndicator size="small" color="#0F172A" />
               ) : (
-                <Feather name="message-circle" size={18} color="#0F172A" />
+                <Feather
+                  name={hasBeenSaved ? 'check' : 'download'}
+                  size={18}
+                  color={hasBeenSaved ? '#10B981' : '#0F172A'}
+                />
               )}
-              <Text style={styles.resultActionButtonText}>WhatsApp</Text>
+              <Text
+                style={[
+                  styles.resultActionButtonText,
+                  hasBeenSaved && styles.resultActionButtonTextSaved,
+                ]}
+              >
+                {saving ? 'Saving…' : hasBeenSaved ? 'Saved' : 'Save'}
+              </Text>
             </PressScale>
             <PressScale
-              style={[styles.resultActionButton, sharingTarget && styles.buttonDisabled]}
-              onPress={handleShareTelegram}
-              disabled={Boolean(sharingTarget)}
+              style={[styles.resultActionButton, saveDisabled && styles.buttonDisabled]}
+              onPress={handleShare}
+              disabled={saveDisabled}
             >
-              {sharingTarget === 'telegram' ? (
+              {sharing ? (
                 <ActivityIndicator size="small" color="#0F172A" />
               ) : (
-                <Feather name="send" size={18} color="#0F172A" />
+                <Feather name="share-2" size={18} color="#0F172A" />
               )}
-              <Text style={styles.resultActionButtonText}>Telegram</Text>
-            </PressScale>
-            <PressScale
-              style={[styles.uploadSmallGhostButton, sharingTarget && styles.buttonDisabled]}
-              onPress={handleShareAll}
-              disabled={Boolean(sharingTarget)}
-            >
-              <Feather name="share-2" size={14} color="#FFFFFF" />
-              <Text style={styles.uploadSmallGhostButtonText}>Share WebP</Text>
+              <Text style={styles.resultActionButtonText}>
+                {sharing ? 'Sharing…' : 'Share'}
+              </Text>
             </PressScale>
           </View>
         ) : null}

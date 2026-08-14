@@ -271,6 +271,14 @@ export const STYLE_CARD_IMAGE_COLOURED_GLASS = require('./assets/comparisons/til
 export const STYLE_CARD_IMAGE_PASTE_UP = require('./assets/comparisons/tiles/after/Art/Paste-up.jpg');
 export const STYLE_CARD_IMAGE_PENCIL_SKETCH_V1 = require('./assets/comparisons/tiles/after/Art/Pencil Sketch1.jpg');
 export const STYLE_CARD_IMAGE_PENCIL_SKETCH_V2 = require('./assets/comparisons/tiles/after/Art/Pencil Sketch2.jpg');
+export const STYLE_CARD_IMAGE_PENCIL_SKETCH = require('./assets/comparisons/tiles/after/Drawings/pencil-sketch.jpg');
+export const STYLE_CARD_IMAGE_CHARCOAL = require('./assets/comparisons/tiles/after/Drawings/Charcoal.jpg');
+export const STYLE_CARD_IMAGE_INK = require('./assets/comparisons/tiles/after/Drawings/ink.jpg');
+export const STYLE_CARD_IMAGE_PEN = require('./assets/comparisons/tiles/after/Drawings/pen.jpg');
+export const STYLE_CARD_IMAGE_CROSS_HATCHED = require('./assets/comparisons/tiles/after/Drawings/cross-hatched.jpg');
+export const STYLE_CARD_IMAGE_LINE_ART = require('./assets/comparisons/tiles/after/Drawings/line-art.jpg');
+export const STYLE_CARD_IMAGE_FASHION = require('./assets/comparisons/tiles/after/Drawings/fashion.jpg');
+export const STYLE_CARD_IMAGE_MARKER = require('./assets/comparisons/tiles/after/Drawings/marker.jpg');
 export const STYLE_CARD_IMAGE_ORIGAMI = require('./assets/comparisons/tiles/after/3d/origami.jpg');
 export const STYLE_CARD_IMAGE_PAPER_CUT = require('./assets/comparisons/tiles/after/Art/paper-cut.jpg');
 export const STYLE_CARD_IMAGE_MONDAY = require('./assets/comparisons/tiles/after/Moods&Moments/mondays1.jpg');
@@ -305,6 +313,7 @@ export const STYLE_CARD_IMAGE_COOL = require('./assets/comparisons/source/after/
 export const STYLE_CARD_IMAGE_CRYING = require('./assets/comparisons/source/after/stickers/crying.png');
 export const STYLE_CARD_IMAGE_DISGUSTED = require('./assets/comparisons/source/after/stickers/disgusted.png');
 export const STYLE_CARD_IMAGE_EXCITED = require('./assets/comparisons/source/after/stickers/excited.png');
+export const STYLE_CARD_IMAGE_EYEROLL = require('./assets/comparisons/source/after/stickers/eyeroll.jpeg');
 export const STYLE_CARD_IMAGE_FACEPALM = require('./assets/comparisons/source/after/stickers/Facepalm.png');
 export const STYLE_CARD_IMAGE_HAPPY = require('./assets/comparisons/source/after/stickers/happy.png');
 export const STYLE_CARD_IMAGE_LAUGHING = require('./assets/comparisons/source/after/stickers/laughing.png');
@@ -390,6 +399,7 @@ const STYLE_IMAGE_BY_ID = {
   'crying': STYLE_CARD_IMAGE_CRYING,
   'disgusted': STYLE_CARD_IMAGE_DISGUSTED,
   'excited': STYLE_CARD_IMAGE_EXCITED,
+  'eyeroll': STYLE_CARD_IMAGE_EYEROLL,
   'facepalm': STYLE_CARD_IMAGE_FACEPALM,
   'happy': STYLE_CARD_IMAGE_HAPPY,
   'laughing': STYLE_CARD_IMAGE_LAUGHING,
@@ -411,6 +421,7 @@ const STYLE_IMAGE_BY_ID = {
   'thumbs-down': STYLE_CARD_IMAGE_THUMBS_DOWN,
   'thumbs-up': STYLE_CARD_IMAGE_THUMBS_UP,
   'wink': STYLE_CARD_IMAGE_WINK,
+  'sticker-sheet': STYLE_CARD_IMAGE_HAPPY,
   '90s-cartoon': STYLE_CARD_IMAGE_DEFAULT,
   chibi: STYLE_CARD_IMAGE_CHIBI,
   'classic-v1': STYLE_CARD_IMAGE_CLASSIC_V1,
@@ -479,6 +490,14 @@ const STYLE_IMAGE_BY_ID = {
   'paste-up': STYLE_CARD_IMAGE_PASTE_UP,
   'pencil-sketch-v1': STYLE_CARD_IMAGE_PENCIL_SKETCH_V1,
   'pencil-sketch-v2': STYLE_CARD_IMAGE_PENCIL_SKETCH_V2,
+  'pencil-sketch': STYLE_CARD_IMAGE_PENCIL_SKETCH,
+  charcoal: STYLE_CARD_IMAGE_CHARCOAL,
+  ink: STYLE_CARD_IMAGE_INK,
+  pen: STYLE_CARD_IMAGE_PEN,
+  'cross-hatched': STYLE_CARD_IMAGE_CROSS_HATCHED,
+  'line-art': STYLE_CARD_IMAGE_LINE_ART,
+  fashion: STYLE_CARD_IMAGE_FASHION,
+  marker: STYLE_CARD_IMAGE_MARKER,
   origami: STYLE_CARD_IMAGE_ORIGAMI,
   'paper-cut': STYLE_CARD_IMAGE_PAPER_CUT,
   'monday-mood': STYLE_CARD_IMAGE_MONDAY,
@@ -576,6 +595,9 @@ export function getStyleImage(style) {
   if (label.includes('funko')) return STYLE_CARD_IMAGE_FUNKO;
 
   const categoryId = (style.categoryId || '').toLowerCase();
+  if (categoryId === 'stickers' || id === 'sticker-sheet' || label.includes('sticker')) {
+    return STYLE_CARD_IMAGE_HAPPY;
+  }
   if (categoryId === 'caricatures') return STYLE_CARD_IMAGE_EDITORIAL;
 
   return STYLE_CARD_IMAGE_DEFAULT;

@@ -15,7 +15,6 @@ const optionalVars = [
   'CRON_SECRET',
   'IP_RATE_LIMIT_PER_MINUTE',
   'MAX_CONCURRENT_JOBS',
-  'TELEGRAM_BOT_TOKEN',
 ];
 
 console.log('\n🔍 Verifying Environment Variables\n');

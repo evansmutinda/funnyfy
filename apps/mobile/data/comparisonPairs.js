@@ -552,6 +552,38 @@ const CURATED_PAIR_PATHS = {
     before: 'before/man9.png',
     after: 'after/Art/Pencil Sketch2.jpeg',
   },
+  'pencil-sketch': {
+    before: 'before/man5.png',
+    after: 'after/Drawings/pencil-sketch.jpg',
+  },
+  'charcoal': {
+    before: 'before/man6.png',
+    after: 'after/Drawings/Charcoal.jpg',
+  },
+  'ink': {
+    before: 'before/lady10.png',
+    after: 'after/Drawings/ink.jpg',
+  },
+  'pen': {
+    before: 'before/lady9.png',
+    after: 'after/Drawings/pen.jpg',
+  },
+  'cross-hatched': {
+    before: 'before/lady9.png',
+    after: 'after/Drawings/cross-hatched.jpeg',
+  },
+  'line-art': {
+    before: 'before/man8.png',
+    after: 'after/Drawings/line-art.jpg',
+  },
+  'fashion': {
+    before: 'before/lady.png',
+    after: 'after/Drawings/fashion.jpeg',
+  },
+  'marker': {
+    before: 'before/lady3.png',
+    after: 'after/Drawings/marker.jpg',
+  },
   'origami': {
     before: 'before/lady14.png',
     after: 'after/3d/origami.jpg',
@@ -573,7 +605,10 @@ const CURATED_PAIR_PATHS = {
 function assetForTier(relPath, tier) {
   const key = toOutputRel(relPath);
   const table = tier === 'tiles' ? COMPARISON_TILE_ASSETS : COMPARISON_HERO_ASSETS;
-  return table[key] || null;
+  if (table[key]) return table[key];
+  const lower = key.toLowerCase();
+  const match = Object.keys(table).find((k) => k.toLowerCase() === lower);
+  return match ? table[match] : null;
 }
 
 function resolveCuratedPair(styleId, tier) {
@@ -603,7 +638,7 @@ export function hasCuratedComparisonPair(style, tier = 'tiles') {
   return Boolean(resolveCuratedPair(style.id, tier));
 }
 
-/** Stickers use a static thumb only — no before/after comparison loop. */
+/** Picker tiles: stickers stay static. Upload still uses a before/after pair. */
 export function usesComparisonPreview(style) {
   if (!style) return false;
   const categoryId = String(
@@ -611,6 +646,25 @@ export function usesComparisonPreview(style) {
   ).toLowerCase();
   if (categoryId === 'stickers') return false;
   return true;
+}
+
+function isStickerPreviewStyle(style) {
+  if (!style) return false;
+  const id = String(style.id || '').toLowerCase();
+  if (id === 'sticker-sheet') return true;
+  const categoryId = String(
+    style.categoryId || getStyleCategory(style.id) || '',
+  ).toLowerCase();
+  return categoryId === 'stickers';
+}
+
+function resolveStickerAfter(styleId, tier = 'hero') {
+  const id = String(styleId || '').toLowerCase();
+  if (!id) return null;
+  const rel = id === 'sticker-sheet'
+    ? 'after/stickers/happy.jpg'
+    : `after/stickers/${id}.jpg`;
+  return assetForTier(rel, tier);
 }
 
 /**
@@ -622,9 +676,10 @@ export function getComparisonPair(style, tier = 'hero') {
   if (!style) {
     return { before: DEFAULT_BEFORE, after: DEFAULT_BEFORE };
   }
-  if (!usesComparisonPreview(style)) {
-    const after = getStyleImage(style);
-    return { before: after, after };
+  if (isStickerPreviewStyle(style)) {
+    const before = assetForTier('before/lady4.png', tier) || DEFAULT_BEFORE;
+    const after = resolveStickerAfter(style.id, tier) || getStyleImage(style);
+    return { before, after };
   }
   const curated = resolveCuratedPair(style.id, tier);
   if (curated) return curated;

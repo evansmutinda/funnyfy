@@ -103,7 +103,42 @@ function catalogPlaceholders(): Record<string, StyleConfig> {
 const STICKER_PROMPT_BASE =
   "Create a premium Pixar-style 3D sticker of the exact same person from the uploaded image, using the uploaded photo as the only facial reference. Preserve the person's exact facial structure, hairstyle, grooming details, skin tone, proportions, and all unique identifying features with very high likeness accuracy. Do not over-beautify, heavily stylize, or alter identity beyond recognition.\n\nOutput a single sticker only — not a grid, collage, or sheet. Use a 1:1 square composition suitable for a digital sticker (tight head-and-shoulders portrait only; no full-body or mid-body). Place the character on a fully transparent background. Use a clean die-cut silhouette with a smooth rounded bottom / semi-curved sticker base. Optional: a very subtle soft drop shadow under the figure only (no floor, no cream backdrop, no scene).\n\nRender in a high-end Pixar-inspired 3D animation style with glossy shading, soft global illumination, detailed facial textures, bold clean outlines, and slightly exaggerated cartoon proportions. Use soft studio lighting with subtle rim light so the sticker reads clearly at small size. Dress the subject in modern casual clothing with a slightly stylized fashion look — clean, minimal, and sticker-friendly. No text, logos, watermarks, or extra characters.";
 
-const STICKER_EXPRESSIONS: { id: string; label: string; expression: string }[] = [
+type StickerExpression = {
+  id: string;
+  label: string;
+  expression: string;
+  /**
+   * Optional extra prompt for this expression (pose, face, props, etc.).
+   * - Fragment → `Use thinking expression, mouth closed, …`
+   * - Full line starting with `Use ` → used as-is (single stickers)
+   */
+  detail?: string;
+  /** Defaults to NANO_BANANA when omitted. */
+  model?: string;
+};
+
+function stickerExpressionInstruction(item: StickerExpression): string {
+  const name = item.expression || item.label;
+  const extra = item.detail?.trim();
+  if (!extra) return `Use ${name} expression.`;
+  if (/^use\s/i.test(extra)) {
+    return extra.endsWith('.') ? extra : `${extra}.`;
+  }
+  return `Use ${name.toLowerCase()} expression, ${extra}.`;
+}
+
+function stickerSheetCellLine(item: StickerExpression | undefined, id: string, index: number): string {
+  if (!item) return `${index + 1}. ${id}`;
+  const name = item.expression || item.label || id;
+  const extra = item.detail?.trim();
+  if (!extra) return `${index + 1}. ${name}`;
+  const sheetDetail = /^use\s/i.test(extra)
+    ? extra.replace(/^use\s+/i, '').replace(/\.$/, '')
+    : extra;
+  return `${index + 1}. ${name} — ${sheetDetail}`;
+}
+
+const STICKER_EXPRESSIONS: StickerExpression[] = [
   {
     "id": "angry",
     "label": "Angry",
@@ -142,7 +177,15 @@ const STICKER_EXPRESSIONS: { id: string; label: string; expression: string }[] =
   {
     "id": "excited",
     "label": "Excited",
-    "expression": "Excited"
+    "expression": "Excited",
+    "detail": "eyes opened very wide with intense joyful energy, eyebrows raised high, mouth opened extremely wide in a huge genuine grin, upper and lower teeth clearly visible, cheeks lifted, face slightly stretched by excitement, conveying overwhelming happiness, surprise, and anticipation"
+  },
+  {
+    "id": "eyeroll",
+    "label": "Eye Roll",
+    "expression": "Eyeroll",
+    "detail": "both eyes rolled dramatically upward, with the pupils positioned high toward the upper eyelids; slightly lowered eyelids, raised eyebrows, subtly pursed lips, and an unmistakable \"seriously?\" / \"here we go again\" attitude. Add a slight head tilt and an expressive, unimpressed posture to reinforce the emotion",
+    "model": NANO_BANANA_2
   },
   {
     "id": "facepalm",
@@ -162,7 +205,8 @@ const STICKER_EXPRESSIONS: { id: string; label: string; expression: string }[] =
   {
     "id": "love",
     "label": "Love",
-    "expression": "Love"
+    "expression": "Love",
+    "detail": "Use love with heart eyes expression. use the heart sign with hands, have heart signs on the eyes"
   },
   {
     "id": "mind-blown",
@@ -172,7 +216,8 @@ const STICKER_EXPRESSIONS: { id: string; label: string; expression: string }[] =
   {
     "id": "need-coffee",
     "label": "Need Coffee",
-    "expression": "Need Coffee"
+    "expression": "Need Coffee",
+    "detail": "Use funny 'need coffee' expression."
   },
   {
     "id": "nervous",
@@ -212,7 +257,8 @@ const STICKER_EXPRESSIONS: { id: string; label: string; expression: string }[] =
   {
     "id": "sleepy",
     "label": "Sleepy",
-    "expression": "Sleepy"
+    "expression": "Sleepy",
+    "detail": "Use sleepy expression. add 'zzzz'"
   },
   {
     "id": "smirk",
@@ -232,7 +278,8 @@ const STICKER_EXPRESSIONS: { id: string; label: string; expression: string }[] =
   {
     "id": "thinking",
     "label": "Thinking",
-    "expression": "Thinking"
+    "expression": "Thinking",
+    "detail": "mouth closed, eyes looking up-sideways, fingers on chin (thinking stance)"
   },
   {
     "id": "thumbs-down",
@@ -260,18 +307,27 @@ export function parseSheetExpressions(raw: string | null | undefined): string[] 
     .filter(Boolean);
 }
 
+function stickerSheetGrid(count: number): { cols: number; rows: number } {
+  if (count === 4) return { cols: 2, rows: 2 };
+  if (count === 12) return { cols: 3, rows: 4 };
+  return { cols: 3, rows: 3 };
+}
+
 export function buildStickerSheetPrompt(expressionIds: string[]): string {
   const count = expressionIds.length;
-  const cols = count === 4 ? 2 : 3;
-  const rows = cols;
+  const { cols, rows } = stickerSheetGrid(count);
+  const square = cols === rows;
+  const composition = square
+    ? 'Use a 1:1 square composition filling the entire image.'
+    : `Use a ${cols}:${rows} portrait composition filling the entire image.`;
   const lines = expressionIds.map((id, index) => {
     const meta = STICKER_EXPRESSIONS.find((item) => item.id === id);
-    return `${index + 1}. ${meta?.expression || meta?.label || id}`;
+    return stickerSheetCellLine(meta, id, index);
   });
 
   return `Create a premium Pixar-style 3D sticker sheet of the exact same person from the uploaded image, using the uploaded photo as the only facial reference. Preserve the person's exact facial structure, hairstyle, grooming details, skin tone, proportions, and all unique identifying features with very high likeness accuracy. Do not over-beautify, heavily stylize, or alter identity beyond recognition.
 
-Output one square sticker sheet only — a ${rows}x${cols} grid of exactly ${count} die-cut stickers. Same person in every cell. Even gutters, identical cell size, aligned rows and columns, no labels, no captions, no numbers, no text, no collage bleed, no extra characters. Use a 1:1 square composition filling the entire image. Place every character on a fully transparent or plain off-white background. Each cell is a clean die-cut silhouette with a smooth rounded bottom / semi-curved sticker base. Optional: a very subtle soft drop shadow under each figure only (no floor, no scene).
+Output one sticker sheet only — a ${cols}×${rows} grid of exactly ${count} die-cut stickers. Same person in every cell. Even gutters, identical cell size, aligned rows and columns, no labels, no captions, no numbers, no text, no collage bleed, no extra characters. ${composition} Place every character on a fully transparent or plain off-white background. Each cell is a clean die-cut silhouette with a smooth rounded bottom / semi-curved sticker base. Optional: a very subtle soft drop shadow under each figure only (no floor, no scene).
 
 Render in a high-end Pixar-inspired 3D animation style with glossy shading, soft global illumination, detailed facial textures, bold clean outlines, and slightly exaggerated cartoon proportions. Use soft studio lighting with subtle rim light so each sticker reads clearly at small size. Dress each cell in modern casual clothing with a slightly stylized fashion look — clean, minimal, and sticker-friendly. Clothing may vary by cell. No text, logos, watermarks, or extra characters.
 
@@ -283,7 +339,7 @@ const STICKER_SHEET_STYLE: StyleConfig = {
   id: STICKER_SHEET_STYLE_ID,
   label: 'Sticker pack',
   categoryId: 'stickers',
-  description: 'Pixar-style 3D sticker sheet for WhatsApp / Telegram packs',
+  description: 'Pixar-style 3D sticker sheet',
   prompt: buildStickerSheetPrompt(['happy', 'laughing', 'cool', 'angry', 'surprised', 'thinking', 'love', 'wink', 'thumbs-up']),
   model: NANO_BANANA,
   enabled: true,
@@ -292,15 +348,15 @@ const STICKER_SHEET_STYLE: StyleConfig = {
 
 function buildStickerStyles(): Record<string, StyleConfig> {
   return Object.fromEntries(
-    STICKER_EXPRESSIONS.map(({ id, label, expression }) => [
-      id,
+    STICKER_EXPRESSIONS.map((item) => [
+      item.id,
       {
-        id,
-        label,
+        id: item.id,
+        label: item.label,
         categoryId: 'stickers',
-        description: `Pixar-style 3D die-cut sticker — ${expression} expression`,
-        prompt: `${STICKER_PROMPT_BASE}\n\nUse ${expression} expression.`,
-        model: NANO_BANANA,
+        description: `Pixar-style 3D die-cut sticker — ${item.expression} expression`,
+        prompt: `${STICKER_PROMPT_BASE}\n\n${stickerExpressionInstruction(item)}`,
+        model: item.model || NANO_BANANA,
         enabled: true,
         premium: false,
       },
@@ -740,6 +796,102 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     prompt:
       'A childlike crayon drawing on blue horizontal lined notebook paper. The drawing is a simplified, slightly exaggerated caricature of the reference image. preserving face shape, skin tone, hairstyle, facial expression, and outfit colors. Features messy, vibrant crayon strokes and bold outlines. Background is simplified and loosely sketched. The overall effect should be an authentic drawing by a child aged 10-6.',
     model: NANO_BANANA_2,
+    enabled: true,
+    premium: false,
+  },
+  'pencil-sketch': {
+    id: 'pencil-sketch',
+    label: 'Pencil Sketch',
+    categoryId: 'drawings-sketches',
+    description:
+      'Professionally hand-drawn graphite pencil portrait with realistic shading and cross-hatching',
+    prompt:
+      'Create a detailed hand-drawn pencil sketch of the uploaded subject, using the reference image as the primary guide. Preserve the subject’s identity, facial structure, proportions, hairstyle, expression, and distinctive features with high accuracy. Use realistic graphite pencil strokes, subtle shading, cross-hatching, soft tonal transitions, and fine linework to create natural depth and dimension. Keep the drawing monochrome in shades of graphite gray, with visible pencil texture and slight variations in stroke pressure. Maintain the original pose and composition of the reference image. Clean white or lightly textured paper background, no color, no painting effect, no digital-art appearance, no exaggerated cartoon features, and no unnecessary background elements. The final result should look like a professionally hand-drawn graphite portrait/sketch.',
+    model: DEFAULT_MODEL,
+    enabled: true,
+    premium: false,
+  },
+  charcoal: {
+    id: 'charcoal',
+    label: 'Charcoal',
+    categoryId: 'drawings-sketches',
+    description:
+      'Professionally hand-drawn charcoal portrait with expressive strokes, soft smudging, and textured shading',
+    prompt:
+      'Create a detailed hand-drawn charcoal portrait of the uploaded subject, using the reference image as the primary guide. Preserve the subject’s identity, facial structure, proportions, hairstyle, expression, and distinctive features with high accuracy. Use expressive charcoal strokes, rich dark tones, soft smudging, textured shading, subtle highlights, and carefully controlled contrast to create realistic depth and dimension. Maintain the original pose and composition of the reference image. Monochromatic black, gray, and charcoal tones on textured drawing paper, with natural charcoal grain and visible hand-drawn marks. Keep the background minimal and unobtrusive. No color, no painting effect, no digital-art appearance, no exaggerated cartoon features, and no unnecessary background elements. The final result should look like an authentic, professionally hand-drawn charcoal portrait.',
+    model: DEFAULT_MODEL,
+    enabled: true,
+    premium: false,
+  },
+  ink: {
+    id: 'ink',
+    label: 'Ink',
+    categoryId: 'drawings-sketches',
+    description:
+      'Professionally hand-rendered ink portrait with crisp linework, hatching, and controlled shadow',
+    prompt:
+      'Create a detailed hand-drawn ink portrait of the uploaded subject, using the reference image as the primary guide. Preserve the subject’s identity, facial structure, proportions, hairstyle, expression, and distinctive features with high accuracy. Use crisp black ink linework, varied line weights, fine hatching, cross-hatching, stippling, and controlled shadow areas to create depth and realistic form. Maintain the original pose and composition of the reference image. Monochromatic black ink on clean white or subtly textured paper, with natural hand-drawn imperfections and an authentic traditional illustration feel. Keep the background minimal and unobtrusive. No color, no watercolor, no pencil or charcoal texture, no digital painting appearance, no exaggerated cartoon features, and no unnecessary background elements. The final result should look like a professionally hand-rendered ink illustration.',
+    model: DEFAULT_MODEL,
+    enabled: true,
+    premium: false,
+  },
+  pen: {
+    id: 'pen',
+    label: 'Pen',
+    categoryId: 'drawings-sketches',
+    description:
+      'Professionally hand-drawn pen illustration with precise contours, hatching, and technical-pen shading',
+    prompt:
+      'Create a detailed hand-drawn pen illustration of the uploaded subject, using the reference image as the primary guide. Preserve the subject’s identity, facial structure, proportions, hairstyle, expression, and distinctive features with high accuracy. Use fine ballpoint or technical pen strokes, precise contours, varied line weights, cross-hatching, parallel hatching, and controlled stippling to build realistic shading and depth. Maintain the original pose and composition of the reference image. Use monochromatic black or dark-blue pen ink on clean white paper, with subtle natural pen texture and visible hand-drawn linework. Keep the background minimal and unobtrusive. No color painting, no pencil or charcoal texture, no watercolor effect, no digital painting appearance, no exaggerated cartoon features, and no unnecessary background elements. The final result should resemble a professionally hand-drawn pen illustration created with meticulous traditional pen technique.',
+    model: DEFAULT_MODEL,
+    enabled: true,
+    premium: false,
+  },
+  'cross-hatched': {
+    id: 'cross-hatched',
+    label: 'Cross-hatched',
+    categoryId: 'drawings-sketches',
+    description:
+      'Meticulously hand-rendered traditional cross-hatched illustration with layered intersecting lines',
+    prompt:
+      'Create a highly detailed traditional cross-hatched drawing of the uploaded subject, using the reference image as the primary guide. Preserve the subject’s identity, facial structure, proportions, hairstyle, expression, and distinctive features with high accuracy. Build the entire image using carefully layered intersecting lines, with dense cross-hatching in deep shadow areas, lighter single-direction hatching for midtones, and fine sparse lines for highlights. Use varied line density, direction, and thickness to create realistic form, depth, texture, and dimensionality. Maintain the original pose and composition of the reference image. Monochromatic black ink on clean white paper, with authentic hand-drawn imperfections and visible linework. Minimal background. No color, no smooth digital shading, no pencil or charcoal texture, no watercolor, no painting effect, and no exaggerated cartoon features. The final result should look like a meticulously hand-rendered traditional cross-hatched illustration.',
+    model: NANO_BANANA,
+    enabled: true,
+    premium: false,
+  },
+  'line-art': {
+    id: 'line-art',
+    label: 'Line Art',
+    categoryId: 'drawings-sketches',
+    description:
+      'Polished professional line-art illustration with precise outlines and minimal shading',
+    prompt:
+      'Create a clean, detailed line-art illustration of the uploaded subject, using the reference image as the primary guide. Preserve the subject’s identity, facial structure, proportions, hairstyle, expression, and distinctive features with high accuracy. Use precise black outlines, smooth controlled contours, varied line weight, and selective fine interior details to clearly define the face, hair, clothing, and important features. Keep the drawing crisp and uncluttered, with minimal or no shading. Maintain the original pose and composition of the reference image. Monochromatic black linework on a clean white background, with a refined hand-drawn illustration quality. No color, no gradients, no cross-hatching, no pencil or charcoal texture, no filled shadows, no painting effect, and no unnecessary background elements. The final result should look like polished professional line art.',
+    model: SEEDREAM_4_5,
+    enabled: true,
+    premium: false,
+  },
+  fashion: {
+    id: 'fashion',
+    label: 'Fashion',
+    categoryId: 'drawings-sketches',
+    description:
+      'Sophisticated editorial fashion sketch with expressive graphite and ink strokes',
+    prompt:
+      'Create a sophisticated hand-drawn fashion sketch of the uploaded subject, using the reference image as the primary guide. Preserve the subject’s identity, facial features, hairstyle, proportions, and distinctive characteristics with high accuracy. Render the subject in an elegant fashion-illustration style using expressive graphite and ink strokes, elongated but natural fashion-illustration lines, loose gestural contours, refined garment detailing, and selective soft shading. Preserve the original pose and overall composition while giving the clothing a polished editorial fashion-sketch treatment. Use a predominantly monochromatic palette on textured white sketch paper, with subtle artistic imperfections and visible hand-drawn strokes. Minimal background, clean composition, sophisticated editorial feel. No photorealism, no 3D rendering, no cartoon exaggeration, no heavy digital effects, and no unnecessary background elements.',
+    model: NANO_BANANA,
+    enabled: true,
+    premium: false,
+  },
+  marker: {
+    id: 'marker',
+    label: 'Marker',
+    categoryId: 'drawings-sketches',
+    description:
+      'Bold hand-rendered marker illustration with expressive strokes, layered fills, and authentic bleed',
+    prompt:
+      'Create a bold hand-drawn marker illustration of the uploaded subject, using the reference image as the primary guide. Preserve the subject’s identity, facial structure, proportions, hairstyle, expression, and distinctive features with high accuracy. Use expressive marker strokes, confident outlines, visible stroke direction, layered marker fills, and simple overlapping tones to create form, depth, and dimension. Incorporate subtle marker bleed, uneven ink coverage, and natural paper texture for an authentic traditional marker-sketch appearance. Maintain the original pose and composition of the reference image. Use a vibrant but controlled marker color palette, with strong areas of light and shadow and selective highlights. Keep the background clean and minimal. No photorealism, no 3D rendering, no pencil or charcoal texture, no watercolor wash, no glossy digital painting, and no unnecessary background elements. The final result should resemble a professionally hand-rendered fashion or concept illustration created with high-quality art markers.',
+    model: DEFAULT_MODEL,
     enabled: true,
     premium: false,
   },

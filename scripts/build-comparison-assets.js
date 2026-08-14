@@ -133,6 +133,22 @@ function generateAssetsModule(allOutputRels) {
   return `${lines.join('\n')}`;
 }
 
+/** Metro (Android) is case-sensitive — only emit paths that exist on disk. */
+async function collectBundledRels() {
+  const tileRels = await walkImages(path.join(MOBILE_ASSETS, 'tiles'));
+  const heroDir = path.join(MOBILE_ASSETS, 'hero');
+  const existing = [];
+  for (const rel of tileRels) {
+    try {
+      await fs.access(path.join(heroDir, rel));
+      existing.push(rel.replace(/\\/g, '/'));
+    } catch {
+      console.warn(`[warn] Tile without matching hero: ${rel}`);
+    }
+  }
+  return existing;
+}
+
 function rewriteComparisonPairs(source, pathMap) {
   let next = source.replace(
     /\/\/ Layout:[\s\S]*?\/\/   assets\/comparisons\/after\/<categoryFolder>\/<after>\.jpg\|jpeg/,
@@ -305,7 +321,6 @@ async function main() {
   const toConvert = [...new Set([...referenced, ...allSourceImages])];
 
   console.log(`[build-comparison-assets] Converting ${toConvert.length} source images…`);
-  const outputRels = new Set();
   let converted = 0;
   let skipped = 0;
 
@@ -318,9 +333,6 @@ async function main() {
       continue;
     }
 
-    const outRel = toOutputRel(relPath);
-    outputRels.add(outRel);
-
     for (const [tierName, tierConfig] of Object.entries(TIERS)) {
       const result = await buildTier(relPath, tierName, tierConfig);
       if (result.skipped) skipped += 1;
@@ -328,7 +340,8 @@ async function main() {
     }
   }
 
-  const generated = generateAssetsModule(outputRels);
+  const bundledRels = await collectBundledRels();
+  const generated = generateAssetsModule(bundledRels);
   await fs.writeFile(GENERATED_JS, generated, 'utf8');
   console.log(`[build-comparison-assets] Wrote ${path.relative(ROOT, GENERATED_JS)}`);
 

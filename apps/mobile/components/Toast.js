@@ -31,6 +31,12 @@ const TYPE_META = {
   },
 };
 
+function defaultDuration(type, hasAction) {
+  if (hasAction) return 5500;
+  if (type === 'error' || type === 'warning') return 5000;
+  return 2800;
+}
+
 export default function Toast({
   visible,
   title,
@@ -38,6 +44,7 @@ export default function Toast({
   type = 'info',
   actionLabel,
   onAction,
+  duration,
   onHide,
 }) {
   const slideAnim = useRef(new Animated.Value(-100)).current;
@@ -55,18 +62,22 @@ export default function Toast({
         friction: 10,
       }).start();
 
+      const holdMs = Number.isFinite(duration) && duration > 0
+        ? duration
+        : defaultDuration(type, hasAction);
+
       const timer = setTimeout(() => {
         Animated.timing(slideAnim, {
           toValue: -100,
           duration: 220,
           useNativeDriver: true,
         }).start(() => onHide && onHide());
-      }, hasAction ? 5500 : type === 'error' || type === 'warning' ? 5000 : 2800);
+      }, holdMs);
 
       return () => clearTimeout(timer);
     }
     slideAnim.setValue(-100);
-  }, [visible, hasAction, onHide, slideAnim, type]);
+  }, [visible, hasAction, onHide, slideAnim, type, duration]);
 
   if (!visible) return null;
 

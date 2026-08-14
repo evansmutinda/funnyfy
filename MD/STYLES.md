@@ -47,14 +47,14 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 | Constant | Replicate model | Used for |
 |----------|-----------------|----------|
 | `DEFAULT_MODEL` | `black-forest-labs/flux-kontext-pro` | Most cartoon / art styles |
-| `NANO_BANANA` | `google/nano-banana` | Caricatures, mural, video-game styles, classic-v2, saturday-v1 |
-| `NANO_BANANA_2` | `google/nano-banana-2` | renoir, impasto, expressive-impasto, hokusai-v2, hiroshige, sesshu, cyberpunk-v2, disney |
+| `NANO_BANANA` | `google/nano-banana` | Caricatures, mural, video-game styles, classic-v2, saturday-v1, cross-hatched, fashion |
+| `NANO_BANANA_2` | `google/nano-banana-2` | renoir, impasto, expressive-impasto, hokusai-v2, hiroshige, sesshu, cyberpunk-v2, disney, eyeroll |
 | `SEEDREAM_4` | `bytedance/seedream-4` | lowpoly, pop art v2, graffiti, banksy, mosaic, watercolor, acrylic, gouache, expressionist, impressionist, baroque, van-gogh, monet, classic-v1, saturday-v2, carc1 |
-| `SEEDREAM_4_5` | `bytedance/seedream-4.5` | cezanne, gauguin, matisse, seurat, ink-wash, hokusai-v1, comic, cute, cyberpunk-v1, expressive-impasto-v2, pop-art-v3 |
+| `SEEDREAM_4_5` | `bytedance/seedream-4.5` | cezanne, gauguin, matisse, seurat, ink-wash, hokusai-v1, comic, cute, cyberpunk-v1, expressive-impasto-v2, pop-art-v3, line-art |
 
 ---
 
-## Enabled styles (123)
+## Enabled styles (132)
 
 | Id | Label | Category | Model | Comparison pair |
 |----|-------|----------|-------|-----------------|
@@ -110,6 +110,14 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 | `paste-up` | Paste-up | art | seedream-4 | ✅ |
 | `pencil-sketch-v1` | Pencil Sketch V1 | art | nano-banana | ✅ |
 | `pencil-sketch-v2` | Pencil Sketch V2 | art | nano-banana-2 | ✅ |
+| `pencil-sketch` | Pencil Sketch | drawings-sketches | flux-kontext-pro | ✅ |
+| `charcoal` | Charcoal | drawings-sketches | flux-kontext-pro | ✅ |
+| `ink` | Ink | drawings-sketches | flux-kontext-pro | ✅ |
+| `pen` | Pen | drawings-sketches | flux-kontext-pro | ✅ |
+| `cross-hatched` | Cross-hatched | drawings-sketches | nano-banana | ✅ |
+| `line-art` | Line Art | drawings-sketches | seedream-4.5 | ✅ |
+| `fashion` | Fashion | drawings-sketches | nano-banana | ✅ |
+| `marker` | Marker | drawings-sketches | flux-kontext-pro | ✅ |
 | `origami` | Origami | 3d-characters | seedream-4.5 | ✅ |
 | `paper-cut` | Paper Cut | art | flux-kontext-pro | ✅ |
 | `water-color` | Water Color | paintings | flux-kontext-pro | ✅ |
@@ -203,6 +211,7 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 | `tiny-muscle-v1` | Tiny Muscle V1 | caricatures | seedream-4.5 | ✅ |
 | `tiny-muscle-v2` | Tiny Muscle V2 | caricatures | nano-banana | ✅ |
 | `tiny-muscle-v3` | Tiny Muscle V3 | caricatures | nano-banana-2 (+ style ref) | ✅ |
+| `eyeroll` | Eye Roll | stickers | nano-banana-2 | ✅ |
 
 **Note:** `watercolor` (cartoons) and `water-color` (paintings) are different styles.
 
@@ -359,10 +368,19 @@ Run `npm run build-comparison-assets` after adding or replacing source files. Fo
 | `paste-up` | `before/lady11.png` | `after/Art/Paste-up.jpg` |
 | `pencil-sketch-v1` | `before/man9.png` | `after/Art/Pencil Sketch1.jpeg` |
 | `pencil-sketch-v2` | `before/man9.png` | `after/Art/Pencil Sketch2.jpeg` |
+| `pencil-sketch` | `before/man5.png` | `after/Drawings/pencil-sketch.jpg` |
+| `charcoal` | `before/man6.png` | `after/Drawings/Charcoal.jpg` |
+| `ink` | `before/lady10.png` | `after/Drawings/ink.jpg` |
+| `pen` | `before/lady9.png` | `after/Drawings/pen.jpg` |
+| `cross-hatched` | `before/lady9.png` | `after/Drawings/cross-hatched.jpeg` |
+| `line-art` | `before/man8.png` | `after/Drawings/line-art.jpg` |
+| `fashion` | `before/lady.png` | `after/Drawings/fashion.jpeg` |
+| `marker` | `before/lady3.png` | `after/Drawings/marker.jpg` |
 | `origami` | `before/lady14.png` | `after/3d/origami.jpg` |
 | `paper-cut` | `before/man5.png` | `after/Art/paper-cut.jpg` |
 | `monday-mood` | `before/lady3.png` | `after/Moods&Moments/mondays1.jpg`, `mondays2.jpeg`, `mondays3.jpeg` |
 | `friday-feeling` | `before/man9.png` | `after/Moods&Moments/fridays1.jpeg`, `fridays2.jpeg` |
+| `eyeroll` | `before/lady4.png` | `after/stickers/eyeroll.jpeg` |
 
 **Style picker behavior:** Home category rows and the **See all** grid use `RowFocusProvider` (`hooks/useRowFocus.js`) so one row crossfades at a time. Home rows show up to **5** previews (`ROW_PREVIEW_COUNT`); use **See all** for the full category list.
 

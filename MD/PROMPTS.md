@@ -8,7 +8,7 @@ Regenerate this file after prompt changes:
 node scripts/generate-prompts-md.js
 ```
 
-**Last generated:** 2026-08-06 · **138 enabled** · **1 disabled** in LEGACY_STYLES
+**Last generated:** 2026-08-13 · **153 enabled** · **1 disabled** in LEGACY_STYLES
 
 Prompts are server-side only — the mobile app never bundles them. When adding a style, copy/adapt a prompt here, then add it to `LEGACY_STYLES` and deploy staging.
 
@@ -271,7 +271,7 @@ Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd pic
 - **Description:** Style-matched caricature face transfer — applies a cartoon template look while keeping race, sex, and facial identity
 
 ```
-Using the 1st picture as a style reference and the 2nd picture as the subject: switch the face treatment of the 2nd picture's subject to duplicate the overall caricature style of the 1st picture. Caricaturize the subject's face to match the style of the 1st picture while maintaining the 2nd subject's overall facial features, race, and sex. Maintain the caricature cartoon style. Don't add the cigarette.
+Using the 1st picture as a style reference and the 2nd picture as the subject: switch the face treatment of the 2nd picture's subject to duplicate the overall caricature style of the 1st picture. Caricaturize the subject's face to match the style of the 1st picture while maintaining the 2nd subject's overall facial features, race, and sex. Maintain the caricature cartoon style.
 ```
 
 #### `carc13` — Caricature 13
@@ -281,7 +281,7 @@ Using the 1st picture as a style reference and the 2nd picture as the subject: s
 - **Description:** Style-matched caricature face transfer — applies a cartoon template look while keeping race, sex, clothing, and facial identity
 
 ```
-Using the 1st picture as a style reference and the 2nd picture as the subject: switch the face treatment of the 2nd picture's subject to duplicate the overall caricature style of the 1st picture. Caricaturize the subject's face to match the style of the 1st picture while maintaining the 2nd subject's overall facial features, race, and sex. Maintain the caricature cartoon style. Don't add the cigarette. Maintain the 2nd subject's clothing. Use a solid colorful background.
+Using the 1st picture as a style reference and the 2nd picture as the subject: switch the face treatment of the 2nd picture's subject to duplicate the overall caricature style of the 1st picture. Caricaturize the subject's face to match the style of the 1st picture while maintaining the 2nd subject's overall facial features, race, and sex. Maintain the caricature cartoon style. Maintain the 2nd subject's clothing. Use a solid colorful background.
 ```
 
 #### `carc14` — Caricature 14
@@ -401,7 +401,7 @@ An exaggerated hybrid cartoon character combining sculpted 3D volume with expres
 - **Description:** Style-matched caricature face transfer — applies a mug-style template look while keeping the subject recognizable
 
 ```
-Using the 1st picture as a style reference and the 2nd picture as the subject: switch the face treatment of the 2nd picture's subject to duplicate the overall caricature style of the 1st picture. Caricaturize the subject's face to match the style of the 1st picture while maintaining the 2nd subject's facial features and identity. Do not include the hat, sweat, or smoke pipe from the 1st picture.
+Using the 1st picture as a style reference and the 2nd picture as the subject: switch the face treatment of the 2nd picture's subject to duplicate the overall caricature style of the 1st picture. Caricaturize the subject's face to match the style of the 1st picture while maintaining the 2nd subject's facial features and identity. Do not include the hat from the 1st picture.
 ```
 
 #### `tiny-muscle-v1` — Tiny Muscle V1
@@ -546,46 +546,6 @@ make this a cyberpunk style cartoon, no extra text
 make this a disney style cartoon, no extra text
 ```
 
-#### `anime` — Anime
-
-- **Category:** cartoons
-- **Model:** DEFAULT_MODEL
-- **Description:** Anime-style cartoon
-
-```
-Make this an anime cartoon, maintaining poster and facial features
-```
-
-#### `manga` — Manga
-
-- **Category:** cartoons
-- **Model:** DEFAULT_MODEL
-- **Description:** Manga-style cartoon
-
-```
-Make this a manga cartoon, maintaining poster and facial features, no text
-```
-
-#### `genndy-v1` — Genndy V1
-
-- **Category:** cartoons
-- **Model:** DEFAULT_MODEL
-- **Description:** Genndy Tartakovsky-stylized 2D caricature with elongated faces, sharp angles, and noir-inspired shading
-
-```
-make a Genndy Tartakovsky-stylized 2D caricature character with elongated faces, and sharp angular features. Bold clean lineart, and dramatic noir-inspired shading. Character in suit and vintage outfit, placed inside a vertical color panel. Big expressive eyes, strong eyebrows, and a retro detective cartoon vibe. High-contrast, graphic, stylized character design. no text
-```
-
-#### `genndy-v2` — Genndy V2
-
-- **Category:** cartoons
-- **Model:** NANO_BANANA_2
-- **Description:** Genndy Tartakovsky-stylized 2D caricature with elongated faces, sharp angles, and noir-inspired shading
-
-```
-make a Genndy Tartakovsky-stylized 2D caricature character with elongated faces, and sharp angular features. Bold clean lineart, and dramatic noir-inspired shading. Character in suit and vintage outfit, placed inside a vertical color panel. Big expressive eyes, strong eyebrows, and a retro detective cartoon vibe. High-contrast, graphic, stylized character design. no text
-```
-
 #### `pixel` — Pixel
 
 - **Category:** cartoons
@@ -644,6 +604,46 @@ make this a Comic Book Style cartoon
 
 ```
 make this a DC style Cartoon
+```
+
+#### `anime` — Anime
+
+- **Category:** cartoons
+- **Model:** DEFAULT_MODEL
+- **Description:** Anime-style cartoon
+
+```
+Make this an anime cartoon, maintaining poster and facial features
+```
+
+#### `manga` — Manga
+
+- **Category:** cartoons
+- **Model:** DEFAULT_MODEL
+- **Description:** Manga-style cartoon
+
+```
+Make this a manga cartoon, maintaining poster and facial features, no text
+```
+
+#### `genndy-v1` — Genndy V1
+
+- **Category:** cartoons
+- **Model:** DEFAULT_MODEL
+- **Description:** Genndy Tartakovsky-stylized 2D caricature with elongated faces, sharp angles, and noir-inspired shading
+
+```
+make a Genndy Tartakovsky-stylized 2D caricature character with elongated faces, and sharp angular features. Bold clean lineart, and dramatic noir-inspired shading. Character in suit and vintage outfit, placed inside a vertical color panel. Big expressive eyes, strong eyebrows, and a retro detective cartoon vibe. High-contrast, graphic, stylized character design. no text
+```
+
+#### `genndy-v2` — Genndy V2
+
+- **Category:** cartoons
+- **Model:** NANO_BANANA_2
+- **Description:** Genndy Tartakovsky-stylized 2D caricature with elongated faces, sharp angles, and noir-inspired shading
+
+```
+make a Genndy Tartakovsky-stylized 2D caricature character with elongated faces, and sharp angular features. Bold clean lineart, and dramatic noir-inspired shading. Character in suit and vintage outfit, placed inside a vertical color panel. Big expressive eyes, strong eyebrows, and a retro detective cartoon vibe. High-contrast, graphic, stylized character design. no text
 ```
 
 #### `watercolor` — Watercolor
@@ -888,6 +888,100 @@ using this pic make all subjects as a Sesshū Inspired Painting in color, no ext
 Using the attached image as a reference create stylish dynamic stylized portrait of a person head, drawn with art watercolor markers. Use only one [color] color family in contrasting shades: a bright vivid shade for the crucial contour lines and details, a very light pastel shade for soft volume and shadows. Maximize the use of white paper (negative space). No dark colors. Marker strokes do not overlap, use long smooth dynamic lines where possible. Stylish perspective and camera angle. Only essential details. Slight paper texture is visible under the strokes, the rest is clean white. Bold, graphic, juicy
 ```
 
+### Drawings & Sketches
+
+#### `pencil-sketch` — Pencil Sketch
+
+- **Category:** drawings-sketches
+- **Model:** DEFAULT_MODEL
+- **Description:** Professionally hand-drawn graphite pencil portrait with realistic shading and cross-hatching
+
+```
+Create a detailed hand-drawn pencil sketch of the uploaded subject, using the reference image as the primary guide. Preserve the subject’s identity, facial structure, proportions, hairstyle, expression, and distinctive features with high accuracy. Use realistic graphite pencil strokes, subtle shading, cross-hatching, soft tonal transitions, and fine linework to create natural depth and dimension. Keep the drawing monochrome in shades of graphite gray, with visible pencil texture and slight variations in stroke pressure. Maintain the original pose and composition of the reference image. Clean white or lightly textured paper background, no color, no painting effect, no digital-art appearance, no exaggerated cartoon features, and no unnecessary background elements. The final result should look like a professionally hand-drawn graphite portrait/sketch.
+```
+
+#### `charcoal` — Charcoal
+
+- **Category:** drawings-sketches
+- **Model:** DEFAULT_MODEL
+- **Description:** Professionally hand-drawn charcoal portrait with expressive strokes, soft smudging, and textured shading
+
+```
+Create a detailed hand-drawn charcoal portrait of the uploaded subject, using the reference image as the primary guide. Preserve the subject’s identity, facial structure, proportions, hairstyle, expression, and distinctive features with high accuracy. Use expressive charcoal strokes, rich dark tones, soft smudging, textured shading, subtle highlights, and carefully controlled contrast to create realistic depth and dimension. Maintain the original pose and composition of the reference image. Monochromatic black, gray, and charcoal tones on textured drawing paper, with natural charcoal grain and visible hand-drawn marks. Keep the background minimal and unobtrusive. No color, no painting effect, no digital-art appearance, no exaggerated cartoon features, and no unnecessary background elements. The final result should look like an authentic, professionally hand-drawn charcoal portrait.
+```
+
+#### `ink` — Ink
+
+- **Category:** drawings-sketches
+- **Model:** DEFAULT_MODEL
+- **Description:** Professionally hand-rendered ink portrait with crisp linework, hatching, and controlled shadow
+
+```
+Create a detailed hand-drawn ink portrait of the uploaded subject, using the reference image as the primary guide. Preserve the subject’s identity, facial structure, proportions, hairstyle, expression, and distinctive features with high accuracy. Use crisp black ink linework, varied line weights, fine hatching, cross-hatching, stippling, and controlled shadow areas to create depth and realistic form. Maintain the original pose and composition of the reference image. Monochromatic black ink on clean white or subtly textured paper, with natural hand-drawn imperfections and an authentic traditional illustration feel. Keep the background minimal and unobtrusive. No color, no watercolor, no pencil or charcoal texture, no digital painting appearance, no exaggerated cartoon features, and no unnecessary background elements. The final result should look like a professionally hand-rendered ink illustration.
+```
+
+#### `pen` — Pen
+
+- **Category:** drawings-sketches
+- **Model:** DEFAULT_MODEL
+- **Description:** Professionally hand-drawn pen illustration with precise contours, hatching, and technical-pen shading
+
+```
+Create a detailed hand-drawn pen illustration of the uploaded subject, using the reference image as the primary guide. Preserve the subject’s identity, facial structure, proportions, hairstyle, expression, and distinctive features with high accuracy. Use fine ballpoint or technical pen strokes, precise contours, varied line weights, cross-hatching, parallel hatching, and controlled stippling to build realistic shading and depth. Maintain the original pose and composition of the reference image. Use monochromatic black or dark-blue pen ink on clean white paper, with subtle natural pen texture and visible hand-drawn linework. Keep the background minimal and unobtrusive. No color painting, no pencil or charcoal texture, no watercolor effect, no digital painting appearance, no exaggerated cartoon features, and no unnecessary background elements. The final result should resemble a professionally hand-drawn pen illustration created with meticulous traditional pen technique.
+```
+
+#### `cross-hatched` — Cross-hatched
+
+- **Category:** drawings-sketches
+- **Model:** NANO_BANANA
+- **Description:** Meticulously hand-rendered traditional cross-hatched illustration with layered intersecting lines
+
+```
+Create a highly detailed traditional cross-hatched drawing of the uploaded subject, using the reference image as the primary guide. Preserve the subject’s identity, facial structure, proportions, hairstyle, expression, and distinctive features with high accuracy. Build the entire image using carefully layered intersecting lines, with dense cross-hatching in deep shadow areas, lighter single-direction hatching for midtones, and fine sparse lines for highlights. Use varied line density, direction, and thickness to create realistic form, depth, texture, and dimensionality. Maintain the original pose and composition of the reference image. Monochromatic black ink on clean white paper, with authentic hand-drawn imperfections and visible linework. Minimal background. No color, no smooth digital shading, no pencil or charcoal texture, no watercolor, no painting effect, and no exaggerated cartoon features. The final result should look like a meticulously hand-rendered traditional cross-hatched illustration.
+```
+
+#### `line-art` — Line Art
+
+- **Category:** drawings-sketches
+- **Model:** SEEDREAM_4_5
+- **Description:** Polished professional line-art illustration with precise outlines and minimal shading
+
+```
+Create a clean, detailed line-art illustration of the uploaded subject, using the reference image as the primary guide. Preserve the subject’s identity, facial structure, proportions, hairstyle, expression, and distinctive features with high accuracy. Use precise black outlines, smooth controlled contours, varied line weight, and selective fine interior details to clearly define the face, hair, clothing, and important features. Keep the drawing crisp and uncluttered, with minimal or no shading. Maintain the original pose and composition of the reference image. Monochromatic black linework on a clean white background, with a refined hand-drawn illustration quality. No color, no gradients, no cross-hatching, no pencil or charcoal texture, no filled shadows, no painting effect, and no unnecessary background elements. The final result should look like polished professional line art.
+```
+
+#### `fashion` — Fashion
+
+- **Category:** drawings-sketches
+- **Model:** NANO_BANANA
+- **Description:** Sophisticated editorial fashion sketch with expressive graphite and ink strokes
+
+```
+Create a sophisticated hand-drawn fashion sketch of the uploaded subject, using the reference image as the primary guide. Preserve the subject’s identity, facial features, hairstyle, proportions, and distinctive characteristics with high accuracy. Render the subject in an elegant fashion-illustration style using expressive graphite and ink strokes, elongated but natural fashion-illustration lines, loose gestural contours, refined garment detailing, and selective soft shading. Preserve the original pose and overall composition while giving the clothing a polished editorial fashion-sketch treatment. Use a predominantly monochromatic palette on textured white sketch paper, with subtle artistic imperfections and visible hand-drawn strokes. Minimal background, clean composition, sophisticated editorial feel. No photorealism, no 3D rendering, no cartoon exaggeration, no heavy digital effects, and no unnecessary background elements.
+```
+
+#### `marker` — Marker
+
+- **Category:** drawings-sketches
+- **Model:** DEFAULT_MODEL
+- **Description:** Bold hand-rendered marker illustration with expressive strokes, layered fills, and authentic bleed
+
+```
+Create a bold hand-drawn marker illustration of the uploaded subject, using the reference image as the primary guide. Preserve the subject’s identity, facial structure, proportions, hairstyle, expression, and distinctive features with high accuracy. Use expressive marker strokes, confident outlines, visible stroke direction, layered marker fills, and simple overlapping tones to create form, depth, and dimension. Incorporate subtle marker bleed, uneven ink coverage, and natural paper texture for an authentic traditional marker-sketch appearance. Maintain the original pose and composition of the reference image. Use a vibrant but controlled marker color palette, with strong areas of light and shadow and selective highlights. Keep the background clean and minimal. No photorealism, no 3D rendering, no pencil or charcoal texture, no watercolor wash, no glossy digital painting, and no unnecessary background elements. The final result should resemble a professionally hand-rendered fashion or concept illustration created with high-quality art markers.
+```
+
+### Stickers
+
+#### `eyeroll` — Eye Roll
+
+- **Category:** stickers
+- **Model:** NANO_BANANA_2
+- **Description:** Pixar-style 3D die-cut sticker — Eyeroll expression
+
+```
+Use eyeroll expression, both eyes rolled dramatically upward, with the pupils positioned high toward the upper eyelids; slightly lowered eyelids, raised eyebrows, subtly pursed lips, and an unmistakable "seriously?" / "here we go again" attitude. Add a slight head tilt and an expressive, unimpressed posture to reinforce the emotion.
+```
+
 ### Art
 
 #### `neon` — Neon
@@ -927,11 +1021,7 @@ make a street mural graffiti of the subject/s
 - **Description:** Whimsical pastel storybook portrait illustration with soft hand-drawn linework and dreamy floral scenes
 
 ```
-Using the uploaded image as the visual reference, create a whimsical pastel storybook-style portrait illustration of the same subject while preserving her recognizable facial structure, proportions, hairstyle, expression, and overall youthful appearance. Maintain the soft hand-drawn aesthetic with delicate linework, subtle watercolor-style shading, large expressive eyes, rosy cheeks, and smooth rounded facial features.
-
-The composition should feel dynamic and varied rather than identical to the reference. Change the pose, head angle, hand placement, outfit details, floral arrangement, background elements, and scene composition creatively while staying faithful to the original artistic style. The subject can be shown interacting naturally with the environment — surrounded by blooming flowers, floating petals, vines, butterflies, seasonal plants, or dreamy decorative elements.
-
-Keep the same muted pastel color palette featuring soft coral pinks, dusty teal greens, warm creams, light peach skin tones, and gentle earthy accents. Preserve the airy, cozy, feminine illustration feel commonly seen in premium nursery art, greeting cards, and modern fairytale illustrations.
+Using the uploaded image as the visual reference, create a whimsical pastel storybook-style portrait illustration of the same subject while preserving her recognizable facial structure, proportions, hairstyle, expression, and overall youthful appearance. Maintain the soft hand-drawn aesthetic with delicate linework, subtle watercolor-style shading, large expressive eyes, rosy cheeks, and smooth rounded facial features.nnThe composition should feel dynamic and varied rather than identical to the reference. Change the pose, head angle, hand placement, outfit details, floral arrangement, background elements, and scene composition creatively while staying faithful to the original artistic style. The subject can be shown interacting naturally with the environment — surrounded by blooming flowers, floating petals, vines, butterflies, seasonal plants, or dreamy decorative elements.nnKeep the same muted pastel color palette featuring soft coral pinks, dusty teal greens, warm creams, light peach skin tones, and gentle earthy accents. Preserve the airy, cozy, feminine illustration feel commonly seen in premium nursery art, greeting cards, and modern fairytale illustrations.
 ```
 
 #### `pop-art-v1` — Pop Art V1
@@ -1104,7 +1194,7 @@ Preserve the uploaded person's identity exactly. Transform the uploaded person i
 Create a sophisticated editorial caricature of the provided subject while faithfully preserving their identity, facial structure, age, ethnicity, hairstyle, expression, clothing, and pose. Exaggerate the defining facial characteristics in a tasteful editorial manner—slightly enlarge the head, emphasize the forehead, eyebrows, eyes, nose, ears, cheek lines, smile lines, and wrinkles to communicate wisdom and character without becoming grotesque. Maintain realistic facial proportions despite the stylization. Render in a premium newspaper/magazine editorial illustration style using expressive black ink linework, fine cross-hatching, loose pen strokes, and layered watercolor washes. Use warm, earthy tones with subtle texture from watercolor paper. Employ confident contour lines, varied line weights, and painterly shading to create depth while retaining a handcrafted appearance. Preserve the library setting with bookshelves and the armchair, but simplify the background into soft watercolor shapes and sketch-like details so it supports rather than competes with the subject. Use soft natural window lighting, gentle shadows, and a muted, elegant color palette. The overall mood should be thoughtful, distinguished, intellectual, and timeless—resembling a high-end editorial portrait published in The New Yorker, The Economist, Financial Times, or a literary magazine. No typography, captions, speech bubbles, logos, signatures, watermarks, borders, decorative frames, or graphic elements. Background should remain clean and uncluttered, with the subject as the clear focal point.
 ```
 
-### 3D Characters
+### 3D
 
 #### `3dclay` — 3D Clay
 

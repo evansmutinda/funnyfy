@@ -10,7 +10,7 @@ import {
   resolveStyleModel,
   resolveStyleReferenceUrl,
 } from './styles-config';
-import { ensureJobSheetExpressionsColumn } from './sticker-pack';
+import { ensureJobSheetExpressionsColumn, stickerSheetAspectRatio, stickerSheetGridForCount } from './sticker-pack';
 import {
   buildReplicateWebhookUrl,
   getImageUrlFromOutput,
@@ -63,6 +63,7 @@ export async function processJob(job: JobRow): Promise<void> {
   }
 
   let prompt = styleConfig.prompt;
+  let sheetExpressionCount = 0;
   if (job.style_id === STICKER_SHEET_STYLE_ID) {
     await ensureJobSheetExpressionsColumn();
     let expressionIds = parseSheetExpressions(job.sheet_expressions);
@@ -73,9 +74,10 @@ export async function processJob(job: JobRow): Promise<void> {
       );
       expressionIds = parseSheetExpressions(stored.rows[0]?.sheet_expressions);
     }
-    if (expressionIds.length !== 4 && expressionIds.length !== 9) {
-      throw new Error('Sticker sheet jobs need 4 or 9 expressions.');
+    if (!stickerSheetGridForCount(expressionIds.length)) {
+      throw new Error('Sticker sheet jobs need 4, 9, or 12 expressions.');
     }
+    sheetExpressionCount = expressionIds.length;
     prompt = buildStickerSheetPrompt(expressionIds);
   }
   const imageUrl = job.input_image_url;
@@ -105,7 +107,7 @@ export async function processJob(job: JobRow): Promise<void> {
       input.image = imageUrl;
       input.image_url = imageUrl;
       if (job.style_id === STICKER_SHEET_STYLE_ID) {
-        input.aspect_ratio = '1:1';
+        input.aspect_ratio = stickerSheetAspectRatio(sheetExpressionCount);
       }
       if (
         !referenceUrl &&

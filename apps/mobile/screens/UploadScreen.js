@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Image,
   StatusBar,
   Text,
   TouchableOpacity,
@@ -16,8 +15,7 @@ import UploadFlowHeader, { getUploadQuotaInfo } from '../components/UploadFlowHe
 import ComparisonFade from '../components/ComparisonFade';
 import PhotoTipsSheet from '../components/PhotoTipsSheet';
 import useImagePicker from '../hooks/useImagePicker';
-import { getStyleImage } from '../constants';
-import { getComparisonPair, usesComparisonPreview } from '../data/comparisonPairs';
+import { getComparisonPair } from '../data/comparisonPairs';
 import { getStylePhotoTips } from '../data/stylePhotoTips';
 import { getTrialRemaining, getTrialWarningMessage, isTrialUser } from '../utils/trialWarnings';
 import { isPhotoTipsDismissed, setPhotoTipsDismissed } from '../utils/photoTipsPrefs';
@@ -80,9 +78,7 @@ export default function UploadScreen({
 
   const quotaInfo = getQuotaInfo();
   const trialRemaining = isTrialUser(subscriptionInfo) ? getTrialRemaining(subscriptionInfo) : null;
-  const showComparison = usesComparisonPreview(style);
-  const comparisonPair = showComparison ? getComparisonPair(style) : null;
-  const stickerPreview = showComparison ? null : getStyleImage(style);
+  const comparisonPair = getComparisonPair(style);
 
   const handlePick = async (useCamera) => {
     const picked = await pickImage(useCamera);
@@ -102,24 +98,16 @@ export default function UploadScreen({
     <View style={styles.uploadRoot}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
-      {/* Comparison background — looping before/after, or static sticker thumb */}
-      {showComparison ? (
-        <ComparisonFade
-          beforeSource={comparisonPair.before}
-          afterSource={comparisonPair.after}
-          afterSources={comparisonPair.afters}
-          style={styles.uploadBackgroundFill}
-          imageStyle={styles.uploadBackgroundImage}
-          holdMs={1800}
-          fadeMs={1000}
-        />
-      ) : (
-        <Image
-          source={stickerPreview}
-          style={[styles.uploadBackgroundFill, styles.uploadBackgroundImage]}
-          resizeMode="contain"
-        />
-      )}
+      {/* Comparison background — looping before/after, including stickers */}
+      <ComparisonFade
+        beforeSource={comparisonPair.before}
+        afterSource={comparisonPair.after}
+        afterSources={comparisonPair.afters}
+        style={styles.uploadBackgroundFill}
+        imageStyle={styles.uploadBackgroundImage}
+        holdMs={1800}
+        fadeMs={1000}
+      />
 
       {/* Top scrim — improves legibility of header chips */}
       <LinearGradient

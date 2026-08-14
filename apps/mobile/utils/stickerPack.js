@@ -2,9 +2,10 @@ import { getStyleCategory } from './styleCategories';
 import { getUsageQuotaInfo } from './usageQuota';
 
 export const STICKER_SHEET_STYLE_ID = 'sticker-sheet';
-export const STICKER_SHEET_SIZES = [4, 9];
+export const STICKER_SHEET_SIZES = [4, 9, 12];
 export const STICKER_PACK_MIN = 4;
-export const STICKER_PACK_MAX = 9;
+export const STICKER_PACK_MAX = 12;
+export const STICKER_PACK_SIZE_HINT = '4, 9, or 12';
 
 export function isStickerStyle(style) {
   if (!style) return false;
@@ -27,6 +28,11 @@ export function canBuildStickerPack(selectedCount) {
   return STICKER_SHEET_SIZES.includes(selectedCount);
 }
 
+export function stickerSheetAspectRatio(count) {
+  if (count === 12) return 3 / 4;
+  return 1;
+}
+
 export function stickerPackQuotaMessage(subscriptionInfo, selectedCount = 1) {
   const quota = getUsageQuotaInfo(subscriptionInfo);
   if (quota.isExceeded) {
@@ -36,12 +42,6 @@ export function stickerPackQuotaMessage(subscriptionInfo, selectedCount = 1) {
     return `A sticker pack uses 1 generation. You have ${quota.remaining} left.`;
   }
   return null;
-}
-
-export function stickerPackProgressLabel(done, total, currentLabel) {
-  if (currentLabel) return currentLabel;
-  if (!total) return 'Creating sticker sheet…';
-  return `${Math.min(done, total)} of ${total} stickers`;
 }
 
 export function stickerSheetStyle() {
