@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   BackHandler,
   FlatList,
@@ -32,11 +32,6 @@ import { RowFocusProvider, useCategoryRowFocus } from '../hooks/useRowFocus';
 import StyleLoadingEmptyState from '../components/StyleLoadingEmptyState';
 import styles from '../styles';
 
-const HORIZONTAL_VIEWABILITY = {
-  itemVisiblePercentThreshold: 50,
-  minimumViewTime: 0,
-};
-
 function resolveStyleCategory(style) {
   return style?.categoryId || getStyleCategory(style?.id);
 }
@@ -45,6 +40,7 @@ const ROW_PREVIEW_COUNT = 5;
 const ROW_ENTRANCE_STAGGER = 40;
 const GRID_COLUMNS = 2;
 const MAX_ENTRANCE_ROWS = 4;
+const EMPTY_HOME_CATEGORY_IDS = new Set();
 
 const BROWSE_CATEGORIES = STYLE_CATEGORIES.filter((cat) => cat.id !== 'all');
 
@@ -127,7 +123,7 @@ function StyleScreenContent({
     }
     return BROWSE_CATEGORIES
       .map((cat) => ({ ...cat, styles: byCategory.get(cat.id) || [] }))
-      .filter((row) => row.styles.length > 0 || row.id === 'drawings-sketches');
+      .filter((row) => row.styles.length > 0 || EMPTY_HOME_CATEGORY_IDS.has(row.id));
   }, [browsingHome, styleList]);
 
   const categoryStyles = useMemo(() => {
@@ -494,32 +490,8 @@ function CategoryRow({
   const hasOverflow = styleList.length > ROW_PREVIEW_COUNT;
   const visibleStyles = hasOverflow ? styleList.slice(0, ROW_PREVIEW_COUNT) : styleList;
   const isEmptyCategory = styleList.length === 0;
-  const showSeeAll = styleList.length > 0;
+  const showSeeAll = styleList.length > 1;
   const { rowRef, isRowActive, onRowLayout } = useCategoryRowFocus(category.id, rowIndex);
-  const [viewableIds, setViewableIds] = useState(null);
-
-  const onViewableItemsChangedRef = useRef(({ viewableItems }) => {
-    setViewableIds(new Set(viewableItems.map((token) => token.item.id)));
-  });
-
-  const viewabilityConfigCallbackPairs = useRef([
-    {
-      viewabilityConfig: HORIZONTAL_VIEWABILITY,
-      onViewableItemsChanged: (info) => onViewableItemsChangedRef.current(info),
-    },
-  ]).current;
-
-  const isTileActive = (styleId, index) => {
-    if (!isRowActive) return false;
-    if (!usesComparisonPreview({ id: styleId, categoryId: getStyleCategory(styleId) })) {
-      return false;
-    }
-    if (!hasCuratedComparisonPair({ id: styleId })) return false;
-    if (!viewableIds) return index < 3;
-    return viewableIds.has(styleId);
-  };
-
-  const listExtraData = `${isRowActive}:${viewableIds ? [...viewableIds].join(',') : 'pending'}`;
 
   return (
     <View ref={rowRef} onLayout={onRowLayout}>
@@ -559,20 +531,19 @@ function CategoryRow({
           data={visibleStyles}
           horizontal
           keyExtractor={(item) => item.id}
-          extraData={listExtraData}
+          extraData={isRowActive}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.styleRowList}
-          initialNumToRender={3}
-          maxToRenderPerBatch={2}
+          initialNumToRender={ROW_PREVIEW_COUNT}
+          maxToRenderPerBatch={ROW_PREVIEW_COUNT}
           windowSize={3}
           removeClippedSubviews={false}
-          viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs}
-          renderItem={({ item, index }) => (
+          renderItem={({ item }) => (
             <StylePickerTileMemo
               item={item}
               selectedStyle={selectedStyle}
               onSelect={onSelect}
-              comparisonActive={isTileActive(item.id, index)}
+              comparisonActive={isRowActive}
               interactionPaused={interactionPaused}
               stickerPackMode={stickerPackMode}
               selectedStickerIds={selectedStickerIds}

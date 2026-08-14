@@ -22,7 +22,7 @@ export const DEFAULT_COMPARISON_CYCLES = 3;
 
 /**
  * Crossfade between original (before) and styled after(s).
- * Single after: before ↔ after loop (rests on after).
+ * Single after: before → after → before loop, then rests on after.
  * Multiple afters: before → after1 → before → after2 → before → after3 → …
  * When paused, keeps the current after frame visible.
  */
@@ -68,16 +68,17 @@ export default function ComparisonFade({
     }
 
     setShowBefore(true);
-    opacity.value = 1;
+    // Start on the original so identity-preserving styles (age, etc.) show a visible change.
+    opacity.value = 0;
     const ease = Easing.inOut(Easing.cubic);
-
-    const cycle = withSequence(
-      withDelay(holdMs, withTiming(0, { duration: fadeMs, easing: ease })),
-      withDelay(holdMs, withTiming(1, { duration: fadeMs, easing: ease })),
-    );
+    const toAfter = withDelay(holdMs, withTiming(1, { duration: fadeMs, easing: ease }));
+    const toBefore = withDelay(holdMs, withTiming(0, { duration: fadeMs, easing: ease }));
+    const cycle = withSequence(toAfter, toBefore);
 
     const repeats = maxCycles == null || maxCycles < 0 ? -1 : maxCycles;
-    opacity.value = withRepeat(cycle, repeats, false);
+    opacity.value = repeats < 0
+      ? withRepeat(cycle, -1, false)
+      : withSequence(withRepeat(cycle, repeats, false), toAfter);
     return undefined;
   }, [isMulti, paused, holdMs, fadeMs, maxCycles, beforeSource, activeAfter, opacity]);
 

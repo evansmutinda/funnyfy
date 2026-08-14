@@ -36,7 +36,7 @@ apps/mobile/assets/comparisons/source/before/<photo>.png
 apps/mobile/assets/comparisons/source/after/<categoryFolder>/<styled>.jpg
 ```
 
-Category folders: `caricature`, `cartoons`, `3d`, `Sculptures`, `Paintings`, `Art` (capital A for Art/Paintings).
+Category folders: `caricature`, `cartoons`, `3d`, `Sculptures`, `Paintings`, `Art` (capital A for Art/Paintings), `photography`, `age-transformation`.
 
 See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets/comparisons/source/README.md`, `ToDo/COMPARISON_ASSETS.md`.
 
@@ -47,14 +47,14 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 | Constant | Replicate model | Used for |
 |----------|-----------------|----------|
 | `DEFAULT_MODEL` | `black-forest-labs/flux-kontext-pro` | Most cartoon / art styles |
-| `NANO_BANANA` | `google/nano-banana` | Caricatures, mural, video-game styles, classic-v2, saturday-v1, cross-hatched, fashion |
-| `NANO_BANANA_2` | `google/nano-banana-2` | renoir, impasto, expressive-impasto, hokusai-v2, hiroshige, sesshu, cyberpunk-v2, disney, eyeroll |
+| `NANO_BANANA` | `google/nano-banana` | Caricatures, mural, video-game styles, classic-v2, saturday-v1, cross-hatched, fashion, professional |
+| `NANO_BANANA_2` | `google/nano-banana-2` | renoir, impasto, expressive-impasto, hokusai-v2, hiroshige, sesshu, cyberpunk-v2, disney, ghibli, chibi, eyeroll, brick-v2, child, teenager, young-adult, middle-age, elderly, progressive, regressive |
 | `SEEDREAM_4` | `bytedance/seedream-4` | lowpoly, pop art v2, graffiti, banksy, mosaic, watercolor, acrylic, gouache, expressionist, impressionist, baroque, van-gogh, monet, classic-v1, saturday-v2, carc1 |
-| `SEEDREAM_4_5` | `bytedance/seedream-4.5` | cezanne, gauguin, matisse, seurat, ink-wash, hokusai-v1, comic, cute, cyberpunk-v1, expressive-impasto-v2, pop-art-v3, line-art |
+| `SEEDREAM_4_5` | `bytedance/seedream-4.5` | cezanne, gauguin, matisse, seurat, ink-wash, hokusai-v1, comic, cute, cyberpunk-v1, expressive-impasto-v2, pop-art-v3, line-art, brick-v1 |
 
 ---
 
-## Enabled styles (132)
+## Enabled styles (149)
 
 | Id | Label | Category | Model | Comparison pair |
 |----|-------|----------|-------|-----------------|
@@ -69,7 +69,7 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 | `gym-motivation` | Gym Motivation | moods-moments | nano-banana | — |
 | `forgot-my-password` | Forgot My Password | moods-moments | nano-banana | — |
 | `90s-cartoon` | 90s | cartoons | flux-kontext-pro | ✅ |
-| `chibi` | Chibi | cartoons | flux-kontext-pro | ✅ |
+| `chibi` | Chibi | cartoons | nano-banana-2 | ✅ |
 | `classic-v1` | Classic V1 | cartoons | seedream-4 | ✅ |
 | `classic-v2` | Classic V2 | cartoons | nano-banana | ✅ |
 | `saturday-v1` | Saturday V1 | cartoons | nano-banana | ✅ |
@@ -82,6 +82,7 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 | `cyberpunk-v1` | Cyberpunk V1 | cartoons | seedream-4.5 | ✅ |
 | `cyberpunk-v2` | Cyberpunk V2 | cartoons | nano-banana-2 | ✅ |
 | `disney` | Disney | cartoons | nano-banana-2 | ✅ |
+| `ghibli` | Ghibli | cartoons | nano-banana-2 | ✅ |
 | `anime` | Anime | cartoons | flux-kontext-pro | ✅ |
 | `manga` | Manga | cartoons | flux-kontext-pro | ✅ |
 | `genndy-v1` | Genndy V1 | cartoons | flux-kontext-pro | ✅ |
@@ -119,6 +120,22 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 | `fashion` | Fashion | drawings-sketches | nano-banana | ✅ |
 | `marker` | Marker | drawings-sketches | flux-kontext-pro | ✅ |
 | `origami` | Origami | 3d-characters | seedream-4.5 | ✅ |
+| `brick-v1` | Brick V1 | 3d-characters | seedream-4.5 | ✅ |
+| `brick-v2` | Brick V2 | 3d-characters | nano-banana-2 | ✅ |
+| `professional` | Professional | photography | nano-banana | ✅ |
+| `studio` | Studio | photography | nano-banana | ✅ |
+| `corporate` | Corporate | photography | nano-banana | ✅ |
+| `fashion-editorial` | Fashion Editorial | photography | nano-banana | ✅ |
+| `cinematic` | Cinematic | photography | nano-banana | ✅ |
+| `model` | Model | photography | nano-banana | ✅ |
+| `outdoor` | Outdoor | photography | nano-banana | ✅ |
+| `child` | Child | age-transformation | nano-banana-2 | ✅ |
+| `teenager` | Teenager | age-transformation | nano-banana-2 | ✅ |
+| `young-adult` | Young Adult | age-transformation | nano-banana-2 | ✅ |
+| `middle-age` | Middle Age | age-transformation | nano-banana-2 | ✅ |
+| `elderly` | Elderly | age-transformation | nano-banana-2 | ✅ |
+| `progressive` | Progressive | age-transformation | nano-banana-2 | ✅ |
+| `regressive` | Regressive | age-transformation | nano-banana-2 | ✅ |
 | `paper-cut` | Paper Cut | art | flux-kontext-pro | ✅ |
 | `water-color` | Water Color | paintings | flux-kontext-pro | ✅ |
 | `acrylic` | Acrylic | paintings | seedream-4 | ✅ |
@@ -225,6 +242,8 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 
 160 catalog placeholders remain `enabled: false` until prompts and art are ready.
 
+Home **See all** is hidden when a category has only one style.
+
 ---
 
 ## Comparison pairs (`CURATED_PAIR_PATHS`)
@@ -268,7 +287,7 @@ Run `npm run build-comparison-assets` after adding or replacing source files. Fo
 | `tiny-muscle-v2` | `before/man3.png` | `after/caricature/tiny-muscle2.jpeg` |
 | `tiny-muscle-v3` | `before/man3.png` | `after/caricature/tiny-muscle3.jpeg` |
 | `90s-cartoon` | `before/toon.png` | `after/cartoons/toon.jpg` |
-| `chibi` | `before/chibi.png` | `after/cartoons/chibi.jpg` |
+| `chibi` | `before/lady7.png` | `after/cartoons/chibi.jpeg` |
 | `classic-v1` | `before/lady4.png` | `after/cartoons/classic.jpg` |
 | `classic-v2` | `before/man3.png` | `after/cartoons/classicv2.jpeg` |
 | `saturday-v1` | `before/dude2.png` | `after/cartoons/smv1.jpeg` |
@@ -281,6 +300,7 @@ Run `npm run build-comparison-assets` after adding or replacing source files. Fo
 | `cyberpunk-v1` | `before/lady5.png` | `after/cartoons/cyberpunkv1.jpg` |
 | `cyberpunk-v2` | `before/dude.png` | `after/cartoons/cyberpunkv2.jpeg` |
 | `disney` | `before/lady3.png` | `after/cartoons/disney.jpg` |
+| `ghibli` | `before/lady7.png` | `after/cartoons/ghibli.jpeg` |
 | `anime` | `before/lady8.png` | `after/cartoons/anime.jpg` |
 | `manga` | `before/lady12.png` | `after/cartoons/manga.jpg` |
 | `genndy-v1` | `before/man6.png` | `after/cartoons/genndyv1.jpg` |
@@ -377,6 +397,22 @@ Run `npm run build-comparison-assets` after adding or replacing source files. Fo
 | `fashion` | `before/lady.png` | `after/Drawings/fashion.jpeg` |
 | `marker` | `before/lady3.png` | `after/Drawings/marker.jpg` |
 | `origami` | `before/lady14.png` | `after/3d/origami.jpg` |
+| `brick-v1` | `before/lady6.png` | `after/3d/brickv1.jpg` |
+| `brick-v2` | `before/lady6.png` | `after/3d/brickv2.jpeg` |
+| `professional` | `before/dude2.png` | `after/photography/pro.jpeg` |
+| `studio` | `before/lady6.png` | `after/photography/studio.jpeg` |
+| `corporate` | `before/teen2.png` | `after/photography/corporate.jpeg` |
+| `fashion-editorial` | `before/lady7.png` | `after/photography/fashion.jpeg` |
+| `cinematic` | `before/dude.png` | `after/photography/cinematic.jpeg` |
+| `model` | `before/lady5.png` | `after/photography/model.jpeg` |
+| `outdoor` | `before/lady15.png` | `after/photography/outdoor.jpeg` |
+| `child` | `before/lady8.png` | `after/transformation/child.jpeg` |
+| `teenager` | `before/lady8.png` | `after/transformation/teen.jpeg` |
+| `young-adult` | `before/lady8.png` | `after/transformation/young.jpeg` |
+| `middle-age` | `before/lady8.png` | `after/transformation/mid-age.jpeg` |
+| `elderly` | `before/lady8.png` | `after/transformation/elderly.jpeg` |
+| `progressive` | `before/lady8.png` | `after/transformation/progressive.jpeg` |
+| `regressive` | `before/lady8.png` | `after/transformation/regressive.jpeg` |
 | `paper-cut` | `before/man5.png` | `after/Art/paper-cut.jpg` |
 | `monday-mood` | `before/lady3.png` | `after/Moods&Moments/mondays1.jpg`, `mondays2.jpeg`, `mondays3.jpeg` |
 | `friday-feeling` | `before/man9.png` | `after/Moods&Moments/fridays1.jpeg`, `fridays2.jpeg` |

@@ -215,6 +215,7 @@ export const STYLE_CARD_IMAGE_COMIC_V3 = require('./assets/comparisons/tiles/aft
 export const STYLE_CARD_IMAGE_CYBERPUNK_V1 = require('./assets/comparisons/tiles/after/cartoons/cyberpunkv1.jpg');
 export const STYLE_CARD_IMAGE_CYBERPUNK_V2 = require('./assets/comparisons/tiles/after/cartoons/cyberpunkv2.jpg');
 export const STYLE_CARD_IMAGE_DISNEY = require('./assets/comparisons/tiles/after/cartoons/disney.jpg');
+export const STYLE_CARD_IMAGE_GHIBLI = require('./assets/comparisons/tiles/after/cartoons/ghibli.jpg');
 export const STYLE_CARD_IMAGE_PIXEL = require('./assets/comparisons/tiles/after/cartoons/pixel.jpg');
 export const STYLE_CARD_IMAGE_3D_RENDER_V1 = require('./assets/comparisons/tiles/after/cartoons/3d-renderv1.jpg');
 export const STYLE_CARD_IMAGE_3D_RENDER_V2 = require('./assets/comparisons/tiles/after/cartoons/3d-renderv2.jpg');
@@ -280,6 +281,22 @@ export const STYLE_CARD_IMAGE_LINE_ART = require('./assets/comparisons/tiles/aft
 export const STYLE_CARD_IMAGE_FASHION = require('./assets/comparisons/tiles/after/Drawings/fashion.jpg');
 export const STYLE_CARD_IMAGE_MARKER = require('./assets/comparisons/tiles/after/Drawings/marker.jpg');
 export const STYLE_CARD_IMAGE_ORIGAMI = require('./assets/comparisons/tiles/after/3d/origami.jpg');
+export const STYLE_CARD_IMAGE_BRICK_V1 = require('./assets/comparisons/tiles/after/3d/brickv1.jpg');
+export const STYLE_CARD_IMAGE_BRICK_V2 = require('./assets/comparisons/tiles/after/3d/brickv2.jpg');
+export const STYLE_CARD_IMAGE_PROFESSIONAL = require('./assets/comparisons/tiles/after/photography/pro.jpg');
+export const STYLE_CARD_IMAGE_STUDIO = require('./assets/comparisons/tiles/after/photography/studio.jpg');
+export const STYLE_CARD_IMAGE_CORPORATE = require('./assets/comparisons/tiles/after/photography/corporate.jpg');
+export const STYLE_CARD_IMAGE_FASHION_EDITORIAL = require('./assets/comparisons/tiles/after/photography/fashion.jpg');
+export const STYLE_CARD_IMAGE_CINEMATIC = require('./assets/comparisons/tiles/after/photography/cinematic.jpg');
+export const STYLE_CARD_IMAGE_MODEL = require('./assets/comparisons/tiles/after/photography/model.jpg');
+export const STYLE_CARD_IMAGE_OUTDOOR = require('./assets/comparisons/tiles/after/photography/outdoor.jpg');
+export const STYLE_CARD_IMAGE_CHILD = require('./assets/comparisons/tiles/after/transformation/child.jpg');
+export const STYLE_CARD_IMAGE_TEENAGER = require('./assets/comparisons/tiles/after/transformation/teen.jpg');
+export const STYLE_CARD_IMAGE_YOUNG_ADULT = require('./assets/comparisons/tiles/after/transformation/young.jpg');
+export const STYLE_CARD_IMAGE_MIDDLE_AGE = require('./assets/comparisons/tiles/after/transformation/mid-age.jpg');
+export const STYLE_CARD_IMAGE_ELDERLY = require('./assets/comparisons/tiles/after/transformation/elderly.jpg');
+export const STYLE_CARD_IMAGE_PROGRESSIVE = require('./assets/comparisons/tiles/after/transformation/progressive.jpg');
+export const STYLE_CARD_IMAGE_REGRESSIVE = require('./assets/comparisons/tiles/after/transformation/regressive.jpg');
 export const STYLE_CARD_IMAGE_PAPER_CUT = require('./assets/comparisons/tiles/after/Art/paper-cut.jpg');
 export const STYLE_CARD_IMAGE_MONDAY = require('./assets/comparisons/tiles/after/Moods&Moments/mondays1.jpg');
 export const STYLE_CARD_IMAGE_FRIDAY = require('./assets/comparisons/tiles/after/Moods&Moments/fridays1.jpg');
@@ -433,6 +450,7 @@ const STYLE_IMAGE_BY_ID = {
   'cyberpunk-v1': STYLE_CARD_IMAGE_CYBERPUNK_V1,
   'cyberpunk-v2': STYLE_CARD_IMAGE_CYBERPUNK_V2,
   disney: STYLE_CARD_IMAGE_DISNEY,
+  ghibli: STYLE_CARD_IMAGE_GHIBLI,
   pixel: STYLE_CARD_IMAGE_PIXEL,
   '3d-render-v1': STYLE_CARD_IMAGE_3D_RENDER_V1,
   '3d-render-v2': STYLE_CARD_IMAGE_3D_RENDER_V2,
@@ -499,6 +517,22 @@ const STYLE_IMAGE_BY_ID = {
   fashion: STYLE_CARD_IMAGE_FASHION,
   marker: STYLE_CARD_IMAGE_MARKER,
   origami: STYLE_CARD_IMAGE_ORIGAMI,
+  'brick-v1': STYLE_CARD_IMAGE_BRICK_V1,
+  'brick-v2': STYLE_CARD_IMAGE_BRICK_V2,
+  professional: STYLE_CARD_IMAGE_PROFESSIONAL,
+  studio: STYLE_CARD_IMAGE_STUDIO,
+  corporate: STYLE_CARD_IMAGE_CORPORATE,
+  'fashion-editorial': STYLE_CARD_IMAGE_FASHION_EDITORIAL,
+  cinematic: STYLE_CARD_IMAGE_CINEMATIC,
+  model: STYLE_CARD_IMAGE_MODEL,
+  outdoor: STYLE_CARD_IMAGE_OUTDOOR,
+  child: STYLE_CARD_IMAGE_CHILD,
+  teenager: STYLE_CARD_IMAGE_TEENAGER,
+  'young-adult': STYLE_CARD_IMAGE_YOUNG_ADULT,
+  'middle-age': STYLE_CARD_IMAGE_MIDDLE_AGE,
+  elderly: STYLE_CARD_IMAGE_ELDERLY,
+  progressive: STYLE_CARD_IMAGE_PROGRESSIVE,
+  regressive: STYLE_CARD_IMAGE_REGRESSIVE,
   'paper-cut': STYLE_CARD_IMAGE_PAPER_CUT,
   'monday-mood': STYLE_CARD_IMAGE_MONDAY,
   'friday-feeling': STYLE_CARD_IMAGE_FRIDAY,

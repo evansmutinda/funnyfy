@@ -1,6 +1,6 @@
 {
   "name": "funnyfy-mobile",
-  "version": "1.1.21",
+  "version": "1.1.45",
   "private": true,
   "main": "index.js",
   "scripts": {

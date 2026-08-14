@@ -29,6 +29,8 @@ const CATEGORY_CREATING_NAME = {
   sculptures: 'sculpture',
   'stickers': 'sticker',
   'drawings-sketches': 'drawing',
+  photography: 'photo',
+  'age-transformation': 'age portrait',
   historical: 'historical portrait',
   art: 'artwork',
   professions: 'portrait',

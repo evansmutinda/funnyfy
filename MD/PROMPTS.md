@@ -8,7 +8,7 @@ Regenerate this file after prompt changes:
 node scripts/generate-prompts-md.js
 ```
 
-**Last generated:** 2026-08-13 · **153 enabled** · **1 disabled** in LEGACY_STYLES
+**Last generated:** 2026-08-14 · **170 enabled** · **1 disabled** in LEGACY_STYLES
 
 Prompts are server-side only — the mobile app never bundles them. When adding a style, copy/adapt a prompt here, then add it to `LEGACY_STYLES` and deploy staging.
 
@@ -449,7 +449,7 @@ Make this a 90s cartoon
 #### `chibi` — Chibi
 
 - **Category:** cartoons
-- **Model:** DEFAULT_MODEL
+- **Model:** NANO_BANANA_2
 - **Description:** Cute, big-head chibi cartoon style
 
 ```
@@ -544,6 +544,16 @@ make this a cyberpunk style cartoon, no extra text
 
 ```
 make this a disney style cartoon, no extra text
+```
+
+#### `ghibli` — Ghibli
+
+- **Category:** cartoons
+- **Model:** NANO_BANANA_2
+- **Description:** Studio Ghibli-style cartoon
+
+```
+make this a ghibli cartoon
 ```
 
 #### `pixel` — Pixel
@@ -865,7 +875,7 @@ using this pic make all subjects as a Hokusai Inspired Painting
 - **Description:** Hiroshige inspired painting with elegant ukiyo-e landscapes and refined color
 
 ```
-using this pic make all subjects as a Hiroshige Inspired Painting, no extra text
+using this pic make all subjects as a Hiroshige Inspired Painting, no extra text, no change of clothing, no background change.
 ```
 
 #### `sesshu` — Sesshū
@@ -970,16 +980,148 @@ Create a sophisticated hand-drawn fashion sketch of the uploaded subject, using 
 Create a bold hand-drawn marker illustration of the uploaded subject, using the reference image as the primary guide. Preserve the subject’s identity, facial structure, proportions, hairstyle, expression, and distinctive features with high accuracy. Use expressive marker strokes, confident outlines, visible stroke direction, layered marker fills, and simple overlapping tones to create form, depth, and dimension. Incorporate subtle marker bleed, uneven ink coverage, and natural paper texture for an authentic traditional marker-sketch appearance. Maintain the original pose and composition of the reference image. Use a vibrant but controlled marker color palette, with strong areas of light and shadow and selective highlights. Keep the background clean and minimal. No photorealism, no 3D rendering, no pencil or charcoal texture, no watercolor wash, no glossy digital painting, and no unnecessary background elements. The final result should resemble a professionally hand-rendered fashion or concept illustration created with high-quality art markers.
 ```
 
-### Stickers
+### Photography
 
-#### `eyeroll` — Eye Roll
+#### `professional` — Professional
 
-- **Category:** stickers
-- **Model:** NANO_BANANA_2
-- **Description:** Pixar-style 3D die-cut sticker — Eyeroll expression
+- **Category:** photography
+- **Model:** NANO_BANANA
+- **Description:** Polished professional studio headshot with business attire and clean studio lighting
 
 ```
-Use eyeroll expression, both eyes rolled dramatically upward, with the pupils positioned high toward the upper eyelids; slightly lowered eyelids, raised eyebrows, subtly pursed lips, and an unmistakable "seriously?" / "here we go again" attitude. Add a slight head tilt and an expressive, unimpressed posture to reinforce the emotion.
+Create a polished, professional studio headshot of the person in the uploaded photo. Use the uploaded image as the sole reference for the person's identity and preserve their recognizable facial features, facial structure, skin tone, hairstyle, proportions, and natural appearance. Do not alter their identity or make them look like a different person.nnFrame the subject from the chest or shoulders upward, facing the camera with a natural, confident, approachable expression. Dress the subject in **professional, sophisticated business-appropriate clothing** suitable for a corporate profile, such as a well-fitted blazer, suit jacket, formal shirt, blouse, or other tasteful professional attire. The clothing should look realistic, clean, well-groomed, and appropriately styled for a professional headshot.nn**Do not add jewelry or ornaments that are present in the reference image. Do not add chains, necklaces, earrings, bracelets, piercings, brooches, decorative accessories, or other ornamental items.** Keep accessories minimal and authentic to the uploaded reference.nnUse professional portrait photography with flattering soft studio lighting, subtle dimensional shadows, clean natural skin texture, realistic facial detail, sharp focus on the eyes, and natural color grading. Avoid excessive skin smoothing, beauty filters, facial reshaping, or artificial enhancement.nnUse a clean, minimal studio background with subtle depth and no distracting objects. Create the appearance of a high-end professional photographer using a premium portrait lens, realistic depth of field, balanced exposure, and refined photographic detail. The final result should look like an authentic professionally photographed corporate headshot rather than an AI-generated image, illustration, or heavily retouched portrait.
+```
+
+#### `studio` — Studio
+
+- **Category:** photography
+- **Model:** NANO_BANANA
+- **Description:** High-end professional studio portrait with elegant clothing and controlled studio lighting
+
+```
+Create a high-end professional studio portrait of the person in the uploaded photo. Use the uploaded image as the sole reference for the person's identity and preserve their recognizable facial features, facial structure, skin tone, hairstyle, proportions, and natural appearance. Do not alter their identity or make them look like a different person.nnCreate a polished studio photography aesthetic with carefully controlled professional lighting, soft highlights, natural shadows, realistic skin texture, accurate facial detail, and refined color grading. The subject should have a confident, natural pose and authentic expression, photographed with the quality and precision of a professional portrait photographer.nnDress the subject in **elegant, professional, and sophisticated clothing** appropriate for a premium studio portrait. Clothing should be realistic, tasteful, well-fitted, and visually refined. **Do not add jewelry or ornaments that are not present in the reference image. Do not add chains, necklaces, earrings, bracelets, piercings, brooches, or decorative accessories.**nnUse a clean, sophisticated studio environment with a simple seamless or subtly textured background. Keep the composition focused entirely on the subject, with no distracting objects or props. Use realistic professional photography characteristics such as controlled studio lighting, natural depth of field, sharp facial focus, balanced exposure, subtle background separation, and premium camera detail.nnThe final image should look like a **genuine professionally photographed studio portrait**, not an illustration, CGI render, beauty filter, or obviously AI-generated image. Avoid excessive retouching, artificial skin smoothing, facial reshaping, or changing the person's natural appearance.
+```
+
+#### `corporate` — Corporate
+
+- **Category:** photography
+- **Model:** NANO_BANANA
+- **Description:** Polished high-end corporate portrait with business attire and a clean professional backdrop
+
+```
+Create a polished, high-end corporate portrait of the person in the uploaded photo. Use the uploaded image as the sole reference for the person's identity. Preserve their recognizable facial features, facial structure, skin tone, hairstyle, proportions, and natural appearance with high likeness accuracy. Do not change their identity or make them look like a different person.nnDress the subject in **professional corporate attire** appropriate for a modern business environment, such as a tailored suit, blazer, formal shirt, blouse, or other sophisticated business clothing. Clothing should be clean, well-fitted, realistic, understated, and appropriate for a corporate professional profile.nn**Do not add jewelry or ornaments that are not present in the reference image. Do not add chains, necklaces, earrings, bracelets, piercings, brooches, decorative accessories, or other ornamental items.**nnUse a confident, approachable, professional expression with natural posture and relaxed body language. Frame the subject as a professional corporate portrait, typically from the chest or waist upward, with the face clearly visible and naturally positioned.nnUse sophisticated professional photography with soft, controlled studio lighting, subtle dimensional shadows, realistic skin texture, sharp facial detail, natural color grading, balanced exposure, and gentle background separation. The background should be clean and minimal, such as a refined neutral studio backdrop or a softly blurred modern office environment, without distracting objects.nnMaintain realistic photographic proportions and natural facial texture. Avoid excessive skin smoothing, beauty filters, facial reshaping, unrealistic perfection, or artificial glamour.nnThe final result should look like an **authentic corporate photograph taken by a professional photographer**, suitable for a company profile, professional website, business profile, or corporate biography—not an illustration, CGI render, or obviously AI-generated image.
+```
+
+#### `fashion-editorial` — Fashion Editorial
+
+- **Category:** photography
+- **Model:** NANO_BANANA
+- **Description:** High-end fashion magazine editorial portrait with sophisticated styling and dramatic lighting
+
+```
+Create a high-end fashion editorial photograph of the person in the uploaded photo. Use the uploaded image as the sole reference for the person's identity and preserve their recognizable facial features, facial structure, skin tone, hairstyle, proportions, and natural appearance with high likeness accuracy. Do not alter their identity or make them look like a different person.nnStyle the image as a **professional fashion magazine editorial**, with sophisticated composition, confident presence, refined styling, and an artistic yet realistic photographic aesthetic. Give the subject a stylish, contemporary fashion look with carefully selected **editorial clothing** that feels premium, fashionable, and professionally styled. Clothing may include modern tailoring, designer-inspired silhouettes, elegant dresses, structured jackets, or sophisticated contemporary fashion, while remaining tasteful and realistic.nn**Do not add jewelry or ornaments that are not present in the reference image. Do not add chains, necklaces, earrings, bracelets, piercings, brooches, crowns, or decorative accessories unless they are already visible in the uploaded reference.**nnUse professional fashion photography with dramatic but controlled lighting, sculpted highlights and shadows, realistic skin texture, crisp facial detail, sophisticated color grading, and natural depth of field. The pose should feel confident and editorial without becoming exaggerated or unnatural.nnUse a visually refined studio or fashion-editorial environment with a clean, sophisticated background that complements the subject without distracting from them. Avoid unnecessary props, text, logos, brand names, or recognizable copyrighted fashion branding.nnThe final image should look like a **genuine high-end fashion magazine photograph**, combining realistic photography, sophisticated styling, professional lighting, and editorial composition. Avoid cartoon aesthetics, CGI appearance, excessive beauty retouching, artificial skin, facial reshaping, or an obviously AI-generated look.
+```
+
+#### `cinematic` — Cinematic
+
+- **Category:** photography
+- **Model:** NANO_BANANA
+- **Description:** High-end cinematic portrait with film-still atmosphere, dramatic lighting, and refined color grading
+
+```
+Create a high-end cinematic portrait photograph of the person in the uploaded photo. Use the uploaded image as the sole reference for the person's identity and preserve their recognizable facial features, facial structure, skin tone, hairstyle, proportions, and natural appearance with high likeness accuracy. Do not alter their identity or make them look like a different person.nnStyle the image as a **cinematic professional portrait**, with the visual quality and atmosphere of a carefully composed film still while maintaining realistic photography. Give the subject a natural, confident, expressive presence and an authentic cinematic pose.nnDress the subject in **sophisticated, stylish, and realistic clothing appropriate to a cinematic portrait**. Clothing should complement the mood and feel professionally styled, refined, and visually cohesive without appearing costume-like.nn**Do not add jewelry or ornaments that are not present in the reference image. Do not add chains, necklaces, earrings, bracelets, piercings, brooches, decorative accessories, or other ornamental items.**nnUse dramatic yet natural cinematic lighting with controlled highlights, soft directional light, subtle shadows, realistic skin texture, detailed facial features, and atmospheric depth. Create gentle separation between the subject and background using realistic depth of field and professional lens characteristics.nnUse a visually compelling but uncluttered environment that supports the cinematic mood—such as a sophisticated interior, architectural setting, or softly atmospheric outdoor location. Keep the background secondary to the subject and avoid distracting objects, text, logos, or recognizable brands.nnApply refined cinematic color grading, balanced contrast, subtle tonal depth, realistic exposure, and natural photographic detail. Avoid excessive color effects, artificial glow, plastic-looking skin, facial reshaping, or exaggerated beauty retouching.nnThe final result should look like a **genuine professionally photographed cinematic portrait**, resembling a premium film still captured by a professional cinematographer and photographer—not an illustration, CGI render, or obviously AI-generated image.
+```
+
+#### `model` — Model
+
+- **Category:** photography
+- **Model:** NANO_BANANA
+- **Description:** Clean professional model portfolio photograph with contemporary fashion and studio lighting
+
+```
+Create a high-end professional model portfolio photograph of the person in the uploaded photo. Use the uploaded image as the sole reference for the person's identity and preserve their recognizable facial features, facial structure, skin tone, hairstyle, proportions, and natural appearance with high likeness accuracy. Do not alter their identity or make them look like a different person.nnPresent the subject with a **clean, polished modeling aesthetic** designed to showcase their natural appearance, facial features, and overall presence. Use a confident but natural expression and an effortless professional pose. Keep the composition refined and visually balanced, similar to a professionally produced modeling portfolio or agency test shoot.nnDress the subject in **modern, sophisticated fashion suitable for a professional model portfolio**. Clothing should be stylish, well-fitted, realistic, tasteful, and appropriate for showcasing the subject rather than overpowering them. Favor clean silhouettes, contemporary fashion, and neutral or refined styling.nn**Do not add jewelry or ornaments that are not present in the reference image. Do not add chains, necklaces, earrings, bracelets, piercings, brooches, watches, crowns, or decorative accessories unless they are already visible in the uploaded reference.**nnUse professional fashion photography with clean, controlled lighting, realistic skin texture, sharp facial detail, natural proportions, subtle shadows, balanced exposure, and refined color grading. Lighting should clearly reveal the subject's face without excessive glamour effects or harsh manipulation.nnUse a **simple, uncluttered studio or professional editorial background** that keeps attention on the subject. Avoid distracting props, text, logos, brand names, or elaborate scenery.nnMaintain authentic photographic detail and natural skin texture. Avoid excessive beauty retouching, facial reshaping, artificial skin smoothing, exaggerated makeup, unrealistic body modification, or changing the person's natural appearance.nnThe final result should look like an **authentic professional model portfolio photograph**, suitable for a modeling agency portfolio or professional casting profile—clean, sophisticated, realistic, and professionally photographed rather than an illustration, CGI render, or obviously AI-generated image.
+```
+
+#### `outdoor` — Outdoor
+
+- **Category:** photography
+- **Model:** NANO_BANANA
+- **Description:** High-end professional outdoor portrait with natural light, authentic environment, and realistic bokeh
+
+```
+Create a high-end professional outdoor portrait photograph of the person in the uploaded photo. Use the uploaded image as the sole reference for the person's identity and preserve their recognizable facial features, facial structure, skin tone, hairstyle, proportions, and natural appearance with high likeness accuracy. Do not alter their identity or make them look like a different person.nnPlace the subject in a **beautiful, natural outdoor environment** such as a sophisticated urban setting, landscaped garden, park, architectural location, or scenic outdoor space. The environment should complement the subject while remaining secondary to them. Keep the composition clean, intentional, and professionally photographed.nnDress the subject in **stylish, polished, and appropriate clothing suited to a professional outdoor portrait**. Clothing should look realistic, well-fitted, sophisticated, and naturally coordinated with the setting. Avoid costumes, overly flashy outfits, or distracting patterns.nn**Do not add jewelry or ornaments that are not present in the reference image. Do not add chains, necklaces, earrings, bracelets, piercings, brooches, watches, or other decorative accessories unless they are already visible in the uploaded reference.**nnUse **natural professional portrait lighting**, preferably soft directional sunlight, golden-hour illumination, or diffused daylight. Create realistic highlights and shadows across the face, natural skin texture, sharp facial detail, accurate exposure, and subtle depth of field.nnUse a professional portrait lens aesthetic with **natural background separation and realistic bokeh**, keeping the subject sharply focused while allowing the environment to fall gently out of focus. The background should feel authentic and photographic rather than artificially generated.nnApply refined, natural color grading with realistic skin tones, balanced contrast, subtle warmth, and professional photographic detail. Avoid excessive HDR, artificial glow, heavy filters, excessive skin smoothing, facial reshaping, or unrealistic enhancement.nnThe final result should look like an **authentic professionally photographed outdoor portrait**, captured by an experienced portrait photographer using professional camera equipment—not an illustration, CGI render, or obviously AI-generated image.
+```
+
+### Age Transformation
+
+#### `child` — Child
+
+- **Category:** age-transformation
+- **Model:** NANO_BANANA_2
+- **Description:** Realistic 8-year-old version of the same person, preserving identity, clothing, pose, and original photograph
+
+```
+Transform the person in the uploaded photo into a realistic **8-year-old version of the same person**.nnUse the uploaded image as the sole identity reference. Preserve the person's recognizable facial characteristics, underlying facial structure, distinctive features, skin tone, eye shape, nose shape, mouth shape, and overall identity while naturally adapting the face to childhood.nn**Do not change the subject's clothing, clothing colors, hairstyle unless required for natural age adaptation, accessories, posture, body position, hand position, camera angle, framing, facial orientation, expression, lighting, background, or composition. Preserve the original photograph exactly in these respects. The only intended transformation is the subject's apparent age.**nnNaturally create age-appropriate youthful facial proportions, softer facial features, and smooth natural skin texture. Do not simply shrink the adult face or create a generic child.nn**Do not add or remove jewelry, chains, necklaces, earrings, bracelets, piercings, watches, or decorative accessories.**nnThe result should look like the **same photograph featuring the same person at approximately 8 years old**, with only the person's age naturally transformed.
+```
+
+#### `teenager` — Teenager
+
+- **Category:** age-transformation
+- **Model:** NANO_BANANA_2
+- **Description:** Realistic 15-year-old version of the same person, preserving identity, clothing, pose, and original photograph
+
+```
+Transform the person in the uploaded photo into a realistic **15-year-old version of the same person**.nnUse the uploaded image as the sole identity reference. Preserve the person's recognizable facial characteristics, underlying facial structure, distinctive features, skin tone, eye shape, nose shape, mouth shape, and overall identity while naturally adapting the face to adolescence.nn**Do not change the subject's clothing, clothing colors, hairstyle unless required for natural age adaptation, accessories, posture, body position, hand position, camera angle, framing, facial orientation, expression, lighting, background, or composition. Preserve the original photograph exactly in these respects. The only intended transformation is the subject's apparent age.**nnNaturally create realistic teenage facial development, with youthful skin texture and age-appropriate facial proportions. Maintain strong visual continuity with the original person.nn**Do not add or remove jewelry, chains, necklaces, earrings, bracelets, piercings, watches, or decorative accessories.**nnThe result should look like the **same photograph featuring the same person at approximately 15 years old**, with only the person's age naturally transformed.
+```
+
+#### `young-adult` — Young Adult
+
+- **Category:** age-transformation
+- **Model:** NANO_BANANA_2
+- **Description:** Realistic 25-year-old version of the same person, preserving identity, clothing, pose, and original photograph
+
+```
+Transform the person in the uploaded photo into a realistic **25-year-old version of the same person**.nnUse the uploaded image as the sole identity reference. Preserve the person's recognizable facial features, facial structure, skin tone, hairstyle characteristics, proportions, and distinctive identifying features.nn**Do not change the subject's clothing, clothing colors, hairstyle unless required for natural age adaptation, accessories, posture, body position, hand position, camera angle, framing, facial orientation, expression, lighting, background, or composition. Preserve the original photograph exactly in these respects. The only intended transformation is the subject's apparent age.**nnNaturally adapt the person's facial appearance to their mid-twenties with realistic youthful skin texture and mature young-adult facial definition. Do not over-beautify, reshape, or alter the person's identity.nn**Do not add or remove jewelry, chains, necklaces, earrings, bracelets, piercings, watches, or decorative accessories.**nnThe result should look like the **same photograph featuring the same person at approximately 25 years old**, with only the person's age naturally transformed.
+```
+
+#### `middle-age` — Middle Age
+
+- **Category:** age-transformation
+- **Model:** NANO_BANANA_2
+- **Description:** Realistic 45-year-old version of the same person, preserving identity, clothing, pose, and original photograph
+
+```
+Transform the person in the uploaded photo into a realistic **45-year-old version of the same person**.nnUse the uploaded image as the sole identity reference. Preserve the person's recognizable facial features, facial structure, skin tone, hairstyle characteristics, proportions, and distinctive identifying features.nn**Do not change the subject's clothing, clothing colors, hairstyle unless required for natural age adaptation, accessories, posture, body position, hand position, camera angle, framing, facial orientation, expression, lighting, background, or composition. Preserve the original photograph exactly in these respects. The only intended transformation is the subject's apparent age.**nnIntroduce subtle, realistic signs of middle age such as naturally developing facial lines, mature skin texture, and gradual changes in facial fullness. Keep the aging restrained and believable. Do not exaggerate wrinkles, sagging, or other aging characteristics.nn**Do not add or remove jewelry, chains, necklaces, earrings, bracelets, piercings, watches, or decorative accessories.**nnThe result should look like the **same photograph featuring the same person at approximately 45 years old**, with only the person's age naturally transformed.
+```
+
+#### `elderly` — Elderly
+
+- **Category:** age-transformation
+- **Model:** NANO_BANANA_2
+- **Description:** Realistic 70-year-old version of the same person, preserving identity, clothing, pose, and original photograph
+
+```
+Transform the person in the uploaded photo into a realistic **70-year-old version of the same person**.nnUse the uploaded image as the **sole identity reference**. Preserve the person's recognizable facial structure, distinctive facial features, eye shape, nose shape, mouth shape, skin tone, hairstyle, proportions, and overall identity.nn**The subject's age is the ONLY element that should change.** Preserve the original photograph exactly in every other respect.nnDo not change the **clothing, clothing colors, clothing style, accessories, posture, body position, hand position, head position, facial orientation, facial expression, camera angle, perspective, framing, background, lighting, shadows, or composition**.nnNaturally introduce only the facial characteristics associated with approximately 70 years of age. Add realistic age-related facial lines, mature skin texture, subtle changes in facial fullness, and naturally appropriate hair aging where necessary.nnKeep the aging **realistic and restrained**. Do not exaggerate wrinkles, sagging, hair loss, or other elderly characteristics. Do not distort the person's facial structure.nn**Do not add, remove, or modify any accessories. Do not add chains, necklaces, earrings, bracelets, piercings, watches, brooches, or decorative ornaments.**nnThe final result should look like the **same person in the same photograph at approximately 70 years old**, with the clothing, pose, composition, and environment remaining unchanged.
+```
+
+#### `progressive` — Progressive
+
+- **Category:** age-transformation
+- **Model:** NANO_BANANA_2
+- **Description:** Five-stage photographic age progression from childhood to old age, preserving identity, clothing, pose, and composition
+
+```
+Create a realistic **age progression portrait** of the person in the uploaded photo, showing the same individual at five distinct stages of life:nn**8 years old → 15 years old → 25 years old → 45 years old → 70 years old**nnUse the uploaded photo as the **sole identity reference**. Preserve the person's recognizable facial structure, distinctive facial features, skin tone, eye shape, nose shape, mouth shape, and overall identity consistently across every age.nnShow a believable natural progression from childhood to old age. Each stage should progressively reflect appropriate age-related facial development, including changes in facial proportions, maturity, skin texture, facial lines, facial fullness, and hair characteristics.nn**The person's identity must remain consistent throughout the entire progression.** Each portrait should clearly look like the same individual at a different age.nnKeep the **same clothing, clothing colors, posture, body position, hand position, facial orientation, facial expression, camera angle, framing, lighting, background, and overall composition** across all five stages. The subject's clothing and pose must not be redesigned or changed between ages. **The only intended variation is the person's apparent age and naturally associated age-related facial and hair characteristics.**nnDo not add, remove, or modify accessories. **Do not add chains, necklaces, earrings, bracelets, piercings, watches, brooches, or decorative ornaments.**nnArrange the five portraits in a clean chronological sequence from **youngest on the left to oldest on the right**, with consistent spacing, scale, and framing.nnUse realistic professional photography, natural skin texture, accurate facial detail, consistent lighting, realistic color grading, and seamless visual continuity.nn**Do not add text, age labels, numbers, borders, logos, props, or decorative graphics.**nnThe final image should look like a **professional photographic age-progression study of one person**, not a collage of unrelated faces, illustration, cartoon, or CGI render.
+```
+
+#### `regressive` — Regressive
+
+- **Category:** age-transformation
+- **Model:** NANO_BANANA_2
+- **Description:** Five-stage photographic age regression from old age to childhood, preserving identity, clothing, pose, and composition
+
+```
+Create a realistic **age regression portrait** of the person in the uploaded photo, showing the same individual at five distinct stages of life:nn**70 years old → 45 years old → 25 years old → 15 years old → 8 years old**nnUse the uploaded photo as the **sole identity reference**. Preserve the person's recognizable facial structure, distinctive facial features, skin tone, eye shape, nose shape, mouth shape, and overall identity consistently across every age.nnShow a believable natural regression from old age to childhood. Each stage should progressively reverse age-related characteristics, including facial lines, skin texture, facial fullness, facial maturity, and hair characteristics.nn**The person's identity must remain consistent throughout the entire regression.** Each portrait should clearly look like the same individual at a different age.nnKeep the **same clothing, clothing colors, posture, body position, hand position, facial orientation, facial expression, camera angle, framing, lighting, background, and overall composition** across all five stages. The subject's clothing and pose must not be redesigned or changed between ages. **The only intended variation is the person's apparent age and naturally associated age-related facial and hair characteristics.**nnDo not add, remove, or modify accessories. **Do not add chains, necklaces, earrings, bracelets, piercings, watches, brooches, or decorative ornaments.**nnArrange the five portraits in a clean chronological sequence from **oldest on the left to youngest on the right**, with consistent spacing, scale, and framing.nnUse realistic professional photography, natural skin texture, accurate facial detail, consistent lighting, realistic color grading, and seamless visual continuity.nn**Do not add text, age labels, numbers, borders, logos, props, or decorative graphics.**nnThe final image should look like a **professional photographic age-regression study of one person**, not a collage of unrelated faces, illustration, cartoon, or CGI render.
 ```
 
 ### Art
@@ -1214,6 +1356,26 @@ make this a 3D Clay cartoon
 
 ```
 Preserve the uploaded person's identity exactly. Transform the person into an elegant traditional origami sculpture, handcrafted entirely from folded paper while maintaining their recognizable facial features, hairstyle, skin tone (represented through carefully chosen paper colours), clothing, accessories, and personality.nnConstruct the entire character exclusively from precisely folded sheets of paper, using authentic origami techniques without cutting, tearing, or sculpting. Every part of the figure—including the face, hair, clothing, shoes, and accessories—should be formed through intricate geometric folds, layered paper structures, sharp creases, crisp edges, and carefully engineered paper geometry.nnPreserve the person's facial identity by using sophisticated folded forms that suggest the eyes, eyebrows, nose, lips, jawline, hairstyle, and expression while remaining unmistakably handcrafted from paper. Hair should be represented through layered folded strips, pleats, curls, or angular paper sections that mimic the person's hairstyle.nnClothing should appear as folded paper garments with realistic collars, sleeves, seams, lapels, pockets, folds, and fabric draping recreated entirely through origami techniques. Accessories should also be folded from paper while remaining clearly recognizable.nnUse premium textured Japanese washi paper with subtle fibres, natural matte surfaces, delicate paper grain, and realistic fold stress along the creases. Employ harmonious paper colours with gentle tonal variation while preserving the person's clothing colours and overall appearance.nnDisplay the finished origami sculpture on a clean neutral surface with soft studio lighting that highlights the crisp folds, layered construction, realistic paper thickness, and intricate craftsmanship. Subtle contact shadows, shallow depth of field, professional macro photography, museum-quality paper sculpture, ultra-detailed handcrafted artistry, elegant composition, photorealistic materials, 8K quality, no glue, no tape, no text, no watermarks, and no visual defects.
+```
+
+#### `brick-v1` — Brick V1
+
+- **Category:** 3d-characters
+- **Model:** SEEDREAM_4_5
+- **Description:** Lego brick figure of the subject, preserving facial identity, pose, and clothing
+
+```
+make the subject/s a lego, maintain subject/s facial identity, pose and clothing.
+```
+
+#### `brick-v2` — Brick V2
+
+- **Category:** 3d-characters
+- **Model:** NANO_BANANA_2
+- **Description:** Lego brick figure of the subject, preserving facial identity, pose, and clothing
+
+```
+make the subject/s a lego, maintain subject/s facial identity, pose and clothing.
 ```
 
 #### `pixar-like` — Pixar-like

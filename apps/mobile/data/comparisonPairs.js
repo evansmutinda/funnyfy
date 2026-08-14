@@ -153,8 +153,8 @@ const CURATED_PAIR_PATHS = {
     after: 'after/cartoons/toon.jpg',
   },
   'chibi': {
-    before: 'before/chibi.png',
-    after: 'after/cartoons/chibi.jpg',
+    before: 'before/lady7.png',
+    after: 'after/cartoons/chibi.jpeg',
   },
   'classic-v1': {
     before: 'before/lady4.png',
@@ -195,6 +195,10 @@ const CURATED_PAIR_PATHS = {
   'disney': {
     before: 'before/lady3.png',
     after: 'after/cartoons/disney.jpg',
+  },
+  'ghibli': {
+    before: 'before/lady7.png',
+    after: 'after/cartoons/ghibli.jpeg',
   },
   'anime': {
     before: 'before/lady8.png',
@@ -587,6 +591,70 @@ const CURATED_PAIR_PATHS = {
   'origami': {
     before: 'before/lady14.png',
     after: 'after/3d/origami.jpg',
+  },
+  'brick-v1': {
+    before: 'before/lady6.png',
+    after: 'after/3d/brickv1.jpg',
+  },
+  'brick-v2': {
+    before: 'before/lady6.png',
+    after: 'after/3d/brickv2.jpeg',
+  },
+  'professional': {
+    before: 'before/dude2.png',
+    after: 'after/photography/pro.jpeg',
+  },
+  'studio': {
+    before: 'before/lady6.png',
+    after: 'after/photography/studio.jpeg',
+  },
+  'corporate': {
+    before: 'before/teen2.png',
+    after: 'after/photography/corporate.jpeg',
+  },
+  'fashion-editorial': {
+    before: 'before/lady7.png',
+    after: 'after/photography/fashion.jpeg',
+  },
+  'cinematic': {
+    before: 'before/dude.png',
+    after: 'after/photography/cinematic.jpeg',
+  },
+  'model': {
+    before: 'before/lady5.png',
+    after: 'after/photography/model.jpeg',
+  },
+  'outdoor': {
+    before: 'before/lady15.png',
+    after: 'after/photography/outdoor.jpeg',
+  },
+  'child': {
+    before: 'before/lady8.png',
+    after: 'after/transformation/child.jpeg',
+  },
+  'teenager': {
+    before: 'before/lady8.png',
+    after: 'after/transformation/teen.jpeg',
+  },
+  'young-adult': {
+    before: 'before/lady8.png',
+    after: 'after/transformation/young.jpeg',
+  },
+  'middle-age': {
+    before: 'before/lady8.png',
+    after: 'after/transformation/mid-age.jpeg',
+  },
+  'elderly': {
+    before: 'before/lady8.png',
+    after: 'after/transformation/elderly.jpeg',
+  },
+  'progressive': {
+    before: 'before/lady8.png',
+    after: 'after/transformation/progressive.jpeg',
+  },
+  'regressive': {
+    before: 'before/lady8.png',
+    after: 'after/transformation/regressive.jpeg',
   },
   'paper-cut': {
     before: 'before/man5.png',
