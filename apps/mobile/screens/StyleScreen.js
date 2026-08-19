@@ -423,6 +423,7 @@ function StylePickerTile({
       <MediaTile
         imageSource={getStyleImage(item)}
         comparisonPair={hasPair ? getTileComparisonPair(item) : null}
+        comparisonKey={item.id}
         label={item.label}
         isSelected={isSelected}
         selectionMode={stickerPackMode}
@@ -461,6 +462,7 @@ function DiscoveryGridRow({
               <MediaTile
                 imageSource={getStyleImage(item)}
                 comparisonPair={hasPair ? getTileComparisonPair(item) : null}
+                comparisonKey={item.id}
                 label={item.label}
                 isSelected={isSelected}
                 selectionMode={stickerPackMode}

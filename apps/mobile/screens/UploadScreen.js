@@ -100,6 +100,8 @@ export default function UploadScreen({
 
       {/* Comparison background — looping before/after, including stickers */}
       <ComparisonFade
+        key={style?.id || 'upload-comparison'}
+        instanceKey={style?.id || 'upload-comparison'}
         beforeSource={comparisonPair.before}
         afterSource={comparisonPair.after}
         afterSources={comparisonPair.afters}

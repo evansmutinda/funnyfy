@@ -104,6 +104,10 @@ const CURATED_PAIR_PATHS = {
     before: 'before/man3.png',
     after: 'after/caricature/tiny-muscle3.jpeg',
   },
+  'victorian': {
+    before: 'before/lady14.png',
+    after: 'after/caricature/victorian.jpg',
+  },
   'carc17': {
     before: 'before/dude.png',
     after: 'after/caricature/carc17.jpeg',
@@ -147,6 +151,18 @@ const CURATED_PAIR_PATHS = {
   'tiny-muscle-v2': {
     before: 'before/man3.png',
     after: 'after/caricature/tiny-muscle2.jpeg',
+  },
+  '80s-cartoon': {
+    before: 'before/3dclay.png',
+    after: 'after/cartoons/80sc.jpg',
+  },
+  'video-game-i': {
+    before: 'before/man3.png',
+    after: 'after/cartoons/gtasa.jpeg',
+  },
+  'video-game-ii': {
+    before: 'before/man3.png',
+    after: 'after/cartoons/gtav.jpeg',
   },
   '90s-cartoon': {
     before: 'before/toon.png',
@@ -239,6 +255,10 @@ const CURATED_PAIR_PATHS = {
   '3dclay': {
     before: 'before/3dclay.png',
     after: 'after/3d/3dclay.jpg',
+  },
+  'puppet': {
+    before: 'before/lady15.png',
+    after: 'after/3d/puppet.jpg',
   },
   'pixar-like': {
     before: 'before/lady8.png',
@@ -628,6 +648,10 @@ const CURATED_PAIR_PATHS = {
     before: 'before/lady15.png',
     after: 'after/photography/outdoor.jpeg',
   },
+  'passport': {
+    before: 'before/lady13.png',
+    after: 'after/photography/passport.jpeg',
+  },
   'child': {
     before: 'before/lady8.png',
     after: 'after/transformation/child.jpeg',
@@ -656,6 +680,54 @@ const CURATED_PAIR_PATHS = {
     before: 'before/lady8.png',
     after: 'after/transformation/regressive.jpeg',
   },
+  '1960s': {
+    before: 'before/lady6.png',
+    after: 'after/retro&nostalgia/60s.jpg',
+  },
+  '1970s': {
+    before: 'before/lady7.png',
+    after: 'after/retro&nostalgia/70s.jpg',
+  },
+  '1980s': {
+    before: 'before/teen2.png',
+    after: 'after/retro&nostalgia/80s.jpeg',
+  },
+  '80s-hip-hop': {
+    before: 'before/dude2.png',
+    after: 'after/retro&nostalgia/80shh.jpeg',
+  },
+  '80s-pop': {
+    before: 'before/lady15.png',
+    after: 'after/retro&nostalgia/80spop.jpeg',
+  },
+  '90s': {
+    before: 'before/teen.png',
+    after: 'after/retro&nostalgia/90s.jpg',
+  },
+  '90s-hip-hop': {
+    before: 'before/teen2.png',
+    after: 'after/retro&nostalgia/90shh.jpg',
+  },
+  '90s-pop': {
+    before: 'before/lady15.png',
+    after: 'after/retro&nostalgia/90spop.jpg',
+  },
+  '2000s': {
+    before: 'before/lady7.png',
+    after: 'after/retro&nostalgia/2000s.jpeg',
+  },
+  '2000s-hip-hop': {
+    before: 'before/lady6.png',
+    after: 'after/retro&nostalgia/2000shh.jpg',
+  },
+  '2000s-pop': {
+    before: 'before/lady5.png',
+    after: 'after/retro&nostalgia/2000spop.jpeg',
+  },
+  'rock-n-roll': {
+    before: 'before/man3.png',
+    after: 'after/retro&nostalgia/rnr.jpeg',
+  },
   'paper-cut': {
     before: 'before/man5.png',
     after: 'after/Art/paper-cut.jpg',
@@ -679,7 +751,14 @@ function assetForTier(relPath, tier) {
   return match ? table[match] : null;
 }
 
+const CURATED_PAIR_CACHE = {
+  hero: new Map(),
+  tiles: new Map(),
+};
+
 function resolveCuratedPair(styleId, tier) {
+  const cache = CURATED_PAIR_CACHE[tier] || CURATED_PAIR_CACHE.hero;
+  if (cache.has(styleId)) return cache.get(styleId);
   const paths = CURATED_PAIR_PATHS[styleId];
   if (!paths) return null;
   const before = assetForTier(paths.before, tier);
@@ -688,7 +767,9 @@ function resolveCuratedPair(styleId, tier) {
     .map((rel) => assetForTier(rel, tier))
     .filter(Boolean);
   if (!before || afters.length === 0) return null;
-  return { before, after: afters[0], afters };
+  const pair = { before, after: afters[0], afters };
+  cache.set(styleId, pair);
+  return pair;
 }
 
 function toOutputRel(inputRel) {

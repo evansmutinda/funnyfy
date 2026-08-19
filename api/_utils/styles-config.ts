@@ -366,6 +366,40 @@ function buildStickerStyles(): Record<string, StyleConfig> {
 
 /** Live styles — not in spreadsheet IDs; kept for backward compatibility with jobs/gallery */
 const LEGACY_STYLES: Record<string, StyleConfig> = {
+  '80s-cartoon': {
+    id: '80s-cartoon',
+    label: '80s',
+    categoryId: 'cartoons',
+    description: 'Classic 80s animated cartoon style',
+    prompt: 'Make this a 80s cartoon. no text.',
+    model: NANO_BANANA_2,
+    enabled: true,
+    premium: false,
+  },
+  'video-game-i': {
+    id: 'video-game-i',
+    label: 'Video game V1',
+    categoryId: 'cartoons',
+    description:
+      'Stylized urban video-game character illustration with bold linework, cinematic lighting, and strong facial likeness',
+    prompt:
+      "Using the uploaded photo as the sole reference, transform the subject into a stylized gta san andreas inspired character illustration. Preserve the subject's recognizable identity, facial structure, hairstyle, skin tone, body proportions, clothing, and distinctive features with strong likeness accuracy.\n\nUse bold graphic shapes, exaggerated but believable facial features, sharp clean linework, dramatic cinematic lighting, saturated colors, strong shadows, subtle texture, and a polished illustrated finish. Give the character a confident, expressive, larger-than-life appearance while keeping the original pose and clothing recognizable.\n\nCreate a dynamic, poster-like composition with a gritty urban-game atmosphere, dramatic perspective, crisp details, and a high-end digitally painted finish. Do not add logos, text, game titles, recognizable characters, or specific copyrighted artwork. Keep the background simple and non-distracting so the subject remains the focus.",
+    model: NANO_BANANA_2,
+    enabled: true,
+    premium: false,
+  },
+  'video-game-ii': {
+    id: 'video-game-ii',
+    label: 'Video game V2',
+    categoryId: 'cartoons',
+    description:
+      'Stylized modern urban video-game character illustration with bold linework, cinematic lighting, and strong facial likeness',
+    prompt:
+      "Using the uploaded photo as the sole reference, transform the subject into a stylized gta v inspired character illustration. Preserve the subject's recognizable identity, facial structure, hairstyle, skin tone, body proportions, clothing, and distinctive features with strong likeness accuracy.\n\nUse bold graphic shapes, exaggerated but believable facial features, sharp clean linework, dramatic cinematic lighting, saturated colors, strong shadows, subtle texture, and a polished illustrated finish. Give the character a confident, expressive, larger-than-life appearance while keeping the original pose and clothing recognizable.\n\nCreate a dynamic, poster-like composition with a gritty urban-game atmosphere, dramatic perspective, crisp details, and a high-end digitally painted finish. Do not add logos, text, game titles, recognizable characters, or specific copyrighted artwork. Keep the background simple and non-distracting so the subject remains the focus.",
+    model: NANO_BANANA_2,
+    enabled: true,
+    premium: false,
+  },
   '90s-cartoon': {
     id: '90s-cartoon',
     label: '90s',
@@ -468,10 +502,10 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
   },
   disney: {
     id: 'disney',
-    label: 'Disney',
+    label: 'Animated',
     categoryId: 'cartoons',
-    description: 'Disney-style cartoon with soft features and classic animated character charm',
-    prompt: 'make this a disney style cartoon, no extra text',
+    description: 'Classic animated cartoon with soft features and charming character design',
+    prompt: 'make this an animated cartoon with soft features, no extra text',
     model: NANO_BANANA_2,
     enabled: true,
     premium: false,
@@ -607,6 +641,18 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     description: '3D Clay cartoon style',
     prompt: 'make this a 3D Clay cartoon',
     model: DEFAULT_MODEL,
+    enabled: true,
+    premium: false,
+  },
+  puppet: {
+    id: 'puppet',
+    label: 'Puppet',
+    categoryId: '3d-characters',
+    description:
+      'Charming handcrafted puppet character with felt textures, expressive features, and theatrical studio warmth',
+    prompt:
+      "Transform the uploaded subject into a charming handcrafted puppet character inspired by the classic Muppet aesthetic.\n\nUse the uploaded image as the sole reference for the subject. Preserve their recognizable identity, facial structure, hairstyle, skin tone, distinctive features, clothing, and overall pose, translating them naturally into a puppet form.\n\nCreate a soft, tactile fabric-and-felt appearance with expressive oversized eyes, a wide characterful mouth, soft plush textures, visible stitching, subtle fabric fibers, rounded puppet-like forms, exaggerated but friendly facial expressions, and warm studio lighting. Give the character the playful, slightly quirky personality and theatrical charm associated with classic television puppet characters.\n\nMaintain the subject's original clothing and recognizable characteristics. Do not add logos, text, existing Muppet characters, or copyrighted character-specific features. The result should look like an original handcrafted puppet version of the uploaded person.",
+    model: SEEDREAM_4_5,
     enabled: true,
     premium: false,
   },
@@ -1021,6 +1067,18 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     enabled: true,
     premium: false,
   },
+  passport: {
+    id: 'passport',
+    label: 'Passport',
+    categoryId: 'photography',
+    description:
+      'Realistic official passport photograph with plain white background, neutral expression, and compliant framing',
+    prompt:
+      "Create a realistic, official-looking passport photograph of the uploaded person, preserving their true identity, natural facial structure, skin tone, hairstyle, and recognizable features. The photograph must look like a genuine passport/official identification photo, not a portrait or stylized image.\n\n**Appearance and composition requirements:**\n\n* Plain white background.\n* Background must be completely clean and uniform, with no patterns, textures, objects, gradients, or visible shadows.\n* Straight-on camera view with the person's face centered.\n* Head must be upright and perfectly level; no tilting, rotation, or angled pose.\n* Neutral facial expression: mouth closed naturally, no smiling, frowning, exaggerated expression, or posing.\n* Both eyes fully open and looking directly at the camera.\n* Face evenly and clearly illuminated with natural-looking lighting.\n* No harsh shadows across the face or background.\n* Frame the head and upper shoulders appropriately for a standard passport photograph, with sufficient space around the head.\n* Maintain the person's current appearance and age; do not beautify, reshape, de-age, age, or alter their facial features.\n* The photograph should represent the person's appearance as it would be if taken within the last 6 months.\n* **No eyeglasses**, sunglasses, tinted glasses, or other eyewear.\n* **No headgear**, hats, caps, or coverings unless the uploaded person is clearly wearing religious or medically required headgear. If headgear is present for those reasons, it must not obscure the eyes, eyebrows, nose, mouth, facial outline, or other identifying facial features.\n* Do not add jewelry, accessories, props, text, logos, borders, watermarks, or decorative elements.\n* Preserve natural skin texture without excessive retouching or artificial smoothing.\n\nThe final result must have the clean, standardized appearance of a compliant passport photograph, with the person's identity and natural appearance preserved accurately.",
+    model: NANO_BANANA,
+    enabled: true,
+    premium: false,
+  },
   child: {
     id: 'child',
     label: 'Child',
@@ -1102,6 +1160,150 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     prompt:
       "Create a realistic **age regression portrait** of the person in the uploaded photo, showing the same individual at five distinct stages of life:\n\n**70 years old → 45 years old → 25 years old → 15 years old → 8 years old**\n\nUse the uploaded photo as the **sole identity reference**. Preserve the person's recognizable facial structure, distinctive facial features, skin tone, eye shape, nose shape, mouth shape, and overall identity consistently across every age.\n\nShow a believable natural regression from old age to childhood. Each stage should progressively reverse age-related characteristics, including facial lines, skin texture, facial fullness, facial maturity, and hair characteristics.\n\n**The person's identity must remain consistent throughout the entire regression.** Each portrait should clearly look like the same individual at a different age.\n\nKeep the **same clothing, clothing colors, posture, body position, hand position, facial orientation, facial expression, camera angle, framing, lighting, background, and overall composition** across all five stages. The subject's clothing and pose must not be redesigned or changed between ages. **The only intended variation is the person's apparent age and naturally associated age-related facial and hair characteristics.**\n\nDo not add, remove, or modify accessories. **Do not add chains, necklaces, earrings, bracelets, piercings, watches, brooches, or decorative ornaments.**\n\nArrange the five portraits in a clean chronological sequence from **oldest on the left to youngest on the right**, with consistent spacing, scale, and framing.\n\nUse realistic professional photography, natural skin texture, accurate facial detail, consistent lighting, realistic color grading, and seamless visual continuity.\n\n**Do not add text, age labels, numbers, borders, logos, props, or decorative graphics.**\n\nThe final image should look like a **professional photographic age-regression study of one person**, not a collage of unrelated faces, illustration, cartoon, or CGI render.",
     model: NANO_BANANA_2,
+    enabled: true,
+    premium: false,
+  },
+  '1960s': {
+    id: '1960s',
+    label: '1960s',
+    categoryId: 'retro-nostalgia',
+    description:
+      'Authentic mid-to-late 1960s retro photograph with colorful fashion and analog film look',
+    prompt:
+      "Using the uploaded image as the only reference for the subject, transform the photograph into an authentic mid-to-late 1960s retro photograph, with a distinctive 1965–1969 fashion and visual aesthetic.\n\nPreserve the subject's exact identity and recognizable facial characteristics. Maintain their facial structure, proportions, skin tone, eyes, nose, lips, distinctive features, natural age, and overall likeness. The subject must remain clearly recognizable as the same person.\n\nGive the subject authentic mid-to-late 1960s fashion with a bold, colorful, youthful and visually distinctive appearance. Use era-appropriate clothing such as vivid geometric or psychedelic patterns, colorful stripes, contrasting color combinations, patterned shirts and blouses, mod-inspired dresses, mini dresses, fitted tops, high-waisted trousers, flared or slightly flared trousers, colorful skirts, cropped jackets, turtlenecks, statement collars, and other recognizable late-1960s fashion elements. For men, use colorful patterned shirts, bold printed fabrics, fitted jackets, flared or straight-leg trousers, distinctive collars, colorful knitwear, and period-appropriate footwear.\n\nUse saturated period colors such as orange, mustard yellow, red, turquoise, blue, green, purple, cream, brown and combinations of contrasting colors. Incorporate bold geometric, floral, psychedelic, optical and abstract patterns where appropriate.\n\nAdapt the clothing naturally to the subject's gender, age and body proportions. Do not force the same outfit or fashion style onto every subject. The clothing should feel fashionable and authentic to the late 1960s rather than like a theatrical costume.\n\nInclude appropriate period styling such as era-appropriate hairstyles, grooming, accessories, jewelry, sunglasses, boots or shoes when suitable. Keep these details believable and coordinated with the clothing.\n\nThe photographic treatment should also feel authentically vintage: analog film photography, natural film grain, subtle film softness, slightly imperfect exposure, realistic photographic texture, gentle contrast, period-appropriate color reproduction and the characteristic look of photographs produced with 1960s film cameras and lenses.\n\nPreserve the original subject's general pose, body position, composition and framing unless minor adjustments are necessary to accommodate the period styling. Do not turn the image into an illustration or fashion drawing.\n\nThe final result should look like a genuine photograph taken during the late 1960s, featuring unmistakable colorful and expressive 1960s fashion — not a modern photograph with a simple vintage filter.\n\nAvoid overly formal business suits, conservative modern clothing, generic old-fashioned clothing, modern fashion trends, contemporary hairstyles, modern fabrics, excessive luxury styling, costume-like outfits, exaggerated bell-bottoms associated primarily with the 1970s, caricature, illustration, plastic skin, excessive beauty retouching, or loss of facial identity.",
+    model: SEEDREAM_4_5,
+    enabled: true,
+    premium: false,
+  },
+  '1970s': {
+    id: '1970s',
+    label: '1970s',
+    categoryId: 'retro-nostalgia',
+    description:
+      'Authentic 1970s retro photograph with bold period fashion and analog film look',
+    prompt:
+      "Using the uploaded image as the only reference for the subject, transform the photograph into an authentic 1970s retro photograph with a distinctive 1970–1979 fashion and photographic aesthetic.\n\nPreserve the subject's exact identity and recognizable facial characteristics. Maintain their facial structure, proportions, skin tone, eyes, nose, lips, distinctive features, natural age, and overall likeness. The subject must remain clearly recognizable as the same person.\n\nDress the subject in authentic 1970s fashion with a bold, expressive and unmistakably period-specific appearance. Use characteristic 1970s clothing such as wide-leg and bell-bottom trousers, high-waisted flared pants, denim, suede jackets, fringe, fitted shirts, wide pointed collars, turtlenecks, patterned blouses, wrap dresses, maxi dresses, jumpsuits, knitwear, vests, flared sleeves, colorful jackets, and other recognizable 1970s styles.\n\nUse a rich 1970s color palette including burnt orange, mustard yellow, avocado green, brown, rust, cream, burgundy, gold, deep red, earthy tones and warm contrasting colors. Incorporate authentic period patterns such as floral prints, paisley, geometric patterns, stripes, swirls and bold psychedelic-inspired prints.\n\nAllow the styling to naturally represent different parts of the 1970s. It may lean toward early-70s bohemian fashion, colorful casual fashion, or mid-to-late-70s disco-inspired fashion depending on what best suits the subject. For disco-inspired styling, use glamorous fitted clothing, wide collars, jumpsuits, metallic or shimmering fabrics, platform footwear and expressive accessories. For casual styling, use denim, suede, patterned shirts, flared trousers, knitwear and layered clothing.\n\nAdapt the clothing naturally to the subject's gender, age and proportions. Do not force the same outfit onto every subject. Include appropriate 1970s hairstyles, grooming, jewelry, sunglasses, scarves, belts, boots, platform shoes and other accessories when suitable.\n\nThe photographic treatment should look authentically analog and period-specific: 1970s film photography, warm film tones, natural grain, subtle film softness, slightly faded or warm color reproduction, realistic skin texture, gentle imperfections, authentic exposure and the characteristic look of photographs taken with 1970s film cameras.\n\nPreserve the subject's original general pose, body position, composition and framing unless minor adjustments are necessary to accommodate the period styling.\n\nThe final image should look like a genuine photograph originally taken during the 1970s, with unmistakable 1970s fashion and atmosphere rather than a modern photograph with a vintage filter.\n\nAvoid modern clothing, contemporary hairstyles, conservative business attire, generic \"old-fashioned\" clothing, excessive formalwear, modern fabrics or styling, costume-like outfits, exaggerated caricature, illustration, plastic-looking skin, excessive beauty retouching, or alteration of the subject's identity.",
+    model: SEEDREAM_4_5,
+    enabled: true,
+    premium: false,
+  },
+  '1980s': {
+    id: '1980s',
+    label: '1980s',
+    categoryId: 'retro-nostalgia',
+    description:
+      'Authentic 1980s retro photograph with bold neon fashion and analog film look',
+    prompt:
+      "Using the uploaded image as the only reference for the subject, transform the photograph into an authentic 1980s retro photograph with a distinctive 1980–1989 fashion and photographic aesthetic.\n\nPreserve the subject's exact identity and recognizable facial characteristics. Maintain their facial structure, proportions, skin tone, eyes, nose, lips, distinctive features, natural age, and overall likeness. The subject must remain clearly recognizable as the same person.\n\nDress the subject in unmistakable 1980s fashion with a bold, energetic and visually distinctive appearance. Use characteristic 1980s clothing such as oversized jackets, structured blazers, strong shoulders, denim jackets, acid-wash denim, leather jackets, high-waisted jeans, tapered trousers, leggings, colorful tracksuits, graphic T-shirts, oversized shirts, sweaters, knitwear, bomber jackets, mini skirts, fitted dresses, bold suits, and layered streetwear.\n\nUse vivid 1980s colors and strong color combinations such as neon pink, electric blue, bright yellow, vivid red, purple, turquoise, white and black. Incorporate recognizable 1980s patterns and graphics including geometric prints, color blocking, bold stripes, abstract patterns and large graphic designs.\n\nAllow the styling to naturally represent different parts of the 1980s. It may lean toward colorful 1980s casual fashion, athletic-inspired fashion, glamorous evening fashion, bold professional fashion, or late-1980s streetwear depending on what best suits the subject.\n\nFor women, incorporate appropriate 1980s elements such as voluminous hairstyles, big curls, teased hair, colorful accessories, statement earrings, bold belts, oversized jackets, shoulder-enhanced silhouettes, leggings, skirts and bright dresses when suitable.\n\nFor men, incorporate appropriate 1980s elements such as voluminous or styled hair, mustaches when naturally appropriate, oversized jackets, denim, leather, colorful shirts, graphic patterns, high-waisted trousers, athletic-inspired clothing and bold casualwear.\n\nAdapt the clothing naturally to the subject's gender, age and proportions. Do not force the same outfit onto every subject. The styling should look like authentic everyday or fashionable 1980s clothing rather than a Halloween costume or exaggerated caricature.\n\nInclude appropriate 1980s accessories such as large sunglasses, statement jewelry, watches, belts, colorful sneakers, boots or period-appropriate footwear when suitable.\n\nThe photographic treatment should look authentically analog and period-specific: 1980s film photography, realistic film grain, slightly soft lens rendering, warm or slightly faded film colors, natural exposure imperfections, subtle photographic texture, realistic skin and the characteristic color and contrast of photographs taken with 1980s film cameras.\n\nPreserve the subject's original general pose, body position, composition and framing unless minor adjustments are necessary to accommodate the period styling.\n\nThe final image should look like a genuine photograph originally taken during the 1980s, with unmistakable 1980s fashion, styling and photographic characteristics rather than a modern photograph with a vintage filter.\n\nAvoid modern clothing, contemporary hairstyles, minimalist modern fashion, conservative generic clothing, generic \"old-fashioned\" styling, excessive formalwear unless appropriate to the 1980s setting, costume-like outfits, exaggerated caricature, illustration, plastic-looking skin, excessive beauty retouching, or alteration of the subject's identity.",
+    model: NANO_BANANA,
+    enabled: true,
+    premium: false,
+  },
+  '80s-hip-hop': {
+    id: '80s-hip-hop',
+    label: '80s Hip-hop',
+    categoryId: 'retro-nostalgia',
+    description:
+      'Authentic late-1980s hip-hop portrait with colorful streetwear and analog film look',
+    prompt:
+      "Using the uploaded image as the only reference for the subject, transform the photograph into an authentic late-1980s hip-hop portrait with the distinctive fashion, styling and photographic character of 1980s hip-hop culture.\n\nPreserve the subject's exact identity and recognizable facial characteristics. Maintain their facial structure, proportions, skin tone, eyes, nose, lips, distinctive features, natural age and overall likeness. The subject must remain clearly recognizable as the same person.\n\nDress the subject in unmistakable 1980s hip-hop fashion. Use bold, youthful streetwear such as oversized tracksuits, colorful shell suits, bomber jackets, varsity-style jackets, denim jackets, oversized denim, graphic sweatshirts, hoodies, loose-fitting trousers, athletic jackets, colorful windbreakers, matching sportswear sets and layered streetwear.\n\nUse strong 1980s color combinations including red, royal blue, yellow, green, orange, purple, white and black. Incorporate bold color blocking, geometric patterns, stripes, graphic designs and contrasting panels characteristic of 1980s street fashion.\n\nInclude authentic period accessories when appropriate, such as bucket hats, Kangol-style caps, baseball caps, thick gold-tone chains, medallions, bracelets, watches, bold sunglasses and other distinctive 1980s streetwear accessories. Use period-appropriate high-top sneakers or classic athletic footwear.\n\nGive the subject an authentic 1980s hip-hop hairstyle and grooming appropriate to their gender, age and natural features. Do not impose a single hairstyle on every subject.\n\nThe clothing should feel relaxed, oversized, expressive and street-oriented rather than formal or tailored. Adapt the styling naturally to the subject's gender, age and proportions. Do not make the outfit look like a costume or a modern interpretation of hip-hop fashion.\n\nCreate an authentic 1980s urban photographic atmosphere. Use analog film photography, realistic film grain, slightly soft lens rendering, subtle color imperfections, natural film texture, moderate contrast and the characteristic look of photographs taken with 1980s consumer and professional film cameras.\n\nThe setting may resemble an authentic 1980s urban environment, neighborhood street, brick wall, basketball court, record-store area, studio backdrop or simple street-fashion portrait setting, while keeping the subject as the primary focus.\n\nPreserve the subject's general pose, body position and recognizable physical characteristics unless minor adjustments are necessary to accommodate the new styling.\n\nThe final image should look like a genuine photograph from the 1980s hip-hop era — colorful, confident, youthful, expressive and unmistakably period-specific — rather than a modern photograph with a vintage filter.\n\nAvoid modern streetwear, modern sneakers, contemporary hairstyles, modern luxury fashion, modern rap aesthetics, generic vintage clothing, formal business attire, excessive 1990s styling, costume-like outfits, caricature, illustration, plastic-looking skin, excessive beauty retouching or alteration of the subject's identity.",
+    model: NANO_BANANA,
+    enabled: true,
+    premium: false,
+  },
+  '80s-pop': {
+    id: '80s-pop',
+    label: '80s Pop',
+    categoryId: 'retro-nostalgia',
+    description:
+      'Authentic 1980s pop portrait with glamorous music-video fashion and analog film look',
+    prompt:
+      "Using the uploaded image as the only reference for the subject, transform the photograph into an authentic 1980s pop portrait with a distinctive 1980–1989 pop-music, fashion and photographic aesthetic.\n\nPreserve the subject's exact identity and recognizable facial characteristics. Maintain their facial structure, proportions, skin tone, eyes, nose, lips, distinctive features, natural age and overall likeness. The subject must remain clearly recognizable as the same individual.\n\nDress the subject in unmistakable 1980s pop fashion with a bold, glamorous, colorful and expressive appearance inspired by the fashion and visual style of 1980s pop music and music videos.\n\nUse characteristic 1980s pop clothing such as structured jackets, oversized blazers, strong-shouldered jackets, cropped jackets, leather jackets, fitted tops, graphic T-shirts, off-the-shoulder tops, mini skirts, fitted trousers, high-waisted pants, colorful dresses, jumpsuits, sequined garments, metallic fabrics, shiny materials, layered clothing and dramatic statement pieces.\n\nEmphasize the distinctive 1980s silhouette with strong shoulders, structured shapes, fitted and oversized contrasts, dramatic sleeves, bold collars and expressive proportions.\n\nUse vivid 1980s colors such as electric blue, hot pink, purple, bright red, neon yellow, turquoise, black, white and metallic silver or gold. Incorporate authentic period details such as geometric patterns, bold stripes, color blocking, abstract graphics, sequins, glitter, metallic accents, contrasting fabrics and large graphic designs.\n\nCreate a glamorous and energetic pop aesthetic rather than ordinary everyday clothing. The styling may range from colorful dance-pop fashion to glamorous stage-inspired fashion, rock-influenced pop fashion or polished 1980s music-video styling, while remaining believable as clothing from the decade.\n\nInclude appropriate 1980s accessories such as oversized sunglasses, statement earrings, layered necklaces, chunky bracelets, bold belts, colorful hair accessories and period-appropriate footwear when suitable.\n\nGive the subject an authentic 1980s hairstyle and grooming appropriate to their gender, age and natural features. Allow hairstyles to include natural volume, curls, waves, teased or layered hair, while avoiding an identical hairstyle for every subject.\n\nAdapt the clothing, hairstyle and styling naturally to the subject's gender, age and proportions. Do not force the same outfit onto every subject. Preserve the person's identity rather than making them resemble a specific celebrity or pop star.\n\nCreate an authentic 1980s photographic atmosphere. Use analog film photography, realistic film grain, slightly soft lens rendering, subtle film imperfections, natural skin texture, moderate contrast and vivid but believable film colors characteristic of 1980s photography.\n\nThe setting may resemble a colorful music-video set, recording studio, stage-inspired backdrop, nightclub environment, rehearsal space, colorful studio portrait or dramatic 1980s fashion setting. Keep the subject as the primary focus.\n\nPreserve the subject's general pose, body position, composition and framing unless minor adjustments are necessary to accommodate the new styling.\n\nThe final image should look like a genuine photograph from the 1980s pop era — bold, glamorous, colorful, energetic and unmistakably 1980s — rather than a modern photograph with a vintage filter.\n\nAvoid modern clothing, contemporary hairstyles, modern minimalist fashion, current sneakers, 1990s fashion, 2000s/Y2K styling, excessive futuristic sci-fi styling, generic vintage clothing, overly conservative formalwear, costume-like outfits, caricature, illustration, plastic-looking skin, excessive beauty retouching or alteration of the subject's identity.",
+    model: NANO_BANANA,
+    enabled: true,
+    premium: false,
+  },
+  '90s': {
+    id: '90s',
+    label: '90s',
+    categoryId: 'retro-nostalgia',
+    description:
+      'Authentic 1990s retro photograph with relaxed period fashion and analog film look',
+    prompt:
+      "Using the uploaded image as the only reference for the subject, transform the photograph into an authentic 1990s retro photograph with a distinctive 1990–1999 fashion and photographic aesthetic.\n\nPreserve the subject's exact identity and recognizable facial characteristics. Maintain their facial structure, proportions, skin tone, eyes, nose, lips, distinctive features, natural age and overall likeness. The subject must remain clearly recognizable as the same person.\n\nDress the subject in authentic 1990s fashion with a relaxed, youthful and unmistakably period-specific appearance. Use characteristic 1990s clothing such as loose-fitting jeans, high-waisted jeans, denim jackets, oversized shirts, graphic T-shirts, flannel shirts, bomber jackets, windbreakers, sweatshirts, hoodies, tracksuits, cargo trousers, casual dresses, slip dresses, crop tops, knitwear, leather jackets and relaxed streetwear.\n\nUse recognizable 1990s color palettes and styling, including denim blue, black, white, gray, burgundy, forest green, muted red, brown and occasional bright accent colors. Incorporate authentic period patterns such as plaid, stripes, simple geometric graphics, bold logos and graphic prints.\n\nAllow the styling to naturally represent different parts of 1990s fashion. It may lean toward casual streetwear, hip-hop-inspired fashion, grunge, sporty fashion, R&B-inspired fashion, minimalist fashion or colorful late-1990s youth fashion depending on what best suits the subject.\n\nFor women, incorporate appropriate 1990s elements such as relaxed denim, slip dresses, fitted tops, cardigans, crop tops, denim jackets, simple skirts, platform footwear, chokers, hair clips and period-appropriate hairstyles when suitable.\n\nFor men, incorporate appropriate 1990s elements such as loose jeans, oversized graphic shirts, flannel shirts, bomber jackets, tracksuits, denim jackets, hoodies, casual sneakers and period-appropriate hairstyles when suitable.\n\nAdapt clothing naturally to the subject's gender, age and proportions. Do not force the same outfit onto every subject. The styling should look like authentic everyday 1990s fashion rather than a costume or exaggerated caricature.\n\nInclude appropriate 1990s accessories such as baseball caps, bucket hats, sunglasses, watches, simple jewelry, backpacks and period-appropriate sneakers when suitable.\n\nThe photographic treatment should look authentically analog and period-specific: 1990s film photography, realistic film grain, slightly soft consumer-camera rendering, natural skin texture, subtle flash photography where appropriate, slightly imperfect exposure, muted or warm film colors and authentic 1990s photographic texture.\n\nThe setting may remain similar to the original photograph, but may naturally evoke a 1990s environment such as a suburban street, school setting, bedroom, shopping area, basketball court, urban street or simple studio portrait.\n\nPreserve the subject's general pose, body position, composition and framing unless minor adjustments are necessary to accommodate the period styling.\n\nThe final image should look like a genuine photograph originally taken during the 1990s, with unmistakable 1990s fashion and photographic characteristics rather than a modern photograph with a vintage filter.\n\nAvoid modern clothing, contemporary hairstyles, modern luxury fashion, overly polished digital photography, excessive 1980s styling, excessive 2000s/Y2K styling, generic \"old-fashioned\" clothing, costume-like outfits, caricature, illustration, plastic-looking skin, excessive beauty retouching or alteration of the subject's identity.",
+    model: SEEDREAM_4_5,
+    enabled: true,
+    premium: false,
+  },
+  '90s-hip-hop': {
+    id: '90s-hip-hop',
+    label: '90s Hip-hop',
+    categoryId: 'retro-nostalgia',
+    description:
+      'Authentic 1990s hip-hop portrait with oversized streetwear and analog film look',
+    prompt:
+      "Using the uploaded image as the only reference for the subject, transform the photograph into an authentic 1990s hip-hop portrait with the distinctive fashion, styling and photographic character of 1990s hip-hop culture.\n\nPreserve the subject's exact identity and recognizable facial characteristics. Maintain their facial structure, proportions, skin tone, eyes, nose, lips, distinctive features, natural age and overall likeness. The subject must remain clearly recognizable as the same person.\n\nDress the subject in unmistakable 1990s hip-hop fashion with a relaxed, oversized and expressive streetwear aesthetic. Use characteristic clothing such as baggy jeans, oversized denim jackets, loose graphic T-shirts, oversized sweatshirts, hoodies, varsity jackets, bomber jackets, leather jackets, tracksuits, sports jerseys, basketball-inspired tops, cargo trousers, workwear-style jackets, flannel shirts and layered streetwear.\n\nUse bold but authentic 1990s colors including denim blue, black, white, red, forest green, burgundy, mustard, cream and deep purple. Incorporate large graphic prints, bold lettering-style graphics, color blocking, sports-inspired designs, plaid and other recognizable 1990s patterns.\n\nCreate a relaxed oversized silhouette with loose-fitting clothing, layered garments and authentic 1990s proportions. The clothing should feel naturally worn and street-oriented rather than tailored, polished or contemporary.\n\nInclude appropriate 1990s hip-hop accessories such as baseball caps, snapback-style caps, bucket hats, beanies, sunglasses, watches, thick chains, medallions, bracelets and other period-appropriate accessories when suitable. Use authentic 1990s athletic sneakers and high-top footwear.\n\nAdapt the styling naturally to the subject's gender, age and proportions. Do not force the same outfit or hairstyle onto every subject. Hairstyles and grooming should be appropriate to the 1990s and naturally suited to the subject.\n\nAllow the overall styling to draw from the different visual influences of 1990s hip-hop fashion, including streetwear, sportswear, East Coast and West Coast-inspired styles, urban casualwear and the fashion of the golden era of hip-hop, without reproducing the identity or appearance of any specific celebrity.\n\nCreate an authentic 1990s photographic atmosphere. Use analog film photography, realistic film grain, slightly soft consumer-camera rendering, natural skin texture, subtle flash photography, imperfect exposure, slightly muted film colors and authentic 1990s photographic texture.\n\nThe setting may naturally resemble a 1990s urban street, basketball court, neighborhood, record store, brick-wall backdrop, street corner, studio portrait or other period-appropriate environment. Keep the subject as the primary focus.\n\nPreserve the subject's general pose, body position, composition and framing unless minor adjustments are necessary to accommodate the new styling.\n\nThe final image should look like a genuine photograph taken during the 1990s hip-hop era — authentic, relaxed, oversized, confident and unmistakably 1990s — rather than a modern photograph with a vintage filter.\n\nAvoid modern streetwear, contemporary sneakers, modern hairstyles, modern luxury fashion, 2000s/Y2K aesthetics, futuristic styling, extremely skinny clothing, overly polished digital photography, generic vintage clothing, costume-like outfits, caricature, illustration, plastic-looking skin, excessive beauty retouching or alteration of the subject's identity.",
+    model: SEEDREAM_4_5,
+    enabled: true,
+    premium: false,
+  },
+  '90s-pop': {
+    id: '90s-pop',
+    label: '90s Pop',
+    categoryId: 'retro-nostalgia',
+    description:
+      'Authentic 1990s pop portrait with colorful music-video fashion and analog film look',
+    prompt:
+      "Using the uploaded image as the only reference for the subject, transform the photograph into an authentic 1990s pop portrait with a distinctive 1990–1999 pop-culture, fashion and photographic aesthetic.\n\nPreserve the subject's exact identity and recognizable facial characteristics. Maintain their facial structure, proportions, skin tone, eyes, nose, lips, distinctive features, natural age and overall likeness. The subject must remain clearly recognizable as the same person.\n\nDress the subject in unmistakable 1990s pop fashion with a youthful, colorful, stylish and playful appearance. Use period-appropriate clothing such as fitted colorful tops, crop tops, denim jackets, denim skirts, high-waisted jeans, mini skirts, colorful dresses, slip dresses, fitted cardigans, cropped jackets, matching two-piece outfits, patterned shirts, lightweight knitwear and coordinated casual fashion.\n\nUse vibrant 1990s colors including pink, turquoise, purple, red, yellow, white, black, pastel blue and lime green. Incorporate authentic period patterns such as colorful stripes, floral prints, small geometric patterns, playful graphics, color blocking and simple 1990s fashion prints.\n\nAllow the styling to reflect the polished and playful fashion associated with 1990s pop music and music-video culture. Create coordinated outfits with fashionable layering, colorful accessories and expressive styling while keeping the appearance believable for the decade.\n\nFor women, incorporate appropriate 1990s pop-fashion elements such as colorful mini skirts, fitted tops, crop tops, slip dresses, denim, cardigans, hair clips, colorful accessories, small handbags and period-appropriate hairstyles.\n\nFor men, incorporate appropriate 1990s pop-fashion elements such as fitted or relaxed colorful shirts, denim jackets, graphic T-shirts, coordinated jackets, colorful knitwear, casual trousers and period-appropriate hairstyles.\n\nAdapt the clothing naturally to the subject's gender, age and proportions. Do not force the same outfit or hairstyle onto every subject. The styling should look like authentic 1990s pop fashion rather than a costume.\n\nInclude appropriate 1990s accessories such as colorful sunglasses, chokers, simple jewelry, hair accessories, watches, small bags, belts and period-appropriate sneakers or footwear when suitable.\n\nCreate a polished but authentic 1990s photographic appearance. Use analog film photography, realistic film grain, slightly soft film rendering, natural skin texture, subtle flash photography, moderate contrast, slightly warm or pastel film colors and authentic 1990s studio or music-video photography characteristics.\n\nThe setting may naturally resemble a colorful 1990s studio, music-video set, bedroom, recording environment, colorful backdrop, shopping area or simple fashion portrait setting. Keep the subject as the primary focus.\n\nPreserve the subject's general pose, body position, composition and framing unless minor adjustments are necessary to accommodate the period styling.\n\nThe final image should look like a genuine 1990s pop photograph — colorful, youthful, fashionable and unmistakably 1990s — rather than a modern photograph with a vintage filter.\n\nAvoid modern fashion, contemporary hairstyles, obvious Y2K styling, futuristic metallic clothing, excessive chrome, overly futuristic sunglasses, 2000s fashion, modern digital photography, generic vintage clothing, costume-like outfits, caricature, illustration, plastic-looking skin, excessive beauty retouching or alteration of the subject's identity.",
+    model: SEEDREAM_4_5,
+    enabled: true,
+    premium: false,
+  },
+  '2000s': {
+    id: '2000s',
+    label: '2000s',
+    categoryId: 'retro-nostalgia',
+    description:
+      'Authentic early-2000s Y2K photograph with youthful fashion and early digital-camera look',
+    prompt:
+      "Using the uploaded image as the only reference for the subject, transform the photograph into an authentic early-to-mid 2000s retro photograph with a distinctive 2000–2009 fashion and photographic aesthetic.\n\nPreserve the subject's exact identity and recognizable facial characteristics. Maintain their facial structure, proportions, skin tone, eyes, nose, lips, distinctive features, natural age and overall likeness. The subject must remain clearly recognizable as the same person.\n\nDress the subject in unmistakable early-2000s fashion with a fashionable, youthful and visually distinctive Y2K-era appearance. Use characteristic clothing such as low-rise or mid-rise jeans, bootcut or flared jeans, cargo trousers, denim skirts, baby tees, fitted graphic T-shirts, cropped tops, camisoles, halter tops, fitted jackets, zip-up hoodies, velour tracksuits, denim jackets, leather jackets, mini skirts, coordinated two-piece outfits and layered casualwear.\n\nUse authentic early-2000s colors and materials including denim blue, pink, white, black, silver, metallic tones, baby blue, lavender, lime green and other bright accent colors. Incorporate period-specific details such as rhinestones, glitter accents, metallic fabrics, glossy materials, embroidered graphics, visible stitching, decorative belts, small logos and playful graphic designs.\n\nInclude recognizable 2000s accessories such as small tinted sunglasses, chunky jewelry, hoop earrings, charm bracelets, decorative belts, small shoulder bags, trucker-style caps, hair accessories and chunky or platform footwear when appropriate.\n\nFor women, allow styling such as low-rise jeans with fitted tops, baby tees, camisoles, cropped jackets, mini skirts, velour tracksuits, colorful accessories and period-appropriate hairstyles.\n\nFor men, use appropriate early-2000s fashion such as loose or relaxed jeans, cargo trousers, graphic T-shirts, tracksuits, zip-up jackets, denim jackets, oversized or fitted casual shirts, sporty clothing and period-appropriate accessories.\n\nAdapt the clothing naturally to the subject's gender, age and proportions. Do not force the same outfit or styling onto every subject. The fashion should feel like authentic early-2000s everyday or pop-culture fashion rather than an exaggerated costume.\n\nCreate an authentic early-2000s photographic appearance. Use consumer digital-camera or early digital photography characteristics, subtle flash, slightly harsh direct lighting where appropriate, realistic skin texture, mild digital noise, slightly imperfect exposure, modest image softness and the characteristic look of photographs taken with early-2000s digital cameras.\n\nThe setting may naturally resemble a shopping mall, bedroom, urban street, party, school environment, colorful studio, music-video setting or casual social photograph from the early 2000s. Keep the subject as the primary focus.\n\nPreserve the subject's general pose, body position, composition and framing unless minor adjustments are necessary to accommodate the new styling.\n\nThe final image should look like a genuine photograph taken during the early 2000s, with unmistakable Y2K/early-2000s fashion and photographic characteristics rather than a modern photograph with a retro filter.\n\nAvoid modern fashion, contemporary minimalist styling, current sneakers, modern smartphones, modern digital photography, 2010s or 2020s fashion, excessive futuristic sci-fi styling, excessive chrome, overly polished editorial photography, generic vintage clothing, costume-like outfits, caricature, illustration, plastic-looking skin, excessive beauty retouching or alteration of the subject's identity.",
+    model: NANO_BANANA,
+    enabled: true,
+    premium: false,
+  },
+  '2000s-hip-hop': {
+    id: '2000s-hip-hop',
+    label: '2000s Hip-hop',
+    categoryId: 'retro-nostalgia',
+    description:
+      'Authentic early-2000s hip-hop portrait with polished streetwear and early digital-camera look',
+    prompt:
+      "Using the uploaded image as the only reference for the subject, transform the photograph into an authentic early-to-mid 2000s hip-hop portrait with the distinctive fashion, styling and photographic character of 2000–2007 hip-hop culture.\n\nPreserve the subject's exact identity and recognizable facial characteristics. Maintain their facial structure, proportions, skin tone, eyes, nose, lips, distinctive features, natural age and overall likeness. The subject must remain clearly recognizable as the same person.\n\nDress the subject in unmistakable early-2000s hip-hop fashion with a confident, stylish and expressive streetwear aesthetic. Use characteristic clothing such as oversized or wide-leg jeans, baggy denim, cargo trousers, oversized graphic T-shirts, oversized hoodies, sports jerseys, basketball jerseys, varsity jackets, bomber jackets, leather jackets, tracksuits, velour tracksuits, zip-up jackets, denim jackets and layered streetwear.\n\nIncorporate the more polished and fashion-conscious side of early-2000s hip-hop. Use coordinated outfits, premium-looking streetwear, bold graphic designs, sports-inspired clothing, decorative stitching, embroidered details, contrasting fabrics and statement pieces.\n\nUse authentic 2000s colors including white, black, denim blue, red, navy, gray, brown, gold, silver and occasional bright colors. Incorporate period-specific details such as large graphic prints, bold lettering-style graphics, decorative stitching, camouflage patterns, pinstripes and athletic-inspired designs.\n\nInclude recognizable early-2000s hip-hop accessories such as fitted baseball caps, trucker-style caps, bandanas, oversized sunglasses, large watches, thick chains, pendants, bracelets, rings and other statement jewelry when appropriate. Use period-appropriate basketball sneakers, high-top sneakers, chunky athletic footwear or clean white sneakers.\n\nFor men, allow styling such as oversized jerseys, baggy or wide-leg jeans, fitted caps, oversized graphic shirts, tracksuits, varsity jackets, large chains and athletic sneakers.\n\nFor women, allow styling such as fitted or cropped tops, low-rise or wide-leg jeans, velour tracksuits, denim, fitted jackets, hoop earrings, statement jewelry, small shoulder bags and fashionable early-2000s streetwear.\n\nAdapt clothing naturally to the subject's gender, age and proportions. Do not force the same outfit or hairstyle onto every subject. Hairstyles and grooming should be appropriate to the early 2000s and naturally suited to the subject.\n\nCreate an authentic early-2000s photographic atmosphere. Use consumer digital-camera photography with direct on-camera flash, realistic early digital image quality, subtle digital noise, slightly harsh highlights, natural skin texture, mild image softness and the characteristic look of photographs and music-video promotional images from the early 2000s.\n\nThe setting may naturally resemble an urban street, recording studio, basketball court, nightclub-style backdrop, apartment, parking area, street corner, music-video location or simple studio portrait. Keep the subject as the primary focus.\n\nPreserve the subject's general pose, body position, composition and framing unless minor adjustments are necessary to accommodate the new styling.\n\nThe final image should look like a genuine photograph taken during the early 2000s hip-hop era — confident, stylish, street-oriented and unmistakably 2000s — rather than a modern photograph with a vintage filter.\n\nAvoid modern streetwear, contemporary sneakers, modern hairstyles, current luxury fashion, 2010s or 2020s aesthetics, excessive futuristic styling, excessive metallic sci-fi elements, generic 1990s hip-hop fashion, modern digital-camera quality, costume-like outfits, caricature, illustration, plastic-looking skin, excessive beauty retouching or alteration of the subject's identity.",
+    model: SEEDREAM_4_5,
+    enabled: true,
+    premium: false,
+  },
+  '2000s-pop': {
+    id: '2000s-pop',
+    label: '2000s Pop',
+    categoryId: 'retro-nostalgia',
+    description:
+      'Authentic early-2000s Y2K pop portrait with glossy music-video fashion and early digital-camera look',
+    prompt:
+      "Using the uploaded image as the only reference for the subject, transform the photograph into an authentic early-to-mid 2000s pop portrait with a distinctive 2000–2007 Y2K pop-culture, fashion and photographic aesthetic.\n\nPreserve the subject's exact identity and recognizable facial characteristics. Maintain their facial structure, proportions, skin tone, eyes, nose, lips, distinctive features, natural age and overall likeness. The subject must remain clearly recognizable as the same individual.\n\nDress the subject in unmistakable early-2000s pop fashion with a youthful, glamorous, playful and fashion-forward appearance. Use characteristic Y2K pop clothing such as low-rise jeans, bootcut or flared jeans, denim skirts, mini skirts, fitted tops, baby tees, cropped tops, camisoles, halter tops, tube tops, fitted jackets, cropped denim jackets, velour tracksuits, coordinated two-piece outfits, fitted dresses and glossy or satin-like clothing.\n\nUse vibrant Y2K colors such as hot pink, baby blue, lavender, turquoise, white, silver, metallic gold, lime green, bright red and glossy black. Incorporate period-specific details such as rhinestones, glitter, sequins, metallic accents, glossy fabrics, decorative stitching, embroidered designs, playful graphics, small logos, sparkle details and colorful patterns.\n\nCreate coordinated and visually polished outfits inspired by early-2000s pop music and music-video fashion. The styling should feel glamorous and youthful without becoming a costume. Allow the model to naturally select different combinations of clothing, colors and accessories rather than repeating one standardized outfit.\n\nInclude appropriate Y2K accessories such as tiny tinted sunglasses, rhinestone jewelry, hoop earrings, charm bracelets, layered necklaces, decorative belts, small shoulder bags, hair clips, butterfly-style hair accessories and platform or chunky footwear when appropriate.\n\nFor women, allow authentic early-2000s pop styling such as low-rise jeans with fitted tops, coordinated two-piece outfits, mini skirts, cropped jackets, glossy fabrics, rhinestone details, colorful accessories and period-appropriate hairstyles.\n\nFor men, use authentic early-2000s pop fashion such as fitted or relaxed graphic shirts, denim, coordinated jackets, sporty casualwear, layered tops, statement accessories and period-appropriate hairstyles.\n\nAdapt the clothing naturally to the subject's gender, age and proportions. Do not force the same outfit, hairstyle or accessories onto every subject. Preserve the person's identity rather than altering their facial appearance to resemble a celebrity or pop star.\n\nCreate an authentic early-2000s photographic appearance using early digital-camera aesthetics: direct on-camera flash, slightly harsh highlights, realistic digital noise, mild image softness, subtle exposure imperfections, natural skin texture and the characteristic look of early-2000s personal photographs and pop-culture promotional photography.\n\nThe setting may resemble a colorful music-video set, bedroom, shopping mall, backstage area, studio backdrop, party environment or glossy early-2000s pop photoshoot. Keep the subject as the primary focus.\n\nPreserve the subject's general pose, body position, composition and framing unless minor adjustments are necessary to accommodate the new styling.\n\nThe final image should look like a genuine early-2000s pop photograph — glossy, colorful, youthful, playful and unmistakably Y2K — rather than a modern photograph with a retro filter.\n\nAvoid modern fashion, contemporary minimalist styling, current sneakers, modern hairstyles, 2010s or 2020s aesthetics, excessive futuristic sci-fi styling, excessive chrome, modern digital photography, generic vintage clothing, costume-like outfits, caricature, illustration, plastic-looking skin, excessive beauty retouching or alteration of the subject's identity.",
+    model: SEEDREAM_4_5,
+    enabled: true,
+    premium: false,
+  },
+  'rock-n-roll': {
+    id: 'rock-n-roll',
+    label: 'Rock n Roll',
+    categoryId: 'retro-nostalgia',
+    description:
+      'Authentic classic rock-and-roll portrait with rebellious leather-and-denim styling and analog film look',
+    prompt:
+      "Using the uploaded image as the only reference for the subject, transform the photograph into an authentic classic Rock & Roll portrait with a timeless rebellious rock aesthetic.\n\nPreserve the subject's exact identity and recognizable facial characteristics. Maintain their facial structure, proportions, skin tone, eyes, nose, lips, distinctive features, natural age and overall likeness. The subject must remain clearly recognizable as the same individual.\n\nDress the subject in authentic Rock & Roll fashion with a confident, rebellious and effortlessly cool appearance. Use characteristic rock styling such as leather jackets, denim jackets, distressed denim, fitted jeans, graphic or vintage-style band-inspired T-shirts, dark shirts, boots, flannel layers, vests, fitted jackets and other classic rock clothing.\n\nUse a strong palette of black, dark denim, charcoal, deep red, white, brown and muted earth tones, with occasional bold accents. Incorporate authentic rock-inspired details such as patches, studs, metal hardware, belts, chains, bracelets, rings, sunglasses and other understated statement accessories where appropriate.\n\nAdapt the clothing naturally to the subject's gender, age and proportions. The styling should feel authentic and effortlessly worn rather than like a theatrical costume. Do not force the same outfit or hairstyle onto every subject.\n\nGive the subject an appropriate rock-inspired hairstyle and grooming while preserving their natural identity and recognizable features. Hairstyles may range from longer textured hair and loose waves to classic short rock hairstyles, depending on what naturally suits the subject.\n\nCreate a timeless rock-and-roll photographic atmosphere using authentic analog photography, realistic film grain, natural skin texture, slightly imperfect exposure, atmospheric lighting, subtle film softness and rich photographic contrast.\n\nThe setting may naturally resemble a rehearsal studio, backstage area, recording studio, concert venue, garage, brick-wall location, street setting or simple dark studio backdrop. Keep the subject as the primary focus.\n\nPreserve the subject's general pose, body position, facial expression, composition and framing unless minor adjustments are necessary to accommodate the new styling.\n\nThe final image should look like a genuine rock-and-roll photograph with an authentic rebellious, confident and timeless character rather than a modern photograph with a simple vintage filter.\n\nAvoid modern fashion trends, futuristic styling, overly polished fashion-editorial aesthetics, excessive glamour, bright neon styling, formal business clothing, costume-like outfits, exaggerated hairstyles, caricature, illustration, plastic-looking skin, excessive beauty retouching or alteration of the subject's identity.",
+    model: NANO_BANANA,
     enabled: true,
     premium: false,
   },
@@ -2179,6 +2381,18 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     enabled: true,
     premium: false,
   },
+  victorian: {
+    id: 'victorian',
+    label: 'Victorian',
+    categoryId: 'caricatures',
+    description:
+      'Humorous late-Victorian 3D caricature with period fashion, sepia portrait atmosphere, and strong facial likeness',
+    prompt:
+      "Using the uploaded image as the only facial and identity reference, transform the subject into a humorous, highly recognizable 3D caricature set in the late Victorian era, approximately 1890–1901.\n\nPreserve the subject's identity and distinctive facial characteristics with high likeness accuracy. Retain their recognizable facial structure, eyes, nose, mouth, facial proportions, skin tone, hairstyle characteristics and other unique features. Do not replace the subject's face with a generic historical character.\n\nCreate a polished, high-quality 3D caricature with tasteful exaggeration: a slightly enlarged head, subtly exaggerated facial features, expressive eyes, distinctive facial proportions and a playful caricatured interpretation of the subject while maintaining strong facial likeness.\n\nDress the subject in authentic late-Victorian fashion appropriate to their gender and social setting. Use period-accurate clothing such as formal three-piece suits, waistcoats, high collars, cravats, pocket watches, long coats, Victorian dresses, corsets, skirts, hats, gloves and other appropriate late-19th-century garments.\n\nMake the historical styling visually rich and recognizable. Include authentic Victorian architecture, interiors, streets, furniture, props or environmental details when appropriate to the composition.\n\nAdd subtle humorous character elements that make the image feel like a Funnyfy caricature rather than a serious historical portrait. Give the subject a confident, slightly exaggerated personality and expressive pose while maintaining the dignity and visual language of the Victorian era.\n\nUse realistic 3D materials, detailed fabric, believable skin texture, cinematic lighting, soft depth of field and polished studio-quality rendering. The result should resemble a premium 3D caricature sculpture brought to life as a cinematic historical portrait.\n\nUse an authentic period photographic treatment inspired by late-19th-century portrait photography, including restrained sepia or monochrome tones, subtle film grain, soft contrast and an aged photographic atmosphere.\n\nThe final image should look like a humorous Victorian-era portrait of the actual uploaded person, combining strong facial likeness, tasteful caricature exaggeration and authentic historical styling.\n\nAvoid generic historical faces, changing the person's identity, modern clothing, modern hairstyles, modern objects, contemporary environments, cartoon-flat rendering, excessive facial distortion, grotesque features, photorealistic modern photography, or a simple sepia filter applied to the original image.",
+    model: SEEDREAM_4_5,
+    enabled: true,
+    premium: false,
+  },
   'monday-mood': {
     id: 'monday-mood',
     label: 'Monday',
@@ -2188,7 +2402,7 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
       "Preserve the uploaded person's identity exactly. Create a humorous Monday Mood cartoon illustration. The person is exhausted, slouching with a varied mood and expressions Add random scenarios in relation to the illustration. Warm painterly comic illustration, expressive brushwork, clean composition, humorous but relatable, identity preserved..",
     model: SEEDREAM_4_5,
     models: [SEEDREAM_4_5, NANO_BANANA_2, NANO_BANANA],
-    enabled: true,
+    enabled: false,
     premium: false,
   },
   'friday-feeling': {
@@ -2200,7 +2414,7 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
       "Preserve the uploaded person's identity exactly. Create a humorous Friday Feeling illustration. The person is excited, relaxed, smiling, and full of energy with varied moods and expressions. Add random scenarios in relation to the illustration. Warm painterly comic illustration, expressive brushwork, clean composition, humorous but relatable, identity preserved.",
     model: NANO_BANANA_2,
     models: [NANO_BANANA_2, NANO_BANANA],
-    enabled: true,
+    enabled: false,
     premium: false,
   },
   payday: {
@@ -2211,7 +2425,7 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     prompt:
       "Using the uploaded photo as the sole identity reference, create a funny caricature of the subject as Payday. Preserve facial likeness, age, ethnicity, hairstyle, and clothing while exaggerating a smug, flush, briefly-unstoppable grin. Scene: playful payday moment — bank notification vibe, shopping bags or coffee treat nearby, soft glamorous lighting. Mood: temporary wealth swagger, light comedy. Style: polished humorous editorial caricature. Full-bleed. No readable text, logos, watermarks, or borders.",
     model: NANO_BANANA,
-    enabled: true,
+    enabled: false,
     premium: false,
   },
   'end-of-month': {
@@ -2222,7 +2436,7 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     prompt:
       "Using the uploaded photo as the sole identity reference, create a funny caricature of the subject as End of Month. Preserve facial likeness, age, ethnicity, hairstyle, and clothing while exaggerating a broke-but-surviving, empty-wallet expression. Scene: end-of-month realism — sparse fridge vibes, empty wallet or nearly empty card, ramen or toast nearby, soft comic lighting. Mood: relatable financial humor, not harsh. Style: polished humorous editorial caricature. Full-bleed. No readable text, logos, watermarks, or borders.",
     model: NANO_BANANA,
-    enabled: true,
+    enabled: false,
     premium: false,
   },
   'before-coffee': {
@@ -2233,7 +2447,7 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     prompt:
       "Using the uploaded photo as the sole identity reference, create a funny caricature of the subject as Before Coffee. Preserve facial likeness, age, ethnicity, hairstyle, and clothing while exaggerating a half-awake, unapproachable, pre-caffeine zombie expression. Scene: morning kitchen or bathroom — empty mug waiting, dim soft light, bedhead energy. Mood: comic warning label energy. Style: polished humorous editorial caricature. Full-bleed. No text, logos, watermarks, or borders.",
     model: NANO_BANANA,
-    enabled: true,
+    enabled: false,
     premium: false,
   },
   'after-coffee': {
@@ -2244,7 +2458,7 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     prompt:
       "Using the uploaded photo as the sole identity reference, create a funny caricature of the subject as After Coffee. Preserve facial likeness, age, ethnicity, hairstyle, and clothing while exaggerating an alert, caffeinated, finally-human expression. Scene: bright morning light, steaming coffee cup in hand or nearby, energetic posture. Mood: revitalized comedy glow-up. Style: polished humorous editorial caricature with crisp lighting. Full-bleed. No text, logos, watermarks, or borders.",
     model: NANO_BANANA,
-    enabled: true,
+    enabled: false,
     premium: false,
   },
   'deadline-mode': {
@@ -2255,7 +2469,7 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     prompt:
       "Using the uploaded photo as the sole identity reference, create a funny caricature of the subject as Deadline Mode. Preserve facial likeness, age, ethnicity, hairstyle, and clothing while exaggerating intense focus, mild panic, and hyper-productive energy. Scene: desk buried in notes and screens, coffee cups, soft dramatic task lighting, ticking-clock tension without readable text. Mood: stressful comedy. Style: polished humorous editorial caricature. Full-bleed. No logos, watermarks, or borders.",
     model: NANO_BANANA,
-    enabled: true,
+    enabled: false,
     premium: false,
   },
   'vacation-mood': {
@@ -2266,7 +2480,7 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     prompt:
       "Using the uploaded photo as the sole identity reference, create a funny caricature of the subject as Vacation Mood. Preserve facial likeness, age, ethnicity, hairstyle, and clothing while exaggerating a relaxed, sunglasses-optional, zero-responsibilities smile. Scene: sunny vacation setting — beach, pool, or resort lounge with warm sunlight and soft tropical colors. Mood: blissful escape comedy. Style: polished humorous editorial caricature. Full-bleed. No text, logos, watermarks, or borders.",
     model: NANO_BANANA,
-    enabled: true,
+    enabled: false,
     premium: false,
   },
   'gym-motivation': {
@@ -2277,7 +2491,7 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     prompt:
       "Using the uploaded photo as the sole identity reference, create a funny caricature of the subject as Gym Motivation. Preserve facial likeness, age, ethnicity, hairstyle, and athletic or casual gym clothing while exaggerating a hyped, determined, slightly overconfident expression. Scene: gym or workout setting — weights, water bottle, energetic lighting. Mood: motivational comedy, not body-shaming. Style: polished humorous editorial caricature. Full-bleed. No text, logos, watermarks, or borders.",
     model: NANO_BANANA,
-    enabled: true,
+    enabled: false,
     premium: false,
   },
   'forgot-my-password': {
@@ -2288,7 +2502,7 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     prompt:
       "Using the uploaded photo as the sole identity reference, create a funny caricature of the subject as Forgot My Password. Preserve facial likeness, age, ethnicity, hairstyle, and clothing while exaggerating digital despair — blank stare, mild rage, forehead-in-hand energy at a laptop or phone. Scene: desk or couch with glowing screen, soft comic lighting. Mood: relatable tech frustration comedy. Style: polished humorous editorial caricature. Full-bleed. No readable UI text, logos, watermarks, or borders.",
     model: NANO_BANANA,
-    enabled: true,
+    enabled: false,
     premium: false,
   },
   ...buildStickerStyles(),

@@ -26,6 +26,7 @@ const CAPTION_MAX_LINES = {
 function MediaTile({
   imageSource,
   comparisonPair = null,
+  comparisonKey = null,
   label,
   isSelected = false,
   selectionMode = false,
@@ -50,12 +51,8 @@ function MediaTile({
 
   useEffect(() => {
     if (interactionPaused) return undefined;
-    if (!comparisonPausedRaw) {
-      setComparisonPaused(false);
-      return undefined;
-    }
-    const timeoutId = setTimeout(() => setComparisonPaused(true), 120);
-    return () => clearTimeout(timeoutId);
+    setComparisonPaused(comparisonPausedRaw);
+    return undefined;
   }, [comparisonPausedRaw, interactionPaused]);
 
   const [comparisonReady, setComparisonReady] = useState(!interactionPaused);
@@ -116,6 +113,8 @@ function MediaTile({
       <View style={imageWrapperStyle}>
         {runComparison ? (
           <ComparisonFade
+            key={comparisonKey || resolvedPair.after}
+            instanceKey={comparisonKey || resolvedPair.after}
             beforeSource={resolvedPair.before}
             afterSource={resolvedPair.after}
             afterSources={resolvedPair.afters}

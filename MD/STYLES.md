@@ -36,7 +36,7 @@ apps/mobile/assets/comparisons/source/before/<photo>.png
 apps/mobile/assets/comparisons/source/after/<categoryFolder>/<styled>.jpg
 ```
 
-Category folders: `caricature`, `cartoons`, `3d`, `Sculptures`, `Paintings`, `Art` (capital A for Art/Paintings), `photography`, `age-transformation`.
+Category folders: `caricature`, `cartoons`, `3d`, `Sculptures`, `Paintings`, `Art` (capital A for Art/Paintings), `photography`, `age-transformation`, `retro-nostalgia`.
 
 See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets/comparisons/source/README.md`, `ToDo/COMPARISON_ASSETS.md`.
 
@@ -47,33 +47,26 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 | Constant | Replicate model | Used for |
 |----------|-----------------|----------|
 | `DEFAULT_MODEL` | `black-forest-labs/flux-kontext-pro` | Most cartoon / art styles |
-| `NANO_BANANA` | `google/nano-banana` | Caricatures, mural, video-game styles, classic-v2, saturday-v1, cross-hatched, fashion, professional |
-| `NANO_BANANA_2` | `google/nano-banana-2` | renoir, impasto, expressive-impasto, hokusai-v2, hiroshige, sesshu, cyberpunk-v2, disney, ghibli, chibi, eyeroll, brick-v2, child, teenager, young-adult, middle-age, elderly, progressive, regressive |
+| `NANO_BANANA` | `google/nano-banana` | Caricatures, mural, video-game styles, classic-v2, saturday-v1, cross-hatched, fashion, professional, passport, 1980s, 80s-hip-hop, 80s-pop, 2000s, rock-n-roll |
+| `NANO_BANANA_2` | `google/nano-banana-2` | renoir, impasto, expressive-impasto, hokusai-v2, hiroshige, sesshu, cyberpunk-v2, disney, ghibli, chibi, eyeroll, brick-v2, child, teenager, young-adult, middle-age, elderly, progressive, regressive, video-game-i, video-game-ii, puppet |
 | `SEEDREAM_4` | `bytedance/seedream-4` | lowpoly, pop art v2, graffiti, banksy, mosaic, watercolor, acrylic, gouache, expressionist, impressionist, baroque, van-gogh, monet, classic-v1, saturday-v2, carc1 |
-| `SEEDREAM_4_5` | `bytedance/seedream-4.5` | cezanne, gauguin, matisse, seurat, ink-wash, hokusai-v1, comic, cute, cyberpunk-v1, expressive-impasto-v2, pop-art-v3, line-art, brick-v1 |
+| `SEEDREAM_4_5` | `bytedance/seedream-4.5` | cezanne, gauguin, matisse, seurat, ink-wash, hokusai-v1, comic, cute, cyberpunk-v1, expressive-impasto-v2, pop-art-v3, line-art, brick-v1, 1960s, 1970s, 90s, 90s-hip-hop, 90s-pop, 2000s-hip-hop, 2000s-pop, 80s-cartoon, victorian |
 
 ---
 
-## Enabled styles (149)
+## Enabled styles (178)
 
 | Id | Label | Category | Model | Comparison pair |
 |----|-------|----------|-------|-----------------|
-| `monday-mood` | Monday | moods-moments | seedream-4.5 / nano-banana-2 / nano-banana (random) | ✅ (3 afters) |
-| `friday-feeling` | Friday | moods-moments | nano-banana-2 / nano-banana (random) | ✅ (2 afters) |
-| `payday` | Payday | moods-moments | nano-banana | — |
-| `end-of-month` | End of Month | moods-moments | nano-banana | — |
-| `before-coffee` | Before Coffee | moods-moments | nano-banana | — |
-| `after-coffee` | After Coffee | moods-moments | nano-banana | — |
-| `deadline-mode` | Deadline Mode | moods-moments | nano-banana | — |
-| `vacation-mood` | Vacation Mood | moods-moments | nano-banana | — |
-| `gym-motivation` | Gym Motivation | moods-moments | nano-banana | — |
-| `forgot-my-password` | Forgot My Password | moods-moments | nano-banana | — |
+| `80s-cartoon` | 80s | cartoons | seedream-4.5 | ✅ |
 | `90s-cartoon` | 90s | cartoons | flux-kontext-pro | ✅ |
+| `3d-render-v1` | 3D Render V1 | cartoons | flux-kontext-pro | ✅ |
+| `3d-render-v2` | 3D Render V2 | cartoons | seedream-4.5 | ✅ |
+| `disney` | Animated | cartoons | nano-banana-2 | ✅ |
+| `anime` | Anime | cartoons | flux-kontext-pro | ✅ |
 | `chibi` | Chibi | cartoons | nano-banana-2 | ✅ |
 | `classic-v1` | Classic V1 | cartoons | seedream-4 | ✅ |
 | `classic-v2` | Classic V2 | cartoons | nano-banana | ✅ |
-| `saturday-v1` | Saturday V1 | cartoons | nano-banana | ✅ |
-| `saturday-v2` | Saturday V2 | cartoons | seedream-4 | ✅ |
 | `comic` | Comic | cartoons | seedream-4.5 | ✅ |
 | `comic-v1` | Comic V1 | cartoons | flux-kontext-pro | ✅ |
 | `comic-v2` | Comic V2 | cartoons | seedream-4.5 | ✅ |
@@ -81,17 +74,18 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 | `cute` | Cute | cartoons | seedream-4.5 | ✅ |
 | `cyberpunk-v1` | Cyberpunk V1 | cartoons | seedream-4.5 | ✅ |
 | `cyberpunk-v2` | Cyberpunk V2 | cartoons | nano-banana-2 | ✅ |
-| `disney` | Disney | cartoons | nano-banana-2 | ✅ |
-| `ghibli` | Ghibli | cartoons | nano-banana-2 | ✅ |
-| `anime` | Anime | cartoons | flux-kontext-pro | ✅ |
-| `manga` | Manga | cartoons | flux-kontext-pro | ✅ |
 | `genndy-v1` | Genndy V1 | cartoons | flux-kontext-pro | ✅ |
 | `genndy-v2` | Genndy V2 | cartoons | nano-banana-2 | ✅ |
+| `ghibli` | Ghibli | cartoons | nano-banana-2 | ✅ |
+| `manga` | Manga | cartoons | flux-kontext-pro | ✅ |
 | `pixel` | Pixel | cartoons | seedream-4.5 | ✅ |
-| `3d-render-v1` | 3D Render V1 | cartoons | flux-kontext-pro | ✅ |
-| `3d-render-v2` | 3D Render V2 | cartoons | seedream-4.5 | ✅ |
+| `saturday-v1` | Saturday V1 | cartoons | nano-banana | ✅ |
+| `saturday-v2` | Saturday V2 | cartoons | seedream-4 | ✅ |
+| `video-game-i` | Video game V1 | cartoons | nano-banana-2 | ✅ |
+| `video-game-ii` | Video game V2 | cartoons | nano-banana-2 | ✅ |
 | `neon` | Neon | art | flux-kontext-pro | ✅ |
 | `3dclay` | 3D Clay | 3d-characters | flux-kontext-pro | ✅ |
+| `puppet` | Puppet | 3d-characters | nano-banana-2 | ✅ |
 | `oil-paint` | Oil Paint | paintings | flux-kontext-pro | ✅ |
 | `lowpoly` | Low Poly | art | seedream-4 | ✅ |
 | `mural` | Mural | art | nano-banana | ✅ |
@@ -129,6 +123,7 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 | `cinematic` | Cinematic | photography | nano-banana | ✅ |
 | `model` | Model | photography | nano-banana | ✅ |
 | `outdoor` | Outdoor | photography | nano-banana | ✅ |
+| `passport` | Passport | photography | nano-banana | ✅ |
 | `child` | Child | age-transformation | nano-banana-2 | ✅ |
 | `teenager` | Teenager | age-transformation | nano-banana-2 | ✅ |
 | `young-adult` | Young Adult | age-transformation | nano-banana-2 | ✅ |
@@ -136,6 +131,18 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 | `elderly` | Elderly | age-transformation | nano-banana-2 | ✅ |
 | `progressive` | Progressive | age-transformation | nano-banana-2 | ✅ |
 | `regressive` | Regressive | age-transformation | nano-banana-2 | ✅ |
+| `1960s` | 1960s | retro-nostalgia | seedream-4.5 | ✅ |
+| `1970s` | 1970s | retro-nostalgia | seedream-4.5 | ✅ |
+| `1980s` | 1980s | retro-nostalgia | nano-banana | ✅ |
+| `80s-hip-hop` | 80s Hip-hop | retro-nostalgia | nano-banana | ✅ |
+| `80s-pop` | 80s Pop | retro-nostalgia | nano-banana | ✅ |
+| `90s` | 90s | retro-nostalgia | seedream-4.5 | ✅ |
+| `90s-hip-hop` | 90s Hip-hop | retro-nostalgia | seedream-4.5 | ✅ |
+| `90s-pop` | 90s Pop | retro-nostalgia | seedream-4.5 | ✅ |
+| `2000s` | 2000s | retro-nostalgia | nano-banana | ✅ |
+| `2000s-hip-hop` | 2000s Hip-hop | retro-nostalgia | seedream-4.5 | ✅ |
+| `2000s-pop` | 2000s Pop | retro-nostalgia | seedream-4.5 | ✅ |
+| `rock-n-roll` | Rock n Roll | retro-nostalgia | nano-banana | ✅ |
 | `paper-cut` | Paper Cut | art | flux-kontext-pro | ✅ |
 | `water-color` | Water Color | paintings | flux-kontext-pro | ✅ |
 | `acrylic` | Acrylic | paintings | seedream-4 | ✅ |
@@ -228,6 +235,7 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 | `tiny-muscle-v1` | Tiny Muscle V1 | caricatures | seedream-4.5 | ✅ |
 | `tiny-muscle-v2` | Tiny Muscle V2 | caricatures | nano-banana | ✅ |
 | `tiny-muscle-v3` | Tiny Muscle V3 | caricatures | nano-banana-2 (+ style ref) | ✅ |
+| `victorian` | Victorian | caricatures | seedream-4.5 | ✅ |
 | `eyeroll` | Eye Roll | stickers | nano-banana-2 | ✅ |
 
 **Note:** `watercolor` (cartoons) and `water-color` (paintings) are different styles.
@@ -238,6 +246,16 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 
 | Id | Label | Category | Blocker |
 |----|-------|----------|---------|
+| `monday-mood` | Monday | moods-moments | Category paused |
+| `friday-feeling` | Friday | moods-moments | Category paused |
+| `payday` | Payday | moods-moments | Category paused |
+| `end-of-month` | End of Month | moods-moments | Category paused |
+| `before-coffee` | Before Coffee | moods-moments | Category paused |
+| `after-coffee` | After Coffee | moods-moments | Category paused |
+| `deadline-mode` | Deadline Mode | moods-moments | Category paused |
+| `vacation-mood` | Vacation Mood | moods-moments | Category paused |
+| `gym-motivation` | Gym Motivation | moods-moments | Category paused |
+| `forgot-my-password` | Forgot My Password | moods-moments | Category paused |
 | `coloured_pencil` | coloured_pencil | caricatures | Missing `source/after/caricature/colouredp.jpg`; set `enabled: true` after asset + mobile wiring |
 
 160 catalog placeholders remain `enabled: false` until prompts and art are ready.
@@ -286,6 +304,10 @@ Run `npm run build-comparison-assets` after adding or replacing source files. Fo
 | `tiny-muscle-v1` | `before/man3.png` | `after/caricature/tiny-muscle1.jpg` |
 | `tiny-muscle-v2` | `before/man3.png` | `after/caricature/tiny-muscle2.jpeg` |
 | `tiny-muscle-v3` | `before/man3.png` | `after/caricature/tiny-muscle3.jpeg` |
+| `victorian` | `before/lady14.png` | `after/caricature/victorian.jpg` |
+| `video-game-i` | `before/man3.png` | `after/cartoons/gtasa.jpeg` |
+| `video-game-ii` | `before/man3.png` | `after/cartoons/gtav.jpeg` |
+| `80s-cartoon` | `before/3dclay.png` | `after/cartoons/80sc.jpg` |
 | `90s-cartoon` | `before/toon.png` | `after/cartoons/toon.jpg` |
 | `chibi` | `before/lady7.png` | `after/cartoons/chibi.jpeg` |
 | `classic-v1` | `before/lady4.png` | `after/cartoons/classic.jpg` |
@@ -309,6 +331,7 @@ Run `npm run build-comparison-assets` after adding or replacing source files. Fo
 | `3d-render-v1` | `before/teen.png` | `after/cartoons/3d-renderv1.jpg` |
 | `3d-render-v2` | `before/teen.png` | `after/cartoons/3d-renderv2.jpg` |
 | `3dclay` | `before/3dclay.png` | `after/3d/3dclay.jpg` |
+| `puppet` | `before/lady15.png` | `after/3d/puppet.jpg` |
 | `pixar-like` | `before/lady8.png` | `after/3d/pxl.png` |
 | `funko-pop` | `before/teen2.png` | `after/3d/funko.jpg` |
 | `aardman` | `before/couple.png` | `after/3d/Aardman.jpg` |
@@ -406,6 +429,7 @@ Run `npm run build-comparison-assets` after adding or replacing source files. Fo
 | `cinematic` | `before/dude.png` | `after/photography/cinematic.jpeg` |
 | `model` | `before/lady5.png` | `after/photography/model.jpeg` |
 | `outdoor` | `before/lady15.png` | `after/photography/outdoor.jpeg` |
+| `passport` | `before/lady13.png` | `after/photography/passport.jpeg` |
 | `child` | `before/lady8.png` | `after/transformation/child.jpeg` |
 | `teenager` | `before/lady8.png` | `after/transformation/teen.jpeg` |
 | `young-adult` | `before/lady8.png` | `after/transformation/young.jpeg` |
@@ -413,6 +437,18 @@ Run `npm run build-comparison-assets` after adding or replacing source files. Fo
 | `elderly` | `before/lady8.png` | `after/transformation/elderly.jpeg` |
 | `progressive` | `before/lady8.png` | `after/transformation/progressive.jpeg` |
 | `regressive` | `before/lady8.png` | `after/transformation/regressive.jpeg` |
+| `1960s` | `before/lady6.png` | `after/retro&nostalgia/60s.jpg` |
+| `1970s` | `before/lady7.png` | `after/retro&nostalgia/70s.jpg` |
+| `1980s` | `before/teen2.png` | `after/retro&nostalgia/80s.jpeg` |
+| `80s-hip-hop` | `before/dude2.png` | `after/retro&nostalgia/80shh.jpeg` |
+| `80s-pop` | `before/lady15.png` | `after/retro&nostalgia/80spop.jpeg` |
+| `90s` | `before/teen.png` | `after/retro&nostalgia/90s.jpg` |
+| `90s-hip-hop` | `before/teen2.png` | `after/retro&nostalgia/90shh.jpg` |
+| `90s-pop` | `before/lady15.png` | `after/retro&nostalgia/90spop.jpg` |
+| `2000s` | `before/lady7.png` | `after/retro&nostalgia/2000s.jpeg` |
+| `2000s-hip-hop` | `before/lady6.png` | `after/retro&nostalgia/2000shh.jpg` |
+| `2000s-pop` | `before/lady5.png` | `after/retro&nostalgia/2000spop.jpeg` |
+| `rock-n-roll` | `before/man3.png` | `after/retro&nostalgia/rnr.jpeg` |
 | `paper-cut` | `before/man5.png` | `after/Art/paper-cut.jpg` |
 | `monday-mood` | `before/lady3.png` | `after/Moods&Moments/mondays1.jpg`, `mondays2.jpeg`, `mondays3.jpeg` |
 | `friday-feeling` | `before/man9.png` | `after/Moods&Moments/fridays1.jpeg`, `fridays2.jpeg` |

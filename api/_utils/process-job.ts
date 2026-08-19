@@ -18,7 +18,6 @@ import {
   saveReplicatePredictionId,
 } from './replicate-sync';
 import {
-  checkImageWithSightengine,
   CONTENT_NOT_ALLOWED_CODE,
   handleContentPolicyViolation,
   isReplicateContentPolicyError,
@@ -38,8 +37,6 @@ import {
 
 const targetUrl = process.env.TARGET_API_URL;
 const targetApiKey = process.env.TARGET_API_KEY;
-const sightengineUser = process.env.SIGHTENGINE_API_USER;
-const sightengineSecret = process.env.SIGHTENGINE_API_SECRET;
 
 /** Replicate models that accept output_format (flux, nano-banana, seedream). */
 const REPLICATE_OUTPUT_FORMAT = 'png';
@@ -150,22 +147,6 @@ export async function processJob(job: JobRow): Promise<void> {
     console.warn(
       '[process-job] Replicate webhook not configured (PUBLIC_API_URL/ALLOWED_ORIGIN + REPLICATE_WEBHOOK_SECRET) — relying on poll/sync only'
     );
-  }
-
-  if (imageUrl && sightengineUser && sightengineSecret) {
-    try {
-      const moderation = await checkImageWithSightengine(imageUrl, sightengineUser, sightengineSecret);
-      if (moderation && !moderation.allowed) {
-        await handleContentPolicyViolation(job.id, job.user_id, {
-          source: 'sightengine',
-          violations: moderation.violations,
-        });
-        throw new Error(CONTENT_NOT_ALLOWED_CODE);
-      }
-    } catch (modErr: unknown) {
-      if (modErr instanceof Error && modErr.message === CONTENT_NOT_ALLOWED_CODE) throw modErr;
-      console.warn('[process-job] Sightengine check failed (proceeding):', modErr);
-    }
   }
 
   const fetchRes = await fetch(targetUrl, {

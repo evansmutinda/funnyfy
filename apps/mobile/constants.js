@@ -202,6 +202,9 @@ export function getSavedImageFileName() {
 }
 
 export const STYLE_CARD_IMAGE_DEFAULT = require('./assets/toon.jpg');
+export const STYLE_CARD_IMAGE_80S_CARTOON = require('./assets/comparisons/tiles/after/cartoons/80sc.jpg');
+export const STYLE_CARD_IMAGE_VIDEO_GAME_I = require('./assets/comparisons/tiles/after/cartoons/gtasa.jpg');
+export const STYLE_CARD_IMAGE_VIDEO_GAME_II = require('./assets/comparisons/tiles/after/cartoons/gtav.jpg');
 export const STYLE_CARD_IMAGE_CHIBI = require('./assets/comparisons/tiles/after/cartoons/chibi.jpg');
 export const STYLE_CARD_IMAGE_CLASSIC_V1 = require('./assets/comparisons/tiles/after/cartoons/classic.jpg');
 export const STYLE_CARD_IMAGE_CLASSIC_V2 = require('./assets/comparisons/tiles/after/cartoons/classicv2.jpg');
@@ -253,6 +256,7 @@ export const STYLE_CARD_IMAGE_CARC22 = require('./assets/comparisons/tiles/after
 export const STYLE_CARD_IMAGE_3D_BD = require('./assets/comparisons/tiles/after/caricature/3dbd.jpg');
 export const STYLE_CARD_IMAGE_3D = require('./assets/comparisons/tiles/after/caricature/3d.jpg');
 export const STYLE_CARD_IMAGE_3DCLAY = require('./assets/comparisons/tiles/after/3d/3dclay.jpg');
+export const STYLE_CARD_IMAGE_PUPPET = require('./assets/comparisons/tiles/after/3d/puppet.jpg');
 export const STYLE_CARD_IMAGE_OILPAINT = require('./assets/comparisons/tiles/after/Paintings/oilpaint.jpg');
 export const STYLE_CARD_IMAGE_LOWPOLY = require('./assets/comparisons/tiles/after/Art/lowpoly.jpg');
 export const STYLE_CARD_IMAGE_MURAL = require('./assets/comparisons/tiles/after/Art/mural.jpg');
@@ -289,6 +293,7 @@ export const STYLE_CARD_IMAGE_CORPORATE = require('./assets/comparisons/tiles/af
 export const STYLE_CARD_IMAGE_FASHION_EDITORIAL = require('./assets/comparisons/tiles/after/photography/fashion.jpg');
 export const STYLE_CARD_IMAGE_CINEMATIC = require('./assets/comparisons/tiles/after/photography/cinematic.jpg');
 export const STYLE_CARD_IMAGE_MODEL = require('./assets/comparisons/tiles/after/photography/model.jpg');
+export const STYLE_CARD_IMAGE_PASSPORT = require('./assets/comparisons/tiles/after/photography/passport.jpg');
 export const STYLE_CARD_IMAGE_OUTDOOR = require('./assets/comparisons/tiles/after/photography/outdoor.jpg');
 export const STYLE_CARD_IMAGE_CHILD = require('./assets/comparisons/tiles/after/transformation/child.jpg');
 export const STYLE_CARD_IMAGE_TEENAGER = require('./assets/comparisons/tiles/after/transformation/teen.jpg');
@@ -297,6 +302,18 @@ export const STYLE_CARD_IMAGE_MIDDLE_AGE = require('./assets/comparisons/tiles/a
 export const STYLE_CARD_IMAGE_ELDERLY = require('./assets/comparisons/tiles/after/transformation/elderly.jpg');
 export const STYLE_CARD_IMAGE_PROGRESSIVE = require('./assets/comparisons/tiles/after/transformation/progressive.jpg');
 export const STYLE_CARD_IMAGE_REGRESSIVE = require('./assets/comparisons/tiles/after/transformation/regressive.jpg');
+export const STYLE_CARD_IMAGE_1960S = require('./assets/comparisons/tiles/after/retro&nostalgia/60s.jpg');
+export const STYLE_CARD_IMAGE_1970S = require('./assets/comparisons/tiles/after/retro&nostalgia/70s.jpg');
+export const STYLE_CARD_IMAGE_1980S = require('./assets/comparisons/tiles/after/retro&nostalgia/80s.jpg');
+export const STYLE_CARD_IMAGE_80S_HIP_HOP = require('./assets/comparisons/tiles/after/retro&nostalgia/80shh.jpg');
+export const STYLE_CARD_IMAGE_80S_POP = require('./assets/comparisons/tiles/after/retro&nostalgia/80spop.jpg');
+export const STYLE_CARD_IMAGE_90S = require('./assets/comparisons/tiles/after/retro&nostalgia/90s.jpg');
+export const STYLE_CARD_IMAGE_90S_HIP_HOP = require('./assets/comparisons/tiles/after/retro&nostalgia/90shh.jpg');
+export const STYLE_CARD_IMAGE_90S_POP = require('./assets/comparisons/tiles/after/retro&nostalgia/90spop.jpg');
+export const STYLE_CARD_IMAGE_2000S = require('./assets/comparisons/tiles/after/retro&nostalgia/2000s.jpg');
+export const STYLE_CARD_IMAGE_2000S_HIP_HOP = require('./assets/comparisons/tiles/after/retro&nostalgia/2000shh.jpg');
+export const STYLE_CARD_IMAGE_2000S_POP = require('./assets/comparisons/tiles/after/retro&nostalgia/2000spop.jpg');
+export const STYLE_CARD_IMAGE_ROCK_N_ROLL = require('./assets/comparisons/tiles/after/retro&nostalgia/rnr.jpg');
 export const STYLE_CARD_IMAGE_PAPER_CUT = require('./assets/comparisons/tiles/after/Art/paper-cut.jpg');
 export const STYLE_CARD_IMAGE_MONDAY = require('./assets/comparisons/tiles/after/Moods&Moments/mondays1.jpg');
 export const STYLE_CARD_IMAGE_FRIDAY = require('./assets/comparisons/tiles/after/Moods&Moments/fridays1.jpg');
@@ -386,6 +403,7 @@ export const STYLE_CARD_IMAGE_DANCING_CARC = require('./assets/comparisons/tiles
 export const STYLE_CARD_IMAGE_TINY_MUSCLE_V1 = require('./assets/comparisons/tiles/after/caricature/tiny-muscle1.jpg');
 export const STYLE_CARD_IMAGE_TINY_MUSCLE_V2 = require('./assets/comparisons/tiles/after/caricature/tiny-muscle2.jpg');
 export const STYLE_CARD_IMAGE_TINY_MUSCLE_V3 = require('./assets/comparisons/tiles/after/caricature/tiny-muscle3.jpg');
+export const STYLE_CARD_IMAGE_VICTORIAN = require('./assets/comparisons/tiles/after/caricature/victorian.jpg');
 export const STYLE_CARD_IMAGE_MINIATURE = require('./assets/comparisons/tiles/after/3d/miniature.jpg');
 export const STYLE_CARD_IMAGE_PLASTIC_TOY_V1 = require('./assets/comparisons/tiles/after/3d/toyv1.jpg');
 export const STYLE_CARD_IMAGE_PLASTIC_TOY_V2 = require('./assets/comparisons/tiles/after/3d/toyv2.jpg');
@@ -439,6 +457,9 @@ const STYLE_IMAGE_BY_ID = {
   'thumbs-up': STYLE_CARD_IMAGE_THUMBS_UP,
   'wink': STYLE_CARD_IMAGE_WINK,
   'sticker-sheet': STYLE_CARD_IMAGE_HAPPY,
+  '80s-cartoon': STYLE_CARD_IMAGE_80S_CARTOON,
+  'video-game-i': STYLE_CARD_IMAGE_VIDEO_GAME_I,
+  'video-game-ii': STYLE_CARD_IMAGE_VIDEO_GAME_II,
   '90s-cartoon': STYLE_CARD_IMAGE_DEFAULT,
   chibi: STYLE_CARD_IMAGE_CHIBI,
   'classic-v1': STYLE_CARD_IMAGE_CLASSIC_V1,
@@ -491,6 +512,7 @@ const STYLE_IMAGE_BY_ID = {
   '3d-bd': STYLE_CARD_IMAGE_3D_BD,
   '3d': STYLE_CARD_IMAGE_3D,
   '3dclay': STYLE_CARD_IMAGE_3DCLAY,
+  puppet: STYLE_CARD_IMAGE_PUPPET,
   'oil-paint': STYLE_CARD_IMAGE_OILPAINT,
   lowpoly: STYLE_CARD_IMAGE_LOWPOLY,
   'low-poly': STYLE_CARD_IMAGE_LOWPOLY,
@@ -525,6 +547,7 @@ const STYLE_IMAGE_BY_ID = {
   'fashion-editorial': STYLE_CARD_IMAGE_FASHION_EDITORIAL,
   cinematic: STYLE_CARD_IMAGE_CINEMATIC,
   model: STYLE_CARD_IMAGE_MODEL,
+  passport: STYLE_CARD_IMAGE_PASSPORT,
   outdoor: STYLE_CARD_IMAGE_OUTDOOR,
   child: STYLE_CARD_IMAGE_CHILD,
   teenager: STYLE_CARD_IMAGE_TEENAGER,
@@ -533,6 +556,18 @@ const STYLE_IMAGE_BY_ID = {
   elderly: STYLE_CARD_IMAGE_ELDERLY,
   progressive: STYLE_CARD_IMAGE_PROGRESSIVE,
   regressive: STYLE_CARD_IMAGE_REGRESSIVE,
+  '1960s': STYLE_CARD_IMAGE_1960S,
+  '1970s': STYLE_CARD_IMAGE_1970S,
+  '1980s': STYLE_CARD_IMAGE_1980S,
+  '80s-hip-hop': STYLE_CARD_IMAGE_80S_HIP_HOP,
+  '80s-pop': STYLE_CARD_IMAGE_80S_POP,
+  '90s': STYLE_CARD_IMAGE_90S,
+  '90s-hip-hop': STYLE_CARD_IMAGE_90S_HIP_HOP,
+  '90s-pop': STYLE_CARD_IMAGE_90S_POP,
+  '2000s': STYLE_CARD_IMAGE_2000S,
+  '2000s-hip-hop': STYLE_CARD_IMAGE_2000S_HIP_HOP,
+  '2000s-pop': STYLE_CARD_IMAGE_2000S_POP,
+  'rock-n-roll': STYLE_CARD_IMAGE_ROCK_N_ROLL,
   'paper-cut': STYLE_CARD_IMAGE_PAPER_CUT,
   'monday-mood': STYLE_CARD_IMAGE_MONDAY,
   'friday-feeling': STYLE_CARD_IMAGE_FRIDAY,
@@ -595,6 +630,7 @@ const STYLE_IMAGE_BY_ID = {
   'tiny-muscle-v1': STYLE_CARD_IMAGE_TINY_MUSCLE_V1,
   'tiny-muscle-v2': STYLE_CARD_IMAGE_TINY_MUSCLE_V2,
   'tiny-muscle-v3': STYLE_CARD_IMAGE_TINY_MUSCLE_V3,
+  victorian: STYLE_CARD_IMAGE_VICTORIAN,
   miniature: STYLE_CARD_IMAGE_MINIATURE,
   'plastic-toy-v1': STYLE_CARD_IMAGE_PLASTIC_TOY_V1,
   'plastic-toy-v2': STYLE_CARD_IMAGE_PLASTIC_TOY_V2,

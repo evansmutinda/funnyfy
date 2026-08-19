@@ -18,6 +18,11 @@ import { getEstimatedWaitTime } from './_utils/queue-stats';
 import { getCurrentMonthDate, getTierQuota, TRIAL_LIMIT } from './_utils/usage';
 import { shouldPauseQueue } from './_utils/cost-protection';
 import { generationUnavailableResponse } from './_utils/queue-pause';
+import {
+  CONTENT_NOT_ALLOWED_CODE,
+  moderateEnqueueImage,
+} from './_utils/sightengine-moderation';
+import { humanizeJobError } from './_utils/job-messages';
 
 function getQuotaForTier(tier: string | null): number {
   return getTierQuota(tier);
@@ -191,6 +196,16 @@ export default async function handler(
       console.error('Quota check failed:', quotaErr);
       return safeErrorResponse(res, 500, 'QUOTA_CHECK_FAILED', 'Failed to check usage quota');
     }
+  }
+
+  // Input moderation before job creation (keeps Replicate off the hot path in process-job).
+  const moderation = await moderateEnqueueImage(imageUrl, userId);
+  if (moderation && !moderation.allowed) {
+    return res.status(400).json({
+      ok: false,
+      error: CONTENT_NOT_ALLOWED_CODE,
+      message: humanizeJobError(CONTENT_NOT_ALLOWED_CODE),
+    });
   }
 
   // Create job as 'pending' (will be processed by queue worker)

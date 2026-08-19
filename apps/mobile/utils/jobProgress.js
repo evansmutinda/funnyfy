@@ -31,6 +31,7 @@ const CATEGORY_CREATING_NAME = {
   'drawings-sketches': 'drawing',
   photography: 'photo',
   'age-transformation': 'age portrait',
+  'retro-nostalgia': 'retro look',
   historical: 'historical portrait',
   art: 'artwork',
   professions: 'portrait',
