@@ -122,6 +122,7 @@ Image generation jobs (queue).
 | `completed_at` | TIMESTAMPTZ | | |
 | `cost_usd` | NUMERIC(10,6) | NOT NULL, DEFAULT 0 | Replicate cost snapshot (failed = 0) |
 | `model_version` | VARCHAR(255) | | Replicate model used for billing |
+| `sheet_expressions` | TEXT | | Comma-separated sticker expression ids for sheet jobs |
 
 **Indexes:**  
 - `idx_jobs_status_priority` on `(status, priority DESC, created_at)`  

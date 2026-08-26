@@ -214,6 +214,34 @@ export function evaluateModerationResponse(data: unknown): ModerationResult {
   return { allowed: violations.length === 0, violations };
 }
 
+/**
+ * Input moderation at enqueue — blocks before a job row exists or Replicate is called.
+ * On violation, records infringement (no job to fail).
+ */
+export async function moderateEnqueueImage(
+  imageUrl: string,
+  userId: string
+): Promise<ModerationResult | null> {
+  const apiUser = process.env.SIGHTENGINE_API_USER;
+  const apiSecret = process.env.SIGHTENGINE_API_SECRET;
+  if (!imageUrl || !apiUser || !apiSecret) return null;
+
+  try {
+    const moderation = await checkImageWithSightengine(imageUrl, apiUser, apiSecret);
+    if (moderation && !moderation.allowed) {
+      await recordContentInfringement(userId, {
+        source: 'sightengine',
+        violations: moderation.violations,
+        stage: 'enqueue',
+      });
+    }
+    return moderation;
+  } catch (modErr) {
+    console.warn('[enqueue] Sightengine check failed (proceeding):', modErr);
+    return null;
+  }
+}
+
 export async function checkImageWithSightengine(
   base64DataUrl: string,
   apiUser: string,

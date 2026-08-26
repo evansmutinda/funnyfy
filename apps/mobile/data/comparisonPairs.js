@@ -8,6 +8,7 @@
 
 import { getStyleImage } from '../constants';
 import { COMPARISON_HERO_ASSETS, COMPARISON_TILE_ASSETS } from './comparisonPairAssets.generated';
+import { getStyleCategory } from './styleCatalog';
 
 /** Canonical upload comparison aspect (width / height). */
 export const COMPARISON_ASPECT_RATIO = 2 / 3;
@@ -21,11 +22,11 @@ const DEFAULT_BEFORE = require('../assets/realistic.jpeg');
 const CURATED_PAIR_PATHS = {
   'handd': {
     before: 'before/hdd.png',
-    after: 'after/caricature/handd.jpeg',
+    after: 'after/caricature/handd.jpg',
   },
   'editorial': {
     before: 'before/man.png',
-    after: 'after/caricature/editorial.jpeg',
+    after: 'after/Art/editorial.jpeg',
   },
   'exaggerated': {
     before: 'before/man2.png',
@@ -33,11 +34,103 @@ const CURATED_PAIR_PATHS = {
   },
   'watercolor': {
     before: 'before/couple.png',
-    after: 'after/caricature/Watercolor-c.jpg',
+    after: 'after/cartoons/Watercolor-c.jpg',
   },
   'carc1': {
     before: 'before/toon.png',
     after: 'after/caricature/carc1.jpg',
+  },
+  'carc2': {
+    before: 'before/man6.png',
+    after: 'after/caricature/carc2.jpeg',
+  },
+  'mugface': {
+    before: 'before/man5.png',
+    after: 'after/caricature/mugface.jpeg',
+  },
+  'carc3': {
+    before: 'before/lady7.png',
+    after: 'after/caricature/carc3.jpeg',
+  },
+  'carc4': {
+    before: 'before/man6.png',
+    after: 'after/caricature/carc4.jpg',
+  },
+  'carc5': {
+    before: 'before/man6.png',
+    after: 'after/caricature/carc5.jpg',
+  },
+  'carc6': {
+    before: 'before/lady7.png',
+    after: 'after/caricature/carc6.jpeg',
+  },
+  'carc7': {
+    before: 'before/dude2.png',
+    after: 'after/caricature/carc7.jpeg',
+  },
+  'carc8': {
+    before: 'before/man6.png',
+    after: 'after/caricature/carc8.jpeg',
+  },
+  'carc9': {
+    before: 'before/man8.png',
+    after: 'after/caricature/carc9.jpeg',
+  },
+  'carc10': {
+    before: 'before/lady7.png',
+    after: 'after/caricature/carc10.jpeg',
+  },
+  'carc11': {
+    before: 'before/man4.png',
+    after: 'after/caricature/carc11.jpeg',
+  },
+  'carc12': {
+    before: 'before/man6.png',
+    after: 'after/caricature/carc12.jpeg',
+  },
+  'carc13': {
+    before: 'before/man6.png',
+    after: 'after/caricature/carc13.jpeg',
+  },
+  'carc14': {
+    before: 'before/lady4.png',
+    after: 'after/caricature/carc14.jpeg',
+  },
+  'carc15': {
+    before: 'before/lady9.png',
+    after: 'after/caricature/carc15.jpeg',
+  },
+  'tiny-muscle-v3': {
+    before: 'before/man3.png',
+    after: 'after/caricature/tiny-muscle3.jpeg',
+  },
+  'victorian': {
+    before: 'before/lady14.png',
+    after: 'after/caricature/victorian.jpg',
+  },
+  'carc17': {
+    before: 'before/dude.png',
+    after: 'after/caricature/carc17.jpeg',
+  },
+  'carc18': {
+    before: 'before/teen.png',
+    after: 'after/caricature/carc18.jpeg',
+  },
+  'carc19': {
+    before: 'before/dude.png',
+    after: 'after/caricature/carc19.jpeg',
+  },
+  'carc20': {
+    before: 'before/lady10.png',
+    after: 'after/caricature/carc20.jpeg',
+  },
+  'carc21': {
+    before: 'before/dude.png',
+    after: 'after/caricature/carc21.jpeg',
+  },
+  'carc22': {
+    before: 'before/lady6.png',
+    after: 'after/caricature/carc22.jpeg',
   },
   '3d-bd': {
     before: 'before/lady.png',
@@ -59,13 +152,25 @@ const CURATED_PAIR_PATHS = {
     before: 'before/man3.png',
     after: 'after/caricature/tiny-muscle2.jpeg',
   },
+  '80s-cartoon': {
+    before: 'before/3dclay.png',
+    after: 'after/cartoons/80sc.jpg',
+  },
+  'video-game-i': {
+    before: 'before/man3.png',
+    after: 'after/cartoons/gtasa.jpeg',
+  },
+  'video-game-ii': {
+    before: 'before/man3.png',
+    after: 'after/cartoons/gtav.jpeg',
+  },
   '90s-cartoon': {
     before: 'before/toon.png',
     after: 'after/cartoons/toon.jpg',
   },
   'chibi': {
-    before: 'before/chibi.png',
-    after: 'after/cartoons/chibi.jpg',
+    before: 'before/lady7.png',
+    after: 'after/cartoons/chibi.jpeg',
   },
   'classic-v1': {
     before: 'before/lady4.png',
@@ -91,9 +196,9 @@ const CURATED_PAIR_PATHS = {
     before: 'before/hdd.png',
     after: 'after/cartoons/cute.jpg',
   },
-  'dc': {
+  'comic-v3': {
     before: 'before/man3.png',
-    after: 'after/cartoons/dc.jpg',
+    after: 'after/cartoons/comic-v3.jpg',
   },
   'cyberpunk-v1': {
     before: 'before/lady5.png',
@@ -106,6 +211,26 @@ const CURATED_PAIR_PATHS = {
   'disney': {
     before: 'before/lady3.png',
     after: 'after/cartoons/disney.jpg',
+  },
+  'ghibli': {
+    before: 'before/lady7.png',
+    after: 'after/cartoons/ghibli.jpeg',
+  },
+  'anime': {
+    before: 'before/lady8.png',
+    after: 'after/cartoons/anime.jpg',
+  },
+  'manga': {
+    before: 'before/lady12.png',
+    after: 'after/cartoons/manga.jpg',
+  },
+  'genndy-v1': {
+    before: 'before/man6.png',
+    after: 'after/cartoons/genndyv1.jpg',
+  },
+  'genndy-v2': {
+    before: 'before/man6.png',
+    after: 'after/cartoons/genndyv2.jpeg',
   },
   'pixel': {
     before: 'before/lady15.png',
@@ -130,6 +255,10 @@ const CURATED_PAIR_PATHS = {
   '3dclay': {
     before: 'before/3dclay.png',
     after: 'after/3d/3dclay.jpg',
+  },
+  'puppet': {
+    before: 'before/lady15.png',
+    after: 'after/3d/puppet.jpg',
   },
   'pixar-like': {
     before: 'before/lady8.png',
@@ -195,9 +324,29 @@ const CURATED_PAIR_PATHS = {
     before: 'before/man8.png',
     after: 'after/Sculptures/metal.jpeg',
   },
+  'chrome': {
+    before: 'before/man6.png',
+    after: 'after/Sculptures/chrome.jpeg',
+  },
+  'mountain': {
+    before: 'before/man6.png',
+    after: 'after/Sculptures/mountain.jpeg',
+  },
   'wood': {
     before: 'before/man8.png',
     after: 'after/Sculptures/wood.jpeg',
+  },
+  'gold': {
+    before: 'before/man9.png',
+    after: 'after/Sculptures/gold.jpeg',
+  },
+  'porcelain': {
+    before: 'before/lady3.png',
+    after: 'after/Sculptures/porcelain.jpg',
+  },
+  'voxel-block': {
+    before: 'before/lady6.png',
+    after: 'after/3d/voxel-block.jpg',
   },
   '3d-portrait-v1': {
     before: 'before/lady2.png',
@@ -214,6 +363,22 @@ const CURATED_PAIR_PATHS = {
   'dancing-3d': {
     before: 'before/teen2.png',
     after: 'after/3d/dancing-3d.jpg',
+  },
+  'yarn': {
+    before: 'before/lady9.png',
+    after: 'after/3d/yarn.jpg',
+  },
+  'vinyl': {
+    before: 'before/lady7.png',
+    after: 'after/3d/vinyl.jpeg',
+  },
+  'plush': {
+    before: 'before/lady7.png',
+    after: 'after/3d/plush.jpeg',
+  },
+  'bobblehead': {
+    before: 'before/man4.png',
+    after: 'after/3d/bobblehead.jpg',
   },
   'miniature': {
     before: 'before/teen2.png',
@@ -339,6 +504,10 @@ const CURATED_PAIR_PATHS = {
     before: 'before/lady2.png',
     after: 'after/Art/mural.jpeg',
   },
+  'illustration': {
+    before: 'before/lady3.png',
+    after: 'after/Art/illustration.jpeg',
+  },
   'neon': {
     before: 'before/lady3.png',
     after: 'after/Art/neon.jpg',
@@ -356,8 +525,8 @@ const CURATED_PAIR_PATHS = {
     after: 'after/Art/popart-sr4.jpg',
   },
   'pop-art-v3': {
-    before: 'before/dude.png',
-    after: 'after/Art/popart-nbn.jpeg',
+    before: 'before/man8.png',
+    after: 'after/Art/popartv3.jpg',
   },
   'graffiti': {
     before: 'before/dude2.png',
@@ -391,10 +560,6 @@ const CURATED_PAIR_PATHS = {
     before: 'before/man5.png',
     after: 'after/Art/geometric.jpg',
   },
-  'surreal': {
-    before: 'before/lady9.png',
-    after: 'after/Art/surreal.jpeg',
-  },
   'coloured-glass': {
     before: 'before/lady10.png',
     after: 'after/Art/coloured-glass.jpg',
@@ -411,9 +576,161 @@ const CURATED_PAIR_PATHS = {
     before: 'before/man9.png',
     after: 'after/Art/Pencil Sketch2.jpeg',
   },
+  'pencil-sketch': {
+    before: 'before/man5.png',
+    after: 'after/Drawings/pencil-sketch.jpg',
+  },
+  'charcoal': {
+    before: 'before/man6.png',
+    after: 'after/Drawings/Charcoal.jpg',
+  },
+  'ink': {
+    before: 'before/lady10.png',
+    after: 'after/Drawings/ink.jpg',
+  },
+  'pen': {
+    before: 'before/lady9.png',
+    after: 'after/Drawings/pen.jpg',
+  },
+  'cross-hatched': {
+    before: 'before/lady9.png',
+    after: 'after/Drawings/cross-hatched.jpeg',
+  },
+  'line-art': {
+    before: 'before/man8.png',
+    after: 'after/Drawings/line-art.jpg',
+  },
+  'fashion': {
+    before: 'before/lady.png',
+    after: 'after/Drawings/fashion.jpeg',
+  },
+  'marker': {
+    before: 'before/lady3.png',
+    after: 'after/Drawings/marker.jpg',
+  },
   'origami': {
     before: 'before/lady14.png',
-    after: 'after/Art/origami.jpg',
+    after: 'after/3d/origami.jpg',
+  },
+  'brick-v1': {
+    before: 'before/lady6.png',
+    after: 'after/3d/brickv1.jpg',
+  },
+  'brick-v2': {
+    before: 'before/lady6.png',
+    after: 'after/3d/brickv2.jpeg',
+  },
+  'professional': {
+    before: 'before/dude2.png',
+    after: 'after/photography/pro.jpeg',
+  },
+  'studio': {
+    before: 'before/lady6.png',
+    after: 'after/photography/studio.jpeg',
+  },
+  'corporate': {
+    before: 'before/teen2.png',
+    after: 'after/photography/corporate.jpeg',
+  },
+  'fashion-editorial': {
+    before: 'before/lady7.png',
+    after: 'after/photography/fashion.jpeg',
+  },
+  'cinematic': {
+    before: 'before/dude.png',
+    after: 'after/photography/cinematic.jpeg',
+  },
+  'model': {
+    before: 'before/lady5.png',
+    after: 'after/photography/model.jpeg',
+  },
+  'outdoor': {
+    before: 'before/lady15.png',
+    after: 'after/photography/outdoor.jpeg',
+  },
+  'passport': {
+    before: 'before/lady13.png',
+    after: 'after/photography/passport.jpeg',
+  },
+  'child': {
+    before: 'before/lady8.png',
+    after: 'after/transformation/child.jpeg',
+  },
+  'teenager': {
+    before: 'before/lady8.png',
+    after: 'after/transformation/teen.jpeg',
+  },
+  'young-adult': {
+    before: 'before/lady8.png',
+    after: 'after/transformation/young.jpeg',
+  },
+  'middle-age': {
+    before: 'before/lady8.png',
+    after: 'after/transformation/mid-age.jpeg',
+  },
+  'elderly': {
+    before: 'before/lady8.png',
+    after: 'after/transformation/elderly.jpeg',
+  },
+  'progressive': {
+    before: 'before/lady8.png',
+    after: 'after/transformation/progressive.jpeg',
+  },
+  'regressive': {
+    before: 'before/lady8.png',
+    after: 'after/transformation/regressive.jpeg',
+  },
+  '1960s': {
+    before: 'before/lady6.png',
+    after: 'after/retro&nostalgia/60s.jpg',
+  },
+  '1970s': {
+    before: 'before/lady7.png',
+    after: 'after/retro&nostalgia/70s.jpg',
+  },
+  '1980s': {
+    before: 'before/teen2.png',
+    after: 'after/retro&nostalgia/80s.jpeg',
+  },
+  '80s-hip-hop': {
+    before: 'before/dude2.png',
+    after: 'after/retro&nostalgia/80shh.jpeg',
+  },
+  '80s-pop': {
+    before: 'before/lady15.png',
+    after: 'after/retro&nostalgia/80spop.jpeg',
+  },
+  '90s': {
+    before: 'before/teen.png',
+    after: 'after/retro&nostalgia/90s.jpg',
+  },
+  '90s-hip-hop': {
+    before: 'before/teen2.png',
+    after: 'after/retro&nostalgia/90shh.jpg',
+  },
+  '90s-pop': {
+    before: 'before/lady15.png',
+    after: 'after/retro&nostalgia/90spop.jpg',
+  },
+  '2000s': {
+    before: 'before/lady7.png',
+    after: 'after/retro&nostalgia/2000s.jpeg',
+  },
+  '2000s-hip-hop': {
+    before: 'before/lady6.png',
+    after: 'after/retro&nostalgia/2000shh.jpg',
+  },
+  '2000s-pop': {
+    before: 'before/lady5.png',
+    after: 'after/retro&nostalgia/2000spop.jpeg',
+  },
+  'rock-n-roll': {
+    before: 'before/man3.png',
+    after: 'after/retro&nostalgia/rnr.jpeg',
+  },
+  'paper-cut': {
+    before: 'before/man5.png',
+    after: 'after/Art/paper-cut.jpg',
   },
   'monday-mood': {
     before: 'before/lady3.png',
@@ -428,10 +745,20 @@ const CURATED_PAIR_PATHS = {
 function assetForTier(relPath, tier) {
   const key = toOutputRel(relPath);
   const table = tier === 'tiles' ? COMPARISON_TILE_ASSETS : COMPARISON_HERO_ASSETS;
-  return table[key] || null;
+  if (table[key]) return table[key];
+  const lower = key.toLowerCase();
+  const match = Object.keys(table).find((k) => k.toLowerCase() === lower);
+  return match ? table[match] : null;
 }
 
+const CURATED_PAIR_CACHE = {
+  hero: new Map(),
+  tiles: new Map(),
+};
+
 function resolveCuratedPair(styleId, tier) {
+  const cache = CURATED_PAIR_CACHE[tier] || CURATED_PAIR_CACHE.hero;
+  if (cache.has(styleId)) return cache.get(styleId);
   const paths = CURATED_PAIR_PATHS[styleId];
   if (!paths) return null;
   const before = assetForTier(paths.before, tier);
@@ -440,7 +767,9 @@ function resolveCuratedPair(styleId, tier) {
     .map((rel) => assetForTier(rel, tier))
     .filter(Boolean);
   if (!before || afters.length === 0) return null;
-  return { before, after: afters[0], afters };
+  const pair = { before, after: afters[0], afters };
+  cache.set(styleId, pair);
+  return pair;
 }
 
 function toOutputRel(inputRel) {
@@ -458,6 +787,35 @@ export function hasCuratedComparisonPair(style, tier = 'tiles') {
   return Boolean(resolveCuratedPair(style.id, tier));
 }
 
+/** Picker tiles: stickers stay static. Upload still uses a before/after pair. */
+export function usesComparisonPreview(style) {
+  if (!style) return false;
+  const categoryId = String(
+    style.categoryId || getStyleCategory(style.id) || '',
+  ).toLowerCase();
+  if (categoryId === 'stickers') return false;
+  return true;
+}
+
+function isStickerPreviewStyle(style) {
+  if (!style) return false;
+  const id = String(style.id || '').toLowerCase();
+  if (id === 'sticker-sheet') return true;
+  const categoryId = String(
+    style.categoryId || getStyleCategory(style.id) || '',
+  ).toLowerCase();
+  return categoryId === 'stickers';
+}
+
+function resolveStickerAfter(styleId, tier = 'hero') {
+  const id = String(styleId || '').toLowerCase();
+  if (!id) return null;
+  const rel = id === 'sticker-sheet'
+    ? 'after/stickers/happy.jpg'
+    : `after/stickers/${id}.jpg`;
+  return assetForTier(rel, tier);
+}
+
 /**
  * Returns the { before, after } image pair for a given style. Falls back
  * to the shared "before" portrait + the style's thumbnail when no
@@ -466,6 +824,11 @@ export function hasCuratedComparisonPair(style, tier = 'tiles') {
 export function getComparisonPair(style, tier = 'hero') {
   if (!style) {
     return { before: DEFAULT_BEFORE, after: DEFAULT_BEFORE };
+  }
+  if (isStickerPreviewStyle(style)) {
+    const before = assetForTier('before/lady4.png', tier) || DEFAULT_BEFORE;
+    const after = resolveStickerAfter(style.id, tier) || getStyleImage(style);
+    return { before, after };
   }
   const curated = resolveCuratedPair(style.id, tier);
   if (curated) return curated;

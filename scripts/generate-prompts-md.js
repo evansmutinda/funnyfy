@@ -27,10 +27,12 @@ const CATEGORY_ORDER = [
   'caricatures',
   'cartoons',
   'paintings',
+  'drawings-sketches',
+  'photography',
+  'age-transformation',
   'art',
   '3d-characters',
   'sculptures',
-  'anime-manga',
 ];
 
 const CATEGORY_LABELS = {
@@ -38,10 +40,12 @@ const CATEGORY_LABELS = {
   caricatures: 'Caricatures',
   cartoons: 'Cartoons',
   paintings: 'Paintings',
+  'drawings-sketches': 'Drawings & Sketches',
+  photography: 'Photography',
+  'age-transformation': 'Age Transformation',
   art: 'Art',
-  '3d-characters': '3D Characters',
+  '3d-characters': '3D',
   sculptures: 'Sculptures',
-  'anime-manga': 'Anime & Manga',
 };
 
 function extractLegacyBlock(source) {

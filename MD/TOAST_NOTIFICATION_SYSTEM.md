@@ -15,10 +15,10 @@ Floating message, auto-dismiss (~3s, ~5s with action).
 
 | Type | Styling | Use |
 |------|---------|-----|
-| `success` | Green accent | Save, remove, purchase OK |
-| `error` | Red accent | Failures |
-| `warning` | **Orange** `#EA580C` | Offline, trial warnings |
-| `info` | Neutral dark | General info |
+| `success` | Green accent on `#151B28` card | Save, remove, purchase OK |
+| `error` | Soft red accent on dark card | Failures |
+| `warning` | **Orange** full pill (same as offline banner) | Offline, trial warnings, generation unavailable |
+| `info` | Indigo accent on dark card | General info |
 
 ```js
 const { showToast } = useNotifications();
@@ -63,7 +63,9 @@ import { useNotifications } from '../components/NotificationProvider';
 | Upload / Review | Banner **hidden**; inline offline chip in flow |
 | Generate / subscribe offline | Orange **warning** toast |
 
-Do not use full-width in-flow red bars — they shift header/pill layout.
+## Generation failures
+
+Failed runs use **ConfirmDialog** (`buildGenerationFailedDialog` → same card as content-policy: title, message, white **Got it** pill). The result action band keeps **Try again** only; after 3 failures, the “Please try again later” card appears.
 
 ---
 

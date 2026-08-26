@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 import Animated, {
   cancelAnimation,
@@ -20,9 +20,26 @@ const FADE_MS = TILE_FADE_MS;
 /** Enough to demo the effect without endless motion on tiles. */
 export const DEFAULT_COMPARISON_CYCLES = 3;
 
+function runSingleAfterCycle(opacity, { holdMs, fadeMs, maxCycles, startFromAfter }) {
+  const ease = Easing.inOut(Easing.cubic);
+  const toAfter = withDelay(holdMs, withTiming(1, { duration: fadeMs, easing: ease }));
+  const toBefore = withDelay(holdMs, withTiming(0, { duration: fadeMs, easing: ease }));
+  const cycle = startFromAfter
+    ? withSequence(toBefore, toAfter)
+    : withSequence(toAfter, toBefore);
+
+  const repeats = maxCycles == null || maxCycles < 0 ? -1 : maxCycles;
+  opacity.value = startFromAfter ? 1 : 0;
+  opacity.value = repeats < 0
+    ? withRepeat(cycle, -1, false)
+    : startFromAfter
+      ? withRepeat(cycle, repeats, false)
+      : withSequence(withRepeat(cycle, repeats, false), toAfter);
+}
+
 /**
  * Crossfade between original (before) and styled after(s).
- * Single after: before ↔ after loop (rests on after).
+ * Single after: before → after → before loop, then rests on after.
  * Multiple afters: before → after1 → before → after2 → before → after3 → …
  * When paused, keeps the current after frame visible.
  */
@@ -36,8 +53,11 @@ export default function ComparisonFade({
   holdMs = HOLD_MS,
   fadeMs = FADE_MS,
   maxCycles,
+  instanceKey,
 }) {
   const opacity = useSharedValue(1);
+  const hasAnimatedRef = useRef(false);
+  const pausedRef = useRef(paused);
   // Lazy-load before image only while animating — saves Android decoders on idle tiles.
   const [showBefore, setShowBefore] = useState(!paused);
 
@@ -54,32 +74,30 @@ export default function ComparisonFade({
 
   useEffect(() => {
     setAfterIndex(0);
-  }, [afterList]);
+    hasAnimatedRef.current = false;
+  }, [instanceKey, beforeSource, activeAfter]);
 
-  // Single after — original before ↔ after loop
   useEffect(() => {
     if (isMulti) return undefined;
 
-    cancelAnimation(opacity);
-
     if (paused) {
+      cancelAnimation(opacity);
       opacity.value = 1;
+      pausedRef.current = true;
       return undefined;
     }
 
+    const resuming = pausedRef.current;
+    pausedRef.current = false;
+
+    cancelAnimation(opacity);
     setShowBefore(true);
-    opacity.value = 1;
-    const ease = Easing.inOut(Easing.cubic);
 
-    const cycle = withSequence(
-      withDelay(holdMs, withTiming(0, { duration: fadeMs, easing: ease })),
-      withDelay(holdMs, withTiming(1, { duration: fadeMs, easing: ease })),
-    );
-
-    const repeats = maxCycles == null || maxCycles < 0 ? -1 : maxCycles;
-    opacity.value = withRepeat(cycle, repeats, false);
+    const startFromAfter = hasAnimatedRef.current || resuming;
+    runSingleAfterCycle(opacity, { holdMs, fadeMs, maxCycles, startFromAfter });
+    hasAnimatedRef.current = true;
     return undefined;
-  }, [isMulti, paused, holdMs, fadeMs, maxCycles, beforeSource, activeAfter, opacity]);
+  }, [isMulti, paused, holdMs, fadeMs, maxCycles, instanceKey, beforeSource, activeAfter]);
 
   // Multi after — before → after[i] → before → after[i+1] → …
   useEffect(() => {
@@ -91,9 +109,11 @@ export default function ComparisonFade({
 
     if (paused) {
       opacity.value = 1;
+      pausedRef.current = true;
       return undefined;
     }
 
+    pausedRef.current = false;
     setShowBefore(true);
     opacity.value = 0;
     setAfterIndex(0);
@@ -142,7 +162,7 @@ export default function ComparisonFade({
       timeouts.forEach(clearTimeout);
       cancelAnimation(opacity);
     };
-  }, [isMulti, paused, holdMs, fadeMs, maxCycles, beforeSource, afterList, opacity]);
+  }, [isMulti, paused, holdMs, fadeMs, maxCycles, instanceKey, beforeSource, afterList]);
 
   const animatedAfterStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
 

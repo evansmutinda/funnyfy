@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNetwork } from './NetworkProvider';
 import styles from '../styles';
+
+/** Ignore brief NetInfo flaps during API failures (looked like a flash toast). */
+const OFFLINE_SHOW_DELAY_MS = 1500;
 
 /**
  * Non-blocking top overlay when offline — matches toast styling and does not
@@ -12,8 +15,19 @@ import styles from '../styles';
 export default function OfflineBanner() {
   const { isOnline } = useNetwork();
   const insets = useSafeAreaInsets();
+  const [showBanner, setShowBanner] = useState(false);
 
-  if (isOnline) return null;
+  useEffect(() => {
+    if (isOnline) {
+      setShowBanner(false);
+      return undefined;
+    }
+
+    const timer = setTimeout(() => setShowBanner(true), OFFLINE_SHOW_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [isOnline]);
+
+  if (!showBanner) return null;
 
   return (
     <View
@@ -21,13 +35,13 @@ export default function OfflineBanner() {
       style={[styles.offlineBannerContainer, { paddingTop: insets.top + 8 }]}
       accessibilityRole="alert"
     >
-      <View style={styles.offlineBannerInner}>
-        <View style={styles.offlineBannerIconCircle}>
+      <View style={[styles.toastInner, styles.toastInnerWarning]}>
+        <View style={styles.toastWarningIconCircle}>
           <Feather name="wifi-off" size={15} color="#EA580C" />
         </View>
-        <View style={styles.offlineBannerTextWrap}>
-          <Text style={styles.offlineBannerTitle}>No connection</Text>
-          <Text style={styles.offlineBannerMessage}>
+        <View style={styles.toastTextWrap}>
+          <Text style={styles.toastTitleWarning}>Check your internet connectivity</Text>
+          <Text style={styles.toastMessageWarning}>
             Generation and purchases need internet
           </Text>
         </View>

@@ -26,7 +26,8 @@ import styles from '../styles';
  * before/after comparison so the user can preview what they're
  * about to apply, then provides Gallery / Camera entry points.
  *
- * Gallery / Camera open the OS picker + crop, then `onPicked`.
+ * Gallery / Camera open the picker, then integrated uCrop on native builds
+ * (full photo selected by default). Then `onPicked`.
  */
 export default function UploadScreen({
   style,
@@ -97,8 +98,10 @@ export default function UploadScreen({
     <View style={styles.uploadRoot}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
-      {/* Comparison background — looping before/after for the selected style */}
+      {/* Comparison background — looping before/after, including stickers */}
       <ComparisonFade
+        key={style?.id || 'upload-comparison'}
+        instanceKey={style?.id || 'upload-comparison'}
         beforeSource={comparisonPair.before}
         afterSource={comparisonPair.after}
         afterSources={comparisonPair.afters}
@@ -157,7 +160,7 @@ export default function UploadScreen({
           <UploadSourceOption
             icon="folder"
             title="Photo library"
-            subtitle="Pick and crop from your albums"
+            subtitle="Pick from your albums"
             loading={picking && pickingSource === 'gallery'}
             onPress={() => handlePick(false)}
             disabled={picking}
@@ -165,7 +168,7 @@ export default function UploadScreen({
           <UploadSourceOption
             icon="camera"
             title="Camera"
-            subtitle="Take a shot, then crop"
+            subtitle="Take a photo"
             loading={picking && pickingSource === 'camera'}
             onPress={() => handlePick(true)}
             disabled={picking}

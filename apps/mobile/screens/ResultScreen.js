@@ -46,7 +46,6 @@ export default function ResultScreen({
   result,
   loading,
   job = null,
-  error,
   failedAttempts = 0,
   onRetry,
   onBack,
@@ -75,11 +74,14 @@ export default function ResultScreen({
   const sliderUserTouchedRef = useRef(false);
   const unloadableReportedRef = useRef(false);
   const hasResult = !!result && !!imageUrl;
-  const maxRetriesReached = error && failedAttempts >= 3;
+  const maxRetriesReached = !hasResult && failedAttempts >= 3;
+  const showRetry = !loading && !hasResult && failedAttempts > 0 && failedAttempts < 3;
   const displayUri = localPreviewUri || imageUrl;
   const showCompare = hasResult && !loading && !!displayUri && !previewError;
   const showLoadingOverlay = (loading && !hasResult) || (hasResult && !displayUri && !previewError);
   const actionsBusy = loading || saving || sharing;
+  const previewPending = hasResult && !displayUri && !previewError;
+  const saveDisabled = !hasResult || actionsBusy || previewError || previewPending;
 
   const creatingPhrase = useMemo(() => resolveCategoryCreatingPhrase(style), [style]);
 
@@ -476,11 +478,6 @@ export default function ResultScreen({
                 <Text style={styles.resultLoadingSubtitle}>
                   {progressCopy.subtitle}
                 </Text>
-                {progressCopy.statusHint ? (
-                  <Text style={styles.resultLoadingStatusHint}>
-                    {progressCopy.statusHint}
-                  </Text>
-                ) : null}
                 <View style={styles.resultLoadingDots}>
                   {Array.from({ length: JOB_PROGRESS_PHASE_COUNT }).map((_, index) => (
                     <View
@@ -532,12 +529,8 @@ export default function ResultScreen({
           </View>
         ) : null}
 
-        {!loading && error && !maxRetriesReached ? (
+        {showRetry ? (
           <View style={styles.errorRetryContainer}>
-            <View style={styles.errorRetryHeader}>
-              <Feather name="alert-circle" size={18} color="#DC2626" />
-              <Text style={styles.errorRetryMessage}>{error}</Text>
-            </View>
             <PressScale onPress={onRetry} style={styles.retryButton} disabled={loading}>
               <Text style={styles.retryButtonText}>Try again</Text>
             </PressScale>
@@ -574,10 +567,10 @@ export default function ResultScreen({
             style={[
               styles.resultActionButton,
               hasBeenSaved && styles.resultActionButtonSaved,
-              (!hasResult || actionsBusy || previewError) && styles.buttonDisabled,
+              saveDisabled && styles.buttonDisabled,
             ]}
             onPress={() => handleDownload()}
-            disabled={!hasResult || actionsBusy || previewError}
+            disabled={saveDisabled}
           >
             {saving ? (
               <ActivityIndicator size="small" color="#0F172A" />
@@ -602,10 +595,10 @@ export default function ResultScreen({
           <PressScale
             style={[
               styles.resultActionButton,
-              (!hasResult || actionsBusy || previewError) && styles.buttonDisabled,
+              saveDisabled && styles.buttonDisabled,
             ]}
             onPress={handleShare}
-            disabled={!hasResult || actionsBusy || previewError}
+            disabled={saveDisabled}
           >
             {sharing ? (
               <ActivityIndicator size="small" color="#0F172A" />

@@ -25,21 +25,23 @@ const CATEGORY_CREATING_NAME = {
   caricatures: 'caricature',
   cartoons: 'cartoon',
   paintings: 'painting',
-  '3d-characters': '3D character',
+  '3d-characters': '3D',
   sculptures: 'sculpture',
-  'anime-manga': 'anime',
-  'stickers-emojis': 'sticker',
+  'stickers': 'sticker',
   'drawings-sketches': 'drawing',
+  photography: 'photo',
+  'age-transformation': 'age portrait',
+  'retro-nostalgia': 'retro look',
   historical: 'historical portrait',
   art: 'artwork',
   professions: 'portrait',
   'seasonal-events': 'seasonal portrait',
-  tinyme: 'TinyMe look',
   'moods-moments': 'mood portrait',
 };
 
 export function resolveCategoryCreatingPhrase(style) {
   if (!style) return 'look';
+  if (style.id === 'sticker-sheet') return 'sticker pack';
   const categoryId = style.categoryId || getStyleCategory(style.id);
   if (categoryId && CATEGORY_CREATING_NAME[categoryId]) {
     return CATEGORY_CREATING_NAME[categoryId];

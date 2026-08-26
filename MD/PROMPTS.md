@@ -8,7 +8,7 @@ Regenerate this file after prompt changes:
 node scripts/generate-prompts-md.js
 ```
 
-**Last generated:** 2026-07-31 · **110 enabled** · **1 disabled** in LEGACY_STYLES
+**Last generated:** 2026-08-18 · **178 enabled** · **11 disabled** in LEGACY_STYLES
 
 Prompts are server-side only — the mobile app never bundles them. When adding a style, copy/adapt a prompt here, then add it to `LEGACY_STYLES` and deploy staging.
 
@@ -30,108 +30,6 @@ See also: `MD/STYLES.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`.
 
 ## Enabled prompts
 
-### Moods & Moments
-
-#### `monday-mood` — Monday
-
-- **Category:** moods-moments
-- **Model:** SEEDREAM_4_5 · NANO_BANANA_2 · NANO_BANANA (random)
-- **Description:** Humorous Monday Mood cartoon — exhausted, relatable, identity preserved
-
-```
-Preserve the uploaded person's identity exactly. Create a humorous Monday Mood cartoon illustration. The person is exhausted, slouching with a varied mood and expressions Add random scenarios in relation to the illustration. Warm painterly comic illustration, expressive brushwork, clean composition, humorous but relatable, identity preserved..
-```
-
-#### `friday-feeling` — Friday
-
-- **Category:** moods-moments
-- **Model:** NANO_BANANA_2 · NANO_BANANA (random)
-- **Description:** Humorous Friday Feeling illustration — excited, relaxed, full of energy
-
-```
-Preserve the uploaded person's identity exactly. Create a humorous Friday Feeling illustration. The person is excited, relaxed, smiling, and full of energy with varied moods and expressions. Add random scenarios in relation to the illustration. Warm painterly comic illustration, expressive brushwork, clean composition, humorous but relatable, identity preserved.
-```
-
-#### `payday` — Payday
-
-- **Category:** moods-moments
-- **Model:** NANO_BANANA
-- **Description:** Payday glow-up caricature — flush, smug, and briefly unstoppable
-
-```
-Using the uploaded photo as the sole identity reference, create a funny caricature of the subject as Payday. Preserve facial likeness, age, ethnicity, hairstyle, and clothing while exaggerating a smug, flush, briefly-unstoppable grin. Scene: playful payday moment — bank notification vibe, shopping bags or coffee treat nearby, soft glamorous lighting. Mood: temporary wealth swagger, light comedy. Style: polished humorous editorial caricature. Full-bleed. No readable text, logos, watermarks, or borders.
-```
-
-#### `end-of-month` — End of Month
-
-- **Category:** moods-moments
-- **Model:** NANO_BANANA
-- **Description:** Broke-but-surviving end-of-month caricature — empty wallet energy
-
-```
-Using the uploaded photo as the sole identity reference, create a funny caricature of the subject as End of Month. Preserve facial likeness, age, ethnicity, hairstyle, and clothing while exaggerating a broke-but-surviving, empty-wallet expression. Scene: end-of-month realism — sparse fridge vibes, empty wallet or nearly empty card, ramen or toast nearby, soft comic lighting. Mood: relatable financial humor, not harsh. Style: polished humorous editorial caricature. Full-bleed. No readable text, logos, watermarks, or borders.
-```
-
-#### `before-coffee` — Before Coffee
-
-- **Category:** moods-moments
-- **Model:** NANO_BANANA
-- **Description:** Pre-caffeine zombie caricature — half-awake and unapproachable
-
-```
-Using the uploaded photo as the sole identity reference, create a funny caricature of the subject as Before Coffee. Preserve facial likeness, age, ethnicity, hairstyle, and clothing while exaggerating a half-awake, unapproachable, pre-caffeine zombie expression. Scene: morning kitchen or bathroom — empty mug waiting, dim soft light, bedhead energy. Mood: comic warning label energy. Style: polished humorous editorial caricature. Full-bleed. No text, logos, watermarks, or borders.
-```
-
-#### `after-coffee` — After Coffee
-
-- **Category:** moods-moments
-- **Model:** NANO_BANANA
-- **Description:** Post-caffeine glow caricature — alert, caffeinated, and finally human
-
-```
-Using the uploaded photo as the sole identity reference, create a funny caricature of the subject as After Coffee. Preserve facial likeness, age, ethnicity, hairstyle, and clothing while exaggerating an alert, caffeinated, finally-human expression. Scene: bright morning light, steaming coffee cup in hand or nearby, energetic posture. Mood: revitalized comedy glow-up. Style: polished humorous editorial caricature with crisp lighting. Full-bleed. No text, logos, watermarks, or borders.
-```
-
-#### `deadline-mode` — Deadline Mode
-
-- **Category:** moods-moments
-- **Model:** NANO_BANANA
-- **Description:** Deadline chaos caricature — intense focus, caffeine, and ticking clock energy
-
-```
-Using the uploaded photo as the sole identity reference, create a funny caricature of the subject as Deadline Mode. Preserve facial likeness, age, ethnicity, hairstyle, and clothing while exaggerating intense focus, mild panic, and hyper-productive energy. Scene: desk buried in notes and screens, coffee cups, soft dramatic task lighting, ticking-clock tension without readable text. Mood: stressful comedy. Style: polished humorous editorial caricature. Full-bleed. No logos, watermarks, or borders.
-```
-
-#### `vacation-mood` — Vacation Mood
-
-- **Category:** moods-moments
-- **Model:** NANO_BANANA
-- **Description:** Vacation-brain caricature — sunglasses, sun, and zero responsibilities
-
-```
-Using the uploaded photo as the sole identity reference, create a funny caricature of the subject as Vacation Mood. Preserve facial likeness, age, ethnicity, hairstyle, and clothing while exaggerating a relaxed, sunglasses-optional, zero-responsibilities smile. Scene: sunny vacation setting — beach, pool, or resort lounge with warm sunlight and soft tropical colors. Mood: blissful escape comedy. Style: polished humorous editorial caricature. Full-bleed. No text, logos, watermarks, or borders.
-```
-
-#### `gym-motivation` — Gym Motivation
-
-- **Category:** moods-moments
-- **Model:** NANO_BANANA
-- **Description:** Gym-day caricature — hyped, determined, and slightly overconfident
-
-```
-Using the uploaded photo as the sole identity reference, create a funny caricature of the subject as Gym Motivation. Preserve facial likeness, age, ethnicity, hairstyle, and athletic or casual gym clothing while exaggerating a hyped, determined, slightly overconfident expression. Scene: gym or workout setting — weights, water bottle, energetic lighting. Mood: motivational comedy, not body-shaming. Style: polished humorous editorial caricature. Full-bleed. No text, logos, watermarks, or borders.
-```
-
-#### `forgot-my-password` — Forgot My Password
-
-- **Category:** moods-moments
-- **Model:** NANO_BANANA
-- **Description:** Password-reset rage caricature — staring at a screen in digital despair
-
-```
-Using the uploaded photo as the sole identity reference, create a funny caricature of the subject as Forgot My Password. Preserve facial likeness, age, ethnicity, hairstyle, and clothing while exaggerating digital despair — blank stare, mild rage, forehead-in-hand energy at a laptop or phone. Scene: desk or couch with glowing screen, soft comic lighting. Mood: relatable tech frustration comedy. Style: polished humorous editorial caricature. Full-bleed. No readable UI text, logos, watermarks, or borders.
-```
-
 ### Caricatures
 
 #### `handd` — Hand-Drawn
@@ -144,16 +42,6 @@ Using the uploaded photo as the sole identity reference, create a funny caricatu
 Using the uploaded photo as the visual reference, create a hand-drawn editorial caricature of the subject. The caricature should feature a very large, exaggerated head and a small, simplified body, preserving the subject's core facial likeness while emphasizing distinctive features. Strongly exaggerate: Head size and facial proportions, Nose, cheeks, jaw, and brow, Eye spacing and expression. Style: Traditional colored-pencil and ink illustration, Visible pencil strokes, Cross-hatching and line shading, Slightly uneven, hand-drawn outlines, Subtle paper texture. Shading should be: Built with layered pencil tones, Warm, earthy colors, No smooth digital gradients. Facial expression should be expressive and characterful, leaning slightly humorous or serious depending on the reference photo. Clothing should be simplified and secondary, drawn with minimal detail to keep focus on the face. Background: Plain, light, off-white or beige, Minimal texture only, No scenery, no environment. Overall look: Classic newspaper / magazine caricature, Hand-drawn, imperfect, human, Exaggerated but recognizable. Full-bleed illustration. No borders. Avoid 3D, avoid painterly styles, avoid realism.
 ```
 
-#### `editorial` — Editorial
-
-- **Category:** caricatures
-- **Model:** NANO_BANANA
-- **Description:** Sophisticated magazine editorial caricature with ink linework and watercolor washes
-
-```
-Create a sophisticated editorial caricature of the provided subject while faithfully preserving their identity, facial structure, age, ethnicity, hairstyle, expression, clothing, and pose. Exaggerate the defining facial characteristics in a tasteful editorial manner—slightly enlarge the head, emphasize the forehead, eyebrows, eyes, nose, ears, cheek lines, smile lines, and wrinkles to communicate wisdom and character without becoming grotesque. Maintain realistic facial proportions despite the stylization. Render in a premium newspaper/magazine editorial illustration style using expressive black ink linework, fine cross-hatching, loose pen strokes, and layered watercolor washes. Use warm, earthy tones with subtle texture from watercolor paper. Employ confident contour lines, varied line weights, and painterly shading to create depth while retaining a handcrafted appearance. Preserve the library setting with bookshelves and the armchair, but simplify the background into soft watercolor shapes and sketch-like details so it supports rather than competes with the subject. Use soft natural window lighting, gentle shadows, and a muted, elegant color palette. The overall mood should be thoughtful, distinguished, intellectual, and timeless—resembling a high-end editorial portrait published in The New Yorker, The Economist, Financial Times, or a literary magazine. No typography, captions, speech bubbles, logos, signatures, watermarks, borders, decorative frames, or graphic elements. Background should remain clean and uncluttered, with the subject as the clear focal point.
-```
-
 #### `exaggerated` — Exaggerated
 
 - **Category:** caricatures
@@ -164,17 +52,7 @@ Create a sophisticated editorial caricature of the provided subject while faithf
 Make this an Exaggerated 3d cartoon caricature
 ```
 
-#### `watercolor` — Watercolor
-
-- **Category:** caricatures
-- **Model:** SEEDREAM_4
-- **Description:** Watercolor caricature with soft painterly washes and stylized shading
-
-```
-Make this a Watercolor caricature
-```
-
-#### `carc1` — Carc1
+#### `carc1` — Caricature 1
 
 - **Category:** caricatures
 - **Model:** SEEDREAM_4
@@ -182,6 +60,206 @@ Make this a Watercolor caricature
 
 ```
 Using the uploaded photo as the sole identity reference, create a full-body stylized 3D caricature that faithfully preserves the person's recognizable facial features, body type, skin tone, ethnicity, hairstyle, facial hair, clothing, footwear, and accessories. The character should unmistakably resemble the person in the reference photo. Maintain a clean studio composition with the character standing upright in a relaxed pose, facing forward, with the entire body visible from head to toe. Apply a cohesive stylized character design with: An oversized head (approximately 1.8–2.2× realistic size), A very long, slim neck, A smaller, simplified torso, Long, thin arms and legs, Large expressive hands, Slightly oversized shoes, Gentle exaggeration of the person's natural facial features (nose, ears, jawline, cheeks, eyes, lips, eyebrows) while preserving identity, Expressive but believable proportions. Preserve the person's actual: race and skin tone, facial structure, hairstyle, facial hair, age appearance, body build (slim, average, muscular, heavy-set, etc.), clothing style, colors, textures and logos (unless copyright-safe replacements are required), accessories. Render using premium stylized 3D character artwork with: physically based materials, soft cinematic lighting, subtle skin texture, realistic fabric folds, clean matte surfaces, high-quality sculpted details, smooth stylized anatomy, slightly enlarged eyes with expressive brows. The expression should be natural and personality-driven rather than exaggerated into comedy. Keep the background completely transparent with no floor, shadows, props, or scenery. The final image should resemble a collectible animated film character or high-end stylized game character while remaining an unmistakable caricature of the person in the uploaded photograph.
+```
+
+#### `carc2` — Caricature 2
+
+- **Category:** caricatures
+- **Model:** NANO_BANANA_2
+- **Description:** Hilarious caricature with exaggerated facial features
+
+```
+create a hilarious caricature of the subject, exaggerated facial features
+```
+
+#### `carc3` — Caricature 3
+
+- **Category:** caricatures
+- **Model:** NANO_BANANA_2
+- **Description:** Hilarious caricature that exaggerates the subject’s most distinctive facial proportions
+
+```
+create a hilarious caricature of the subject, Analyze the subject's naturally distinctive facial proportions and exaggerate their unique characteristics rather than applying generic oversized eyes or a uniformly enlarged head. Preserve identity while amplifying the person's most recognizable features in a humorous, flattering, and expressive way.
+```
+
+#### `carc4` — Caricature 4
+
+- **Category:** caricatures
+- **Model:** NANO_BANANA_2
+- **Description:** Hilarious caricature that exaggerates the subject’s most distinctive facial proportions
+
+```
+create a hilarious caricature of the subject, Analyze the subject's naturally distinctive facial proportions and exaggerate their unique characteristics rather than applying generic oversized eyes or a uniformly enlarged head. Preserve identity while amplifying the person's most recognizable features in a humorous, flattering, and expressive way.
+```
+
+#### `carc5` — Caricature 5
+
+- **Category:** caricatures
+- **Model:** SEEDREAM_4_5
+- **Description:** Hilarious caricature with exaggerated facial features
+
+```
+create a hilarious caricature of the subject, exaggerated facial features
+```
+
+#### `carc6` — Caricature 6
+
+- **Category:** caricatures
+- **Model:** NANO_BANANA
+- **Description:** Hilarious caricature with exaggerated facial features
+
+```
+create a hilarious caricature of the subject, exaggerated facial features
+```
+
+#### `carc7` — Caricature 7
+
+- **Category:** caricatures
+- **Model:** NANO_BANANA_2
+- **Description:** Style-matched caricature face transfer — applies a cartoon template look while keeping race, sex, and facial identity
+
+```
+Using the 1st picture as a style reference and the 2nd picture as the subject: switch the face treatment of the 2nd picture's subject to duplicate the overall caricature style of the 1st picture. Caricaturize the subject's face to match the style of the 1st picture while maintaining the 2nd subject's overall facial features, race, and sex. Maintain the caricature cartoon style.
+```
+
+#### `carc8` — Caricature 8
+
+- **Category:** caricatures
+- **Model:** NANO_BANANA_2
+- **Description:** Style-matched caricature face transfer — applies a cartoon template look while keeping race, sex, and facial identity
+
+```
+Using the 1st picture as a style reference and the 2nd picture as the subject: switch the face treatment of the 2nd picture's subject to duplicate the overall caricature style of the 1st picture. Caricaturize the subject's face to match the style of the 1st picture while maintaining the 2nd subject's overall facial features, race, and sex. Maintain the caricature cartoon style.
+```
+
+#### `carc9` — Caricature 9
+
+- **Category:** caricatures
+- **Model:** NANO_BANANA_2
+- **Description:** Style-matched caricature face transfer — applies a cartoon template look while keeping race, sex, and facial identity
+
+```
+Using the 1st picture as a style reference and the 2nd picture as the subject: switch the face treatment of the 2nd picture's subject to duplicate the overall caricature style of the 1st picture. Caricaturize the subject's face to match the style of the 1st picture while maintaining the 2nd subject's overall facial features, race, and sex. Maintain the caricature cartoon style. No text.
+```
+
+#### `carc10` — Caricature 10
+
+- **Category:** caricatures
+- **Model:** NANO_BANANA_2
+- **Description:** Style-matched caricature into a template scene — keeps the reference background and artistic expression while preserving subject identity
+
+```
+Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Maintain the background of the 1st picture. If the subject is solo on the 2nd picture, do not add any other characters. No text.
+```
+
+#### `carc11` — Caricature 11
+
+- **Category:** caricatures
+- **Model:** NANO_BANANA_2
+- **Description:** Style-matched caricature into a template scene — keeps the reference background and artistic expression while preserving subject facial identity
+
+```
+Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Maintain the background of the 1st picture. If the subject is solo on the 2nd picture, do not add any other characters. No text. Try as much as possible to maintain facial identity of the 2nd picture's subject(s) facial features.
+```
+
+#### `carc12` — Caricature 12
+
+- **Category:** caricatures
+- **Model:** NANO_BANANA_2
+- **Description:** Style-matched caricature face transfer — applies a cartoon template look while keeping race, sex, and facial identity
+
+```
+Using the 1st picture as a style reference and the 2nd picture as the subject: switch the face treatment of the 2nd picture's subject to duplicate the overall caricature style of the 1st picture. Caricaturize the subject's face to match the style of the 1st picture while maintaining the 2nd subject's overall facial features, race, and sex. Maintain the caricature cartoon style.
+```
+
+#### `carc13` — Caricature 13
+
+- **Category:** caricatures
+- **Model:** NANO_BANANA_2
+- **Description:** Style-matched caricature face transfer — applies a cartoon template look while keeping race, sex, clothing, and facial identity
+
+```
+Using the 1st picture as a style reference and the 2nd picture as the subject: switch the face treatment of the 2nd picture's subject to duplicate the overall caricature style of the 1st picture. Caricaturize the subject's face to match the style of the 1st picture while maintaining the 2nd subject's overall facial features, race, and sex. Maintain the caricature cartoon style. Maintain the 2nd subject's clothing. Use a solid colorful background.
+```
+
+#### `carc14` — Caricature 14
+
+- **Category:** caricatures
+- **Model:** NANO_BANANA_2
+- **Description:** Style-matched caricature into a template scene — keeps the reference background and exaggerated features while preserving subject identity
+
+```
+Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Maintain the background of the 1st picture. If the subject is solo on the 2nd picture, do not add any other characters. No text. Don't add the rings. Maintain the 1st picture's exaggerated features.
+```
+
+#### `carc15` — Caricature 15
+
+- **Category:** caricatures
+- **Model:** NANO_BANANA_2
+- **Description:** Style-matched caricature into a template scene — keeps the reference background and exaggerated features while preserving subject identity
+
+```
+Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Maintain the background of the 1st picture. If the subject is solo on the 2nd picture, do not add any other characters. No text. Don't add the rings. Maintain the 1st picture's exaggerated features.
+```
+
+#### `carc17` — Caricature 17
+
+- **Category:** caricatures
+- **Model:** NANO_BANANA_2
+- **Description:** Roman caricature style transfer — keeps subject identity, expression, clothing, and sex while applying the reference scene style
+
+```
+Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Maintain the background of the 1st picture. If the subject is solo on the 2nd picture, do not add any other characters. No text. Maintain the 2nd subject's facial features and expressions while transferring the 1st picture's overall style. Keep the 2nd subject's clothes if they have any, including pants. Keep in mind the 2nd subject(s) sex. The 1st image is a Roman caricature and not an NSFW photo. Remove the club.
+```
+
+#### `carc18` — Caricature 18
+
+- **Category:** caricatures
+- **Model:** NANO_BANANA_2
+- **Description:** Style-matched caricature into a template scene — keeps the reference background and exaggerated features while preserving subject identity
+
+```
+Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Maintain the background of the 1st photo. If the subject is solo on the 2nd picture, do not add any other characters. No text. Don't add the earrings. Maintain the 1st picture's exaggerated features.
+```
+
+#### `carc19` — Caricature 19
+
+- **Category:** caricatures
+- **Model:** NANO_BANANA_2
+- **Description:** Style-matched caricature into a template scene — keeps the reference background, clothing, and exaggerated features while preserving subject identity
+
+```
+Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Maintain the background of the 1st photo. If the subject is solo on the 2nd picture, do not add any other characters. Keep the 2nd subject's clothes if they have any, including pants. No text. Don't add the basketball. Maintain the 1st picture's exaggerated features.
+```
+
+#### `carc20` — Caricature 20
+
+- **Category:** caricatures
+- **Model:** NANO_BANANA_2
+- **Description:** Style-matched caricature into a template scene — keeps reference background and exaggeration, subject clothes, face and body identity
+
+```
+Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Maintain the background of the 1st photo. If the subject is solo on the 2nd picture, do not add any other characters. Keep the 2nd subject's clothes if they have any, include pants. No text. Maintain the 1st picture's exaggerated features. Maintain the 2nd picture's facial and body features. Keep gender on the 2nd picture in mind. do not transfer any facial and body likeness of the 1st pic.
+```
+
+#### `carc21` — Caricature 21
+
+- **Category:** caricatures
+- **Model:** NANO_BANANA_2
+- **Description:** Style-matched caricature with solid colorful background — keeps exaggerated features, clothing, and facial identity
+
+```
+Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Set a solid colorful background. If the subject is solo on the 2nd picture, do not add any other characters. Keep the 2nd subject's clothes if they have any, include pants. No text. Maintain the 1st picture's exaggerated features. Maintain the 2nd picture's facial features. Keep gender on the 2nd picture in mind. Don't add the chain and ring. Don't copy the left hand gesture.
+```
+
+#### `carc22` — Caricature 22
+
+- **Category:** caricatures
+- **Model:** NANO_BANANA_2
+- **Description:** Style-matched caricature with solid colorful background — keeps exaggerated features, clothing, and facial identity
+
+```
+Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Set a solid colorful background. If the subject is solo on the 2nd picture, do not add any other characters. Keep the 2nd subject's clothes if they have any, include pants. No text. Maintain the 1st picture's exaggerated features. Maintain the 2nd picture's facial features. Keep gender on the 2nd picture in mind. Don't add the tattoo, glasses and chain.
 ```
 
 #### `3d-bd` — 3D BD
@@ -214,6 +292,16 @@ Transform a person in a source photo into an ultra-realistic, highly detailed pr
 An exaggerated hybrid cartoon character combining sculpted 3D volume with expressive painted illustration style, featuring distorted stylized proportions and artistic facial deformation, freely adapting the person's appearance without realistic facial accuracy while keeping recognizable traits such as skin tone and hairstyle, the character captured in a dynamic dance pos full of motion and rhythm, flowing body ges and expressive posture, visible brush strok painted shadows and graphic textures layer over soft 3D forms, contemporary animated illustration aesthetic, solid blue studio background, stylized studio lighting translated into painterly highlights and shadows, energetic composition, textured paint surfaces and high-end hybrid 3D illustration render
 ```
 
+#### `mugface` — Mugface
+
+- **Category:** caricatures
+- **Model:** NANO_BANANA_2
+- **Description:** Style-matched caricature face transfer — applies a mug-style template look while keeping the subject recognizable
+
+```
+Using the 1st picture as a style reference and the 2nd picture as the subject: switch the face treatment of the 2nd picture's subject to duplicate the overall caricature style of the 1st picture. Caricaturize the subject's face to match the style of the 1st picture while maintaining the 2nd subject's facial features and identity. Do not include the hat from the 1st picture.
+```
+
 #### `tiny-muscle-v1` — Tiny Muscle V1
 
 - **Category:** caricatures
@@ -234,7 +322,57 @@ Preserve the uploaded person's identity exactly. Transform the person into a hum
 Preserve the uploaded person's identity exactly. Transform the person into a humorous hyper-muscular cartoon caricature while maintaining their recognizable face, hairstyle, skin tone, facial hair, and personality.nnExaggerate characteristic facial features to the extreme: enlarge the head relative to the body, make facial expressions more expressive, but don't distort the person beyond recognition. Emphasize the shape of the eyes (make them huge), eyebrows, nose (make it big), lips, cheekbones, and jawline, while maintaining natural proportions and visual similarity to the reference.nnDramatically exaggerate the physique with enormous rounded shoulders, gigantic biceps, thick forearms, massive chest, oversized trapezius muscles, a powerful V-shaped torso, sculpted eight-pack abs, broad back, muscular thighs, and athletic calves. The proportions should be intentionally exaggerated and cartoonishly powerful while remaining visually appealing and cohesive. The body should look like an impossibly muscular comic-book hero rather than a realistic bodybuilder.nnPreserve the person's facial identity, but subtly enhance the expression with a confident grin, determined eyes, and strong jawline without over-distorting their unique facial features.nnRender smooth, clean muscle contours with glossy skin highlights, rounded anatomical forms, and premium digital illustration quality. Emphasize heroic proportions, dynamic anatomy, exaggerated strength, and energetic visual appeal. Rich colour gradients, soft studio lighting, subtle ambient occlusion, crisp edges, and high-detail digital painting with a polished commercial illustration finish. Humorous yet impressive, premium character design, ultra-detailed, vibrant, 8K quality.
 ```
 
+#### `tiny-muscle-v3` — Tiny Muscle V3
+
+- **Category:** caricatures
+- **Model:** NANO_BANANA_2
+- **Description:** Style-matched caricature into a template scene — keeps the reference background and exaggerated features while preserving subject clothing and identity
+
+```
+Using the 1st picture as a reference, caricaturize the subject(s) of the 2nd picture with the overall artistic expression of the 1st picture. Maintain the background of the 1st picture. If the subject is solo on the 2nd picture, do not add any other characters. No text. Don't add the rings. Maintain the 1st picture's exaggerated features. Keep the 2nd subject's clothes if they have any. Keep in mind the 2nd subject(s) gender.
+```
+
+#### `victorian` — Victorian
+
+- **Category:** caricatures
+- **Model:** SEEDREAM_4_5
+- **Description:** Humorous late-Victorian 3D caricature with period fashion, sepia portrait atmosphere, and strong facial likeness
+
+```
+Using the uploaded image as the only facial and identity reference, transform the subject into a humorous, highly recognizable 3D caricature set in the late Victorian era, approximately 1890–1901.nnPreserve the subject's identity and distinctive facial characteristics with high likeness accuracy. Retain their recognizable facial structure, eyes, nose, mouth, facial proportions, skin tone, hairstyle characteristics and other unique features. Do not replace the subject's face with a generic historical character.nnCreate a polished, high-quality 3D caricature with tasteful exaggeration: a slightly enlarged head, subtly exaggerated facial features, expressive eyes, distinctive facial proportions and a playful caricatured interpretation of the subject while maintaining strong facial likeness.nnDress the subject in authentic late-Victorian fashion appropriate to their gender and social setting. Use period-accurate clothing such as formal three-piece suits, waistcoats, high collars, cravats, pocket watches, long coats, Victorian dresses, corsets, skirts, hats, gloves and other appropriate late-19th-century garments.nnMake the historical styling visually rich and recognizable. Include authentic Victorian architecture, interiors, streets, furniture, props or environmental details when appropriate to the composition.nnAdd subtle humorous character elements that make the image feel like a Funnyfy caricature rather than a serious historical portrait. Give the subject a confident, slightly exaggerated personality and expressive pose while maintaining the dignity and visual language of the Victorian era.nnUse realistic 3D materials, detailed fabric, believable skin texture, cinematic lighting, soft depth of field and polished studio-quality rendering. The result should resemble a premium 3D caricature sculpture brought to life as a cinematic historical portrait.nnUse an authentic period photographic treatment inspired by late-19th-century portrait photography, including restrained sepia or monochrome tones, subtle film grain, soft contrast and an aged photographic atmosphere.nnThe final image should look like a humorous Victorian-era portrait of the actual uploaded person, combining strong facial likeness, tasteful caricature exaggeration and authentic historical styling.nnAvoid generic historical faces, changing the person's identity, modern clothing, modern hairstyles, modern objects, contemporary environments, cartoon-flat rendering, excessive facial distortion, grotesque features, photorealistic modern photography, or a simple sepia filter applied to the original image.
+```
+
 ### Cartoons
+
+#### `80s-cartoon` — 80s
+
+- **Category:** cartoons
+- **Model:** NANO_BANANA_2
+- **Description:** Classic 80s animated cartoon style
+
+```
+Make this a 80s cartoon. no text.
+```
+
+#### `video-game-i` — Video game V1
+
+- **Category:** cartoons
+- **Model:** NANO_BANANA_2
+- **Description:** Stylized urban video-game character illustration with bold linework, cinematic lighting, and strong facial likeness
+
+```
+Using the uploaded photo as the sole reference, transform the subject into a stylized gta san andreas inspired character illustration. Preserve the subject's recognizable identity, facial structure, hairstyle, skin tone, body proportions, clothing, and distinctive features with strong likeness accuracy.nnUse bold graphic shapes, exaggerated but believable facial features, sharp clean linework, dramatic cinematic lighting, saturated colors, strong shadows, subtle texture, and a polished illustrated finish. Give the character a confident, expressive, larger-than-life appearance while keeping the original pose and clothing recognizable.nnCreate a dynamic, poster-like composition with a gritty urban-game atmosphere, dramatic perspective, crisp details, and a high-end digitally painted finish. Do not add logos, text, game titles, recognizable characters, or specific copyrighted artwork. Keep the background simple and non-distracting so the subject remains the focus.
+```
+
+#### `video-game-ii` — Video game V2
+
+- **Category:** cartoons
+- **Model:** NANO_BANANA_2
+- **Description:** Stylized modern urban video-game character illustration with bold linework, cinematic lighting, and strong facial likeness
+
+```
+Using the uploaded photo as the sole reference, transform the subject into a stylized gta v inspired character illustration. Preserve the subject's recognizable identity, facial structure, hairstyle, skin tone, body proportions, clothing, and distinctive features with strong likeness accuracy.nnUse bold graphic shapes, exaggerated but believable facial features, sharp clean linework, dramatic cinematic lighting, saturated colors, strong shadows, subtle texture, and a polished illustrated finish. Give the character a confident, expressive, larger-than-life appearance while keeping the original pose and clothing recognizable.nnCreate a dynamic, poster-like composition with a gritty urban-game atmosphere, dramatic perspective, crisp details, and a high-end digitally painted finish. Do not add logos, text, game titles, recognizable characters, or specific copyrighted artwork. Keep the background simple and non-distracting so the subject remains the focus.
+```
 
 #### `90s-cartoon` — 90s
 
@@ -249,7 +387,7 @@ Make this a 90s cartoon
 #### `chibi` — Chibi
 
 - **Category:** cartoons
-- **Model:** DEFAULT_MODEL
+- **Model:** NANO_BANANA_2
 - **Description:** Cute, big-head chibi cartoon style
 
 ```
@@ -316,16 +454,6 @@ make this a comic Cartoon
 make this a cute Cartoon
 ```
 
-#### `dc` — DC
-
-- **Category:** cartoons
-- **Model:** DEFAULT_MODEL
-- **Description:** DC style cartoon with bold superhero comic-book character design
-
-```
-make this a DC style Cartoon
-```
-
 #### `cyberpunk-v1` — Cyberpunk V1
 
 - **Category:** cartoons
@@ -346,14 +474,24 @@ make this a cyberpunk style cartoon, no extra text
 make this a cyberpunk style cartoon, no extra text
 ```
 
-#### `disney` — Disney
+#### `disney` — Animated
 
 - **Category:** cartoons
 - **Model:** NANO_BANANA_2
-- **Description:** Disney-style cartoon with soft features and classic animated character charm
+- **Description:** Classic animated cartoon with soft features and charming character design
 
 ```
-make this a disney style cartoon, no extra text
+make this an animated cartoon with soft features, no extra text
+```
+
+#### `ghibli` — Ghibli
+
+- **Category:** cartoons
+- **Model:** NANO_BANANA_2
+- **Description:** Studio Ghibli-style cartoon
+
+```
+make this a ghibli cartoon
 ```
 
 #### `pixel` — Pixel
@@ -404,6 +542,66 @@ make this a Comic Book Style cartoon
 
 ```
 make this a Comic Book Style cartoon
+```
+
+#### `comic-v3` — Comic V3
+
+- **Category:** cartoons
+- **Model:** DEFAULT_MODEL
+- **Description:** Comic book style cartoon with bold superhero comic-book character design
+
+```
+make this a DC style Cartoon
+```
+
+#### `anime` — Anime
+
+- **Category:** cartoons
+- **Model:** DEFAULT_MODEL
+- **Description:** Anime-style cartoon
+
+```
+Make this an anime cartoon, maintaining poster and facial features
+```
+
+#### `manga` — Manga
+
+- **Category:** cartoons
+- **Model:** DEFAULT_MODEL
+- **Description:** Manga-style cartoon
+
+```
+Make this a manga cartoon, maintaining poster and facial features, no text
+```
+
+#### `genndy-v1` — Genndy V1
+
+- **Category:** cartoons
+- **Model:** DEFAULT_MODEL
+- **Description:** Genndy Tartakovsky-stylized 2D caricature with elongated faces, sharp angles, and noir-inspired shading
+
+```
+make a Genndy Tartakovsky-stylized 2D caricature character with elongated faces, and sharp angular features. Bold clean lineart, and dramatic noir-inspired shading. Character in suit and vintage outfit, placed inside a vertical color panel. Big expressive eyes, strong eyebrows, and a retro detective cartoon vibe. High-contrast, graphic, stylized character design. no text
+```
+
+#### `genndy-v2` — Genndy V2
+
+- **Category:** cartoons
+- **Model:** NANO_BANANA_2
+- **Description:** Genndy Tartakovsky-stylized 2D caricature with elongated faces, sharp angles, and noir-inspired shading
+
+```
+make a Genndy Tartakovsky-stylized 2D caricature character with elongated faces, and sharp angular features. Bold clean lineart, and dramatic noir-inspired shading. Character in suit and vintage outfit, placed inside a vertical color panel. Big expressive eyes, strong eyebrows, and a retro detective cartoon vibe. High-contrast, graphic, stylized character design. no text
+```
+
+#### `watercolor` — Watercolor
+
+- **Category:** cartoons
+- **Model:** SEEDREAM_4
+- **Description:** Watercolor caricature with soft painterly washes and stylized shading
+
+```
+Make this a Watercolor caricature
 ```
 
 ### Paintings
@@ -615,7 +813,7 @@ using this pic make all subjects as a Hokusai Inspired Painting
 - **Description:** Hiroshige inspired painting with elegant ukiyo-e landscapes and refined color
 
 ```
-using this pic make all subjects as a Hiroshige Inspired Painting, no extra text
+using this pic make all subjects as a Hiroshige Inspired Painting, no extra text, no change of clothing, no background change.
 ```
 
 #### `sesshu` — Sesshū
@@ -636,6 +834,364 @@ using this pic make all subjects as a Sesshū Inspired Painting in color, no ext
 
 ```
 Using the attached image as a reference create stylish dynamic stylized portrait of a person head, drawn with art watercolor markers. Use only one [color] color family in contrasting shades: a bright vivid shade for the crucial contour lines and details, a very light pastel shade for soft volume and shadows. Maximize the use of white paper (negative space). No dark colors. Marker strokes do not overlap, use long smooth dynamic lines where possible. Stylish perspective and camera angle. Only essential details. Slight paper texture is visible under the strokes, the rest is clean white. Bold, graphic, juicy
+```
+
+### Drawings & Sketches
+
+#### `pencil-sketch` — Pencil Sketch
+
+- **Category:** drawings-sketches
+- **Model:** DEFAULT_MODEL
+- **Description:** Professionally hand-drawn graphite pencil portrait with realistic shading and cross-hatching
+
+```
+Create a detailed hand-drawn pencil sketch of the uploaded subject, using the reference image as the primary guide. Preserve the subject’s identity, facial structure, proportions, hairstyle, expression, and distinctive features with high accuracy. Use realistic graphite pencil strokes, subtle shading, cross-hatching, soft tonal transitions, and fine linework to create natural depth and dimension. Keep the drawing monochrome in shades of graphite gray, with visible pencil texture and slight variations in stroke pressure. Maintain the original pose and composition of the reference image. Clean white or lightly textured paper background, no color, no painting effect, no digital-art appearance, no exaggerated cartoon features, and no unnecessary background elements. The final result should look like a professionally hand-drawn graphite portrait/sketch.
+```
+
+#### `charcoal` — Charcoal
+
+- **Category:** drawings-sketches
+- **Model:** DEFAULT_MODEL
+- **Description:** Professionally hand-drawn charcoal portrait with expressive strokes, soft smudging, and textured shading
+
+```
+Create a detailed hand-drawn charcoal portrait of the uploaded subject, using the reference image as the primary guide. Preserve the subject’s identity, facial structure, proportions, hairstyle, expression, and distinctive features with high accuracy. Use expressive charcoal strokes, rich dark tones, soft smudging, textured shading, subtle highlights, and carefully controlled contrast to create realistic depth and dimension. Maintain the original pose and composition of the reference image. Monochromatic black, gray, and charcoal tones on textured drawing paper, with natural charcoal grain and visible hand-drawn marks. Keep the background minimal and unobtrusive. No color, no painting effect, no digital-art appearance, no exaggerated cartoon features, and no unnecessary background elements. The final result should look like an authentic, professionally hand-drawn charcoal portrait.
+```
+
+#### `ink` — Ink
+
+- **Category:** drawings-sketches
+- **Model:** DEFAULT_MODEL
+- **Description:** Professionally hand-rendered ink portrait with crisp linework, hatching, and controlled shadow
+
+```
+Create a detailed hand-drawn ink portrait of the uploaded subject, using the reference image as the primary guide. Preserve the subject’s identity, facial structure, proportions, hairstyle, expression, and distinctive features with high accuracy. Use crisp black ink linework, varied line weights, fine hatching, cross-hatching, stippling, and controlled shadow areas to create depth and realistic form. Maintain the original pose and composition of the reference image. Monochromatic black ink on clean white or subtly textured paper, with natural hand-drawn imperfections and an authentic traditional illustration feel. Keep the background minimal and unobtrusive. No color, no watercolor, no pencil or charcoal texture, no digital painting appearance, no exaggerated cartoon features, and no unnecessary background elements. The final result should look like a professionally hand-rendered ink illustration.
+```
+
+#### `pen` — Pen
+
+- **Category:** drawings-sketches
+- **Model:** DEFAULT_MODEL
+- **Description:** Professionally hand-drawn pen illustration with precise contours, hatching, and technical-pen shading
+
+```
+Create a detailed hand-drawn pen illustration of the uploaded subject, using the reference image as the primary guide. Preserve the subject’s identity, facial structure, proportions, hairstyle, expression, and distinctive features with high accuracy. Use fine ballpoint or technical pen strokes, precise contours, varied line weights, cross-hatching, parallel hatching, and controlled stippling to build realistic shading and depth. Maintain the original pose and composition of the reference image. Use monochromatic black or dark-blue pen ink on clean white paper, with subtle natural pen texture and visible hand-drawn linework. Keep the background minimal and unobtrusive. No color painting, no pencil or charcoal texture, no watercolor effect, no digital painting appearance, no exaggerated cartoon features, and no unnecessary background elements. The final result should resemble a professionally hand-drawn pen illustration created with meticulous traditional pen technique.
+```
+
+#### `cross-hatched` — Cross-hatched
+
+- **Category:** drawings-sketches
+- **Model:** NANO_BANANA
+- **Description:** Meticulously hand-rendered traditional cross-hatched illustration with layered intersecting lines
+
+```
+Create a highly detailed traditional cross-hatched drawing of the uploaded subject, using the reference image as the primary guide. Preserve the subject’s identity, facial structure, proportions, hairstyle, expression, and distinctive features with high accuracy. Build the entire image using carefully layered intersecting lines, with dense cross-hatching in deep shadow areas, lighter single-direction hatching for midtones, and fine sparse lines for highlights. Use varied line density, direction, and thickness to create realistic form, depth, texture, and dimensionality. Maintain the original pose and composition of the reference image. Monochromatic black ink on clean white paper, with authentic hand-drawn imperfections and visible linework. Minimal background. No color, no smooth digital shading, no pencil or charcoal texture, no watercolor, no painting effect, and no exaggerated cartoon features. The final result should look like a meticulously hand-rendered traditional cross-hatched illustration.
+```
+
+#### `line-art` — Line Art
+
+- **Category:** drawings-sketches
+- **Model:** SEEDREAM_4_5
+- **Description:** Polished professional line-art illustration with precise outlines and minimal shading
+
+```
+Create a clean, detailed line-art illustration of the uploaded subject, using the reference image as the primary guide. Preserve the subject’s identity, facial structure, proportions, hairstyle, expression, and distinctive features with high accuracy. Use precise black outlines, smooth controlled contours, varied line weight, and selective fine interior details to clearly define the face, hair, clothing, and important features. Keep the drawing crisp and uncluttered, with minimal or no shading. Maintain the original pose and composition of the reference image. Monochromatic black linework on a clean white background, with a refined hand-drawn illustration quality. No color, no gradients, no cross-hatching, no pencil or charcoal texture, no filled shadows, no painting effect, and no unnecessary background elements. The final result should look like polished professional line art.
+```
+
+#### `fashion` — Fashion
+
+- **Category:** drawings-sketches
+- **Model:** NANO_BANANA
+- **Description:** Sophisticated editorial fashion sketch with expressive graphite and ink strokes
+
+```
+Create a sophisticated hand-drawn fashion sketch of the uploaded subject, using the reference image as the primary guide. Preserve the subject’s identity, facial features, hairstyle, proportions, and distinctive characteristics with high accuracy. Render the subject in an elegant fashion-illustration style using expressive graphite and ink strokes, elongated but natural fashion-illustration lines, loose gestural contours, refined garment detailing, and selective soft shading. Preserve the original pose and overall composition while giving the clothing a polished editorial fashion-sketch treatment. Use a predominantly monochromatic palette on textured white sketch paper, with subtle artistic imperfections and visible hand-drawn strokes. Minimal background, clean composition, sophisticated editorial feel. No photorealism, no 3D rendering, no cartoon exaggeration, no heavy digital effects, and no unnecessary background elements.
+```
+
+#### `marker` — Marker
+
+- **Category:** drawings-sketches
+- **Model:** DEFAULT_MODEL
+- **Description:** Bold hand-rendered marker illustration with expressive strokes, layered fills, and authentic bleed
+
+```
+Create a bold hand-drawn marker illustration of the uploaded subject, using the reference image as the primary guide. Preserve the subject’s identity, facial structure, proportions, hairstyle, expression, and distinctive features with high accuracy. Use expressive marker strokes, confident outlines, visible stroke direction, layered marker fills, and simple overlapping tones to create form, depth, and dimension. Incorporate subtle marker bleed, uneven ink coverage, and natural paper texture for an authentic traditional marker-sketch appearance. Maintain the original pose and composition of the reference image. Use a vibrant but controlled marker color palette, with strong areas of light and shadow and selective highlights. Keep the background clean and minimal. No photorealism, no 3D rendering, no pencil or charcoal texture, no watercolor wash, no glossy digital painting, and no unnecessary background elements. The final result should resemble a professionally hand-rendered fashion or concept illustration created with high-quality art markers.
+```
+
+### Photography
+
+#### `professional` — Professional
+
+- **Category:** photography
+- **Model:** NANO_BANANA
+- **Description:** Polished professional studio headshot with business attire and clean studio lighting
+
+```
+Create a polished, professional studio headshot of the person in the uploaded photo. Use the uploaded image as the sole reference for the person's identity and preserve their recognizable facial features, facial structure, skin tone, hairstyle, proportions, and natural appearance. Do not alter their identity or make them look like a different person.nnFrame the subject from the chest or shoulders upward, facing the camera with a natural, confident, approachable expression. Dress the subject in **professional, sophisticated business-appropriate clothing** suitable for a corporate profile, such as a well-fitted blazer, suit jacket, formal shirt, blouse, or other tasteful professional attire. The clothing should look realistic, clean, well-groomed, and appropriately styled for a professional headshot.nn**Do not add jewelry or ornaments that are present in the reference image. Do not add chains, necklaces, earrings, bracelets, piercings, brooches, decorative accessories, or other ornamental items.** Keep accessories minimal and authentic to the uploaded reference.nnUse professional portrait photography with flattering soft studio lighting, subtle dimensional shadows, clean natural skin texture, realistic facial detail, sharp focus on the eyes, and natural color grading. Avoid excessive skin smoothing, beauty filters, facial reshaping, or artificial enhancement.nnUse a clean, minimal studio background with subtle depth and no distracting objects. Create the appearance of a high-end professional photographer using a premium portrait lens, realistic depth of field, balanced exposure, and refined photographic detail. The final result should look like an authentic professionally photographed corporate headshot rather than an AI-generated image, illustration, or heavily retouched portrait.
+```
+
+#### `studio` — Studio
+
+- **Category:** photography
+- **Model:** NANO_BANANA
+- **Description:** High-end professional studio portrait with elegant clothing and controlled studio lighting
+
+```
+Create a high-end professional studio portrait of the person in the uploaded photo. Use the uploaded image as the sole reference for the person's identity and preserve their recognizable facial features, facial structure, skin tone, hairstyle, proportions, and natural appearance. Do not alter their identity or make them look like a different person.nnCreate a polished studio photography aesthetic with carefully controlled professional lighting, soft highlights, natural shadows, realistic skin texture, accurate facial detail, and refined color grading. The subject should have a confident, natural pose and authentic expression, photographed with the quality and precision of a professional portrait photographer.nnDress the subject in **elegant, professional, and sophisticated clothing** appropriate for a premium studio portrait. Clothing should be realistic, tasteful, well-fitted, and visually refined. **Do not add jewelry or ornaments that are not present in the reference image. Do not add chains, necklaces, earrings, bracelets, piercings, brooches, or decorative accessories.**nnUse a clean, sophisticated studio environment with a simple seamless or subtly textured background. Keep the composition focused entirely on the subject, with no distracting objects or props. Use realistic professional photography characteristics such as controlled studio lighting, natural depth of field, sharp facial focus, balanced exposure, subtle background separation, and premium camera detail.nnThe final image should look like a **genuine professionally photographed studio portrait**, not an illustration, CGI render, beauty filter, or obviously AI-generated image. Avoid excessive retouching, artificial skin smoothing, facial reshaping, or changing the person's natural appearance.
+```
+
+#### `corporate` — Corporate
+
+- **Category:** photography
+- **Model:** NANO_BANANA
+- **Description:** Polished high-end corporate portrait with business attire and a clean professional backdrop
+
+```
+Create a polished, high-end corporate portrait of the person in the uploaded photo. Use the uploaded image as the sole reference for the person's identity. Preserve their recognizable facial features, facial structure, skin tone, hairstyle, proportions, and natural appearance with high likeness accuracy. Do not change their identity or make them look like a different person.nnDress the subject in **professional corporate attire** appropriate for a modern business environment, such as a tailored suit, blazer, formal shirt, blouse, or other sophisticated business clothing. Clothing should be clean, well-fitted, realistic, understated, and appropriate for a corporate professional profile.nn**Do not add jewelry or ornaments that are not present in the reference image. Do not add chains, necklaces, earrings, bracelets, piercings, brooches, decorative accessories, or other ornamental items.**nnUse a confident, approachable, professional expression with natural posture and relaxed body language. Frame the subject as a professional corporate portrait, typically from the chest or waist upward, with the face clearly visible and naturally positioned.nnUse sophisticated professional photography with soft, controlled studio lighting, subtle dimensional shadows, realistic skin texture, sharp facial detail, natural color grading, balanced exposure, and gentle background separation. The background should be clean and minimal, such as a refined neutral studio backdrop or a softly blurred modern office environment, without distracting objects.nnMaintain realistic photographic proportions and natural facial texture. Avoid excessive skin smoothing, beauty filters, facial reshaping, unrealistic perfection, or artificial glamour.nnThe final result should look like an **authentic corporate photograph taken by a professional photographer**, suitable for a company profile, professional website, business profile, or corporate biography—not an illustration, CGI render, or obviously AI-generated image.
+```
+
+#### `fashion-editorial` — Fashion Editorial
+
+- **Category:** photography
+- **Model:** NANO_BANANA
+- **Description:** High-end fashion magazine editorial portrait with sophisticated styling and dramatic lighting
+
+```
+Create a high-end fashion editorial photograph of the person in the uploaded photo. Use the uploaded image as the sole reference for the person's identity and preserve their recognizable facial features, facial structure, skin tone, hairstyle, proportions, and natural appearance with high likeness accuracy. Do not alter their identity or make them look like a different person.nnStyle the image as a **professional fashion magazine editorial**, with sophisticated composition, confident presence, refined styling, and an artistic yet realistic photographic aesthetic. Give the subject a stylish, contemporary fashion look with carefully selected **editorial clothing** that feels premium, fashionable, and professionally styled. Clothing may include modern tailoring, designer-inspired silhouettes, elegant dresses, structured jackets, or sophisticated contemporary fashion, while remaining tasteful and realistic.nn**Do not add jewelry or ornaments that are not present in the reference image. Do not add chains, necklaces, earrings, bracelets, piercings, brooches, crowns, or decorative accessories unless they are already visible in the uploaded reference.**nnUse professional fashion photography with dramatic but controlled lighting, sculpted highlights and shadows, realistic skin texture, crisp facial detail, sophisticated color grading, and natural depth of field. The pose should feel confident and editorial without becoming exaggerated or unnatural.nnUse a visually refined studio or fashion-editorial environment with a clean, sophisticated background that complements the subject without distracting from them. Avoid unnecessary props, text, logos, brand names, or recognizable copyrighted fashion branding.nnThe final image should look like a **genuine high-end fashion magazine photograph**, combining realistic photography, sophisticated styling, professional lighting, and editorial composition. Avoid cartoon aesthetics, CGI appearance, excessive beauty retouching, artificial skin, facial reshaping, or an obviously AI-generated look.
+```
+
+#### `cinematic` — Cinematic
+
+- **Category:** photography
+- **Model:** NANO_BANANA
+- **Description:** High-end cinematic portrait with film-still atmosphere, dramatic lighting, and refined color grading
+
+```
+Create a high-end cinematic portrait photograph of the person in the uploaded photo. Use the uploaded image as the sole reference for the person's identity and preserve their recognizable facial features, facial structure, skin tone, hairstyle, proportions, and natural appearance with high likeness accuracy. Do not alter their identity or make them look like a different person.nnStyle the image as a **cinematic professional portrait**, with the visual quality and atmosphere of a carefully composed film still while maintaining realistic photography. Give the subject a natural, confident, expressive presence and an authentic cinematic pose.nnDress the subject in **sophisticated, stylish, and realistic clothing appropriate to a cinematic portrait**. Clothing should complement the mood and feel professionally styled, refined, and visually cohesive without appearing costume-like.nn**Do not add jewelry or ornaments that are not present in the reference image. Do not add chains, necklaces, earrings, bracelets, piercings, brooches, decorative accessories, or other ornamental items.**nnUse dramatic yet natural cinematic lighting with controlled highlights, soft directional light, subtle shadows, realistic skin texture, detailed facial features, and atmospheric depth. Create gentle separation between the subject and background using realistic depth of field and professional lens characteristics.nnUse a visually compelling but uncluttered environment that supports the cinematic mood—such as a sophisticated interior, architectural setting, or softly atmospheric outdoor location. Keep the background secondary to the subject and avoid distracting objects, text, logos, or recognizable brands.nnApply refined cinematic color grading, balanced contrast, subtle tonal depth, realistic exposure, and natural photographic detail. Avoid excessive color effects, artificial glow, plastic-looking skin, facial reshaping, or exaggerated beauty retouching.nnThe final result should look like a **genuine professionally photographed cinematic portrait**, resembling a premium film still captured by a professional cinematographer and photographer—not an illustration, CGI render, or obviously AI-generated image.
+```
+
+#### `model` — Model
+
+- **Category:** photography
+- **Model:** NANO_BANANA
+- **Description:** Clean professional model portfolio photograph with contemporary fashion and studio lighting
+
+```
+Create a high-end professional model portfolio photograph of the person in the uploaded photo. Use the uploaded image as the sole reference for the person's identity and preserve their recognizable facial features, facial structure, skin tone, hairstyle, proportions, and natural appearance with high likeness accuracy. Do not alter their identity or make them look like a different person.nnPresent the subject with a **clean, polished modeling aesthetic** designed to showcase their natural appearance, facial features, and overall presence. Use a confident but natural expression and an effortless professional pose. Keep the composition refined and visually balanced, similar to a professionally produced modeling portfolio or agency test shoot.nnDress the subject in **modern, sophisticated fashion suitable for a professional model portfolio**. Clothing should be stylish, well-fitted, realistic, tasteful, and appropriate for showcasing the subject rather than overpowering them. Favor clean silhouettes, contemporary fashion, and neutral or refined styling.nn**Do not add jewelry or ornaments that are not present in the reference image. Do not add chains, necklaces, earrings, bracelets, piercings, brooches, watches, crowns, or decorative accessories unless they are already visible in the uploaded reference.**nnUse professional fashion photography with clean, controlled lighting, realistic skin texture, sharp facial detail, natural proportions, subtle shadows, balanced exposure, and refined color grading. Lighting should clearly reveal the subject's face without excessive glamour effects or harsh manipulation.nnUse a **simple, uncluttered studio or professional editorial background** that keeps attention on the subject. Avoid distracting props, text, logos, brand names, or elaborate scenery.nnMaintain authentic photographic detail and natural skin texture. Avoid excessive beauty retouching, facial reshaping, artificial skin smoothing, exaggerated makeup, unrealistic body modification, or changing the person's natural appearance.nnThe final result should look like an **authentic professional model portfolio photograph**, suitable for a modeling agency portfolio or professional casting profile—clean, sophisticated, realistic, and professionally photographed rather than an illustration, CGI render, or obviously AI-generated image.
+```
+
+#### `outdoor` — Outdoor
+
+- **Category:** photography
+- **Model:** NANO_BANANA
+- **Description:** High-end professional outdoor portrait with natural light, authentic environment, and realistic bokeh
+
+```
+Create a high-end professional outdoor portrait photograph of the person in the uploaded photo. Use the uploaded image as the sole reference for the person's identity and preserve their recognizable facial features, facial structure, skin tone, hairstyle, proportions, and natural appearance with high likeness accuracy. Do not alter their identity or make them look like a different person.nnPlace the subject in a **beautiful, natural outdoor environment** such as a sophisticated urban setting, landscaped garden, park, architectural location, or scenic outdoor space. The environment should complement the subject while remaining secondary to them. Keep the composition clean, intentional, and professionally photographed.nnDress the subject in **stylish, polished, and appropriate clothing suited to a professional outdoor portrait**. Clothing should look realistic, well-fitted, sophisticated, and naturally coordinated with the setting. Avoid costumes, overly flashy outfits, or distracting patterns.nn**Do not add jewelry or ornaments that are not present in the reference image. Do not add chains, necklaces, earrings, bracelets, piercings, brooches, watches, or other decorative accessories unless they are already visible in the uploaded reference.**nnUse **natural professional portrait lighting**, preferably soft directional sunlight, golden-hour illumination, or diffused daylight. Create realistic highlights and shadows across the face, natural skin texture, sharp facial detail, accurate exposure, and subtle depth of field.nnUse a professional portrait lens aesthetic with **natural background separation and realistic bokeh**, keeping the subject sharply focused while allowing the environment to fall gently out of focus. The background should feel authentic and photographic rather than artificially generated.nnApply refined, natural color grading with realistic skin tones, balanced contrast, subtle warmth, and professional photographic detail. Avoid excessive HDR, artificial glow, heavy filters, excessive skin smoothing, facial reshaping, or unrealistic enhancement.nnThe final result should look like an **authentic professionally photographed outdoor portrait**, captured by an experienced portrait photographer using professional camera equipment—not an illustration, CGI render, or obviously AI-generated image.
+```
+
+#### `passport` — Passport
+
+- **Category:** photography
+- **Model:** NANO_BANANA
+- **Description:** Realistic official passport photograph with plain white background, neutral expression, and compliant framing
+
+```
+Create a realistic, official-looking passport photograph of the uploaded person, preserving their true identity, natural facial structure, skin tone, hairstyle, and recognizable features. The photograph must look like a genuine passport/official identification photo, not a portrait or stylized image.nn**Appearance and composition requirements:**nn* Plain white background.n* Background must be completely clean and uniform, with no patterns, textures, objects, gradients, or visible shadows.n* Straight-on camera view with the person's face centered.n* Head must be upright and perfectly level; no tilting, rotation, or angled pose.n* Neutral facial expression: mouth closed naturally, no smiling, frowning, exaggerated expression, or posing.n* Both eyes fully open and looking directly at the camera.n* Face evenly and clearly illuminated with natural-looking lighting.n* No harsh shadows across the face or background.n* Frame the head and upper shoulders appropriately for a standard passport photograph, with sufficient space around the head.n* Maintain the person's current appearance and age; do not beautify, reshape, de-age, age, or alter their facial features.n* The photograph should represent the person's appearance as it would be if taken within the last 6 months.n* **No eyeglasses**, sunglasses, tinted glasses, or other eyewear.n* **No headgear**, hats, caps, or coverings unless the uploaded person is clearly wearing religious or medically required headgear. If headgear is present for those reasons, it must not obscure the eyes, eyebrows, nose, mouth, facial outline, or other identifying facial features.n* Do not add jewelry, accessories, props, text, logos, borders, watermarks, or decorative elements.n* Preserve natural skin texture without excessive retouching or artificial smoothing.nnThe final result must have the clean, standardized appearance of a compliant passport photograph, with the person's identity and natural appearance preserved accurately.
+```
+
+### Age Transformation
+
+#### `child` — Child
+
+- **Category:** age-transformation
+- **Model:** NANO_BANANA_2
+- **Description:** Realistic 8-year-old version of the same person, preserving identity, clothing, pose, and original photograph
+
+```
+Transform the person in the uploaded photo into a realistic **8-year-old version of the same person**.nnUse the uploaded image as the sole identity reference. Preserve the person's recognizable facial characteristics, underlying facial structure, distinctive features, skin tone, eye shape, nose shape, mouth shape, and overall identity while naturally adapting the face to childhood.nn**Do not change the subject's clothing, clothing colors, hairstyle unless required for natural age adaptation, accessories, posture, body position, hand position, camera angle, framing, facial orientation, expression, lighting, background, or composition. Preserve the original photograph exactly in these respects. The only intended transformation is the subject's apparent age.**nnNaturally create age-appropriate youthful facial proportions, softer facial features, and smooth natural skin texture. Do not simply shrink the adult face or create a generic child.nn**Do not add or remove jewelry, chains, necklaces, earrings, bracelets, piercings, watches, or decorative accessories.**nnThe result should look like the **same photograph featuring the same person at approximately 8 years old**, with only the person's age naturally transformed.
+```
+
+#### `teenager` — Teenager
+
+- **Category:** age-transformation
+- **Model:** NANO_BANANA_2
+- **Description:** Realistic 15-year-old version of the same person, preserving identity, clothing, pose, and original photograph
+
+```
+Transform the person in the uploaded photo into a realistic **15-year-old version of the same person**.nnUse the uploaded image as the sole identity reference. Preserve the person's recognizable facial characteristics, underlying facial structure, distinctive features, skin tone, eye shape, nose shape, mouth shape, and overall identity while naturally adapting the face to adolescence.nn**Do not change the subject's clothing, clothing colors, hairstyle unless required for natural age adaptation, accessories, posture, body position, hand position, camera angle, framing, facial orientation, expression, lighting, background, or composition. Preserve the original photograph exactly in these respects. The only intended transformation is the subject's apparent age.**nnNaturally create realistic teenage facial development, with youthful skin texture and age-appropriate facial proportions. Maintain strong visual continuity with the original person.nn**Do not add or remove jewelry, chains, necklaces, earrings, bracelets, piercings, watches, or decorative accessories.**nnThe result should look like the **same photograph featuring the same person at approximately 15 years old**, with only the person's age naturally transformed.
+```
+
+#### `young-adult` — Young Adult
+
+- **Category:** age-transformation
+- **Model:** NANO_BANANA_2
+- **Description:** Realistic 25-year-old version of the same person, preserving identity, clothing, pose, and original photograph
+
+```
+Transform the person in the uploaded photo into a realistic **25-year-old version of the same person**.nnUse the uploaded image as the sole identity reference. Preserve the person's recognizable facial features, facial structure, skin tone, hairstyle characteristics, proportions, and distinctive identifying features.nn**Do not change the subject's clothing, clothing colors, hairstyle unless required for natural age adaptation, accessories, posture, body position, hand position, camera angle, framing, facial orientation, expression, lighting, background, or composition. Preserve the original photograph exactly in these respects. The only intended transformation is the subject's apparent age.**nnNaturally adapt the person's facial appearance to their mid-twenties with realistic youthful skin texture and mature young-adult facial definition. Do not over-beautify, reshape, or alter the person's identity.nn**Do not add or remove jewelry, chains, necklaces, earrings, bracelets, piercings, watches, or decorative accessories.**nnThe result should look like the **same photograph featuring the same person at approximately 25 years old**, with only the person's age naturally transformed.
+```
+
+#### `middle-age` — Middle Age
+
+- **Category:** age-transformation
+- **Model:** NANO_BANANA_2
+- **Description:** Realistic 45-year-old version of the same person, preserving identity, clothing, pose, and original photograph
+
+```
+Transform the person in the uploaded photo into a realistic **45-year-old version of the same person**.nnUse the uploaded image as the sole identity reference. Preserve the person's recognizable facial features, facial structure, skin tone, hairstyle characteristics, proportions, and distinctive identifying features.nn**Do not change the subject's clothing, clothing colors, hairstyle unless required for natural age adaptation, accessories, posture, body position, hand position, camera angle, framing, facial orientation, expression, lighting, background, or composition. Preserve the original photograph exactly in these respects. The only intended transformation is the subject's apparent age.**nnIntroduce subtle, realistic signs of middle age such as naturally developing facial lines, mature skin texture, and gradual changes in facial fullness. Keep the aging restrained and believable. Do not exaggerate wrinkles, sagging, or other aging characteristics.nn**Do not add or remove jewelry, chains, necklaces, earrings, bracelets, piercings, watches, or decorative accessories.**nnThe result should look like the **same photograph featuring the same person at approximately 45 years old**, with only the person's age naturally transformed.
+```
+
+#### `elderly` — Elderly
+
+- **Category:** age-transformation
+- **Model:** NANO_BANANA_2
+- **Description:** Realistic 70-year-old version of the same person, preserving identity, clothing, pose, and original photograph
+
+```
+Transform the person in the uploaded photo into a realistic **70-year-old version of the same person**.nnUse the uploaded image as the **sole identity reference**. Preserve the person's recognizable facial structure, distinctive facial features, eye shape, nose shape, mouth shape, skin tone, hairstyle, proportions, and overall identity.nn**The subject's age is the ONLY element that should change.** Preserve the original photograph exactly in every other respect.nnDo not change the **clothing, clothing colors, clothing style, accessories, posture, body position, hand position, head position, facial orientation, facial expression, camera angle, perspective, framing, background, lighting, shadows, or composition**.nnNaturally introduce only the facial characteristics associated with approximately 70 years of age. Add realistic age-related facial lines, mature skin texture, subtle changes in facial fullness, and naturally appropriate hair aging where necessary.nnKeep the aging **realistic and restrained**. Do not exaggerate wrinkles, sagging, hair loss, or other elderly characteristics. Do not distort the person's facial structure.nn**Do not add, remove, or modify any accessories. Do not add chains, necklaces, earrings, bracelets, piercings, watches, brooches, or decorative ornaments.**nnThe final result should look like the **same person in the same photograph at approximately 70 years old**, with the clothing, pose, composition, and environment remaining unchanged.
+```
+
+#### `progressive` — Progressive
+
+- **Category:** age-transformation
+- **Model:** NANO_BANANA_2
+- **Description:** Five-stage photographic age progression from childhood to old age, preserving identity, clothing, pose, and composition
+
+```
+Create a realistic **age progression portrait** of the person in the uploaded photo, showing the same individual at five distinct stages of life:nn**8 years old → 15 years old → 25 years old → 45 years old → 70 years old**nnUse the uploaded photo as the **sole identity reference**. Preserve the person's recognizable facial structure, distinctive facial features, skin tone, eye shape, nose shape, mouth shape, and overall identity consistently across every age.nnShow a believable natural progression from childhood to old age. Each stage should progressively reflect appropriate age-related facial development, including changes in facial proportions, maturity, skin texture, facial lines, facial fullness, and hair characteristics.nn**The person's identity must remain consistent throughout the entire progression.** Each portrait should clearly look like the same individual at a different age.nnKeep the **same clothing, clothing colors, posture, body position, hand position, facial orientation, facial expression, camera angle, framing, lighting, background, and overall composition** across all five stages. The subject's clothing and pose must not be redesigned or changed between ages. **The only intended variation is the person's apparent age and naturally associated age-related facial and hair characteristics.**nnDo not add, remove, or modify accessories. **Do not add chains, necklaces, earrings, bracelets, piercings, watches, brooches, or decorative ornaments.**nnArrange the five portraits in a clean chronological sequence from **youngest on the left to oldest on the right**, with consistent spacing, scale, and framing.nnUse realistic professional photography, natural skin texture, accurate facial detail, consistent lighting, realistic color grading, and seamless visual continuity.nn**Do not add text, age labels, numbers, borders, logos, props, or decorative graphics.**nnThe final image should look like a **professional photographic age-progression study of one person**, not a collage of unrelated faces, illustration, cartoon, or CGI render.
+```
+
+#### `regressive` — Regressive
+
+- **Category:** age-transformation
+- **Model:** NANO_BANANA_2
+- **Description:** Five-stage photographic age regression from old age to childhood, preserving identity, clothing, pose, and composition
+
+```
+Create a realistic **age regression portrait** of the person in the uploaded photo, showing the same individual at five distinct stages of life:nn**70 years old → 45 years old → 25 years old → 15 years old → 8 years old**nnUse the uploaded photo as the **sole identity reference**. Preserve the person's recognizable facial structure, distinctive facial features, skin tone, eye shape, nose shape, mouth shape, and overall identity consistently across every age.nnShow a believable natural regression from old age to childhood. Each stage should progressively reverse age-related characteristics, including facial lines, skin texture, facial fullness, facial maturity, and hair characteristics.nn**The person's identity must remain consistent throughout the entire regression.** Each portrait should clearly look like the same individual at a different age.nnKeep the **same clothing, clothing colors, posture, body position, hand position, facial orientation, facial expression, camera angle, framing, lighting, background, and overall composition** across all five stages. The subject's clothing and pose must not be redesigned or changed between ages. **The only intended variation is the person's apparent age and naturally associated age-related facial and hair characteristics.**nnDo not add, remove, or modify accessories. **Do not add chains, necklaces, earrings, bracelets, piercings, watches, brooches, or decorative ornaments.**nnArrange the five portraits in a clean chronological sequence from **oldest on the left to youngest on the right**, with consistent spacing, scale, and framing.nnUse realistic professional photography, natural skin texture, accurate facial detail, consistent lighting, realistic color grading, and seamless visual continuity.nn**Do not add text, age labels, numbers, borders, logos, props, or decorative graphics.**nnThe final image should look like a **professional photographic age-regression study of one person**, not a collage of unrelated faces, illustration, cartoon, or CGI render.
+```
+
+### Retro & Nostalgia
+
+#### `1960s` — 1960s
+
+- **Category:** retro-nostalgia
+- **Model:** SEEDREAM_4_5
+- **Description:** Authentic mid-to-late 1960s retro photograph with colorful fashion and analog film look
+
+```
+Using the uploaded image as the only reference for the subject, transform the photograph into an authentic mid-to-late 1960s retro photograph, with a distinctive 1965–1969 fashion and visual aesthetic.nnPreserve the subject's exact identity and recognizable facial characteristics. Maintain their facial structure, proportions, skin tone, eyes, nose, lips, distinctive features, natural age, and overall likeness. The subject must remain clearly recognizable as the same person.nnGive the subject authentic mid-to-late 1960s fashion with a bold, colorful, youthful and visually distinctive appearance. Use era-appropriate clothing such as vivid geometric or psychedelic patterns, colorful stripes, contrasting color combinations, patterned shirts and blouses, mod-inspired dresses, mini dresses, fitted tops, high-waisted trousers, flared or slightly flared trousers, colorful skirts, cropped jackets, turtlenecks, statement collars, and other recognizable late-1960s fashion elements. For men, use colorful patterned shirts, bold printed fabrics, fitted jackets, flared or straight-leg trousers, distinctive collars, colorful knitwear, and period-appropriate footwear.nnUse saturated period colors such as orange, mustard yellow, red, turquoise, blue, green, purple, cream, brown and combinations of contrasting colors. Incorporate bold geometric, floral, psychedelic, optical and abstract patterns where appropriate.nnAdapt the clothing naturally to the subject's gender, age and body proportions. Do not force the same outfit or fashion style onto every subject. The clothing should feel fashionable and authentic to the late 1960s rather than like a theatrical costume.nnInclude appropriate period styling such as era-appropriate hairstyles, grooming, accessories, jewelry, sunglasses, boots or shoes when suitable. Keep these details believable and coordinated with the clothing.nnThe photographic treatment should also feel authentically vintage: analog film photography, natural film grain, subtle film softness, slightly imperfect exposure, realistic photographic texture, gentle contrast, period-appropriate color reproduction and the characteristic look of photographs produced with 1960s film cameras and lenses.nnPreserve the original subject's general pose, body position, composition and framing unless minor adjustments are necessary to accommodate the period styling. Do not turn the image into an illustration or fashion drawing.nnThe final result should look like a genuine photograph taken during the late 1960s, featuring unmistakable colorful and expressive 1960s fashion — not a modern photograph with a simple vintage filter.nnAvoid overly formal business suits, conservative modern clothing, generic old-fashioned clothing, modern fashion trends, contemporary hairstyles, modern fabrics, excessive luxury styling, costume-like outfits, exaggerated bell-bottoms associated primarily with the 1970s, caricature, illustration, plastic skin, excessive beauty retouching, or loss of facial identity.
+```
+
+#### `1970s` — 1970s
+
+- **Category:** retro-nostalgia
+- **Model:** SEEDREAM_4_5
+- **Description:** Authentic 1970s retro photograph with bold period fashion and analog film look
+
+```
+Using the uploaded image as the only reference for the subject, transform the photograph into an authentic 1970s retro photograph with a distinctive 1970–1979 fashion and photographic aesthetic.nnPreserve the subject's exact identity and recognizable facial characteristics. Maintain their facial structure, proportions, skin tone, eyes, nose, lips, distinctive features, natural age, and overall likeness. The subject must remain clearly recognizable as the same person.nnDress the subject in authentic 1970s fashion with a bold, expressive and unmistakably period-specific appearance. Use characteristic 1970s clothing such as wide-leg and bell-bottom trousers, high-waisted flared pants, denim, suede jackets, fringe, fitted shirts, wide pointed collars, turtlenecks, patterned blouses, wrap dresses, maxi dresses, jumpsuits, knitwear, vests, flared sleeves, colorful jackets, and other recognizable 1970s styles.nnUse a rich 1970s color palette including burnt orange, mustard yellow, avocado green, brown, rust, cream, burgundy, gold, deep red, earthy tones and warm contrasting colors. Incorporate authentic period patterns such as floral prints, paisley, geometric patterns, stripes, swirls and bold psychedelic-inspired prints.nnAllow the styling to naturally represent different parts of the 1970s. It may lean toward early-70s bohemian fashion, colorful casual fashion, or mid-to-late-70s disco-inspired fashion depending on what best suits the subject. For disco-inspired styling, use glamorous fitted clothing, wide collars, jumpsuits, metallic or shimmering fabrics, platform footwear and expressive accessories. For casual styling, use denim, suede, patterned shirts, flared trousers, knitwear and layered clothing.nnAdapt the clothing naturally to the subject's gender, age and proportions. Do not force the same outfit onto every subject. Include appropriate 1970s hairstyles, grooming, jewelry, sunglasses, scarves, belts, boots, platform shoes and other accessories when suitable.nnThe photographic treatment should look authentically analog and period-specific: 1970s film photography, warm film tones, natural grain, subtle film softness, slightly faded or warm color reproduction, realistic skin texture, gentle imperfections, authentic exposure and the characteristic look of photographs taken with 1970s film cameras.nnPreserve the subject's original general pose, body position, composition and framing unless minor adjustments are necessary to accommodate the period styling.nnThe final image should look like a genuine photograph originally taken during the 1970s, with unmistakable 1970s fashion and atmosphere rather than a modern photograph with a vintage filter.nnAvoid modern clothing, contemporary hairstyles, conservative business attire, generic "old-fashioned" clothing, excessive formalwear, modern fabrics or styling, costume-like outfits, exaggerated caricature, illustration, plastic-looking skin, excessive beauty retouching, or alteration of the subject's identity.
+```
+
+#### `1980s` — 1980s
+
+- **Category:** retro-nostalgia
+- **Model:** NANO_BANANA
+- **Description:** Authentic 1980s retro photograph with bold neon fashion and analog film look
+
+```
+Using the uploaded image as the only reference for the subject, transform the photograph into an authentic 1980s retro photograph with a distinctive 1980–1989 fashion and photographic aesthetic.nnPreserve the subject's exact identity and recognizable facial characteristics. Maintain their facial structure, proportions, skin tone, eyes, nose, lips, distinctive features, natural age, and overall likeness. The subject must remain clearly recognizable as the same person.nnDress the subject in unmistakable 1980s fashion with a bold, energetic and visually distinctive appearance. Use characteristic 1980s clothing such as oversized jackets, structured blazers, strong shoulders, denim jackets, acid-wash denim, leather jackets, high-waisted jeans, tapered trousers, leggings, colorful tracksuits, graphic T-shirts, oversized shirts, sweaters, knitwear, bomber jackets, mini skirts, fitted dresses, bold suits, and layered streetwear.nnUse vivid 1980s colors and strong color combinations such as neon pink, electric blue, bright yellow, vivid red, purple, turquoise, white and black. Incorporate recognizable 1980s patterns and graphics including geometric prints, color blocking, bold stripes, abstract patterns and large graphic designs.nnAllow the styling to naturally represent different parts of the 1980s. It may lean toward colorful 1980s casual fashion, athletic-inspired fashion, glamorous evening fashion, bold professional fashion, or late-1980s streetwear depending on what best suits the subject.nnFor women, incorporate appropriate 1980s elements such as voluminous hairstyles, big curls, teased hair, colorful accessories, statement earrings, bold belts, oversized jackets, shoulder-enhanced silhouettes, leggings, skirts and bright dresses when suitable.nnFor men, incorporate appropriate 1980s elements such as voluminous or styled hair, mustaches when naturally appropriate, oversized jackets, denim, leather, colorful shirts, graphic patterns, high-waisted trousers, athletic-inspired clothing and bold casualwear.nnAdapt the clothing naturally to the subject's gender, age and proportions. Do not force the same outfit onto every subject. The styling should look like authentic everyday or fashionable 1980s clothing rather than a Halloween costume or exaggerated caricature.nnInclude appropriate 1980s accessories such as large sunglasses, statement jewelry, watches, belts, colorful sneakers, boots or period-appropriate footwear when suitable.nnThe photographic treatment should look authentically analog and period-specific: 1980s film photography, realistic film grain, slightly soft lens rendering, warm or slightly faded film colors, natural exposure imperfections, subtle photographic texture, realistic skin and the characteristic color and contrast of photographs taken with 1980s film cameras.nnPreserve the subject's original general pose, body position, composition and framing unless minor adjustments are necessary to accommodate the period styling.nnThe final image should look like a genuine photograph originally taken during the 1980s, with unmistakable 1980s fashion, styling and photographic characteristics rather than a modern photograph with a vintage filter.nnAvoid modern clothing, contemporary hairstyles, minimalist modern fashion, conservative generic clothing, generic "old-fashioned" styling, excessive formalwear unless appropriate to the 1980s setting, costume-like outfits, exaggerated caricature, illustration, plastic-looking skin, excessive beauty retouching, or alteration of the subject's identity.
+```
+
+#### `80s-hip-hop` — 80s Hip-hop
+
+- **Category:** retro-nostalgia
+- **Model:** NANO_BANANA
+- **Description:** Authentic late-1980s hip-hop portrait with colorful streetwear and analog film look
+
+```
+Using the uploaded image as the only reference for the subject, transform the photograph into an authentic late-1980s hip-hop portrait with the distinctive fashion, styling and photographic character of 1980s hip-hop culture.nnPreserve the subject's exact identity and recognizable facial characteristics. Maintain their facial structure, proportions, skin tone, eyes, nose, lips, distinctive features, natural age and overall likeness. The subject must remain clearly recognizable as the same person.nnDress the subject in unmistakable 1980s hip-hop fashion. Use bold, youthful streetwear such as oversized tracksuits, colorful shell suits, bomber jackets, varsity-style jackets, denim jackets, oversized denim, graphic sweatshirts, hoodies, loose-fitting trousers, athletic jackets, colorful windbreakers, matching sportswear sets and layered streetwear.nnUse strong 1980s color combinations including red, royal blue, yellow, green, orange, purple, white and black. Incorporate bold color blocking, geometric patterns, stripes, graphic designs and contrasting panels characteristic of 1980s street fashion.nnInclude authentic period accessories when appropriate, such as bucket hats, Kangol-style caps, baseball caps, thick gold-tone chains, medallions, bracelets, watches, bold sunglasses and other distinctive 1980s streetwear accessories. Use period-appropriate high-top sneakers or classic athletic footwear.nnGive the subject an authentic 1980s hip-hop hairstyle and grooming appropriate to their gender, age and natural features. Do not impose a single hairstyle on every subject.nnThe clothing should feel relaxed, oversized, expressive and street-oriented rather than formal or tailored. Adapt the styling naturally to the subject's gender, age and proportions. Do not make the outfit look like a costume or a modern interpretation of hip-hop fashion.nnCreate an authentic 1980s urban photographic atmosphere. Use analog film photography, realistic film grain, slightly soft lens rendering, subtle color imperfections, natural film texture, moderate contrast and the characteristic look of photographs taken with 1980s consumer and professional film cameras.nnThe setting may resemble an authentic 1980s urban environment, neighborhood street, brick wall, basketball court, record-store area, studio backdrop or simple street-fashion portrait setting, while keeping the subject as the primary focus.nnPreserve the subject's general pose, body position and recognizable physical characteristics unless minor adjustments are necessary to accommodate the new styling.nnThe final image should look like a genuine photograph from the 1980s hip-hop era — colorful, confident, youthful, expressive and unmistakably period-specific — rather than a modern photograph with a vintage filter.nnAvoid modern streetwear, modern sneakers, contemporary hairstyles, modern luxury fashion, modern rap aesthetics, generic vintage clothing, formal business attire, excessive 1990s styling, costume-like outfits, caricature, illustration, plastic-looking skin, excessive beauty retouching or alteration of the subject's identity.
+```
+
+#### `80s-pop` — 80s Pop
+
+- **Category:** retro-nostalgia
+- **Model:** NANO_BANANA
+- **Description:** Authentic 1980s pop portrait with glamorous music-video fashion and analog film look
+
+```
+Using the uploaded image as the only reference for the subject, transform the photograph into an authentic 1980s pop portrait with a distinctive 1980–1989 pop-music, fashion and photographic aesthetic.nnPreserve the subject's exact identity and recognizable facial characteristics. Maintain their facial structure, proportions, skin tone, eyes, nose, lips, distinctive features, natural age and overall likeness. The subject must remain clearly recognizable as the same individual.nnDress the subject in unmistakable 1980s pop fashion with a bold, glamorous, colorful and expressive appearance inspired by the fashion and visual style of 1980s pop music and music videos.nnUse characteristic 1980s pop clothing such as structured jackets, oversized blazers, strong-shouldered jackets, cropped jackets, leather jackets, fitted tops, graphic T-shirts, off-the-shoulder tops, mini skirts, fitted trousers, high-waisted pants, colorful dresses, jumpsuits, sequined garments, metallic fabrics, shiny materials, layered clothing and dramatic statement pieces.nnEmphasize the distinctive 1980s silhouette with strong shoulders, structured shapes, fitted and oversized contrasts, dramatic sleeves, bold collars and expressive proportions.nnUse vivid 1980s colors such as electric blue, hot pink, purple, bright red, neon yellow, turquoise, black, white and metallic silver or gold. Incorporate authentic period details such as geometric patterns, bold stripes, color blocking, abstract graphics, sequins, glitter, metallic accents, contrasting fabrics and large graphic designs.nnCreate a glamorous and energetic pop aesthetic rather than ordinary everyday clothing. The styling may range from colorful dance-pop fashion to glamorous stage-inspired fashion, rock-influenced pop fashion or polished 1980s music-video styling, while remaining believable as clothing from the decade.nnInclude appropriate 1980s accessories such as oversized sunglasses, statement earrings, layered necklaces, chunky bracelets, bold belts, colorful hair accessories and period-appropriate footwear when suitable.nnGive the subject an authentic 1980s hairstyle and grooming appropriate to their gender, age and natural features. Allow hairstyles to include natural volume, curls, waves, teased or layered hair, while avoiding an identical hairstyle for every subject.nnAdapt the clothing, hairstyle and styling naturally to the subject's gender, age and proportions. Do not force the same outfit onto every subject. Preserve the person's identity rather than making them resemble a specific celebrity or pop star.nnCreate an authentic 1980s photographic atmosphere. Use analog film photography, realistic film grain, slightly soft lens rendering, subtle film imperfections, natural skin texture, moderate contrast and vivid but believable film colors characteristic of 1980s photography.nnThe setting may resemble a colorful music-video set, recording studio, stage-inspired backdrop, nightclub environment, rehearsal space, colorful studio portrait or dramatic 1980s fashion setting. Keep the subject as the primary focus.nnPreserve the subject's general pose, body position, composition and framing unless minor adjustments are necessary to accommodate the new styling.nnThe final image should look like a genuine photograph from the 1980s pop era — bold, glamorous, colorful, energetic and unmistakably 1980s — rather than a modern photograph with a vintage filter.nnAvoid modern clothing, contemporary hairstyles, modern minimalist fashion, current sneakers, 1990s fashion, 2000s/Y2K styling, excessive futuristic sci-fi styling, generic vintage clothing, overly conservative formalwear, costume-like outfits, caricature, illustration, plastic-looking skin, excessive beauty retouching or alteration of the subject's identity.
+```
+
+#### `90s` — 90s
+
+- **Category:** retro-nostalgia
+- **Model:** SEEDREAM_4_5
+- **Description:** Authentic 1990s retro photograph with relaxed period fashion and analog film look
+
+```
+Using the uploaded image as the only reference for the subject, transform the photograph into an authentic 1990s retro photograph with a distinctive 1990–1999 fashion and photographic aesthetic.nnPreserve the subject's exact identity and recognizable facial characteristics. Maintain their facial structure, proportions, skin tone, eyes, nose, lips, distinctive features, natural age and overall likeness. The subject must remain clearly recognizable as the same person.nnDress the subject in authentic 1990s fashion with a relaxed, youthful and unmistakably period-specific appearance. Use characteristic 1990s clothing such as loose-fitting jeans, high-waisted jeans, denim jackets, oversized shirts, graphic T-shirts, flannel shirts, bomber jackets, windbreakers, sweatshirts, hoodies, tracksuits, cargo trousers, casual dresses, slip dresses, crop tops, knitwear, leather jackets and relaxed streetwear.nnUse recognizable 1990s color palettes and styling, including denim blue, black, white, gray, burgundy, forest green, muted red, brown and occasional bright accent colors. Incorporate authentic period patterns such as plaid, stripes, simple geometric graphics, bold logos and graphic prints.nnAllow the styling to naturally represent different parts of 1990s fashion. It may lean toward casual streetwear, hip-hop-inspired fashion, grunge, sporty fashion, R&B-inspired fashion, minimalist fashion or colorful late-1990s youth fashion depending on what best suits the subject.nnFor women, incorporate appropriate 1990s elements such as relaxed denim, slip dresses, fitted tops, cardigans, crop tops, denim jackets, simple skirts, platform footwear, chokers, hair clips and period-appropriate hairstyles when suitable.nnFor men, incorporate appropriate 1990s elements such as loose jeans, oversized graphic shirts, flannel shirts, bomber jackets, tracksuits, denim jackets, hoodies, casual sneakers and period-appropriate hairstyles when suitable.nnAdapt clothing naturally to the subject's gender, age and proportions. Do not force the same outfit onto every subject. The styling should look like authentic everyday 1990s fashion rather than a costume or exaggerated caricature.nnInclude appropriate 1990s accessories such as baseball caps, bucket hats, sunglasses, watches, simple jewelry, backpacks and period-appropriate sneakers when suitable.nnThe photographic treatment should look authentically analog and period-specific: 1990s film photography, realistic film grain, slightly soft consumer-camera rendering, natural skin texture, subtle flash photography where appropriate, slightly imperfect exposure, muted or warm film colors and authentic 1990s photographic texture.nnThe setting may remain similar to the original photograph, but may naturally evoke a 1990s environment such as a suburban street, school setting, bedroom, shopping area, basketball court, urban street or simple studio portrait.nnPreserve the subject's general pose, body position, composition and framing unless minor adjustments are necessary to accommodate the period styling.nnThe final image should look like a genuine photograph originally taken during the 1990s, with unmistakable 1990s fashion and photographic characteristics rather than a modern photograph with a vintage filter.nnAvoid modern clothing, contemporary hairstyles, modern luxury fashion, overly polished digital photography, excessive 1980s styling, excessive 2000s/Y2K styling, generic "old-fashioned" clothing, costume-like outfits, caricature, illustration, plastic-looking skin, excessive beauty retouching or alteration of the subject's identity.
+```
+
+#### `90s-hip-hop` — 90s Hip-hop
+
+- **Category:** retro-nostalgia
+- **Model:** SEEDREAM_4_5
+- **Description:** Authentic 1990s hip-hop portrait with oversized streetwear and analog film look
+
+```
+Using the uploaded image as the only reference for the subject, transform the photograph into an authentic 1990s hip-hop portrait with the distinctive fashion, styling and photographic character of 1990s hip-hop culture.nnPreserve the subject's exact identity and recognizable facial characteristics. Maintain their facial structure, proportions, skin tone, eyes, nose, lips, distinctive features, natural age and overall likeness. The subject must remain clearly recognizable as the same person.nnDress the subject in unmistakable 1990s hip-hop fashion with a relaxed, oversized and expressive streetwear aesthetic. Use characteristic clothing such as baggy jeans, oversized denim jackets, loose graphic T-shirts, oversized sweatshirts, hoodies, varsity jackets, bomber jackets, leather jackets, tracksuits, sports jerseys, basketball-inspired tops, cargo trousers, workwear-style jackets, flannel shirts and layered streetwear.nnUse bold but authentic 1990s colors including denim blue, black, white, red, forest green, burgundy, mustard, cream and deep purple. Incorporate large graphic prints, bold lettering-style graphics, color blocking, sports-inspired designs, plaid and other recognizable 1990s patterns.nnCreate a relaxed oversized silhouette with loose-fitting clothing, layered garments and authentic 1990s proportions. The clothing should feel naturally worn and street-oriented rather than tailored, polished or contemporary.nnInclude appropriate 1990s hip-hop accessories such as baseball caps, snapback-style caps, bucket hats, beanies, sunglasses, watches, thick chains, medallions, bracelets and other period-appropriate accessories when suitable. Use authentic 1990s athletic sneakers and high-top footwear.nnAdapt the styling naturally to the subject's gender, age and proportions. Do not force the same outfit or hairstyle onto every subject. Hairstyles and grooming should be appropriate to the 1990s and naturally suited to the subject.nnAllow the overall styling to draw from the different visual influences of 1990s hip-hop fashion, including streetwear, sportswear, East Coast and West Coast-inspired styles, urban casualwear and the fashion of the golden era of hip-hop, without reproducing the identity or appearance of any specific celebrity.nnCreate an authentic 1990s photographic atmosphere. Use analog film photography, realistic film grain, slightly soft consumer-camera rendering, natural skin texture, subtle flash photography, imperfect exposure, slightly muted film colors and authentic 1990s photographic texture.nnThe setting may naturally resemble a 1990s urban street, basketball court, neighborhood, record store, brick-wall backdrop, street corner, studio portrait or other period-appropriate environment. Keep the subject as the primary focus.nnPreserve the subject's general pose, body position, composition and framing unless minor adjustments are necessary to accommodate the new styling.nnThe final image should look like a genuine photograph taken during the 1990s hip-hop era — authentic, relaxed, oversized, confident and unmistakably 1990s — rather than a modern photograph with a vintage filter.nnAvoid modern streetwear, contemporary sneakers, modern hairstyles, modern luxury fashion, 2000s/Y2K aesthetics, futuristic styling, extremely skinny clothing, overly polished digital photography, generic vintage clothing, costume-like outfits, caricature, illustration, plastic-looking skin, excessive beauty retouching or alteration of the subject's identity.
+```
+
+#### `90s-pop` — 90s Pop
+
+- **Category:** retro-nostalgia
+- **Model:** SEEDREAM_4_5
+- **Description:** Authentic 1990s pop portrait with colorful music-video fashion and analog film look
+
+```
+Using the uploaded image as the only reference for the subject, transform the photograph into an authentic 1990s pop portrait with a distinctive 1990–1999 pop-culture, fashion and photographic aesthetic.nnPreserve the subject's exact identity and recognizable facial characteristics. Maintain their facial structure, proportions, skin tone, eyes, nose, lips, distinctive features, natural age and overall likeness. The subject must remain clearly recognizable as the same person.nnDress the subject in unmistakable 1990s pop fashion with a youthful, colorful, stylish and playful appearance. Use period-appropriate clothing such as fitted colorful tops, crop tops, denim jackets, denim skirts, high-waisted jeans, mini skirts, colorful dresses, slip dresses, fitted cardigans, cropped jackets, matching two-piece outfits, patterned shirts, lightweight knitwear and coordinated casual fashion.nnUse vibrant 1990s colors including pink, turquoise, purple, red, yellow, white, black, pastel blue and lime green. Incorporate authentic period patterns such as colorful stripes, floral prints, small geometric patterns, playful graphics, color blocking and simple 1990s fashion prints.nnAllow the styling to reflect the polished and playful fashion associated with 1990s pop music and music-video culture. Create coordinated outfits with fashionable layering, colorful accessories and expressive styling while keeping the appearance believable for the decade.nnFor women, incorporate appropriate 1990s pop-fashion elements such as colorful mini skirts, fitted tops, crop tops, slip dresses, denim, cardigans, hair clips, colorful accessories, small handbags and period-appropriate hairstyles.nnFor men, incorporate appropriate 1990s pop-fashion elements such as fitted or relaxed colorful shirts, denim jackets, graphic T-shirts, coordinated jackets, colorful knitwear, casual trousers and period-appropriate hairstyles.nnAdapt the clothing naturally to the subject's gender, age and proportions. Do not force the same outfit or hairstyle onto every subject. The styling should look like authentic 1990s pop fashion rather than a costume.nnInclude appropriate 1990s accessories such as colorful sunglasses, chokers, simple jewelry, hair accessories, watches, small bags, belts and period-appropriate sneakers or footwear when suitable.nnCreate a polished but authentic 1990s photographic appearance. Use analog film photography, realistic film grain, slightly soft film rendering, natural skin texture, subtle flash photography, moderate contrast, slightly warm or pastel film colors and authentic 1990s studio or music-video photography characteristics.nnThe setting may naturally resemble a colorful 1990s studio, music-video set, bedroom, recording environment, colorful backdrop, shopping area or simple fashion portrait setting. Keep the subject as the primary focus.nnPreserve the subject's general pose, body position, composition and framing unless minor adjustments are necessary to accommodate the period styling.nnThe final image should look like a genuine 1990s pop photograph — colorful, youthful, fashionable and unmistakably 1990s — rather than a modern photograph with a vintage filter.nnAvoid modern fashion, contemporary hairstyles, obvious Y2K styling, futuristic metallic clothing, excessive chrome, overly futuristic sunglasses, 2000s fashion, modern digital photography, generic vintage clothing, costume-like outfits, caricature, illustration, plastic-looking skin, excessive beauty retouching or alteration of the subject's identity.
+```
+
+#### `2000s` — 2000s
+
+- **Category:** retro-nostalgia
+- **Model:** NANO_BANANA
+- **Description:** Authentic early-2000s Y2K photograph with youthful fashion and early digital-camera look
+
+```
+Using the uploaded image as the only reference for the subject, transform the photograph into an authentic early-to-mid 2000s retro photograph with a distinctive 2000–2009 fashion and photographic aesthetic.nnPreserve the subject's exact identity and recognizable facial characteristics. Maintain their facial structure, proportions, skin tone, eyes, nose, lips, distinctive features, natural age and overall likeness. The subject must remain clearly recognizable as the same person.nnDress the subject in unmistakable early-2000s fashion with a fashionable, youthful and visually distinctive Y2K-era appearance. Use characteristic clothing such as low-rise or mid-rise jeans, bootcut or flared jeans, cargo trousers, denim skirts, baby tees, fitted graphic T-shirts, cropped tops, camisoles, halter tops, fitted jackets, zip-up hoodies, velour tracksuits, denim jackets, leather jackets, mini skirts, coordinated two-piece outfits and layered casualwear.nnUse authentic early-2000s colors and materials including denim blue, pink, white, black, silver, metallic tones, baby blue, lavender, lime green and other bright accent colors. Incorporate period-specific details such as rhinestones, glitter accents, metallic fabrics, glossy materials, embroidered graphics, visible stitching, decorative belts, small logos and playful graphic designs.nnInclude recognizable 2000s accessories such as small tinted sunglasses, chunky jewelry, hoop earrings, charm bracelets, decorative belts, small shoulder bags, trucker-style caps, hair accessories and chunky or platform footwear when appropriate.nnFor women, allow styling such as low-rise jeans with fitted tops, baby tees, camisoles, cropped jackets, mini skirts, velour tracksuits, colorful accessories and period-appropriate hairstyles.nnFor men, use appropriate early-2000s fashion such as loose or relaxed jeans, cargo trousers, graphic T-shirts, tracksuits, zip-up jackets, denim jackets, oversized or fitted casual shirts, sporty clothing and period-appropriate accessories.nnAdapt the clothing naturally to the subject's gender, age and proportions. Do not force the same outfit or styling onto every subject. The fashion should feel like authentic early-2000s everyday or pop-culture fashion rather than an exaggerated costume.nnCreate an authentic early-2000s photographic appearance. Use consumer digital-camera or early digital photography characteristics, subtle flash, slightly harsh direct lighting where appropriate, realistic skin texture, mild digital noise, slightly imperfect exposure, modest image softness and the characteristic look of photographs taken with early-2000s digital cameras.nnThe setting may naturally resemble a shopping mall, bedroom, urban street, party, school environment, colorful studio, music-video setting or casual social photograph from the early 2000s. Keep the subject as the primary focus.nnPreserve the subject's general pose, body position, composition and framing unless minor adjustments are necessary to accommodate the new styling.nnThe final image should look like a genuine photograph taken during the early 2000s, with unmistakable Y2K/early-2000s fashion and photographic characteristics rather than a modern photograph with a retro filter.nnAvoid modern fashion, contemporary minimalist styling, current sneakers, modern smartphones, modern digital photography, 2010s or 2020s fashion, excessive futuristic sci-fi styling, excessive chrome, overly polished editorial photography, generic vintage clothing, costume-like outfits, caricature, illustration, plastic-looking skin, excessive beauty retouching or alteration of the subject's identity.
+```
+
+#### `2000s-hip-hop` — 2000s Hip-hop
+
+- **Category:** retro-nostalgia
+- **Model:** SEEDREAM_4_5
+- **Description:** Authentic early-2000s hip-hop portrait with polished streetwear and early digital-camera look
+
+```
+Using the uploaded image as the only reference for the subject, transform the photograph into an authentic early-to-mid 2000s hip-hop portrait with the distinctive fashion, styling and photographic character of 2000–2007 hip-hop culture.nnPreserve the subject's exact identity and recognizable facial characteristics. Maintain their facial structure, proportions, skin tone, eyes, nose, lips, distinctive features, natural age and overall likeness. The subject must remain clearly recognizable as the same person.nnDress the subject in unmistakable early-2000s hip-hop fashion with a confident, stylish and expressive streetwear aesthetic. Use characteristic clothing such as oversized or wide-leg jeans, baggy denim, cargo trousers, oversized graphic T-shirts, oversized hoodies, sports jerseys, basketball jerseys, varsity jackets, bomber jackets, leather jackets, tracksuits, velour tracksuits, zip-up jackets, denim jackets and layered streetwear.nnIncorporate the more polished and fashion-conscious side of early-2000s hip-hop. Use coordinated outfits, premium-looking streetwear, bold graphic designs, sports-inspired clothing, decorative stitching, embroidered details, contrasting fabrics and statement pieces.nnUse authentic 2000s colors including white, black, denim blue, red, navy, gray, brown, gold, silver and occasional bright colors. Incorporate period-specific details such as large graphic prints, bold lettering-style graphics, decorative stitching, camouflage patterns, pinstripes and athletic-inspired designs.nnInclude recognizable early-2000s hip-hop accessories such as fitted baseball caps, trucker-style caps, bandanas, oversized sunglasses, large watches, thick chains, pendants, bracelets, rings and other statement jewelry when appropriate. Use period-appropriate basketball sneakers, high-top sneakers, chunky athletic footwear or clean white sneakers.nnFor men, allow styling such as oversized jerseys, baggy or wide-leg jeans, fitted caps, oversized graphic shirts, tracksuits, varsity jackets, large chains and athletic sneakers.nnFor women, allow styling such as fitted or cropped tops, low-rise or wide-leg jeans, velour tracksuits, denim, fitted jackets, hoop earrings, statement jewelry, small shoulder bags and fashionable early-2000s streetwear.nnAdapt clothing naturally to the subject's gender, age and proportions. Do not force the same outfit or hairstyle onto every subject. Hairstyles and grooming should be appropriate to the early 2000s and naturally suited to the subject.nnCreate an authentic early-2000s photographic atmosphere. Use consumer digital-camera photography with direct on-camera flash, realistic early digital image quality, subtle digital noise, slightly harsh highlights, natural skin texture, mild image softness and the characteristic look of photographs and music-video promotional images from the early 2000s.nnThe setting may naturally resemble an urban street, recording studio, basketball court, nightclub-style backdrop, apartment, parking area, street corner, music-video location or simple studio portrait. Keep the subject as the primary focus.nnPreserve the subject's general pose, body position, composition and framing unless minor adjustments are necessary to accommodate the new styling.nnThe final image should look like a genuine photograph taken during the early 2000s hip-hop era — confident, stylish, street-oriented and unmistakably 2000s — rather than a modern photograph with a vintage filter.nnAvoid modern streetwear, contemporary sneakers, modern hairstyles, current luxury fashion, 2010s or 2020s aesthetics, excessive futuristic styling, excessive metallic sci-fi elements, generic 1990s hip-hop fashion, modern digital-camera quality, costume-like outfits, caricature, illustration, plastic-looking skin, excessive beauty retouching or alteration of the subject's identity.
+```
+
+#### `2000s-pop` — 2000s Pop
+
+- **Category:** retro-nostalgia
+- **Model:** SEEDREAM_4_5
+- **Description:** Authentic early-2000s Y2K pop portrait with glossy music-video fashion and early digital-camera look
+
+```
+Using the uploaded image as the only reference for the subject, transform the photograph into an authentic early-to-mid 2000s pop portrait with a distinctive 2000–2007 Y2K pop-culture, fashion and photographic aesthetic.nnPreserve the subject's exact identity and recognizable facial characteristics. Maintain their facial structure, proportions, skin tone, eyes, nose, lips, distinctive features, natural age and overall likeness. The subject must remain clearly recognizable as the same individual.nnDress the subject in unmistakable early-2000s pop fashion with a youthful, glamorous, playful and fashion-forward appearance. Use characteristic Y2K pop clothing such as low-rise jeans, bootcut or flared jeans, denim skirts, mini skirts, fitted tops, baby tees, cropped tops, camisoles, halter tops, tube tops, fitted jackets, cropped denim jackets, velour tracksuits, coordinated two-piece outfits, fitted dresses and glossy or satin-like clothing.nnUse vibrant Y2K colors such as hot pink, baby blue, lavender, turquoise, white, silver, metallic gold, lime green, bright red and glossy black. Incorporate period-specific details such as rhinestones, glitter, sequins, metallic accents, glossy fabrics, decorative stitching, embroidered designs, playful graphics, small logos, sparkle details and colorful patterns.nnCreate coordinated and visually polished outfits inspired by early-2000s pop music and music-video fashion. The styling should feel glamorous and youthful without becoming a costume. Allow the model to naturally select different combinations of clothing, colors and accessories rather than repeating one standardized outfit.nnInclude appropriate Y2K accessories such as tiny tinted sunglasses, rhinestone jewelry, hoop earrings, charm bracelets, layered necklaces, decorative belts, small shoulder bags, hair clips, butterfly-style hair accessories and platform or chunky footwear when appropriate.nnFor women, allow authentic early-2000s pop styling such as low-rise jeans with fitted tops, coordinated two-piece outfits, mini skirts, cropped jackets, glossy fabrics, rhinestone details, colorful accessories and period-appropriate hairstyles.nnFor men, use authentic early-2000s pop fashion such as fitted or relaxed graphic shirts, denim, coordinated jackets, sporty casualwear, layered tops, statement accessories and period-appropriate hairstyles.nnAdapt the clothing naturally to the subject's gender, age and proportions. Do not force the same outfit, hairstyle or accessories onto every subject. Preserve the person's identity rather than altering their facial appearance to resemble a celebrity or pop star.nnCreate an authentic early-2000s photographic appearance using early digital-camera aesthetics: direct on-camera flash, slightly harsh highlights, realistic digital noise, mild image softness, subtle exposure imperfections, natural skin texture and the characteristic look of early-2000s personal photographs and pop-culture promotional photography.nnThe setting may resemble a colorful music-video set, bedroom, shopping mall, backstage area, studio backdrop, party environment or glossy early-2000s pop photoshoot. Keep the subject as the primary focus.nnPreserve the subject's general pose, body position, composition and framing unless minor adjustments are necessary to accommodate the new styling.nnThe final image should look like a genuine early-2000s pop photograph — glossy, colorful, youthful, playful and unmistakably Y2K — rather than a modern photograph with a retro filter.nnAvoid modern fashion, contemporary minimalist styling, current sneakers, modern hairstyles, 2010s or 2020s aesthetics, excessive futuristic sci-fi styling, excessive chrome, modern digital photography, generic vintage clothing, costume-like outfits, caricature, illustration, plastic-looking skin, excessive beauty retouching or alteration of the subject's identity.
+```
+
+#### `rock-n-roll` — Rock n Roll
+
+- **Category:** retro-nostalgia
+- **Model:** NANO_BANANA
+- **Description:** Authentic classic rock-and-roll portrait with rebellious leather-and-denim styling and analog film look
+
+```
+Using the uploaded image as the only reference for the subject, transform the photograph into an authentic classic Rock & Roll portrait with a timeless rebellious rock aesthetic.nnPreserve the subject's exact identity and recognizable facial characteristics. Maintain their facial structure, proportions, skin tone, eyes, nose, lips, distinctive features, natural age and overall likeness. The subject must remain clearly recognizable as the same individual.nnDress the subject in authentic Rock & Roll fashion with a confident, rebellious and effortlessly cool appearance. Use characteristic rock styling such as leather jackets, denim jackets, distressed denim, fitted jeans, graphic or vintage-style band-inspired T-shirts, dark shirts, boots, flannel layers, vests, fitted jackets and other classic rock clothing.nnUse a strong palette of black, dark denim, charcoal, deep red, white, brown and muted earth tones, with occasional bold accents. Incorporate authentic rock-inspired details such as patches, studs, metal hardware, belts, chains, bracelets, rings, sunglasses and other understated statement accessories where appropriate.nnAdapt the clothing naturally to the subject's gender, age and proportions. The styling should feel authentic and effortlessly worn rather than like a theatrical costume. Do not force the same outfit or hairstyle onto every subject.nnGive the subject an appropriate rock-inspired hairstyle and grooming while preserving their natural identity and recognizable features. Hairstyles may range from longer textured hair and loose waves to classic short rock hairstyles, depending on what naturally suits the subject.nnCreate a timeless rock-and-roll photographic atmosphere using authentic analog photography, realistic film grain, natural skin texture, slightly imperfect exposure, atmospheric lighting, subtle film softness and rich photographic contrast.nnThe setting may naturally resemble a rehearsal studio, backstage area, recording studio, concert venue, garage, brick-wall location, street setting or simple dark studio backdrop. Keep the subject as the primary focus.nnPreserve the subject's general pose, body position, facial expression, composition and framing unless minor adjustments are necessary to accommodate the new styling.nnThe final image should look like a genuine rock-and-roll photograph with an authentic rebellious, confident and timeless character rather than a modern photograph with a simple vintage filter.nnAvoid modern fashion trends, futuristic styling, overly polished fashion-editorial aesthetics, excessive glamour, bright neon styling, formal business clothing, costume-like outfits, exaggerated hairstyles, caricature, illustration, plastic-looking skin, excessive beauty retouching or alteration of the subject's identity.
 ```
 
 ### Art
@@ -670,6 +1226,16 @@ make this a low-poly cartoon, make background plain color if none.
 make a street mural graffiti of the subject/s
 ```
 
+#### `illustration` — Illustration
+
+- **Category:** art
+- **Model:** NANO_BANANA
+- **Description:** Whimsical pastel storybook portrait illustration with soft hand-drawn linework and dreamy floral scenes
+
+```
+Using the uploaded image as the visual reference, create a whimsical pastel storybook-style portrait illustration of the same subject while preserving her recognizable facial structure, proportions, hairstyle, expression, and overall youthful appearance. Maintain the soft hand-drawn aesthetic with delicate linework, subtle watercolor-style shading, large expressive eyes, rosy cheeks, and smooth rounded facial features.nnThe composition should feel dynamic and varied rather than identical to the reference. Change the pose, head angle, hand placement, outfit details, floral arrangement, background elements, and scene composition creatively while staying faithful to the original artistic style. The subject can be shown interacting naturally with the environment — surrounded by blooming flowers, floating petals, vines, butterflies, seasonal plants, or dreamy decorative elements.nnKeep the same muted pastel color palette featuring soft coral pinks, dusty teal greens, warm creams, light peach skin tones, and gentle earthy accents. Preserve the airy, cozy, feminine illustration feel commonly seen in premium nursery art, greeting cards, and modern fairytale illustrations.
+```
+
 #### `pop-art-v1` — Pop Art V1
 
 - **Category:** art
@@ -693,11 +1259,11 @@ make this a pop art.
 #### `pop-art-v3` — Pop Art V3
 
 - **Category:** art
-- **Model:** NANO_BANANA
-- **Description:** Pop art portrait with bold comic-inspired color blocks
+- **Model:** SEEDREAM_4_5
+- **Description:** Minimalist pop art with bold black-and-white contrast, halftone shading, and a solid pastel background
 
 ```
-make this a pop art.
+Convert this portrait photo into a minimalist pop art illustration. Use bold black-and-white contrast with halftone shading on the face. Keep the background a solid pastel color, outlined in black, with clean geometric lines. The overall style should be flat, graphic, and modern, similar to retro comic book art.
 ```
 
 #### `graffiti` — Graffiti
@@ -780,16 +1346,6 @@ Make this an abstract art
 Make this a geometric art
 ```
 
-#### `surreal` — Surreal
-
-- **Category:** art
-- **Model:** NANO_BANANA
-- **Description:** Surreal art portrait with dreamlike forms and imaginative composition
-
-```
-Make this a surreal art
-```
-
 #### `coloured-glass` — Coloured Glass
 
 - **Category:** art
@@ -830,17 +1386,27 @@ A childlike crayon drawing on blue horizontal lined notebook paper. The drawing 
 A childlike crayon drawing on blue horizontal lined notebook paper. The drawing is a simplified, slightly exaggerated caricature of the reference image. preserving face shape, skin tone, hairstyle, facial expression, and outfit colors. Features messy, vibrant crayon strokes and bold outlines. Background is simplified and loosely sketched. The overall effect should be an authentic drawing by a child aged 10-6.
 ```
 
-#### `origami` — Origami
+#### `paper-cut` — Paper Cut
 
 - **Category:** art
-- **Model:** SEEDREAM_4_5
-- **Description:** Elegant traditional origami sculpture of the subject from folded washi paper with museum-quality craftsmanship
+- **Model:** DEFAULT_MODEL
+- **Description:** Exquisite layered paper cut artwork with die-cut cardstock depth and handcrafted diorama look
 
 ```
-Preserve the uploaded person's identity exactly. Transform the person into an elegant traditional origami sculpture, handcrafted entirely from folded paper while maintaining their recognizable facial features, hairstyle, skin tone (represented through carefully chosen paper colours), clothing, accessories, and personality.nnConstruct the entire character exclusively from precisely folded sheets of paper, using authentic origami techniques without cutting, tearing, or sculpting. Every part of the figure—including the face, hair, clothing, shoes, and accessories—should be formed through intricate geometric folds, layered paper structures, sharp creases, crisp edges, and carefully engineered paper geometry.nnPreserve the person's facial identity by using sophisticated folded forms that suggest the eyes, eyebrows, nose, lips, jawline, hairstyle, and expression while remaining unmistakably handcrafted from paper. Hair should be represented through layered folded strips, pleats, curls, or angular paper sections that mimic the person's hairstyle.nnClothing should appear as folded paper garments with realistic collars, sleeves, seams, lapels, pockets, folds, and fabric draping recreated entirely through origami techniques. Accessories should also be folded from paper while remaining clearly recognizable.nnUse premium textured Japanese washi paper with subtle fibres, natural matte surfaces, delicate paper grain, and realistic fold stress along the creases. Employ harmonious paper colours with gentle tonal variation while preserving the person's clothing colours and overall appearance.nnDisplay the finished origami sculpture on a clean neutral surface with soft studio lighting that highlights the crisp folds, layered construction, realistic paper thickness, and intricate craftsmanship. Subtle contact shadows, shallow depth of field, professional macro photography, museum-quality paper sculpture, ultra-detailed handcrafted artistry, elegant composition, photorealistic materials, 8K quality, no glue, no tape, no text, no watermarks, and no visual defects.
+Preserve the uploaded person's identity exactly. Transform the uploaded person into an exquisite layered paper cut artwork, preserving their recognizable facial features, hairstyle, facial structure, expression, age, clothing, accessories, and distinctive characteristics while recreating the entire scene exclusively from intricately cut sheets of colored paper.nnEvery visible element—including the person, clothing, hair, skin, accessories, background, ground, buildings, trees, sky, clouds, furniture, shadows, and every object in the composition—must be constructed entirely from layered paper cutouts. Nothing should appear painted, illustrated, photographed, or three-dimensional beyond the depth created by stacked paper layers.nnThe person's facial identity should be recreated using precisely cut paper shapes with smooth flowing curves, crisp edges, layered contours, and carefully arranged color pieces that preserve their recognizable features. Hair should consist of individually cut layered paper sections that follow the natural hairstyle while maintaining the handcrafted paper aesthetic.nnRecreate the person's original clothing entirely from layered colored paper, preserving the realistic design, fit, tailoring, folds, seams, collars, buttons, pockets, wrinkles, layered garments, and accessories. Every garment should clearly appear handcrafted from precisely cut paper with visible stacked layers and clean die-cut edges.nnConstruct the entire environment from multiple layers of colored cardstock with varying depths that create a rich dimensional effect. Buildings, trees, rocks, water, furniture, vehicles, plants, and every background element should all be assembled from stacked paper pieces with visible layer separation, creating a handcrafted diorama appearance.nnUse premium textured cardstock and craft paper with subtle paper fibers, matte surfaces, crisp cut edges, clean silhouettes, and realistic paper thickness. Layer the paper to create natural depth, soft paper shadows, and a convincing handcrafted composition while maintaining a cohesive color palette.nnIlluminate the artwork with soft studio lighting that enhances the paper textures, layered construction, delicate shadows between paper layers, and handcrafted craftsmanship. Use a top-down or slightly angled perspective, realistic contact shadows, premium macro photography, shallow depth of field, and a clean composition.nnHyper-realistic layered paper cut artwork, handcrafted papercraft, premium cardstock, intricate die-cut details, visible paper layers, authentic paper textures, dimensional paper relief, exceptional craftsmanship, faithful identity preservation, elegant composition, professional studio photography, every subject and object made entirely from paper, no paint, no plastic, no fabric, no wood, no metal, no realistic materials, no text, no logos, no watermarks, and no visual defects.
 ```
 
-### 3D Characters
+#### `editorial` — Editorial
+
+- **Category:** art
+- **Model:** NANO_BANANA
+- **Description:** Sophisticated magazine editorial caricature with ink linework and watercolor washes
+
+```
+Create a sophisticated editorial caricature of the provided subject while faithfully preserving their identity, facial structure, age, ethnicity, hairstyle, expression, clothing, and pose. Exaggerate the defining facial characteristics in a tasteful editorial manner—slightly enlarge the head, emphasize the forehead, eyebrows, eyes, nose, ears, cheek lines, smile lines, and wrinkles to communicate wisdom and character without becoming grotesque. Maintain realistic facial proportions despite the stylization. Render in a premium newspaper/magazine editorial illustration style using expressive black ink linework, fine cross-hatching, loose pen strokes, and layered watercolor washes. Use warm, earthy tones with subtle texture from watercolor paper. Employ confident contour lines, varied line weights, and painterly shading to create depth while retaining a handcrafted appearance. Preserve the library setting with bookshelves and the armchair, but simplify the background into soft watercolor shapes and sketch-like details so it supports rather than competes with the subject. Use soft natural window lighting, gentle shadows, and a muted, elegant color palette. The overall mood should be thoughtful, distinguished, intellectual, and timeless—resembling a high-end editorial portrait published in The New Yorker, The Economist, Financial Times, or a literary magazine. No typography, captions, speech bubbles, logos, signatures, watermarks, borders, decorative frames, or graphic elements. Background should remain clean and uncluttered, with the subject as the clear focal point.
+```
+
+### 3D
 
 #### `3dclay` — 3D Clay
 
@@ -850,6 +1416,46 @@ Preserve the uploaded person's identity exactly. Transform the person into an el
 
 ```
 make this a 3D Clay cartoon
+```
+
+#### `puppet` — Puppet
+
+- **Category:** 3d-characters
+- **Model:** SEEDREAM_4_5
+- **Description:** Charming handcrafted puppet character with felt textures, expressive features, and theatrical studio warmth
+
+```
+Transform the uploaded subject into a charming handcrafted puppet character inspired by the classic Muppet aesthetic.nnUse the uploaded image as the sole reference for the subject. Preserve their recognizable identity, facial structure, hairstyle, skin tone, distinctive features, clothing, and overall pose, translating them naturally into a puppet form.nnCreate a soft, tactile fabric-and-felt appearance with expressive oversized eyes, a wide characterful mouth, soft plush textures, visible stitching, subtle fabric fibers, rounded puppet-like forms, exaggerated but friendly facial expressions, and warm studio lighting. Give the character the playful, slightly quirky personality and theatrical charm associated with classic television puppet characters.nnMaintain the subject's original clothing and recognizable characteristics. Do not add logos, text, existing Muppet characters, or copyrighted character-specific features. The result should look like an original handcrafted puppet version of the uploaded person.
+```
+
+#### `origami` — Origami
+
+- **Category:** 3d-characters
+- **Model:** SEEDREAM_4_5
+- **Description:** Elegant traditional origami sculpture of the subject from folded washi paper with museum-quality craftsmanship
+
+```
+Preserve the uploaded person's identity exactly. Transform the person into an elegant traditional origami sculpture, handcrafted entirely from folded paper while maintaining their recognizable facial features, hairstyle, skin tone (represented through carefully chosen paper colours), clothing, accessories, and personality.nnConstruct the entire character exclusively from precisely folded sheets of paper, using authentic origami techniques without cutting, tearing, or sculpting. Every part of the figure—including the face, hair, clothing, shoes, and accessories—should be formed through intricate geometric folds, layered paper structures, sharp creases, crisp edges, and carefully engineered paper geometry.nnPreserve the person's facial identity by using sophisticated folded forms that suggest the eyes, eyebrows, nose, lips, jawline, hairstyle, and expression while remaining unmistakably handcrafted from paper. Hair should be represented through layered folded strips, pleats, curls, or angular paper sections that mimic the person's hairstyle.nnClothing should appear as folded paper garments with realistic collars, sleeves, seams, lapels, pockets, folds, and fabric draping recreated entirely through origami techniques. Accessories should also be folded from paper while remaining clearly recognizable.nnUse premium textured Japanese washi paper with subtle fibres, natural matte surfaces, delicate paper grain, and realistic fold stress along the creases. Employ harmonious paper colours with gentle tonal variation while preserving the person's clothing colours and overall appearance.nnDisplay the finished origami sculpture on a clean neutral surface with soft studio lighting that highlights the crisp folds, layered construction, realistic paper thickness, and intricate craftsmanship. Subtle contact shadows, shallow depth of field, professional macro photography, museum-quality paper sculpture, ultra-detailed handcrafted artistry, elegant composition, photorealistic materials, 8K quality, no glue, no tape, no text, no watermarks, and no visual defects.
+```
+
+#### `brick-v1` — Brick V1
+
+- **Category:** 3d-characters
+- **Model:** SEEDREAM_4_5
+- **Description:** Lego brick figure of the subject, preserving facial identity, pose, and clothing
+
+```
+make the subject/s a lego, maintain subject/s facial identity, pose and clothing.
+```
+
+#### `brick-v2` — Brick V2
+
+- **Category:** 3d-characters
+- **Model:** NANO_BANANA_2
+- **Description:** Lego brick figure of the subject, preserving facial identity, pose, and clothing
+
+```
+make the subject/s a lego, maintain subject/s facial identity, pose and clothing.
 ```
 
 #### `pixar-like` — Pixar-like
@@ -892,6 +1498,16 @@ Create a highly detailed 3D interpretation of the reference image while **strict
 Preserve the uploaded person's identity exactly. Transform the uploaded person into a charming high-end animated feature film character, preserving their recognizable facial features, hairstyle, beard, skin tone, eye colour, clothing, accessories, and personality.nnReimagine the character with warm, appealing proportions: a slightly oversized head, expressive large eyes with natural irises, softly rounded cheeks, a friendly smile, simplified facial anatomy, and subtle stylization while maintaining the person's unmistakable identity. Avoid caricature-like distortion or exaggerated facial features.nnSculpt the hair as soft, flowing strands with layered volume, natural movement, and silky textures. Facial hair should appear neatly groomed with stylized yet realistic individual strands that blend seamlessly into the character's face.nnThe clothing should retain its original design while being recreated with premium animated-film quality, featuring soft fabrics, clean stitching, subtle wrinkles, realistic cloth simulation, and vibrant colours.nnRender the character as a premium stylized 3D model with smooth topology, high-quality skin shaders, subtle subsurface scattering, realistic fabric materials, soft global illumination, ambient occlusion, cinematic rim lighting, and polished studio-quality rendering.nnThe overall aesthetic should feel warm, inviting, expressive, and emotionally engaging, with rounded forms, appealing silhouettes, and elegant proportions typical of modern family animated feature films.nnPlace the character against a clean softly blurred gradient background with warm cinematic lighting, shallow depth of field, soft shadows, premium colour grading, ultra-clean composition, commercial-quality character render, highly detailed textures, photorealistic 3D materials, 8K quality, no text, no logos, no watermarks, and no visual defects.
 ```
 
+#### `voxel-block` — Voxel Block
+
+- **Category:** 3d-characters
+- **Model:** SEEDREAM_4_5
+- **Description:** Extraordinary voxel block character built entirely from precisely aligned colored cubic voxels
+
+```
+Preserve the uploaded person's identity exactly. Transform the uploaded person into an extraordinary voxel block character, faithfully preserving their recognizable facial features, hairstyle, facial structure, expression, age, clothing, accessories, and distinctive characteristics while recreating the entire figure entirely from precisely arranged colored cubic voxels.nnConstruct the entire person using thousands of perfectly aligned three-dimensional cubes of uniform size. Every facial feature—including the eyes, nose, lips, ears, eyebrows, hairstyle, facial hair (if present), clothing, and accessories—should be recreated entirely from colored voxel blocks while maintaining the person's unmistakable identity.nnRecreate the person's original clothing exactly, preserving the realistic design, fit, tailoring, folds, seams, collars, buttons, zippers, pockets, cuffs, wrinkles, layered garments, shoes, and accessories. Every garment should be constructed entirely from colored voxel cubes, using carefully arranged blocks to represent fabric textures, folds, and contours while maintaining the unmistakable voxel aesthetic.nnEvery visible element in the composition—including the ground, trees, buildings, furniture, vehicles, sky, clouds, rocks, water, shadows, and all surrounding objects—should also be constructed entirely from voxel cubes. Nothing should appear smooth, organic, painted, or realistically sculpted. The entire world should share a consistent voxel construction.nnUse a rich color palette with subtle gradients achieved through carefully arranged colored cubes rather than smooth shading. The voxel structure should remain clearly visible, with crisp cube edges, perfectly aligned geometry, and authentic block-based construction throughout the entire scene.nnPosition the character naturally within a fully voxel-built environment that complements the subject while keeping them as the primary focus. The composition should feel like a handcrafted digital voxel world rather than a realistic environment.nnIlluminate the scene with soft directional lighting that creates realistic shadows between individual cubes, subtle ambient occlusion, crisp edge highlights, and believable depth. Use shallow depth of field, premium digital rendering, elegant composition, and exceptional attention to voxel detail.nnHyper-realistic voxel artwork, premium block-based construction, thousands of precisely aligned cubic voxels, authentic digital voxel aesthetic, crisp cube geometry, exceptional craftsmanship, faithful identity preservation, fully voxelized environment, premium 3D rendering, clean composition, every subject and object made entirely from voxel cubes, no smooth surfaces, no rounded geometry, no LEGO studs, no fantasy effects, no text, no logos, no watermarks, and no visual defects.
+```
+
 #### `3d-portrait-v1` — 3D Portrait V1
 
 - **Category:** 3d-characters
@@ -932,6 +1548,46 @@ Use the uploaded reference image as an immutable source of identity for both sub
 An exaggerated hybrid cartoon character combining sculpted 3D volume with expressive painted illustration style, featuring distorted stylized proportions and artistic facial deformation, freely adapting the person's appearance without realistic facial accuracy while keeping recognizable traits such as skin tone and hairstyle, the character captured in a dynamic dance pos full of motion and rhythm, flowing body ges and expressive posture, visible brush strok painted shadows and graphic textures layer over soft 3D forms, contemporary animated illustration aesthetic, solid blue studio background, stylized studio lighting translated into painterly highlights and shadows, energetic composition, textured paint surfaces and high-end hybrid 3D illustration render
 ```
 
+#### `yarn` — Yarn
+
+- **Category:** 3d-characters
+- **Model:** DEFAULT_MODEL
+- **Description:** Charming handcrafted yarn artwork with knitted, crocheted, and textile materials throughout the scene
+
+```
+Preserve the uploaded person's identity exactly. Transform the uploaded person into a charming handcrafted yarn artwork, faithfully preserving their recognizable facial features, hairstyle, facial structure, expression, age, clothing, accessories, and distinctive characteristics while recreating the entire scene exclusively from yarn, knitted fabric, crochet, and textile materials.nnEvery visible element—including the person, clothing, hair, skin, accessories, background, ground, buildings, trees, sky, clouds, furniture, vehicles, plants, animals, shadows, and every object in the composition—must be constructed entirely from yarn and textile materials. Nothing should appear as real skin, plastic, metal, stone, wood, or painted surfaces.nnThe person's face should be recreated using carefully stitched yarn with soft knitted textures, embroidered facial details, layered wool fibers, and subtle fabric contours that preserve their recognizable identity. Hair should be formed from realistic strands of yarn, braided wool, knitted loops, crocheted curls, or woven textile fibers that naturally follow the person's hairstyle.nnRecreate the person's original clothing entirely from knitted or crocheted fabric while preserving the realistic design, fit, tailoring, seams, collars, buttons, pockets, wrinkles, layered garments, and accessories. Every garment should clearly appear handcrafted from yarn with visible stitches, woven fibers, knitted patterns, crochet loops, ribbing, cable knit textures, and soft fabric folds.nnConstruct the entire environment from yarn and textile materials. Trees should have knitted trunks and pom-pom foliage, clouds should be fluffy wool, buildings should resemble stitched fabric structures, flowers should be crocheted, grass should consist of loose yarn fibers, rocks should be felted wool, and every background object should maintain the handcrafted textile aesthetic.nnUse premium wool, cotton yarn, felt, crochet, embroidery, knitted fabric, woven textiles, and soft fiber materials throughout the scene. Showcase realistic yarn fibers, stitch patterns, fabric weave, knitted loops, crochet detailing, embroidery thread, felt textures, and handcrafted imperfections that celebrate traditional textile craftsmanship.nnIlluminate the artwork with soft diffused lighting that enhances the rich textile textures, soft fibers, knitted depth, and handcrafted details. Use realistic contact shadows, shallow depth of field, premium studio photography, elegant composition, and photorealistic rendering that emphasizes the warmth and tactile beauty of yarn art.nnHyper-realistic handcrafted yarn artwork, knitted and crocheted craftsmanship, authentic wool fibers, embroidered details, premium textile materials, visible stitches, woven textures, felted surfaces, layered fabric construction, exceptional realism, faithful identity preservation, cozy handcrafted aesthetic, professional studio photography, every subject and object made entirely from yarn and textile materials, no plastic, no metal, no wood, no stone, no paper, no painted surfaces, no text, no logos, no watermarks, and no visual defects.
+```
+
+#### `vinyl` — Vinyl
+
+- **Category:** 3d-characters
+- **Model:** NANO_BANANA_2
+- **Description:** Premium designer vinyl figurine collectible with stylized proportions and studio product photography
+
+```
+Preserve the uploaded person's identity exactly. Transform the uploaded person into a premium designer vinyl figurine, faithfully preserving their recognizable facial features, hairstyle, facial structure, expression, age, clothing, accessories, and distinctive characteristics while reimagining them as a high-end collectible art toy.nnSculpt the entire figure with elegant stylized proportions typical of premium designer vinyl collectibles. The head should be slightly enlarged, the body simplified yet well-balanced, and the limbs smoothly proportioned while maintaining the person's unmistakable identity. The overall appearance should be charming, expressive, and collectible without becoming cartoonishly exaggerated.nnFaithfully recreate every facial feature—including the eyes, nose, lips, ears, eyebrows, hairstyle, facial hair (if present), and accessories such as glasses, hats, jewellery, or watches—with clean sculpted forms and smooth vinyl contours. Preserve the person's unique likeness while subtly simplifying small details into premium toy-quality sculpting.nnRecreate the person's original clothing exactly, preserving the realistic design, fit, tailoring, folds, seams, collars, buttons, zippers, pockets, layered garments, shoes, and accessories. Every garment should be expertly sculpted as molded vinyl while retaining the appearance of real clothing through refined sculptural detail.nnThe figurine should be manufactured from premium vinyl with smooth molded surfaces, subtle satin and semi-gloss finishes, realistic injection-molded construction, crisp sculpted details, clean part separation lines, precision paint application, and exceptional craftsmanship. The figure should resemble a genuine limited-edition designer collectible sold in premium art toy galleries.nnPosition the figurine standing naturally on a simple round display base that complements the figure without distracting from it. The pose should feel balanced, confident, and display-ready.nnPresent the figurine in a clean minimalist studio environment that keeps the collectible as the unmistakable focal point. The background should remain simple and uncluttered.nnIlluminate the figurine with soft professional studio lighting that enhances the vinyl material, subtle reflections, sculpted details, realistic paint finish, and premium craftsmanship. Use realistic contact shadows, shallow depth of field, premium commercial product photography, elegant composition, and photorealistic rendering.nnHyper-realistic designer vinyl collectible, premium art toy, authentic vinyl materials, smooth molded surfaces, precision paint application, realistic manufacturing quality, exceptional sculptural craftsmanship, faithful identity preservation, luxury collectible photography, clean minimalist composition, no packaging, no branding, no logos, no text, no watermarks, and no visual defects.
+```
+
+#### `plush` — Plush
+
+- **Category:** 3d-characters
+- **Model:** NANO_BANANA_2
+- **Description:** Adorable handcrafted plush toy with soft stuffed fabrics and a cozy textile world
+
+```
+Preserve the uploaded person's identity exactly. Transform the uploaded person into an adorable handcrafted plush toy, faithfully preserving their recognizable facial features, hairstyle, facial structure, expression, age, clothing, accessories, and distinctive characteristics while recreating the entire figure as a premium stuffed plush collectible.nnConstruct the entire person from soft plush fabrics filled with realistic stuffing, giving the figure a cuddly, rounded appearance with gentle proportions and a huggable feel. Every facial feature—including the eyes, nose, lips, ears, eyebrows, hairstyle, facial hair (if present), clothing, and accessories—should be recreated using embroidered stitching, appliqué fabric, plush textures, and carefully sewn construction while maintaining the person's unmistakable identity.nnRecreate the person's original clothing exactly, preserving the realistic design, fit, tailoring, seams, collars, buttons, zippers, pockets, cuffs, wrinkles, layered garments, shoes, and accessories. Every garment should be handcrafted from soft fabric, felt, fleece, velvet, or plush textiles, with visible stitching, embroidered details, quilted textures, and realistic fabric construction while remaining unmistakably soft and stuffed.nnEvery visible element in the composition—including furniture, plants, buildings, trees, clouds, ground, and all surrounding objects—should also be made entirely from plush fabrics, felt, stuffing, and stitched textiles. Nothing should appear as plastic, metal, wood, stone, paper, or realistic natural materials. The entire world should share a consistent handcrafted plush aesthetic.nnUse premium soft fabrics with realistic fleece, velvet, felt, microfiber, cotton, and plush textures. Include visible stitched seams, embroidered details, fabric grain, soft wrinkles, padded contours, quilted sections, plush pile, and gentle handcrafted imperfections that enhance realism.nnPosition the plush character naturally within a fully plush-crafted environment that complements the subject while keeping them as the primary focus. The composition should feel warm, cozy, playful, and handcrafted.nnIlluminate the scene with soft diffused studio lighting that enhances the fabric textures, stitched details, fluffy surfaces, and soft rounded forms. Use realistic contact shadows, shallow depth of field, premium professional photography, elegant composition, and photorealistic rendering that emphasizes the tactile beauty of plush materials.nnHyper-realistic handcrafted plush toy, authentic stuffed fabric construction, premium plush materials, realistic embroidered details, visible stitched seams, soft padded textures, exceptional craftsmanship, faithful identity preservation, cozy handcrafted aesthetic, premium studio photography, every subject and object made entirely from plush fabric and textile materials, no plastic, no metal, no wood, no stone, no paper, no rigid materials, no text, no logos, no watermarks, and no visual defects.
+```
+
+#### `bobblehead` — Bobblehead
+
+- **Category:** 3d-characters
+- **Model:** SEEDREAM_4_5
+- **Description:** Premium bobblehead collectible with oversized spring-mounted head and hand-painted finish
+
+```
+Preserve the uploaded person's identity exactly. Transform the uploaded person into a premium bobblehead collectible figurine, faithfully preserving their recognizable facial features, hairstyle, facial structure, expression, age, clothing, accessories, and distinctive characteristics while reimagining them as a professionally manufactured collectible.nnSculpt the figure with classic bobblehead proportions, featuring an oversized head approximately two to three times larger than natural proportion, mounted on a visible spring or hidden bobble mechanism above a compact, realistically proportioned body. The head should appear slightly heavier than the body, emphasizing the iconic bobblehead aesthetic while maintaining perfect balance.nnFaithfully recreate every facial feature—including the eyes, eyebrows, nose, lips, ears, hairstyle, facial hair (if present), glasses, hats, jewellery, and accessories—with exceptional sculptural accuracy. Preserve the person's identity with remarkable realism while subtly simplifying fine details to resemble a premium hand-painted collectible. The face should remain expressive, lifelike, and instantly recognizable.nnRecreate the person's original clothing exactly, preserving the realistic design, fit, tailoring, folds, seams, collars, buttons, zippers, pockets, cuffs, wrinkles, layered garments, shoes, and accessories. Every garment should be expertly sculpted with crisp details and professionally hand-painted finishes while retaining the appearance of real clothing.nnThe figurine should be manufactured from premium resin or vinyl with smooth molded surfaces, precise sculptural detailing, subtle satin finishes, realistic paint application, clean part lines, and exceptional collectible quality. The head should clearly appear capable of bobbling while remaining securely attached to the body.nnPosition the figure standing naturally on a premium display base that complements the subject without distracting from the collectible. The base should feel professionally designed and suitable for display.nnPresent the bobblehead in a clean minimalist studio environment that keeps the collectible as the unmistakable focal point.nnIlluminate the figurine with soft professional studio lighting that enhances the sculpted details, painted surfaces, realistic materials, and premium craftsmanship. Use realistic contact shadows, shallow depth of field, premium commercial product photography, elegant composition, and photorealistic rendering.nnHyper-realistic premium bobblehead collectible, oversized spring-mounted head, authentic collectible craftsmanship, realistic sculpted likeness, premium hand-painted finish, professional manufacturing quality, faithful identity preservation, luxury product photography, elegant minimalist composition, no packaging, no branding, no logos, no text, no watermarks, and no visual defects.
+```
+
 #### `miniature` — Miniature
 
 - **Category:** 3d-characters
@@ -942,7 +1598,7 @@ An exaggerated hybrid cartoon character combining sculpted 3D volume with expres
 Use the attached photo as the primary reference for appearance and clothing. Maintain the person's individuality as accurately as possible: recognizable facial features, head shape, hairstyle, hairline, age, skin tone and natural texture, and the shape of the eyes, nose, lips, and chin. Transfer clothing, shoes, accessories, colors, materials, and small details entirely from the attached reference—don't replace or invent anything. Create the effect of a hyperrealistic, humorous caricature: an adult is transformed into a tiny, miniature version of themselves with a deliberately exaggerated, disproportionately large head and a very small body. The head should appear massive and expressive, but the face remains anatomically realistic and easily recognizable. This is a living, breathing miniature person, not a child, a toy, or a plastic doll. The character sits on the open palm of a huge human hand, crossing their legs in a confident, slightly demonstrative pose. The character's arms are tightly folded over their chest. The facial expression is serious, sullen, and slightly displeased: furrowed brows, an intense gaze, and barely noticeable pursed lips. The emotion is expressive but natural, without being overly grotesque. The enormous lower palm gently supports the miniature character and takes up a noticeable portion of the foreground. A second, gigantic hand enters the frame from above and gently touches the top of the character's head, as if gently supporting a small, lifelike figure between its palms. Both hands must appear as realistic as possible: correct anatomy and proportions of the fingers, natural skin, pores, fine wrinkles, knuckle creases, nails, translucent areas of skin, and soft, natural highlights. The contrast between the enormous hands and the tiny body should create a convincing illusion of scale. Vertical portrait composition 9:16. The camera is positioned approximately at face level, at a slight three-quarter angle. The face is the main focal point of the image, with perfectly sharp eyes and facial features. Both large hands beautifully frame the character, creating the impression that he is nestled between them. The head, petite body, crossed legs, clothing, and key parts of both hands are fully visible in the frame. The composition is dense, expressive, and visually balanced. Cinematic studio lighting: soft, directional key light on the face, subtle shadows, delicate backlighting along the edges of the head and clothing, and natural reflections on the skin. Realistic depth of field with a slight blur in the background without losing important details. The background is a bright blue-blue radial gradient, more luminous and saturated in the center behind the character and gradually fading to a deep blue at the edges. 8K, extreme detail, hyperrealism, photorealistic, cinematic quality, ultra-detailed skin, realistic fabric texture, physically accurate lighting, natural color grading, HDR, sharp facial details, professional studio photography, premium advertising aesthetics, high-end collectible miniature effect, no text.
 ```
 
-#### `plastic-toy-v1` — Plastic Toy
+#### `plastic-toy-v1` — Plastic Toy V1
 
 - **Category:** 3d-characters
 - **Model:** SEEDREAM_4_5
@@ -952,7 +1608,7 @@ Use the attached photo as the primary reference for appearance and clothing. Mai
 Using the uploaded image as your ONLY reference, transform it into a high-quality stylized 3D render of a plastic toy, STRICTLY preserving the original scene without any changes: same object, same pose, same camera angle, same framing, same proportions, same lighting direction, same shadows, and same composition. The final image should look like an exact copy of the original photograph, transformed into a toy version, not a reimagining of it. Transform all characters and objects into the aesthetics of a premium collectible toy made of molded plastic. Surfaces should be exceptionally smooth, clean, and glossy, with controlled specular highlights, like those found in high-end designer toys or luxury collectible figurines. Add realistic structural details to the toy: visible hinge joints at the shoulders, elbows, hips, and knees (neat round or segmented hinges); subtle joint lines along the limbs and body parts; if necessary, minimal facial segmentation lines (very subtle, like those on premium action figures, no exaggeration); hinges should appear naturally integrated into the design and not interfere with the anatomy. The skin should be transformed into a smooth synthetic plastic (without pores or any imperfections), while fully preserving the character's personality and facial structure. Eyes should have a slight glossy sheen, like the painted eyes of the toy. Clothing should be transformed into plastic-coated materials (latex, rubberized surfaces, molded plastic, etc.), while maintaining the exact same design, folds, and construction - without any redesign.
 ```
 
-#### `plastic-toy-v2` — Plastic Toy
+#### `plastic-toy-v2` — Plastic Toy V2
 
 - **Category:** 3d-characters
 - **Model:** NANO_BANANA_2
@@ -1124,6 +1780,26 @@ Preserve the uploaded person's identity exactly. Transform the uploaded person i
 Preserve the uploaded person's identity exactly. Transform the uploaded person into an extraordinary handcrafted metal sculpture, faithfully preserving their recognizable facial features, hairstyle, facial structure, expression, age, clothing, accessories, and distinctive characteristics with exceptional sculptural precision.nnSculpt the entire person as a life-sized metal artwork in a natural standing, sitting, walking, or expressive pose that complements their appearance. Every facial feature—including the eyes, nose, lips, ears, eyebrows, hairstyle, facial hair (if present), clothing, and accessories—should be meticulously sculpted while maintaining the person's unmistakable identity.nnThe sculpture should be crafted from a randomly selected premium metal, with each generation featuring a different realistic metal finish. Materials may include polished stainless steel, brushed aluminum, forged iron, polished chrome, titanium, copper, brass, blackened steel, weathered steel, gunmetal, or other authentic metals. The surface should display realistic metallic reflections, subtle natural imperfections, machining marks, brushed grain, polished finishes, oxidation where appropriate, and exceptional craftsmanship.nnRecreate the person's original clothing entirely in metal while preserving every fold, seam, collar, button, pocket, wrinkle, layered garment, and accessory with remarkable sculptural detail. Flowing garments should appear elegantly formed from solid metal while maintaining realistic contours and intricate craftsmanship.nnThe sculpture should exhibit authentic metal characteristics, including crisp edges, precision detailing, smooth polished surfaces, brushed textures, realistic welds or cast details where appropriate, subtle surface wear, fine machining marks, and convincing metallic reflections. The chosen metal should appear solid, weighty, and expertly crafted.nnPresent the sculpture in a clean, minimalist environment that keeps the artwork as the unmistakable focal point. The background should remain simple and uncluttered.nnIlluminate the sculpture with professional studio lighting that enhances metallic reflections, surface texture, polished highlights, and realistic shadows. Use shallow depth of field, elegant composition, premium professional photography, and photorealistic rendering that showcases the beauty of the chosen metal.nnHyper-realistic handcrafted metal sculpture, authentic metallic materials, master artisan craftsmanship, realistic reflections, polished and brushed metal finishes, exceptional sculptural detail, premium professional photography, faithful identity preservation, elegant minimalist composition, no fantasy materials, no glowing effects, no text, no logos, no watermarks, and no visual defects.
 ```
 
+#### `chrome` — Chrome
+
+- **Category:** sculptures
+- **Model:** NANO_BANANA_2
+- **Description:** Polished mirror-chrome sculpture with ultra-smooth reflective surfaces and photorealistic CGI finish
+
+```
+Transform the uploaded subject into a polished mirror-chrome sculpture while preserving their identity and facial proportions. Render the entire subject as if sculpted from flawless reflective chrome with ultra-smooth surfaces, seamless contours, crisp specular highlights, and realistic mirror reflections. The metallic material should appear highly polished with no paint or texture, emphasizing elegant sculptural forms and a futuristic contemporary-art aesthetic. Ultra-detailed, photorealistic CGI, premium product-render quality. Chrome effect includes hair and beard.
+```
+
+#### `mountain` — Mountain
+
+- **Category:** sculptures
+- **Model:** NANO_BANANA
+- **Description:** Colossal original granite mountain monument carved with the uploaded subject(s) only, in a national-park setting
+
+```
+Preserve the uploaded person's identity exactly. If multiple people are uploaded, preserve each person's identity exactly. Transform the uploaded subject(s) into a colossal granite mountain monument inspired by the monumental rock-carving style of a colossal American-style granite mountain monument with monumental rock-carved portraits, but create an entirely original monument. The uploaded subject(s) must be the ONLY faces carved into the mountain. Completely replace any existing or recognizable mountain carvings. Do not include George Washington, Thomas Jefferson, Theodore Roosevelt, Abraham Lincoln, or any historical figures. Do not recreate the real Mount Rushmore monument. Instead, carve only the uploaded subject(s) into a massive natural granite cliff, faithfully preserving their facial features, hairstyles, expressions, and proportions. The carvings should appear expertly sculpted from solid granite with realistic chisel marks, weathering, cracks, layered rock formations, and natural stone textures. The mountain should exist in a beautiful national-park landscape with pine trees, rocky cliffs, and dramatic blue skies. At the base of the monument, include a large scenic viewing plaza filled with tourists taking photos, pointing, walking, and admiring the monument to emphasize its immense scale. Include observation decks, railings, pathways, park signage, and natural surroundings. Cinematic wide-angle composition, ultra-photorealistic, highly detailed, realistic daylight, epic scale, clean composition, no text, no logos, no watermarks.
+```
+
 #### `wood` — Wood
 
 - **Category:** sculptures
@@ -1134,16 +1810,24 @@ Preserve the uploaded person's identity exactly. Transform the uploaded person i
 Preserve the uploaded person's identity exactly. Transform the uploaded person into an extraordinary hand-carved wooden sculpture, faithfully preserving their recognizable facial features, hairstyle, facial structure, expression, age, clothing, accessories, and distinctive characteristics with exceptional sculptural precision.nnSculpt the entire person as a life-sized wooden artwork in a natural standing, sitting, walking, or expressive pose that complements their appearance. Every facial feature—including the eyes, nose, lips, ears, eyebrows, hairstyle, facial hair (if present), clothing, and accessories—should be meticulously carved while maintaining the person's unmistakable identity.nnThe sculpture should be carved from a randomly selected premium hardwood, with each generation featuring a different authentic wood species. Materials may include rich walnut, golden oak, mahogany, teak, maple, cherry, ebony, cedar, olive wood, rosewood, or other realistic hardwoods. The wood should display beautiful natural grain patterns, subtle color variations, growth rings, knots where appropriate, and the unique character of genuine timber.nnRecreate the person's original clothing entirely in carved wood while preserving the realistic design, fit, tailoring, and construction of the garments. Every fold, seam, collar, button, zipper, pocket, cuff, wrinkle, layered garment, and accessory should be faithfully reproduced with exceptional sculptural precision. The clothing should retain the appearance of real garments while clearly being carved from solid wood, displaying continuous natural wood grain, subtle chisel marks, refined carved textures, and master artisan craftsmanship.nnThe sculpture should exhibit authentic wood carving characteristics, including finely carved details, realistic wood grain flowing naturally across the form, subtle chisel marks, delicate gouge textures, smooth hand-sanded surfaces, gently rounded edges, and a premium hand-finished appearance. The wood should look solid, warm, and expertly crafted, with a soft satin or lightly polished finish that enhances its natural beauty.nnPresent the sculpture in a clean, minimalist setting that keeps the artwork as the unmistakable focal point. The background should remain simple and uncluttered.nnIlluminate the sculpture with soft natural or studio lighting that enhances the wood grain, carved textures, warm tones, and sculptural depth. Use realistic contact shadows, shallow depth of field, elegant composition, premium professional photography, and photorealistic rendering that highlights the craftsmanship and organic beauty of the wood.nnHyper-realistic hand-carved wooden sculpture, authentic natural hardwood, master woodcarving craftsmanship, realistic wood grain, intricate carved details, subtle chisel marks, premium hand-finished surface, exceptional realism, professional photography, faithful identity preservation, elegant minimalist composition, no painted wood, no fantasy materials, no text, no logos, no watermarks, and no visual defects.
 ```
 
-### Anime & Manga
+#### `gold` — Gold
 
-#### `anime` — Anime
-
-- **Category:** anime-manga
-- **Model:** DEFAULT_MODEL
-- **Description:** Anime-style cartoon
+- **Category:** sculptures
+- **Model:** NANO_BANANA_2
+- **Description:** Life-sized solid 24-karat gold sculpture with warm metallic reflections and goldsmith finish
 
 ```
-Make this an anime cartoon, maintaining poster and facial features
+Preserve the uploaded person's identity exactly. Transform the uploaded person into an extraordinary solid gold sculpture, faithfully preserving their recognizable facial features, hairstyle, facial structure, expression, age, clothing, accessories, and distinctive characteristics with exceptional sculptural precision.nnSculpt the entire person as a life-sized gold artwork in a natural standing, sitting, walking, or expressive pose that complements their appearance. Every facial feature—including the eyes, nose, lips, ears, eyebrows, hairstyle, facial hair (if present), clothing, and accessories—should be meticulously sculpted while maintaining the person's unmistakable identity.nnThe sculpture should be crafted entirely from solid 24-karat gold, featuring a rich, warm golden color with realistic metallic reflections, soft mirror-like highlights, subtle brushed and polished finishes, delicate casting details, fine surface textures, and exceptional artisan craftsmanship. The gold should appear dense, luxurious, and substantial, with authentic metallic depth and natural luster.nnRecreate the person's original clothing entirely in solid gold while preserving the realistic design, fit, tailoring, and construction of the garments. Every fold, seam, collar, button, zipper, pocket, cuff, wrinkle, layered garment, and accessory should be faithfully reproduced with exceptional sculptural precision. The clothing should retain the appearance of real garments while clearly being sculpted from solid gold, displaying refined metallic textures, crisp sculpted details, and master goldsmith craftsmanship.nnThe sculpture should exhibit authentic gold characteristics, including smooth polished surfaces, subtle hammered textures in selected areas, finely engraved details, realistic metallic reflections, soft edge highlights, and delicate craftsmanship. The gold should appear flawless, valuable, and exquisitely finished without appearing painted or artificial.nnPresent the sculpture against a clean, minimalist background that keeps the artwork as the unmistakable focal point. The composition should be elegant, luxurious, and uncluttered.nnIlluminate the sculpture with professional studio lighting that enhances the gold's warm metallic reflections, rich color, polished surfaces, and intricate sculptural details. Use realistic contact shadows, shallow depth of field, premium professional photography, elegant composition, and photorealistic rendering that showcases the brilliance and craftsmanship of solid gold.nnHyper-realistic solid gold sculpture, authentic precious metal, master goldsmith craftsmanship, realistic metallic reflections, luxurious polished finish, intricate sculptural detail, exceptional realism, premium professional photography, faithful identity preservation, elegant minimalist composition, no fantasy effects, no glowing magic, no text, no logos, no watermarks, and no visual defects.
+```
+
+#### `porcelain` — Porcelain
+
+- **Category:** sculptures
+- **Model:** SEEDREAM_4_5
+- **Description:** Exquisite handcrafted porcelain sculpture with random elegant glaze finishes and ceramic sheen
+
+```
+Preserve the uploaded person's identity exactly. Transform the uploaded person into an exquisite handcrafted porcelain sculpture, faithfully preserving their recognizable facial features, hairstyle, facial structure, expression, age, clothing, accessories, and distinctive characteristics with exceptional sculptural precision.nnSculpt the entire person as an elegant porcelain figure in a natural standing, sitting, walking, or expressive pose that complements their appearance. Every facial feature—including the eyes, nose, lips, ears, eyebrows, hairstyle, facial hair (if present), clothing, and accessories—should be meticulously sculpted while maintaining the person's unmistakable identity.nnThe sculpture should be crafted from fine porcelain featuring a smooth glazed finish, subtle translucency around thinner edges, delicate ceramic depth, and an immaculate handcrafted appearance. For each generation, the porcelain should feature a randomly selected elegant finish, such as classic white porcelain, soft ivory, celadon, cobalt blue and white, floral hand-painted porcelain, pastel porcelain, black porcelain, or other refined porcelain styles. The finish should remain tasteful, elegant, and consistent across the entire sculpture.nnRecreate the person's original clothing entirely in porcelain while preserving the realistic design, fit, tailoring, folds, seams, collars, buttons, zippers, pockets, cuffs, wrinkles, layered garments, shoes, and accessories. The clothing should retain the appearance of real garments while clearly being sculpted from porcelain, with graceful flowing forms, crisp sculptural detailing, and beautifully glazed surfaces.nnThe sculpture should exhibit authentic porcelain characteristics, including flawless glazing, smooth reflective surfaces, subtle ceramic sheen, refined hand-finished details, delicate relief work, elegant contours, and exceptional artisan craftsmanship. Where appropriate, include tasteful hand-painted decorative patterns or fine gold accents that complement the chosen porcelain style without obscuring the person's identity.nnPresent the sculpture against a clean, minimalist background that keeps the artwork as the unmistakable focal point. The composition should be elegant, refined, and uncluttered.nnIlluminate the sculpture with soft professional studio lighting that enhances the glazed porcelain surface, delicate reflections, subtle translucency, intricate sculptural details, and premium craftsmanship. Use realistic contact shadows, shallow depth of field, elegant composition, premium professional photography, and photorealistic rendering.nnHyper-realistic handcrafted porcelain sculpture, authentic fine porcelain, luxurious glazed ceramic finish, subtle translucency, exceptional sculptural craftsmanship, refined artisan detailing, premium professional photography, faithful identity preservation, elegant minimalist composition, no cracks unless naturally decorative, no fantasy materials, no text, no logos, no watermarks, and no visual defects.
 ```
 
 ---
@@ -1158,6 +1842,106 @@ Make this an anime cartoon, maintaining poster and facial features
 
 ```
 Make this an Exaggerated 3d cartoon caricature
+```
+
+#### `monday-mood` — Monday *(disabled)*
+
+- **Category:** moods-moments
+- **Model:** SEEDREAM_4_5 · NANO_BANANA_2 · NANO_BANANA (random)
+- **Description:** Humorous Monday Mood cartoon — exhausted, relatable, identity preserved
+
+```
+Preserve the uploaded person's identity exactly. Create a humorous Monday Mood cartoon illustration. The person is exhausted, slouching with a varied mood and expressions Add random scenarios in relation to the illustration. Warm painterly comic illustration, expressive brushwork, clean composition, humorous but relatable, identity preserved..
+```
+
+#### `friday-feeling` — Friday *(disabled)*
+
+- **Category:** moods-moments
+- **Model:** NANO_BANANA_2 · NANO_BANANA (random)
+- **Description:** Humorous Friday Feeling illustration — excited, relaxed, full of energy
+
+```
+Preserve the uploaded person's identity exactly. Create a humorous Friday Feeling illustration. The person is excited, relaxed, smiling, and full of energy with varied moods and expressions. Add random scenarios in relation to the illustration. Warm painterly comic illustration, expressive brushwork, clean composition, humorous but relatable, identity preserved.
+```
+
+#### `payday` — Payday *(disabled)*
+
+- **Category:** moods-moments
+- **Model:** NANO_BANANA
+- **Description:** Payday glow-up caricature — flush, smug, and briefly unstoppable
+
+```
+Using the uploaded photo as the sole identity reference, create a funny caricature of the subject as Payday. Preserve facial likeness, age, ethnicity, hairstyle, and clothing while exaggerating a smug, flush, briefly-unstoppable grin. Scene: playful payday moment — bank notification vibe, shopping bags or coffee treat nearby, soft glamorous lighting. Mood: temporary wealth swagger, light comedy. Style: polished humorous editorial caricature. Full-bleed. No readable text, logos, watermarks, or borders.
+```
+
+#### `end-of-month` — End of Month *(disabled)*
+
+- **Category:** moods-moments
+- **Model:** NANO_BANANA
+- **Description:** Broke-but-surviving end-of-month caricature — empty wallet energy
+
+```
+Using the uploaded photo as the sole identity reference, create a funny caricature of the subject as End of Month. Preserve facial likeness, age, ethnicity, hairstyle, and clothing while exaggerating a broke-but-surviving, empty-wallet expression. Scene: end-of-month realism — sparse fridge vibes, empty wallet or nearly empty card, ramen or toast nearby, soft comic lighting. Mood: relatable financial humor, not harsh. Style: polished humorous editorial caricature. Full-bleed. No readable text, logos, watermarks, or borders.
+```
+
+#### `before-coffee` — Before Coffee *(disabled)*
+
+- **Category:** moods-moments
+- **Model:** NANO_BANANA
+- **Description:** Pre-caffeine zombie caricature — half-awake and unapproachable
+
+```
+Using the uploaded photo as the sole identity reference, create a funny caricature of the subject as Before Coffee. Preserve facial likeness, age, ethnicity, hairstyle, and clothing while exaggerating a half-awake, unapproachable, pre-caffeine zombie expression. Scene: morning kitchen or bathroom — empty mug waiting, dim soft light, bedhead energy. Mood: comic warning label energy. Style: polished humorous editorial caricature. Full-bleed. No text, logos, watermarks, or borders.
+```
+
+#### `after-coffee` — After Coffee *(disabled)*
+
+- **Category:** moods-moments
+- **Model:** NANO_BANANA
+- **Description:** Post-caffeine glow caricature — alert, caffeinated, and finally human
+
+```
+Using the uploaded photo as the sole identity reference, create a funny caricature of the subject as After Coffee. Preserve facial likeness, age, ethnicity, hairstyle, and clothing while exaggerating an alert, caffeinated, finally-human expression. Scene: bright morning light, steaming coffee cup in hand or nearby, energetic posture. Mood: revitalized comedy glow-up. Style: polished humorous editorial caricature with crisp lighting. Full-bleed. No text, logos, watermarks, or borders.
+```
+
+#### `deadline-mode` — Deadline Mode *(disabled)*
+
+- **Category:** moods-moments
+- **Model:** NANO_BANANA
+- **Description:** Deadline chaos caricature — intense focus, caffeine, and ticking clock energy
+
+```
+Using the uploaded photo as the sole identity reference, create a funny caricature of the subject as Deadline Mode. Preserve facial likeness, age, ethnicity, hairstyle, and clothing while exaggerating intense focus, mild panic, and hyper-productive energy. Scene: desk buried in notes and screens, coffee cups, soft dramatic task lighting, ticking-clock tension without readable text. Mood: stressful comedy. Style: polished humorous editorial caricature. Full-bleed. No logos, watermarks, or borders.
+```
+
+#### `vacation-mood` — Vacation Mood *(disabled)*
+
+- **Category:** moods-moments
+- **Model:** NANO_BANANA
+- **Description:** Vacation-brain caricature — sunglasses, sun, and zero responsibilities
+
+```
+Using the uploaded photo as the sole identity reference, create a funny caricature of the subject as Vacation Mood. Preserve facial likeness, age, ethnicity, hairstyle, and clothing while exaggerating a relaxed, sunglasses-optional, zero-responsibilities smile. Scene: sunny vacation setting — beach, pool, or resort lounge with warm sunlight and soft tropical colors. Mood: blissful escape comedy. Style: polished humorous editorial caricature. Full-bleed. No text, logos, watermarks, or borders.
+```
+
+#### `gym-motivation` — Gym Motivation *(disabled)*
+
+- **Category:** moods-moments
+- **Model:** NANO_BANANA
+- **Description:** Gym-day caricature — hyped, determined, and slightly overconfident
+
+```
+Using the uploaded photo as the sole identity reference, create a funny caricature of the subject as Gym Motivation. Preserve facial likeness, age, ethnicity, hairstyle, and athletic or casual gym clothing while exaggerating a hyped, determined, slightly overconfident expression. Scene: gym or workout setting — weights, water bottle, energetic lighting. Mood: motivational comedy, not body-shaming. Style: polished humorous editorial caricature. Full-bleed. No text, logos, watermarks, or borders.
+```
+
+#### `forgot-my-password` — Forgot My Password *(disabled)*
+
+- **Category:** moods-moments
+- **Model:** NANO_BANANA
+- **Description:** Password-reset rage caricature — staring at a screen in digital despair
+
+```
+Using the uploaded photo as the sole identity reference, create a funny caricature of the subject as Forgot My Password. Preserve facial likeness, age, ethnicity, hairstyle, and clothing while exaggerating digital despair — blank stare, mild rage, forehead-in-hand energy at a laptop or phone. Scene: desk or couch with glowing screen, soft comic lighting. Mood: relatable tech frustration comedy. Style: polished humorous editorial caricature. Full-bleed. No readable UI text, logos, watermarks, or borders.
 ```
 
 ---

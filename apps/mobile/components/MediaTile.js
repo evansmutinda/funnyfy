@@ -1,6 +1,7 @@
 import React, { memo, useEffect, useState } from 'react';
 import { Image, Platform, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Feather } from '@expo/vector-icons';
 import ComparisonFade, {
   DEFAULT_COMPARISON_CYCLES,
   TILE_FADE_MS,
@@ -25,8 +26,10 @@ const CAPTION_MAX_LINES = {
 function MediaTile({
   imageSource,
   comparisonPair = null,
+  comparisonKey = null,
   label,
   isSelected = false,
+  selectionMode = false,
   variant = 'grid',
   badge,
   comparisonActive = true,
@@ -48,12 +51,8 @@ function MediaTile({
 
   useEffect(() => {
     if (interactionPaused) return undefined;
-    if (!comparisonPausedRaw) {
-      setComparisonPaused(false);
-      return undefined;
-    }
-    const timeoutId = setTimeout(() => setComparisonPaused(true), 120);
-    return () => clearTimeout(timeoutId);
+    setComparisonPaused(comparisonPausedRaw);
+    return undefined;
   }, [comparisonPausedRaw, interactionPaused]);
 
   const [comparisonReady, setComparisonReady] = useState(!interactionPaused);
@@ -114,6 +113,8 @@ function MediaTile({
       <View style={imageWrapperStyle}>
         {runComparison ? (
           <ComparisonFade
+            key={comparisonKey || resolvedPair.after}
+            instanceKey={comparisonKey || resolvedPair.after}
             beforeSource={resolvedPair.before}
             afterSource={resolvedPair.after}
             afterSources={resolvedPair.afters}
@@ -139,6 +140,14 @@ function MediaTile({
         {badge ? (
           <View style={styles.styleHeroBadge}>
             <Text style={styles.styleHeroBadgeText}>{badge}</Text>
+          </View>
+        ) : null}
+        {selectionMode ? (
+          <View
+            pointerEvents="none"
+            style={[styles.stickerSelectMark, isSelected && styles.stickerSelectMarkOn]}
+          >
+            {isSelected ? <Feather name="check" size={13} color="#0F172A" /> : null}
           </View>
         ) : null}
         {isDiscovery ? (

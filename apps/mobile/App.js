@@ -41,7 +41,18 @@ import UploadScreen from './screens/UploadScreen';
 import PhotoReviewScreen from './screens/PhotoReviewScreen';
 import SubscriptionScreen from './screens/SubscriptionScreen';
 import ResultScreen from './screens/ResultScreen';
+import StickerPackScreen from './screens/StickerPackScreen';
 import { getStyleCategory } from './utils/styleCategories';
+import {
+  STICKER_PACK_MAX,
+  STICKER_PACK_SIZE_HINT,
+  STICKER_SHEET_STYLE_ID,
+  canBuildStickerPack,
+  isStickerStyle,
+  stickerPackQuotaMessage,
+  stickerSheetStyle,
+  toggleStickerSelection,
+} from './utils/stickerPack';
 import { DARK_BG } from './constants/theme';
 import {
   API_BASE,
@@ -53,7 +64,7 @@ import {
 import { mergeServerStyles, getServerConfirmedStyleIds } from './utils/mergeServerStyles';
 import { readStylesCache, writeStylesCache } from './utils/stylesCache';
 import { getTrialRemaining, getTrialWarningMessage, isTrialUser } from './utils/trialWarnings';
-import { isNsfwContentError, humanizeApiError, buildContentPolicyDialog } from './utils/contentErrors';
+import { isNsfwContentError, buildContentPolicyDialog, buildGenerationFailedDialog } from './utils/contentErrors';
 import {
   isContentPolicyError,
   recordContentViolation,
@@ -117,12 +128,11 @@ function AppContent({ fontsLoaded }) {
   const { isOnline } = useNetwork();
   const [screen, setScreen] = useState('style');
   const [style, setStyle] = useState(null);
-  // pickedImage: { uri, dataUrl } | null — OS-cropped photo for review → generate.
+  // pickedImage: { uri, dataUrl } | null — full photo from picker for review → generate.
   const [pickedImage, setPickedImage] = useState(null);
   const [original, setOriginal] = useState(null);
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [pendingJobId, setPendingJobId] = useState(null);
   const [job, setJob] = useState(null);
@@ -135,6 +145,10 @@ function AppContent({ fontsLoaded }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [restyleMode, setRestyleMode] = useState(false);
   const [styleReturnCategory, setStyleReturnCategory] = useState(null);
+  const [selectedStickerIds, setSelectedStickerIds] = useState([]);
+  const [stickerPackError, setStickerPackError] = useState('');
+  const [stickerPackPending, setStickerPackPending] = useState(false);
+  const [stickerPackSheetUrl, setStickerPackSheetUrl] = useState(null);
   const [userId, setUserId] = useState(null);
   const [authToken, setAuthToken] = useState(null);
   const [authReady, setAuthReady] = useState(false);
@@ -143,6 +157,7 @@ function AppContent({ fontsLoaded }) {
   const authTokenRef = useRef(null);
   const authInitPromiseRef = useRef(null);
   const resultBackHandlerRef = useRef(null);
+  const pendingFailureDialogRef = useRef(null);
   const subscriptionRefreshSeqRef = useRef(0);
   const revenueCatExpirationRef = useRef(null);
   const wasOnlineRef = useRef(true);
@@ -181,13 +196,33 @@ function AppContent({ fontsLoaded }) {
           closeDialog();
           setPickedImage(null);
           setScreen('upload');
-          setError('');
           setFailedAttempts(0);
         },
       });
     },
     [showDialog, closeDialog]
   );
+
+  const notifyGenerationFailure = useCallback(
+    (err) => {
+      const dialog = buildGenerationFailedDialog(err);
+      showDialog({
+        ...dialog,
+        onConfirm: closeDialog,
+      });
+      return dialog.message;
+    },
+    [showDialog, closeDialog]
+  );
+
+  // Present deferred failure dialogs after loading UI settles (Android Modal race).
+  useEffect(() => {
+    if (loading) return;
+    const pending = pendingFailureDialogRef.current;
+    if (!pending) return;
+    pendingFailureDialogRef.current = null;
+    notifyGenerationFailure(pending);
+  }, [loading, notifyGenerationFailure]);
 
   const applyAuthState = (auth) => {
     if (!auth?.userId) return auth;
@@ -591,29 +626,48 @@ function AppContent({ fontsLoaded }) {
 
   const callApi = useMemo(
     () => {
-      const run = async ({ imageDataUrl, styleId, _authRetried = false }) => {
+      const run = async ({
+        imageDataUrl,
+        styleId,
+        expressions,
+        _authRetried = false,
+        manageLoading = true,
+      }) => {
+        const failOut = (message) => {
+          if (!manageLoading) {
+            throw new Error(message);
+          }
+          notifyGenerationFailure(message);
+        };
+
         if (!styleId) {
-          setError('No style selected. Please choose a style and try again.');
+          failOut('No style selected. Please choose a style and try again.');
           return;
         }
 
-        if (serverStyleIdsRef.current && !serverStyleIdsRef.current.has(styleId)) {
-          setError(
+        if (
+          styleId !== STICKER_SHEET_STYLE_ID &&
+          serverStyleIdsRef.current &&
+          !serverStyleIdsRef.current.has(styleId)
+        ) {
+          failOut(
             `"${styleId}" is not available on ${API_BASE} yet. Redeploy staging to pick up the latest styles.`
           );
           return;
         }
 
-        setLoading(true);
-        setError('');
+        if (manageLoading) setLoading(true);
         setJob(null);
-        setResult(null);
+        if (manageLoading) setResult(null);
 
         // Failsafe: stop loading after 3 minutes (poll loop is up to ~180s)
         const failsafeTimer = setTimeout(() => {
           console.warn('[callApi] Failsafe timeout reached - forcing loading off');
-          setLoading(false);
-          setError('This is taking longer than usual. Tap Try again — we may still be finishing your caricature.');
+          if (manageLoading) {
+            setLoading(false);
+            pendingFailureDialogRef.current =
+              'This is taking longer than usual. Tap Try again — we may still be finishing your caricature.';
+          }
         }, 200000);
 
         try {
@@ -626,6 +680,9 @@ function AppContent({ fontsLoaded }) {
               payload: {
                 styleId,
                 imageUrl: imageDataUrl || null,
+                ...(Array.isArray(expressions) && expressions.length
+                  ? { expressions }
+                  : {}),
               },
             }),
           });
@@ -636,9 +693,11 @@ function AppContent({ fontsLoaded }) {
             enqueueJson = JSON.parse(enqueueText);
           } catch (parseErr) {
             console.error('Enqueue - JSON parse error:', parseErr, enqueueText?.slice?.(0, 200));
-            setError(
-              'We had trouble talking to the server. Tap Try again — your caricature may still be processing.'
-            );
+            if (!manageLoading) {
+              throw new Error('We had trouble talking to the server. Tap Try again — your caricature may still be processing.');
+            }
+            pendingFailureDialogRef.current =
+              'We had trouble talking to the server. Tap Try again — your caricature may still be processing.';
             setFailedAttempts((prev) => prev + 1);
             return;
           }
@@ -650,7 +709,13 @@ function AppContent({ fontsLoaded }) {
               !_authRetried
             ) {
               await refreshAuthToken();
-              return await run({ imageDataUrl, styleId, _authRetried: true });
+              return await run({
+                imageDataUrl,
+                styleId,
+                expressions,
+                _authRetried: true,
+                manageLoading,
+              });
             }
             const msg =
               enqueueJson?.message ||
@@ -700,7 +765,7 @@ function AppContent({ fontsLoaded }) {
             if (sub) showTrialWarningIfNeeded(sub);
           }, 1500);
 
-          return;
+          return pollResult;
         } catch (err) {
           const errorMessage = err.message || String(err);
 
@@ -720,6 +785,14 @@ function AppContent({ fontsLoaded }) {
           }
 
           console.error('API error:', err);
+          if (err?.rawErrorMessage || err?.jobId) {
+            console.error('[API error detail]', {
+              name: err?.name,
+              jobId: err?.jobId ?? null,
+              styleId: err?.styleId ?? styleId ?? null,
+              rawErrorMessage: err?.rawErrorMessage ?? null,
+            });
+          }
           if (!/invalid_style_id/i.test(errorMessage)) {
             captureAppError(err, {
               flow: 'generate',
@@ -728,18 +801,23 @@ function AppContent({ fontsLoaded }) {
               rawErrorMessage: err.rawErrorMessage || null,
             });
           }
-          setError(humanizeApiError(errorMessage));
+          // Defer dialog until after loading=false so Android Modal isn't swallowed
+          // by the ResultScreen loading → error transition (users only saw it after Save).
+          if (!manageLoading) throw err;
+          pendingFailureDialogRef.current = err;
           setFailedAttempts((prev) => prev + 1);
         } finally {
           clearTimeout(failsafeTimer);
-          setLoading(false);
-          setJob(null);
+          if (manageLoading) {
+            setLoading(false);
+            setJob(null);
+          }
         }
       };
 
       return run;
     },
-    [showDialog, closeDialog, handleContentPolicyBlock]
+    [showDialog, closeDialog, handleContentPolicyBlock, notifyGenerationFailure]
   );
 
   const handleSubscribe = async (selectedTier = null) => {
@@ -750,14 +828,13 @@ function AppContent({ fontsLoaded }) {
     }
     if (!isOnline) {
       showToast(
-        'No connection',
+        'Check your internet connectivity',
         'Connect to the internet to purchase or restore subscriptions.',
         'warning',
       );
       return;
     }
     setSubscribeLoading(true);
-    setError('');
     try {
       const auth = await ensureAuthenticated();
       if (!auth?.userId || !auth?.token) {
@@ -879,7 +956,7 @@ function AppContent({ fontsLoaded }) {
   const handleRestorePurchases = async () => {
     if (!isOnline) {
       showToast(
-        'No connection',
+        'Check your internet connectivity',
         'Connect to the internet to restore purchases.',
         'warning',
       );
@@ -933,7 +1010,7 @@ function AppContent({ fontsLoaded }) {
   const handleUploadStart = async ({ imageUri, imageDataUrl }) => {
     if (!isOnline) {
       showToast(
-        'No connection',
+        'Check your internet connectivity',
         'Connect to the internet to generate caricatures.',
         'warning',
       );
@@ -950,8 +1027,11 @@ function AppContent({ fontsLoaded }) {
     setOriginal({ imageUri, imageDataUrl, prompt: style?.prompt });
     setPendingJobId(null);
     setFailedAttempts(0);
-    setError('');
     setRestyleMode(false);
+    if (canBuildStickerPack(selectedStickerIds.length)) {
+      await runStickerPack({ imageDataUrl });
+      return;
+    }
     setScreen('result');
     await callApi({ imageDataUrl, styleId: style?.id });
   };
@@ -963,10 +1043,94 @@ function AppContent({ fontsLoaded }) {
   const handleTryAnotherStyle = () => {
     setRestyleMode(true);
     setResult(null);
-    setError('');
     setFailedAttempts(0);
     setPendingJobId(null);
     setScreen('style');
+  };
+
+  const handleToggleSticker = (item) => {
+    if (!isStickerStyle(item)) return;
+    setSelectedStickerIds((prev) => {
+      const next = toggleStickerSelection(prev, item.id);
+      if (next.size === prev.length && !next.has(item.id) && prev.length >= STICKER_PACK_MAX) {
+        showToast('Pack limit', `A pack can include up to ${STICKER_PACK_MAX} stickers.`, 'warning');
+      }
+      return [...next];
+    });
+    setStyleReturnCategory('stickers');
+  };
+
+  const runStickerPack = async ({ imageDataUrl: photoDataUrl } = {}) => {
+    const byId = new Map(availableStyles.map((item) => [item.id, item]));
+    const selected = selectedStickerIds
+      .map((id) => byId.get(id))
+      .filter((item) => item && isStickerStyle(item));
+    const imageDataUrl = photoDataUrl || original?.imageDataUrl || pickedImage?.dataUrl;
+    if (!canBuildStickerPack(selected.length) || !imageDataUrl) {
+      setStickerPackError(`Select ${STICKER_PACK_SIZE_HINT} sticker styles and a photo.`);
+      return;
+    }
+
+    setStickerPackPending(false);
+    setStickerPackError('');
+    setStickerPackSheetUrl(null);
+    setScreen('sticker-pack');
+    setLoading(true);
+
+    try {
+      const sheetStyle = stickerSheetStyle();
+      setStyle(sheetStyle);
+      const pollResult = await callApi({
+        imageDataUrl,
+        styleId: STICKER_SHEET_STYLE_ID,
+        expressions: selected.map((item) => item.id),
+        manageLoading: false,
+      });
+      const sheetUrl = pollResult?.output || pollResult?.jobInfo?.outputImageUrl || null;
+      if (!sheetUrl) {
+        throw new Error('Could not generate the sticker sheet.');
+      }
+      setStickerPackSheetUrl(sheetUrl);
+    } catch (err) {
+      setStickerPackError(err?.message || 'Could not finish the sticker pack.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateStickerPack = async () => {
+    const byId = new Map(availableStyles.map((item) => [item.id, item]));
+    const selected = selectedStickerIds
+      .map((id) => byId.get(id))
+      .filter((item) => item && isStickerStyle(item));
+    if (!canBuildStickerPack(selected.length)) {
+      showToast(
+        `Pick ${STICKER_PACK_SIZE_HINT} stickers`,
+        `A pack sheet needs exactly ${STICKER_PACK_SIZE_HINT} expressions.`,
+        'warning',
+      );
+      return;
+    }
+    setStickerPackPending(true);
+    if (!original?.imageDataUrl && !pickedImage?.dataUrl) {
+      setStyle(stickerSheetStyle());
+      setStyleReturnCategory('stickers');
+      setPickedImage(null);
+      setScreen('upload');
+      showToast(
+        'Photo first',
+        'Pick a photo, then we will generate your sticker pack.',
+        'info',
+        { duration: 10000 },
+      );
+      return;
+    }
+    const quotaMessage = stickerPackQuotaMessage(subscriptionInfo, selected.length);
+    if (quotaMessage) {
+      showToast('Not enough generations', quotaMessage, 'warning');
+      return;
+    }
+    await runStickerPack();
   };
 
   const handleTryAnotherPhoto = () => {
@@ -974,7 +1138,6 @@ function AppContent({ fontsLoaded }) {
     setPickedImage(null);
     setOriginal(null);
     setResult(null);
-    setError('');
     setFailedAttempts(0);
     setPendingJobId(null);
     setJob(null);
@@ -1021,7 +1184,7 @@ function AppContent({ fontsLoaded }) {
       });
 
       setResult(null);
-      setError(friendly);
+      notifyGenerationFailure(friendly);
       setFailedAttempts((prev) => prev + 1);
       setJob(null);
       setPendingJobId(null);
@@ -1034,6 +1197,7 @@ function AppContent({ fontsLoaded }) {
               method: 'POST',
               headers: getApiHeaders(),
               body: JSON.stringify({
+                action: 'report-bad-output',
                 jobId: resolvedJobId,
                 reason: reason || 'client_unloadable',
               }),
@@ -1046,21 +1210,21 @@ function AppContent({ fontsLoaded }) {
 
       setTimeout(() => refreshSubscription(), 500);
     },
-    [pendingJobId, result?.jobId, style?.id]
+    [pendingJobId, result?.jobId, style?.id, notifyGenerationFailure]
   );
 
   const handleRetry = async () => {
     if (!pendingJobId) {
       if (original?.imageDataUrl && style?.id) {
-        setError('');
         callApi({ imageDataUrl: original.imageDataUrl, styleId: style.id });
         return;
       }
-      setError('Tap Generate to start again, or go back and choose another photo.');
+      notifyGenerationFailure(
+        'Tap Generate to start again, or go back and choose another photo.'
+      );
       return;
     }
 
-    setError('');
     setLoading(true);
     setJob(null);
 
@@ -1106,7 +1270,7 @@ function AppContent({ fontsLoaded }) {
           rawErrorMessage: err.rawErrorMessage || null,
         });
       }
-      setError(humanizeApiError(errorMessage));
+      pendingFailureDialogRef.current = err;
       setFailedAttempts((prev) => prev + 1);
     } finally {
       setLoading(false);
@@ -1122,6 +1286,11 @@ function AppContent({ fontsLoaded }) {
       }
       if (screen === 'upload') {
         setScreen('style');
+        return true;
+      }
+      if (screen === 'sticker-pack') {
+        setScreen('style');
+        setStyleReturnCategory('stickers');
         return true;
       }
       if (screen === 'subscription' || screen === 'usage' || screen === 'privacy' || screen === 'terms' || screen === 'about' || screen === 'gallery') {
@@ -1166,13 +1335,22 @@ function AppContent({ fontsLoaded }) {
           interactionPaused={menuOpen}
           onCancelRestyle={handleCancelRestyle}
           onOpenMenu={() => setMenuOpen(true)}
+          selectedStickerIds={selectedStickerIds}
+          onToggleSticker={handleToggleSticker}
+          onCreateStickerPack={handleCreateStickerPack}
+          onClearStickerPack={() => {
+            setSelectedStickerIds([]);
+            setStickerPackPending(false);
+          }}
           onNext={(s) => {
+            setSelectedStickerIds([]);
+            setStickerPackPending(false);
             setStyle(s);
             setStyleReturnCategory(s?.categoryId || getStyleCategory(s?.id) || null);
             if (restyleMode && original?.imageDataUrl) {
               if (!isOnline) {
                 showToast(
-                  'No connection',
+                  'Check your internet connectivity',
                   'Connect to the internet to generate caricatures.',
                   'warning',
                 );
@@ -1180,7 +1358,6 @@ function AppContent({ fontsLoaded }) {
               }
               setRestyleMode(false);
               setResult(null);
-              setError('');
               setFailedAttempts(0);
               setPendingJobId(null);
               setOriginal((prev) => (prev ? { ...prev, prompt: s.prompt } : prev));
@@ -1202,6 +1379,27 @@ function AppContent({ fontsLoaded }) {
           userId={userId}
           onUserIdCopied={() => {
             showToast('Copied', 'User ID copied — include it when contacting support', 'success');
+          }}
+        />
+      </AppShell>
+    );
+  }
+
+  if (screen === 'sticker-pack') {
+    const packStyles = availableStyles.filter((item) => selectedStickerIds.includes(item.id));
+    return (
+      <AppShell>
+        <StickerPackScreen
+          selectedStyles={packStyles}
+          loading={loading}
+          job={job}
+          errorMessage={stickerPackError}
+          sheetUrl={stickerPackSheetUrl}
+          subscriptionInfo={subscriptionInfo}
+          onOpenUsage={() => setScreen('usage')}
+          onBack={() => {
+            setStyleReturnCategory('stickers');
+            setScreen('style');
           }}
         />
       </AppShell>
@@ -1348,7 +1546,6 @@ function AppContent({ fontsLoaded }) {
         result={result}
         loading={loading}
         job={job}
-        error={error}
         failedAttempts={failedAttempts}
         onRetry={handleRetry}
         subscriptionInfo={subscriptionInfo}
@@ -1359,14 +1556,12 @@ function AppContent({ fontsLoaded }) {
           setRestyleMode(false);
           setStyleReturnCategory(style?.categoryId || getStyleCategory(style?.id) || null);
           setScreen('style');
-          setError('');
           setFailedAttempts(0);
         }}
         onHome={() => {
           setRestyleMode(false);
           setStyleReturnCategory(null);
           setScreen('style');
-          setError('');
           setFailedAttempts(0);
         }}
         onOpenUsage={() => setScreen('usage')}

@@ -2,14 +2,11 @@ import { DEFAULT_ENABLED_STYLES, getStyleCategory } from '../data/styleCatalog';
 
 /**
  * The bundled DEFAULT_ENABLED_STYLES catalog is the source of truth for which
- * styles appear in the app. Server responses may lag behind local changes until
- * the API is redeployed; merge server metadata (labels/descriptions) onto local
- * entries when ids match, but never show server-only styles that were removed
- * locally.
+ * styles appear in the app, and for display labels/descriptions/categories.
+ * Server responses may lag behind local changes until the API is redeployed;
+ * keep local UI metadata, and only fill gaps from the server.
  */
 export function mergeServerStyles(serverStyles) {
-  const localById = new Map(DEFAULT_ENABLED_STYLES.map((s) => [s.id, s]));
-
   if (!Array.isArray(serverStyles) || serverStyles.length === 0) {
     return DEFAULT_ENABLED_STYLES;
   }
@@ -21,11 +18,14 @@ export function mergeServerStyles(serverStyles) {
     if (!fromServer) return { ...local };
 
     return {
-      ...local,
       ...fromServer,
+      ...local,
+      id: local.id,
+      label: local.label || fromServer.label,
+      description: local.description || fromServer.description,
       categoryId:
-        fromServer.categoryId ||
         local.categoryId ||
+        fromServer.categoryId ||
         getStyleCategory(local.id),
     };
   });

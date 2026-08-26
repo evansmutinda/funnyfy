@@ -202,7 +202,10 @@ export function getSavedImageFileName() {
 }
 
 export const STYLE_CARD_IMAGE_DEFAULT = require('./assets/toon.jpg');
-export const STYLE_CARD_IMAGE_CHIBI = require('./assets/chibi.jpg');
+export const STYLE_CARD_IMAGE_80S_CARTOON = require('./assets/comparisons/tiles/after/cartoons/80sc.jpg');
+export const STYLE_CARD_IMAGE_VIDEO_GAME_I = require('./assets/comparisons/tiles/after/cartoons/gtasa.jpg');
+export const STYLE_CARD_IMAGE_VIDEO_GAME_II = require('./assets/comparisons/tiles/after/cartoons/gtav.jpg');
+export const STYLE_CARD_IMAGE_CHIBI = require('./assets/comparisons/tiles/after/cartoons/chibi.jpg');
 export const STYLE_CARD_IMAGE_CLASSIC_V1 = require('./assets/comparisons/tiles/after/cartoons/classic.jpg');
 export const STYLE_CARD_IMAGE_CLASSIC_V2 = require('./assets/comparisons/tiles/after/cartoons/classicv2.jpg');
 export const STYLE_CARD_IMAGE_SATURDAY_V1 = require('./assets/comparisons/tiles/after/cartoons/smv1.jpg');
@@ -211,29 +214,56 @@ export const STYLE_CARD_IMAGE_COMIC = require('./assets/comparisons/tiles/after/
 export const STYLE_CARD_IMAGE_COMIC_V1 = require('./assets/comparisons/tiles/after/cartoons/comic-v1.jpg');
 export const STYLE_CARD_IMAGE_COMIC_V2 = require('./assets/comparisons/tiles/after/cartoons/comic-v2.jpg');
 export const STYLE_CARD_IMAGE_CUTE = require('./assets/comparisons/tiles/after/cartoons/cute.jpg');
-export const STYLE_CARD_IMAGE_DC = require('./assets/comparisons/tiles/after/cartoons/dc.jpg');
+export const STYLE_CARD_IMAGE_COMIC_V3 = require('./assets/comparisons/tiles/after/cartoons/comic-v3.jpg');
 export const STYLE_CARD_IMAGE_CYBERPUNK_V1 = require('./assets/comparisons/tiles/after/cartoons/cyberpunkv1.jpg');
 export const STYLE_CARD_IMAGE_CYBERPUNK_V2 = require('./assets/comparisons/tiles/after/cartoons/cyberpunkv2.jpg');
 export const STYLE_CARD_IMAGE_DISNEY = require('./assets/comparisons/tiles/after/cartoons/disney.jpg');
+export const STYLE_CARD_IMAGE_GHIBLI = require('./assets/comparisons/tiles/after/cartoons/ghibli.jpg');
 export const STYLE_CARD_IMAGE_PIXEL = require('./assets/comparisons/tiles/after/cartoons/pixel.jpg');
 export const STYLE_CARD_IMAGE_3D_RENDER_V1 = require('./assets/comparisons/tiles/after/cartoons/3d-renderv1.jpg');
 export const STYLE_CARD_IMAGE_3D_RENDER_V2 = require('./assets/comparisons/tiles/after/cartoons/3d-renderv2.jpg');
 export const STYLE_CARD_IMAGE_NEON = require('./assets/comparisons/tiles/after/Art/neon.jpg');
-export const STYLE_CARD_IMAGE_ANIME = require('./assets/anime.jpg');
-export const STYLE_CARD_IMAGE_HANDD = require('./assets/handd.jpeg');
-export const STYLE_CARD_IMAGE_EDITORIAL = require('./assets/comparisons/tiles/after/caricature/editorial.jpg');
+export const STYLE_CARD_IMAGE_ANIME = require('./assets/comparisons/tiles/after/cartoons/anime.jpg');
+export const STYLE_CARD_IMAGE_MANGA = require('./assets/comparisons/tiles/after/cartoons/manga.jpg');
+export const STYLE_CARD_IMAGE_GENNDY_V1 = require('./assets/comparisons/tiles/after/cartoons/genndyv1.jpg');
+export const STYLE_CARD_IMAGE_GENNDY_V2 = require('./assets/comparisons/tiles/after/cartoons/genndyv2.jpg');
+export const STYLE_CARD_IMAGE_HANDD = require('./assets/comparisons/tiles/after/caricature/handd.jpg');
+export const STYLE_CARD_IMAGE_EDITORIAL = require('./assets/comparisons/tiles/after/Art/editorial.jpg');
 export const STYLE_CARD_IMAGE_EXAGGERATED = require('./assets/comparisons/tiles/after/caricature/Exaggerated.jpg');
-export const STYLE_CARD_IMAGE_WATERCOLOR_C = require('./assets/comparisons/tiles/after/caricature/Watercolor-c.jpg');
-export const STYLE_CARD_IMAGE_CARC1 = require('./assets/carc1.jpg');
+export const STYLE_CARD_IMAGE_WATERCOLOR_C = require('./assets/comparisons/tiles/after/cartoons/Watercolor-c.jpg');
+export const STYLE_CARD_IMAGE_CARC1 = require('./assets/comparisons/tiles/after/caricature/carc1.jpg');
+export const STYLE_CARD_IMAGE_CARC2 = require('./assets/comparisons/tiles/after/caricature/carc2.jpg');
+export const STYLE_CARD_IMAGE_MUGFACE = require('./assets/comparisons/tiles/after/caricature/mugface.jpg');
+export const STYLE_CARD_IMAGE_CARC3 = require('./assets/comparisons/tiles/after/caricature/carc3.jpg');
+export const STYLE_CARD_IMAGE_CARC4 = require('./assets/comparisons/tiles/after/caricature/carc4.jpg');
+export const STYLE_CARD_IMAGE_CARC5 = require('./assets/comparisons/tiles/after/caricature/carc5.jpg');
+export const STYLE_CARD_IMAGE_CARC6 = require('./assets/comparisons/tiles/after/caricature/carc6.jpg');
+export const STYLE_CARD_IMAGE_CARC7 = require('./assets/comparisons/tiles/after/caricature/carc7.jpg');
+export const STYLE_CARD_IMAGE_CARC8 = require('./assets/comparisons/tiles/after/caricature/carc8.jpg');
+export const STYLE_CARD_IMAGE_CARC9 = require('./assets/comparisons/tiles/after/caricature/carc9.jpg');
+export const STYLE_CARD_IMAGE_CARC10 = require('./assets/comparisons/tiles/after/caricature/carc10.jpg');
+export const STYLE_CARD_IMAGE_CARC11 = require('./assets/comparisons/tiles/after/caricature/carc11.jpg');
+export const STYLE_CARD_IMAGE_CARC12 = require('./assets/comparisons/tiles/after/caricature/carc12.jpg');
+export const STYLE_CARD_IMAGE_CARC13 = require('./assets/comparisons/tiles/after/caricature/carc13.jpg');
+export const STYLE_CARD_IMAGE_CARC14 = require('./assets/comparisons/tiles/after/caricature/carc14.jpg');
+export const STYLE_CARD_IMAGE_CARC15 = require('./assets/comparisons/tiles/after/caricature/carc15.jpg');
+export const STYLE_CARD_IMAGE_CARC17 = require('./assets/comparisons/tiles/after/caricature/carc17.jpg');
+export const STYLE_CARD_IMAGE_CARC18 = require('./assets/comparisons/tiles/after/caricature/carc18.jpg');
+export const STYLE_CARD_IMAGE_CARC19 = require('./assets/comparisons/tiles/after/caricature/carc19.jpg');
+export const STYLE_CARD_IMAGE_CARC20 = require('./assets/comparisons/tiles/after/caricature/carc20.jpg');
+export const STYLE_CARD_IMAGE_CARC21 = require('./assets/comparisons/tiles/after/caricature/carc21.jpg');
+export const STYLE_CARD_IMAGE_CARC22 = require('./assets/comparisons/tiles/after/caricature/carc22.jpg');
 export const STYLE_CARD_IMAGE_3D_BD = require('./assets/comparisons/tiles/after/caricature/3dbd.jpg');
 export const STYLE_CARD_IMAGE_3D = require('./assets/comparisons/tiles/after/caricature/3d.jpg');
-export const STYLE_CARD_IMAGE_3DCLAY = require('./assets/3dclay.jpg');
-export const STYLE_CARD_IMAGE_OILPAINT = require('./assets/oilpaint.jpg');
+export const STYLE_CARD_IMAGE_3DCLAY = require('./assets/comparisons/tiles/after/3d/3dclay.jpg');
+export const STYLE_CARD_IMAGE_PUPPET = require('./assets/comparisons/tiles/after/3d/puppet.jpg');
+export const STYLE_CARD_IMAGE_OILPAINT = require('./assets/comparisons/tiles/after/Paintings/oilpaint.jpg');
 export const STYLE_CARD_IMAGE_LOWPOLY = require('./assets/comparisons/tiles/after/Art/lowpoly.jpg');
 export const STYLE_CARD_IMAGE_MURAL = require('./assets/comparisons/tiles/after/Art/mural.jpg');
+export const STYLE_CARD_IMAGE_ILLUSTRATION = require('./assets/comparisons/tiles/after/Art/illustration.jpg');
 export const STYLE_CARD_IMAGE_POP_ART_V1 = require('./assets/comparisons/tiles/after/Art/portart-fkp.jpg');
 export const STYLE_CARD_IMAGE_POP_ART_V2 = require('./assets/comparisons/tiles/after/Art/popart-sr4.jpg');
-export const STYLE_CARD_IMAGE_POP_ART_V3 = require('./assets/comparisons/tiles/after/Art/popart-nbn.jpg');
+export const STYLE_CARD_IMAGE_POP_ART_V3 = require('./assets/comparisons/tiles/after/Art/popartv3.jpg');
 export const STYLE_CARD_IMAGE_GRAFFITI = require('./assets/comparisons/tiles/after/Art/graffiti.jpg');
 export const STYLE_CARD_IMAGE_BANKSY = require('./assets/comparisons/tiles/after/Art/banksy.jpg');
 export const STYLE_CARD_IMAGE_MOSAIC = require('./assets/comparisons/tiles/after/Art/mosaic.jpg');
@@ -242,15 +272,52 @@ export const STYLE_CARD_IMAGE_EGLOW = require('./assets/comparisons/tiles/after/
 export const STYLE_CARD_IMAGE_ABSTRACT_V1 = require('./assets/comparisons/tiles/after/Art/abstractv1.jpg');
 export const STYLE_CARD_IMAGE_ABSTRACT_V2 = require('./assets/comparisons/tiles/after/Art/abstractv2.jpg');
 export const STYLE_CARD_IMAGE_GEOMETRIC = require('./assets/comparisons/tiles/after/Art/geometric.jpg');
-export const STYLE_CARD_IMAGE_SURREAL = require('./assets/comparisons/tiles/after/Art/surreal.jpg');
 export const STYLE_CARD_IMAGE_COLOURED_GLASS = require('./assets/comparisons/tiles/after/Art/coloured-glass.jpg');
 export const STYLE_CARD_IMAGE_PASTE_UP = require('./assets/comparisons/tiles/after/Art/Paste-up.jpg');
 export const STYLE_CARD_IMAGE_PENCIL_SKETCH_V1 = require('./assets/comparisons/tiles/after/Art/Pencil Sketch1.jpg');
 export const STYLE_CARD_IMAGE_PENCIL_SKETCH_V2 = require('./assets/comparisons/tiles/after/Art/Pencil Sketch2.jpg');
-export const STYLE_CARD_IMAGE_ORIGAMI = require('./assets/comparisons/tiles/after/Art/origami.jpg');
+export const STYLE_CARD_IMAGE_PENCIL_SKETCH = require('./assets/comparisons/tiles/after/Drawings/pencil-sketch.jpg');
+export const STYLE_CARD_IMAGE_CHARCOAL = require('./assets/comparisons/tiles/after/Drawings/Charcoal.jpg');
+export const STYLE_CARD_IMAGE_INK = require('./assets/comparisons/tiles/after/Drawings/ink.jpg');
+export const STYLE_CARD_IMAGE_PEN = require('./assets/comparisons/tiles/after/Drawings/pen.jpg');
+export const STYLE_CARD_IMAGE_CROSS_HATCHED = require('./assets/comparisons/tiles/after/Drawings/cross-hatched.jpg');
+export const STYLE_CARD_IMAGE_LINE_ART = require('./assets/comparisons/tiles/after/Drawings/line-art.jpg');
+export const STYLE_CARD_IMAGE_FASHION = require('./assets/comparisons/tiles/after/Drawings/fashion.jpg');
+export const STYLE_CARD_IMAGE_MARKER = require('./assets/comparisons/tiles/after/Drawings/marker.jpg');
+export const STYLE_CARD_IMAGE_ORIGAMI = require('./assets/comparisons/tiles/after/3d/origami.jpg');
+export const STYLE_CARD_IMAGE_BRICK_V1 = require('./assets/comparisons/tiles/after/3d/brickv1.jpg');
+export const STYLE_CARD_IMAGE_BRICK_V2 = require('./assets/comparisons/tiles/after/3d/brickv2.jpg');
+export const STYLE_CARD_IMAGE_PROFESSIONAL = require('./assets/comparisons/tiles/after/photography/pro.jpg');
+export const STYLE_CARD_IMAGE_STUDIO = require('./assets/comparisons/tiles/after/photography/studio.jpg');
+export const STYLE_CARD_IMAGE_CORPORATE = require('./assets/comparisons/tiles/after/photography/corporate.jpg');
+export const STYLE_CARD_IMAGE_FASHION_EDITORIAL = require('./assets/comparisons/tiles/after/photography/fashion.jpg');
+export const STYLE_CARD_IMAGE_CINEMATIC = require('./assets/comparisons/tiles/after/photography/cinematic.jpg');
+export const STYLE_CARD_IMAGE_MODEL = require('./assets/comparisons/tiles/after/photography/model.jpg');
+export const STYLE_CARD_IMAGE_PASSPORT = require('./assets/comparisons/tiles/after/photography/passport.jpg');
+export const STYLE_CARD_IMAGE_OUTDOOR = require('./assets/comparisons/tiles/after/photography/outdoor.jpg');
+export const STYLE_CARD_IMAGE_CHILD = require('./assets/comparisons/tiles/after/transformation/child.jpg');
+export const STYLE_CARD_IMAGE_TEENAGER = require('./assets/comparisons/tiles/after/transformation/teen.jpg');
+export const STYLE_CARD_IMAGE_YOUNG_ADULT = require('./assets/comparisons/tiles/after/transformation/young.jpg');
+export const STYLE_CARD_IMAGE_MIDDLE_AGE = require('./assets/comparisons/tiles/after/transformation/mid-age.jpg');
+export const STYLE_CARD_IMAGE_ELDERLY = require('./assets/comparisons/tiles/after/transformation/elderly.jpg');
+export const STYLE_CARD_IMAGE_PROGRESSIVE = require('./assets/comparisons/tiles/after/transformation/progressive.jpg');
+export const STYLE_CARD_IMAGE_REGRESSIVE = require('./assets/comparisons/tiles/after/transformation/regressive.jpg');
+export const STYLE_CARD_IMAGE_1960S = require('./assets/comparisons/tiles/after/retro&nostalgia/60s.jpg');
+export const STYLE_CARD_IMAGE_1970S = require('./assets/comparisons/tiles/after/retro&nostalgia/70s.jpg');
+export const STYLE_CARD_IMAGE_1980S = require('./assets/comparisons/tiles/after/retro&nostalgia/80s.jpg');
+export const STYLE_CARD_IMAGE_80S_HIP_HOP = require('./assets/comparisons/tiles/after/retro&nostalgia/80shh.jpg');
+export const STYLE_CARD_IMAGE_80S_POP = require('./assets/comparisons/tiles/after/retro&nostalgia/80spop.jpg');
+export const STYLE_CARD_IMAGE_90S = require('./assets/comparisons/tiles/after/retro&nostalgia/90s.jpg');
+export const STYLE_CARD_IMAGE_90S_HIP_HOP = require('./assets/comparisons/tiles/after/retro&nostalgia/90shh.jpg');
+export const STYLE_CARD_IMAGE_90S_POP = require('./assets/comparisons/tiles/after/retro&nostalgia/90spop.jpg');
+export const STYLE_CARD_IMAGE_2000S = require('./assets/comparisons/tiles/after/retro&nostalgia/2000s.jpg');
+export const STYLE_CARD_IMAGE_2000S_HIP_HOP = require('./assets/comparisons/tiles/after/retro&nostalgia/2000shh.jpg');
+export const STYLE_CARD_IMAGE_2000S_POP = require('./assets/comparisons/tiles/after/retro&nostalgia/2000spop.jpg');
+export const STYLE_CARD_IMAGE_ROCK_N_ROLL = require('./assets/comparisons/tiles/after/retro&nostalgia/rnr.jpg');
+export const STYLE_CARD_IMAGE_PAPER_CUT = require('./assets/comparisons/tiles/after/Art/paper-cut.jpg');
 export const STYLE_CARD_IMAGE_MONDAY = require('./assets/comparisons/tiles/after/Moods&Moments/mondays1.jpg');
 export const STYLE_CARD_IMAGE_FRIDAY = require('./assets/comparisons/tiles/after/Moods&Moments/fridays1.jpg');
-export const STYLE_CARD_IMAGE_WC = require('./assets/wc.jpg');
+export const STYLE_CARD_IMAGE_WC = require('./assets/comparisons/tiles/after/Paintings/wc.jpg');
 export const STYLE_CARD_IMAGE_ACRYLIC = require('./assets/comparisons/tiles/after/Paintings/Acrylic.jpg');
 export const STYLE_CARD_IMAGE_GOUACHE = require('./assets/comparisons/tiles/after/Paintings/Gouache.jpg');
 export const STYLE_CARD_IMAGE_EXPRESSIONIST = require('./assets/comparisons/tiles/after/Paintings/Expressionist.jpg');
@@ -272,6 +339,36 @@ export const STYLE_CARD_IMAGE_HOKUSAI_V2 = require('./assets/comparisons/tiles/a
 export const STYLE_CARD_IMAGE_HIROSHIGE = require('./assets/comparisons/tiles/after/Paintings/Hiroshige.jpg');
 export const STYLE_CARD_IMAGE_SESSHU = require('./assets/comparisons/tiles/after/Paintings/Sesshū.jpg');
 export const STYLE_CARD_IMAGE_WC_MARKER = require('./assets/comparisons/tiles/after/Paintings/wc-marker.jpg');
+export const STYLE_CARD_IMAGE_ANGRY = require('./assets/comparisons/source/after/stickers/angry.png');
+export const STYLE_CARD_IMAGE_BORED = require('./assets/comparisons/source/after/stickers/bored.png');
+export const STYLE_CARD_IMAGE_CELEBRATE = require('./assets/comparisons/source/after/stickers/celebrate.png');
+export const STYLE_CARD_IMAGE_CONFUSED = require('./assets/comparisons/source/after/stickers/confused.png');
+export const STYLE_CARD_IMAGE_COOL = require('./assets/comparisons/source/after/stickers/cool.png');
+export const STYLE_CARD_IMAGE_CRYING = require('./assets/comparisons/source/after/stickers/crying.png');
+export const STYLE_CARD_IMAGE_DISGUSTED = require('./assets/comparisons/source/after/stickers/disgusted.png');
+export const STYLE_CARD_IMAGE_EXCITED = require('./assets/comparisons/source/after/stickers/excited.png');
+export const STYLE_CARD_IMAGE_EYEROLL = require('./assets/comparisons/source/after/stickers/eyeroll.jpeg');
+export const STYLE_CARD_IMAGE_FACEPALM = require('./assets/comparisons/source/after/stickers/Facepalm.png');
+export const STYLE_CARD_IMAGE_HAPPY = require('./assets/comparisons/source/after/stickers/happy.png');
+export const STYLE_CARD_IMAGE_LAUGHING = require('./assets/comparisons/source/after/stickers/laughing.png');
+export const STYLE_CARD_IMAGE_LOVE = require('./assets/comparisons/source/after/stickers/love.png');
+export const STYLE_CARD_IMAGE_MIND_BLOWN = require('./assets/comparisons/source/after/stickers/mind-blown.png');
+export const STYLE_CARD_IMAGE_NEED_COFFEE = require('./assets/comparisons/source/after/stickers/need-coffee.png');
+export const STYLE_CARD_IMAGE_NERVOUS = require('./assets/comparisons/source/after/stickers/nervous.png');
+export const STYLE_CARD_IMAGE_PROUD = require('./assets/comparisons/source/after/stickers/proud.png');
+export const STYLE_CARD_IMAGE_SAD = require('./assets/comparisons/source/after/stickers/sad.png');
+export const STYLE_CARD_IMAGE_SARCASTIC = require('./assets/comparisons/source/after/stickers/sarcastic.png');
+export const STYLE_CARD_IMAGE_SCARED = require('./assets/comparisons/source/after/stickers/scared.png');
+export const STYLE_CARD_IMAGE_SHOCKED = require('./assets/comparisons/source/after/stickers/shocked.png');
+export const STYLE_CARD_IMAGE_SKEPTICAL = require('./assets/comparisons/source/after/stickers/Skeptical.png');
+export const STYLE_CARD_IMAGE_SLEEPY = require('./assets/comparisons/source/after/stickers/sleepy.png');
+export const STYLE_CARD_IMAGE_SMIRK = require('./assets/comparisons/source/after/stickers/smirk.png');
+export const STYLE_CARD_IMAGE_SORRY = require('./assets/comparisons/source/after/stickers/sorry.png');
+export const STYLE_CARD_IMAGE_SURPRISED = require('./assets/comparisons/source/after/stickers/surprised.png');
+export const STYLE_CARD_IMAGE_THINKING = require('./assets/comparisons/source/after/stickers/thinking.png');
+export const STYLE_CARD_IMAGE_THUMBS_DOWN = require('./assets/comparisons/source/after/stickers/thumbs-down.png');
+export const STYLE_CARD_IMAGE_THUMBS_UP = require('./assets/comparisons/source/after/stickers/thumbs-up.png');
+export const STYLE_CARD_IMAGE_WINK = require('./assets/comparisons/source/after/stickers/wink.png');
 export const STYLE_CARD_IMAGE_PXL = require('./assets/comparisons/tiles/after/3d/pxl.jpg');
 export const STYLE_CARD_IMAGE_FUNKO = require('./assets/comparisons/tiles/after/3d/funko.jpg');
 export const STYLE_CARD_IMAGE_AARDMAN = require('./assets/comparisons/tiles/after/3d/Aardman.jpg');
@@ -288,14 +385,25 @@ export const STYLE_CARD_IMAGE_IVORY = require('./assets/comparisons/tiles/after/
 export const STYLE_CARD_IMAGE_CRYSTAL = require('./assets/comparisons/tiles/after/Sculptures/crystal.jpg');
 export const STYLE_CARD_IMAGE_ICE = require('./assets/comparisons/tiles/after/Sculptures/ice.jpg');
 export const STYLE_CARD_IMAGE_METAL = require('./assets/comparisons/tiles/after/Sculptures/metal.jpg');
+export const STYLE_CARD_IMAGE_CHROME = require('./assets/comparisons/tiles/after/Sculptures/chrome.jpg');
+export const STYLE_CARD_IMAGE_MOUNTAIN = require('./assets/comparisons/tiles/after/Sculptures/mountain.jpg');
 export const STYLE_CARD_IMAGE_WOOD = require('./assets/comparisons/tiles/after/Sculptures/wood.jpg');
+export const STYLE_CARD_IMAGE_GOLD = require('./assets/comparisons/tiles/after/Sculptures/gold.jpg');
+export const STYLE_CARD_IMAGE_PORCELAIN = require('./assets/comparisons/tiles/after/Sculptures/porcelain.jpg');
+export const STYLE_CARD_IMAGE_VOXEL_BLOCK = require('./assets/comparisons/tiles/after/3d/voxel-block.jpg');
 export const STYLE_CARD_IMAGE_3D_PORTRAIT_V1 = require('./assets/comparisons/tiles/after/3d/3d-portraitv1.jpg');
 export const STYLE_CARD_IMAGE_3D_PORTRAIT_V2 = require('./assets/comparisons/tiles/after/3d/3d-portraitv2.jpg');
 export const STYLE_CARD_IMAGE_MINIME = require('./assets/comparisons/tiles/after/3d/minime.jpg');
 export const STYLE_CARD_IMAGE_DANCING_3D = require('./assets/comparisons/tiles/after/3d/dancing-3d.jpg');
+export const STYLE_CARD_IMAGE_YARN = require('./assets/comparisons/tiles/after/3d/yarn.jpg');
+export const STYLE_CARD_IMAGE_VINYL = require('./assets/comparisons/tiles/after/3d/vinyl.jpg');
+export const STYLE_CARD_IMAGE_PLUSH = require('./assets/comparisons/tiles/after/3d/plush.jpg');
+export const STYLE_CARD_IMAGE_BOBBLEHEAD = require('./assets/comparisons/tiles/after/3d/bobblehead.jpg');
 export const STYLE_CARD_IMAGE_DANCING_CARC = require('./assets/comparisons/tiles/after/caricature/dancing-carc.jpg');
 export const STYLE_CARD_IMAGE_TINY_MUSCLE_V1 = require('./assets/comparisons/tiles/after/caricature/tiny-muscle1.jpg');
 export const STYLE_CARD_IMAGE_TINY_MUSCLE_V2 = require('./assets/comparisons/tiles/after/caricature/tiny-muscle2.jpg');
+export const STYLE_CARD_IMAGE_TINY_MUSCLE_V3 = require('./assets/comparisons/tiles/after/caricature/tiny-muscle3.jpg');
+export const STYLE_CARD_IMAGE_VICTORIAN = require('./assets/comparisons/tiles/after/caricature/victorian.jpg');
 export const STYLE_CARD_IMAGE_MINIATURE = require('./assets/comparisons/tiles/after/3d/miniature.jpg');
 export const STYLE_CARD_IMAGE_PLASTIC_TOY_V1 = require('./assets/comparisons/tiles/after/3d/toyv1.jpg');
 export const STYLE_CARD_IMAGE_PLASTIC_TOY_V2 = require('./assets/comparisons/tiles/after/3d/toyv2.jpg');
@@ -318,6 +426,40 @@ export const PAYWALL_MARQUEE_IMAGES = [
 
 /** Primary thumbnail lookup by style id (enabled + common aliases). */
 const STYLE_IMAGE_BY_ID = {
+  'angry': STYLE_CARD_IMAGE_ANGRY,
+  'bored': STYLE_CARD_IMAGE_BORED,
+  'celebrate': STYLE_CARD_IMAGE_CELEBRATE,
+  'confused': STYLE_CARD_IMAGE_CONFUSED,
+  'cool': STYLE_CARD_IMAGE_COOL,
+  'crying': STYLE_CARD_IMAGE_CRYING,
+  'disgusted': STYLE_CARD_IMAGE_DISGUSTED,
+  'excited': STYLE_CARD_IMAGE_EXCITED,
+  'eyeroll': STYLE_CARD_IMAGE_EYEROLL,
+  'facepalm': STYLE_CARD_IMAGE_FACEPALM,
+  'happy': STYLE_CARD_IMAGE_HAPPY,
+  'laughing': STYLE_CARD_IMAGE_LAUGHING,
+  'love': STYLE_CARD_IMAGE_LOVE,
+  'mind-blown': STYLE_CARD_IMAGE_MIND_BLOWN,
+  'need-coffee': STYLE_CARD_IMAGE_NEED_COFFEE,
+  'nervous': STYLE_CARD_IMAGE_NERVOUS,
+  'proud': STYLE_CARD_IMAGE_PROUD,
+  'sad': STYLE_CARD_IMAGE_SAD,
+  'sarcastic': STYLE_CARD_IMAGE_SARCASTIC,
+  'scared': STYLE_CARD_IMAGE_SCARED,
+  'shocked': STYLE_CARD_IMAGE_SHOCKED,
+  'skeptical': STYLE_CARD_IMAGE_SKEPTICAL,
+  'sleepy': STYLE_CARD_IMAGE_SLEEPY,
+  'smirk': STYLE_CARD_IMAGE_SMIRK,
+  'sorry': STYLE_CARD_IMAGE_SORRY,
+  'surprised': STYLE_CARD_IMAGE_SURPRISED,
+  'thinking': STYLE_CARD_IMAGE_THINKING,
+  'thumbs-down': STYLE_CARD_IMAGE_THUMBS_DOWN,
+  'thumbs-up': STYLE_CARD_IMAGE_THUMBS_UP,
+  'wink': STYLE_CARD_IMAGE_WINK,
+  'sticker-sheet': STYLE_CARD_IMAGE_HAPPY,
+  '80s-cartoon': STYLE_CARD_IMAGE_80S_CARTOON,
+  'video-game-i': STYLE_CARD_IMAGE_VIDEO_GAME_I,
+  'video-game-ii': STYLE_CARD_IMAGE_VIDEO_GAME_II,
   '90s-cartoon': STYLE_CARD_IMAGE_DEFAULT,
   chibi: STYLE_CARD_IMAGE_CHIBI,
   'classic-v1': STYLE_CARD_IMAGE_CLASSIC_V1,
@@ -326,29 +468,56 @@ const STYLE_IMAGE_BY_ID = {
   'saturday-v2': STYLE_CARD_IMAGE_SATURDAY_V2,
   comic: STYLE_CARD_IMAGE_COMIC,
   cute: STYLE_CARD_IMAGE_CUTE,
-  dc: STYLE_CARD_IMAGE_DC,
   'cyberpunk-v1': STYLE_CARD_IMAGE_CYBERPUNK_V1,
   'cyberpunk-v2': STYLE_CARD_IMAGE_CYBERPUNK_V2,
   disney: STYLE_CARD_IMAGE_DISNEY,
+  ghibli: STYLE_CARD_IMAGE_GHIBLI,
   pixel: STYLE_CARD_IMAGE_PIXEL,
   '3d-render-v1': STYLE_CARD_IMAGE_3D_RENDER_V1,
   '3d-render-v2': STYLE_CARD_IMAGE_3D_RENDER_V2,
   'comic-v1': STYLE_CARD_IMAGE_COMIC_V1,
   'comic-v2': STYLE_CARD_IMAGE_COMIC_V2,
+  'comic-v3': STYLE_CARD_IMAGE_COMIC_V3,
   neon: STYLE_CARD_IMAGE_NEON,
   anime: STYLE_CARD_IMAGE_ANIME,
+  manga: STYLE_CARD_IMAGE_MANGA,
+  'genndy-v1': STYLE_CARD_IMAGE_GENNDY_V1,
+  'genndy-v2': STYLE_CARD_IMAGE_GENNDY_V2,
   handd: STYLE_CARD_IMAGE_HANDD,
   editorial: STYLE_CARD_IMAGE_EDITORIAL,
   exaggerated: STYLE_CARD_IMAGE_EXAGGERATED,
   watercolor: STYLE_CARD_IMAGE_WATERCOLOR_C,
   carc1: STYLE_CARD_IMAGE_CARC1,
+  carc2: STYLE_CARD_IMAGE_CARC2,
+  mugface: STYLE_CARD_IMAGE_MUGFACE,
+  carc3: STYLE_CARD_IMAGE_CARC3,
+  carc4: STYLE_CARD_IMAGE_CARC4,
+  carc5: STYLE_CARD_IMAGE_CARC5,
+  carc6: STYLE_CARD_IMAGE_CARC6,
+  carc7: STYLE_CARD_IMAGE_CARC7,
+  carc8: STYLE_CARD_IMAGE_CARC8,
+  carc9: STYLE_CARD_IMAGE_CARC9,
+  carc10: STYLE_CARD_IMAGE_CARC10,
+  carc11: STYLE_CARD_IMAGE_CARC11,
+  carc12: STYLE_CARD_IMAGE_CARC12,
+  carc13: STYLE_CARD_IMAGE_CARC13,
+  carc14: STYLE_CARD_IMAGE_CARC14,
+  carc15: STYLE_CARD_IMAGE_CARC15,
+  carc17: STYLE_CARD_IMAGE_CARC17,
+  carc18: STYLE_CARD_IMAGE_CARC18,
+  carc19: STYLE_CARD_IMAGE_CARC19,
+  carc20: STYLE_CARD_IMAGE_CARC20,
+  carc21: STYLE_CARD_IMAGE_CARC21,
+  carc22: STYLE_CARD_IMAGE_CARC22,
   '3d-bd': STYLE_CARD_IMAGE_3D_BD,
   '3d': STYLE_CARD_IMAGE_3D,
   '3dclay': STYLE_CARD_IMAGE_3DCLAY,
+  puppet: STYLE_CARD_IMAGE_PUPPET,
   'oil-paint': STYLE_CARD_IMAGE_OILPAINT,
   lowpoly: STYLE_CARD_IMAGE_LOWPOLY,
   'low-poly': STYLE_CARD_IMAGE_LOWPOLY,
   mural: STYLE_CARD_IMAGE_MURAL,
+  illustration: STYLE_CARD_IMAGE_ILLUSTRATION,
   graffiti: STYLE_CARD_IMAGE_GRAFFITI,
   banksy: STYLE_CARD_IMAGE_BANKSY,
   mosaic: STYLE_CARD_IMAGE_MOSAIC,
@@ -357,12 +526,49 @@ const STYLE_IMAGE_BY_ID = {
   'abstract-v1': STYLE_CARD_IMAGE_ABSTRACT_V1,
   'abstract-v2': STYLE_CARD_IMAGE_ABSTRACT_V2,
   geometric: STYLE_CARD_IMAGE_GEOMETRIC,
-  surreal: STYLE_CARD_IMAGE_SURREAL,
   'coloured-glass': STYLE_CARD_IMAGE_COLOURED_GLASS,
   'paste-up': STYLE_CARD_IMAGE_PASTE_UP,
   'pencil-sketch-v1': STYLE_CARD_IMAGE_PENCIL_SKETCH_V1,
   'pencil-sketch-v2': STYLE_CARD_IMAGE_PENCIL_SKETCH_V2,
+  'pencil-sketch': STYLE_CARD_IMAGE_PENCIL_SKETCH,
+  charcoal: STYLE_CARD_IMAGE_CHARCOAL,
+  ink: STYLE_CARD_IMAGE_INK,
+  pen: STYLE_CARD_IMAGE_PEN,
+  'cross-hatched': STYLE_CARD_IMAGE_CROSS_HATCHED,
+  'line-art': STYLE_CARD_IMAGE_LINE_ART,
+  fashion: STYLE_CARD_IMAGE_FASHION,
+  marker: STYLE_CARD_IMAGE_MARKER,
   origami: STYLE_CARD_IMAGE_ORIGAMI,
+  'brick-v1': STYLE_CARD_IMAGE_BRICK_V1,
+  'brick-v2': STYLE_CARD_IMAGE_BRICK_V2,
+  professional: STYLE_CARD_IMAGE_PROFESSIONAL,
+  studio: STYLE_CARD_IMAGE_STUDIO,
+  corporate: STYLE_CARD_IMAGE_CORPORATE,
+  'fashion-editorial': STYLE_CARD_IMAGE_FASHION_EDITORIAL,
+  cinematic: STYLE_CARD_IMAGE_CINEMATIC,
+  model: STYLE_CARD_IMAGE_MODEL,
+  passport: STYLE_CARD_IMAGE_PASSPORT,
+  outdoor: STYLE_CARD_IMAGE_OUTDOOR,
+  child: STYLE_CARD_IMAGE_CHILD,
+  teenager: STYLE_CARD_IMAGE_TEENAGER,
+  'young-adult': STYLE_CARD_IMAGE_YOUNG_ADULT,
+  'middle-age': STYLE_CARD_IMAGE_MIDDLE_AGE,
+  elderly: STYLE_CARD_IMAGE_ELDERLY,
+  progressive: STYLE_CARD_IMAGE_PROGRESSIVE,
+  regressive: STYLE_CARD_IMAGE_REGRESSIVE,
+  '1960s': STYLE_CARD_IMAGE_1960S,
+  '1970s': STYLE_CARD_IMAGE_1970S,
+  '1980s': STYLE_CARD_IMAGE_1980S,
+  '80s-hip-hop': STYLE_CARD_IMAGE_80S_HIP_HOP,
+  '80s-pop': STYLE_CARD_IMAGE_80S_POP,
+  '90s': STYLE_CARD_IMAGE_90S,
+  '90s-hip-hop': STYLE_CARD_IMAGE_90S_HIP_HOP,
+  '90s-pop': STYLE_CARD_IMAGE_90S_POP,
+  '2000s': STYLE_CARD_IMAGE_2000S,
+  '2000s-hip-hop': STYLE_CARD_IMAGE_2000S_HIP_HOP,
+  '2000s-pop': STYLE_CARD_IMAGE_2000S_POP,
+  'rock-n-roll': STYLE_CARD_IMAGE_ROCK_N_ROLL,
+  'paper-cut': STYLE_CARD_IMAGE_PAPER_CUT,
   'monday-mood': STYLE_CARD_IMAGE_MONDAY,
   'friday-feeling': STYLE_CARD_IMAGE_FRIDAY,
   'pop-art-v1': STYLE_CARD_IMAGE_POP_ART_V1,
@@ -406,14 +612,25 @@ const STYLE_IMAGE_BY_ID = {
   crystal: STYLE_CARD_IMAGE_CRYSTAL,
   ice: STYLE_CARD_IMAGE_ICE,
   metal: STYLE_CARD_IMAGE_METAL,
+  chrome: STYLE_CARD_IMAGE_CHROME,
+  mountain: STYLE_CARD_IMAGE_MOUNTAIN,
   wood: STYLE_CARD_IMAGE_WOOD,
+  gold: STYLE_CARD_IMAGE_GOLD,
+  porcelain: STYLE_CARD_IMAGE_PORCELAIN,
+  'voxel-block': STYLE_CARD_IMAGE_VOXEL_BLOCK,
   '3d-portrait-v1': STYLE_CARD_IMAGE_3D_PORTRAIT_V1,
   '3d-portrait-v2': STYLE_CARD_IMAGE_3D_PORTRAIT_V2,
   minime: STYLE_CARD_IMAGE_MINIME,
   'dancing-3d': STYLE_CARD_IMAGE_DANCING_3D,
+  yarn: STYLE_CARD_IMAGE_YARN,
+  vinyl: STYLE_CARD_IMAGE_VINYL,
+  plush: STYLE_CARD_IMAGE_PLUSH,
+  bobblehead: STYLE_CARD_IMAGE_BOBBLEHEAD,
   'dancing-carc': STYLE_CARD_IMAGE_DANCING_CARC,
   'tiny-muscle-v1': STYLE_CARD_IMAGE_TINY_MUSCLE_V1,
   'tiny-muscle-v2': STYLE_CARD_IMAGE_TINY_MUSCLE_V2,
+  'tiny-muscle-v3': STYLE_CARD_IMAGE_TINY_MUSCLE_V3,
+  victorian: STYLE_CARD_IMAGE_VICTORIAN,
   miniature: STYLE_CARD_IMAGE_MINIATURE,
   'plastic-toy-v1': STYLE_CARD_IMAGE_PLASTIC_TOY_V1,
   'plastic-toy-v2': STYLE_CARD_IMAGE_PLASTIC_TOY_V2,
@@ -448,6 +665,9 @@ export function getStyleImage(style) {
   if (label.includes('funko')) return STYLE_CARD_IMAGE_FUNKO;
 
   const categoryId = (style.categoryId || '').toLowerCase();
+  if (categoryId === 'stickers' || id === 'sticker-sheet' || label.includes('sticker')) {
+    return STYLE_CARD_IMAGE_HAPPY;
+  }
   if (categoryId === 'caricatures') return STYLE_CARD_IMAGE_EDITORIAL;
 
   return STYLE_CARD_IMAGE_DEFAULT;

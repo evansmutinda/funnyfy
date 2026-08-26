@@ -2,14 +2,22 @@
 // Used by the async queue worker (api/cron/process-queue.ts)
 
 import { query } from './db';
-import { getStyleById, resolveStyleModel } from './styles-config';
 import {
+  STICKER_SHEET_STYLE_ID,
+  buildStickerSheetPrompt,
+  getStyleById,
+  parseSheetExpressions,
+  resolveStyleModel,
+  resolveStyleReferenceUrl,
+} from './styles-config';
+import { ensureJobSheetExpressionsColumn, stickerSheetAspectRatio, stickerSheetGridForCount } from './sticker-pack';
+import {
+  buildReplicateWebhookUrl,
   getImageUrlFromOutput,
   pollReplicatePrediction,
   saveReplicatePredictionId,
 } from './replicate-sync';
 import {
-  checkImageWithSightengine,
   CONTENT_NOT_ALLOWED_CODE,
   handleContentPolicyViolation,
   isReplicateContentPolicyError,
@@ -29,8 +37,6 @@ import {
 
 const targetUrl = process.env.TARGET_API_URL;
 const targetApiKey = process.env.TARGET_API_KEY;
-const sightengineUser = process.env.SIGHTENGINE_API_USER;
-const sightengineSecret = process.env.SIGHTENGINE_API_SECRET;
 
 /** Replicate models that accept output_format (flux, nano-banana, seedream). */
 const REPLICATE_OUTPUT_FORMAT = 'png';
@@ -40,6 +46,7 @@ export interface JobRow {
   user_id: string | null;
   style_id: string;
   input_image_url: string | null;
+  sheet_expressions?: string | null;
 }
 
 export async function processJob(job: JobRow): Promise<void> {
@@ -53,8 +60,26 @@ export async function processJob(job: JobRow): Promise<void> {
   }
 
   let prompt = styleConfig.prompt;
+  let sheetExpressionCount = 0;
+  if (job.style_id === STICKER_SHEET_STYLE_ID) {
+    await ensureJobSheetExpressionsColumn();
+    let expressionIds = parseSheetExpressions(job.sheet_expressions);
+    if (!expressionIds.length) {
+      const stored = await query<{ sheet_expressions: string | null }>(
+        `SELECT sheet_expressions FROM jobs WHERE id = $1`,
+        [job.id],
+      );
+      expressionIds = parseSheetExpressions(stored.rows[0]?.sheet_expressions);
+    }
+    if (!stickerSheetGridForCount(expressionIds.length)) {
+      throw new Error('Sticker sheet jobs need 4, 9, or 12 expressions.');
+    }
+    sheetExpressionCount = expressionIds.length;
+    prompt = buildStickerSheetPrompt(expressionIds);
+  }
   const imageUrl = job.input_image_url;
   const modelVersion = resolveStyleModel(styleConfig);
+  const referenceUrl = resolveStyleReferenceUrl(styleConfig);
 
   // Persist chosen model early so cost finalization uses the actual run, not the primary.
   await query(`UPDATE jobs SET model_version = $1 WHERE id = $2`, [modelVersion, job.id]);
@@ -65,13 +90,24 @@ export async function processJob(job: JobRow): Promise<void> {
 
   if (imageUrl) {
     if (modelVersion.includes('flux-kontext-pro') || modelVersion.includes('flux')) {
+      // Flux Kontext accepts a single input image — prefer the user photo.
       input.input_image = imageUrl;
       input.aspect_ratio = 'match_input_image';
+      if (referenceUrl) {
+        console.warn(
+          `[process-job] Style ${job.style_id} has referenceImage but model ${modelVersion} is single-image; using user photo only`
+        );
+      }
     } else if (modelVersion.includes('nano-banana')) {
-      input.image_input = [imageUrl];
+      // Dual-image styles: [style template, user photo] — prompt refers to 1st / 2nd pic.
+      input.image_input = referenceUrl ? [referenceUrl, imageUrl] : [imageUrl];
       input.image = imageUrl;
       input.image_url = imageUrl;
+      if (job.style_id === STICKER_SHEET_STYLE_ID) {
+        input.aspect_ratio = stickerSheetAspectRatio(sheetExpressionCount);
+      }
       if (
+        !referenceUrl &&
         !prompt.toLowerCase().includes('uploaded') &&
         !prompt.toLowerCase().includes('photo') &&
         !prompt.toLowerCase().includes('image') &&
@@ -82,7 +118,7 @@ export async function processJob(job: JobRow): Promise<void> {
         input.prompt = prompt;
       }
     } else if (modelVersion.includes('seedream')) {
-      input.image_input = [imageUrl];
+      input.image_input = referenceUrl ? [referenceUrl, imageUrl] : [imageUrl];
       input.aspect_ratio = 'match_input_image';
       input.sequential_image_generation = 'disabled';
       input.max_images = 1;
@@ -99,25 +135,18 @@ export async function processJob(job: JobRow): Promise<void> {
     }
   }
 
-  const upstreamBody = {
+  const webhookUrl = buildReplicateWebhookUrl(job.id);
+  const upstreamBody: Record<string, unknown> = {
     version: modelVersion,
     input: input,
   };
-
-  if (imageUrl && sightengineUser && sightengineSecret) {
-    try {
-      const moderation = await checkImageWithSightengine(imageUrl, sightengineUser, sightengineSecret);
-      if (moderation && !moderation.allowed) {
-        await handleContentPolicyViolation(job.id, job.user_id, {
-          source: 'sightengine',
-          violations: moderation.violations,
-        });
-        throw new Error(CONTENT_NOT_ALLOWED_CODE);
-      }
-    } catch (modErr: unknown) {
-      if (modErr instanceof Error && modErr.message === CONTENT_NOT_ALLOWED_CODE) throw modErr;
-      console.warn('[process-job] Sightengine check failed (proceeding):', modErr);
-    }
+  if (webhookUrl) {
+    upstreamBody.webhook = webhookUrl;
+    upstreamBody.webhook_events_filter = ['completed'];
+  } else {
+    console.warn(
+      '[process-job] Replicate webhook not configured (PUBLIC_API_URL/ALLOWED_ORIGIN + REPLICATE_WEBHOOK_SECRET) — relying on poll/sync only'
+    );
   }
 
   const fetchRes = await fetch(targetUrl, {

@@ -1,7 +1,8 @@
-import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   BackHandler,
   FlatList,
+  Image,
   ScrollView,
   StatusBar,
   Text,
@@ -16,19 +17,20 @@ import { BOTTOM_INSET_MIN, getStyleImage } from '../constants';
 import {
   getTileComparisonPair,
   hasCuratedComparisonPair,
+  usesComparisonPreview,
 } from '../data/comparisonPairs';
 import {
   STYLE_CATEGORIES,
   getStyleCategory,
 } from '../utils/styleCategories';
+import {
+  STICKER_PACK_SIZE_HINT,
+  canBuildStickerPack,
+  isStickerStyle,
+} from '../utils/stickerPack';
 import { RowFocusProvider, useCategoryRowFocus } from '../hooks/useRowFocus';
 import StyleLoadingEmptyState from '../components/StyleLoadingEmptyState';
 import styles from '../styles';
-
-const HORIZONTAL_VIEWABILITY = {
-  itemVisiblePercentThreshold: 50,
-  minimumViewTime: 0,
-};
 
 function resolveStyleCategory(style) {
   return style?.categoryId || getStyleCategory(style?.id);
@@ -38,6 +40,7 @@ const ROW_PREVIEW_COUNT = 5;
 const ROW_ENTRANCE_STAGGER = 40;
 const GRID_COLUMNS = 2;
 const MAX_ENTRANCE_ROWS = 4;
+const EMPTY_HOME_CATEGORY_IDS = new Set();
 
 const BROWSE_CATEGORIES = STYLE_CATEGORIES.filter((cat) => cat.id !== 'all');
 
@@ -63,19 +66,51 @@ function StyleScreenContent({
   onCancelRestyle,
   interactionPaused = false,
   initialActiveCategory = null,
+  selectedStickerIds = [],
+  onToggleSticker,
+  onCreateStickerPack,
+  onClearStickerPack,
 }) {
   const insets = useSafeAreaInsets();
   const [homeScrollTick, setHomeScrollTick] = useState(0);
   const [categoryScrollTick, setCategoryScrollTick] = useState(0);
   const [activeCategory, setActiveCategory] = useState(initialActiveCategory);
+  const [packSelectMode, setPackSelectMode] = useState(
+    Array.isArray(selectedStickerIds) && selectedStickerIds.length > 0,
+  );
   const styleList = Array.isArray(availableStyles) ? availableStyles : [];
 
   useEffect(() => {
     setActiveCategory(initialActiveCategory);
   }, [initialActiveCategory]);
 
-  const browsingHome = !restyleMode && activeCategory === null;
+  const browsingHome = activeCategory === null;
   const activeCategoryMeta = BROWSE_CATEGORIES.find((cat) => cat.id === activeCategory);
+  const selectedStickerCount = Array.isArray(selectedStickerIds) ? selectedStickerIds.length : 0;
+  const inStickerPackMode = packSelectMode && activeCategory === 'stickers';
+  const stickerPackReady = canBuildStickerPack(selectedStickerCount);
+  const selectedStickerStyles = useMemo(() => {
+    if (!inStickerPackMode || !selectedStickerCount) return [];
+    const byId = new Map(styleList.map((item) => [item.id, item]));
+    return selectedStickerIds.map((id) => byId.get(id)).filter(Boolean);
+  }, [inStickerPackMode, selectedStickerCount, selectedStickerIds, styleList]);
+
+  const exitPackSelectMode = () => {
+    setPackSelectMode(false);
+    if (onClearStickerPack) onClearStickerPack();
+  };
+
+  const handleStylePress = (item) => {
+    if (packSelectMode && isStickerStyle(item) && onToggleSticker) {
+      onToggleSticker(item);
+      return;
+    }
+    onNext(item);
+  };
+
+  useEffect(() => {
+    if (restyleMode) setActiveCategory(null);
+  }, [restyleMode]);
 
   const categoryRows = useMemo(() => {
     if (!browsingHome) return [];
@@ -88,14 +123,13 @@ function StyleScreenContent({
     }
     return BROWSE_CATEGORIES
       .map((cat) => ({ ...cat, styles: byCategory.get(cat.id) || [] }))
-      .filter((row) => row.styles.length > 0);
+      .filter((row) => row.styles.length > 0 || EMPTY_HOME_CATEGORY_IDS.has(row.id));
   }, [browsingHome, styleList]);
 
   const categoryStyles = useMemo(() => {
     if (browsingHome) return [];
-    if (restyleMode) return styleList;
     return styleList.filter((s) => resolveStyleCategory(s) === activeCategory);
-  }, [activeCategory, browsingHome, restyleMode, styleList]);
+  }, [activeCategory, browsingHome, styleList]);
 
   const onCategoryScroll = useCallback(() => {
     setCategoryScrollTick((tick) => tick + 1);
@@ -114,27 +148,35 @@ function StyleScreenContent({
     [categoryStyles],
   );
 
-  const categoryGridKey = restyleMode ? 'restyle' : activeCategory || 'category';
+  const categoryGridKey = activeCategory || 'category';
 
   useEffect(() => {
-    if (browsingHome || restyleMode) return undefined;
+    if (browsingHome) return undefined;
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (packSelectMode) {
+        exitPackSelectMode();
+        return true;
+      }
       setActiveCategory(null);
       return true;
     });
     return () => sub.remove();
-  }, [browsingHome, restyleMode]);
+  }, [browsingHome, packSelectMode]);
 
   const handleCancel = () => {
     if (onCancelRestyle) onCancelRestyle();
   };
 
   const handleBack = () => {
-    if (restyleMode) {
-      handleCancel();
+    if (packSelectMode) {
+      exitPackSelectMode();
       return;
     }
-    setActiveCategory(null);
+    if (!browsingHome) {
+      setActiveCategory(null);
+      return;
+    }
+    if (restyleMode) handleCancel();
   };
 
   return (
@@ -146,7 +188,7 @@ function StyleScreenContent({
 
       <View style={[styles.styleScreenHeader, { paddingTop: Math.max(insets.top, 8) }]}>
         <View style={styles.headerBar}>
-          {browsingHome ? (
+          {browsingHome && !restyleMode ? (
             <>
               <Text style={styles.wordmark}>FunnyFy</Text>
               <PressScale onPress={onOpenMenu} style={styles.menuButton} hitSlop={8}>
@@ -159,7 +201,11 @@ function StyleScreenContent({
                 <Feather name="chevron-left" size={22} color="#FFFFFF" />
               </PressScale>
               <Text style={styles.restyleHeaderTitle} numberOfLines={1}>
-                {restyleMode ? 'Same photo' : activeCategoryMeta?.label || 'Styles'}
+                {browsingHome && restyleMode
+                  ? 'Same photo'
+                  : inStickerPackMode && activeCategory === 'stickers'
+                    ? 'Sticker pack'
+                    : activeCategoryMeta?.label || 'Styles'}
               </Text>
               <View style={{ width: 40 }} />
             </>
@@ -167,7 +213,7 @@ function StyleScreenContent({
         </View>
       </View>
 
-      {restyleMode ? (
+      {restyleMode && browsingHome ? (
         <View style={styles.restyleBanner}>
           <View style={styles.restyleBannerRow}>
             <View style={styles.restyleBannerBody}>
@@ -215,10 +261,12 @@ function StyleScreenContent({
                   category={row}
                   styleList={row.styles}
                   selectedStyle={selectedStyle}
-                  onSelect={onNext}
+                  onSelect={handleStylePress}
                   onSeeAll={() => setActiveCategory(row.id)}
                   rowIndex={rowIndex}
                   interactionPaused={interactionPaused}
+                  stickerPackMode={inStickerPackMode}
+                  selectedStickerIds={selectedStickerIds}
                 />
               ))
             )}
@@ -230,7 +278,15 @@ function StyleScreenContent({
             style={styles.styleScroll}
             contentContainerStyle={[
               styles.styleContainer,
-              { paddingBottom: Math.max(insets.bottom, BOTTOM_INSET_MIN) + 8 },
+              {
+                paddingBottom:
+                  Math.max(insets.bottom, BOTTOM_INSET_MIN) +
+                  (activeCategory === 'stickers'
+                    ? packSelectMode && selectedStickerCount > 0
+                      ? 228
+                      : 108
+                    : 8),
+              },
             ]}
             showsVerticalScrollIndicator={false}
             onScroll={onCategoryScroll}
@@ -258,8 +314,10 @@ function StyleScreenContent({
                     rowIndex={rowIndex}
                     styleList={rowStyles}
                     selectedStyle={selectedStyle}
-                    onSelect={onNext}
+                    onSelect={handleStylePress}
                     interactionPaused={interactionPaused}
+                    stickerPackMode={inStickerPackMode}
+                    selectedStickerIds={selectedStickerIds}
                   />
                 ))}
               </View>
@@ -267,6 +325,79 @@ function StyleScreenContent({
           </ScrollView>
         </RowFocusProvider>
       )}
+
+      {activeCategory === 'stickers' ? (
+        <View style={[styles.stickerPackBar, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+          {packSelectMode ? (
+            <>
+              {selectedStickerStyles.length > 0 ? (
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.stickerSelectedStrip}
+                >
+                  {selectedStickerStyles.map((item) => (
+                    <PressScale
+                      key={item.id}
+                      onPress={() => onToggleSticker(item)}
+                      style={styles.stickerSelectedChip}
+                    >
+                      <Image
+                        source={getStyleImage(item)}
+                        style={styles.stickerSelectedChipImage}
+                        resizeMode="contain"
+                      />
+                      <Text style={styles.stickerSelectedChipLabel} numberOfLines={2}>
+                        {item.label}
+                      </Text>
+                      <View style={styles.stickerSelectedChipRemove}>
+                        <Feather name="x" size={11} color="#FFFFFF" />
+                      </View>
+                    </PressScale>
+                  ))}
+                </ScrollView>
+              ) : null}
+              <Text style={styles.stickerPackBarText}>
+                {selectedStickerCount === 0
+                  ? `Select ${STICKER_PACK_SIZE_HINT} expressions`
+                  : stickerPackReady
+                    ? `${selectedStickerCount} selected · ready`
+                    : `${selectedStickerCount} selected · pick ${STICKER_PACK_SIZE_HINT}`}
+              </Text>
+              <View style={styles.stickerPackBarActions}>
+                <PressScale onPress={exitPackSelectMode} style={[styles.stickerPackBarGhost, { flex: 1 }]}>
+                  <Text style={styles.stickerPackBarGhostText}>Cancel</Text>
+                </PressScale>
+                <PressScale
+                  onPress={onCreateStickerPack}
+                  style={[
+                    styles.stickerPackBarButton,
+                    { flex: 1.4 },
+                    !stickerPackReady && styles.buttonDisabled,
+                  ]}
+                  disabled={!stickerPackReady}
+                >
+                  <Feather name="layers" size={16} color="#0F172A" />
+                  <Text style={styles.stickerPackBarButtonText}>Create pack</Text>
+                </PressScale>
+              </View>
+            </>
+          ) : (
+            <>
+              <Text style={styles.stickerPackBarText}>
+                Tap a style to generate one sticker, or make a pack
+              </Text>
+              <PressScale
+                onPress={() => setPackSelectMode(true)}
+                style={styles.stickerPackBarButton}
+              >
+                <Feather name="layers" size={16} color="#0F172A" />
+                <Text style={styles.stickerPackBarButtonText}>Create pack</Text>
+              </PressScale>
+            </>
+          )}
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -277,8 +408,13 @@ function StylePickerTile({
   onSelect,
   comparisonActive,
   interactionPaused,
+  stickerPackMode = false,
+  selectedStickerIds = [],
 }) {
-  const hasPair = hasCuratedComparisonPair(item);
+  const hasPair = usesComparisonPreview(item) && hasCuratedComparisonPair(item);
+  const isSelected = stickerPackMode
+    ? selectedStickerIds.includes(item.id)
+    : selectedStyle?.id === item.id;
   return (
     <PressScale
       onPress={() => onSelect(item)}
@@ -287,8 +423,10 @@ function StylePickerTile({
       <MediaTile
         imageSource={getStyleImage(item)}
         comparisonPair={hasPair ? getTileComparisonPair(item) : null}
+        comparisonKey={item.id}
         label={item.label}
-        isSelected={selectedStyle?.id === item.id}
+        isSelected={isSelected}
+        selectionMode={stickerPackMode}
         variant="discoveryRow"
         comparisonActive={comparisonActive}
         interactionPaused={interactionPaused}
@@ -306,21 +444,28 @@ function DiscoveryGridRow({
   selectedStyle,
   onSelect,
   interactionPaused,
+  stickerPackMode = false,
+  selectedStickerIds = [],
 }) {
   const { rowRef, isRowActive, onRowLayout } = useCategoryRowFocus(rowId, rowIndex);
 
   return (
     <View ref={rowRef} onLayout={onRowLayout} style={styles.discoveryGridRow}>
       {styleList.map((item) => {
-        const hasPair = hasCuratedComparisonPair(item);
+        const hasPair = usesComparisonPreview(item) && hasCuratedComparisonPair(item);
+        const isSelected = stickerPackMode
+          ? selectedStickerIds.includes(item.id)
+          : selectedStyle?.id === item.id;
         return (
           <View key={item.id} style={styles.discoveryCard}>
             <PressScale onPress={() => onSelect(item)} style={styles.styleCardOuter}>
               <MediaTile
                 imageSource={getStyleImage(item)}
                 comparisonPair={hasPair ? getTileComparisonPair(item) : null}
+                comparisonKey={item.id}
                 label={item.label}
-                isSelected={selectedStyle?.id === item.id}
+                isSelected={isSelected}
+                selectionMode={stickerPackMode}
                 variant="discovery"
                 comparisonActive={isRowActive}
                 interactionPaused={interactionPaused}
@@ -341,32 +486,14 @@ function CategoryRow({
   onSeeAll,
   rowIndex,
   interactionPaused = false,
+  stickerPackMode = false,
+  selectedStickerIds = [],
 }) {
   const hasOverflow = styleList.length > ROW_PREVIEW_COUNT;
   const visibleStyles = hasOverflow ? styleList.slice(0, ROW_PREVIEW_COUNT) : styleList;
-  const showSeeAll = styleList.length > 0;
+  const isEmptyCategory = styleList.length === 0;
+  const showSeeAll = styleList.length > 1;
   const { rowRef, isRowActive, onRowLayout } = useCategoryRowFocus(category.id, rowIndex);
-  const [viewableIds, setViewableIds] = useState(null);
-
-  const onViewableItemsChangedRef = useRef(({ viewableItems }) => {
-    setViewableIds(new Set(viewableItems.map((token) => token.item.id)));
-  });
-
-  const viewabilityConfigCallbackPairs = useRef([
-    {
-      viewabilityConfig: HORIZONTAL_VIEWABILITY,
-      onViewableItemsChanged: (info) => onViewableItemsChangedRef.current(info),
-    },
-  ]).current;
-
-  const isTileActive = (styleId, index) => {
-    if (!isRowActive) return false;
-    if (!hasCuratedComparisonPair({ id: styleId })) return false;
-    if (!viewableIds) return index < 3;
-    return viewableIds.has(styleId);
-  };
-
-  const listExtraData = `${isRowActive}:${viewableIds ? [...viewableIds].join(',') : 'pending'}`;
 
   return (
     <View ref={rowRef} onLayout={onRowLayout}>
@@ -387,28 +514,41 @@ function CategoryRow({
                 <Feather name="chevron-right" size={14} color="rgba(255,255,255,0.65)" />
               </View>
             </PressScale>
+          ) : isEmptyCategory ? (
+            <PressScale onPress={onSeeAll} hitSlop={8}>
+              <View style={styles.styleRowSeeAll}>
+                <Text style={styles.styleRowSeeAllText}>Coming soon</Text>
+                <Feather name="chevron-right" size={14} color="rgba(255,255,255,0.65)" />
+              </View>
+            </PressScale>
           ) : null}
         </View>
 
+        {isEmptyCategory ? (
+          <PressScale onPress={onSeeAll} style={styles.styleRowComingSoon}>
+            <Text style={styles.styleRowComingSoonText}>Styles coming soon</Text>
+          </PressScale>
+        ) : (
         <FlatList
           data={visibleStyles}
           horizontal
           keyExtractor={(item) => item.id}
-          extraData={listExtraData}
+          extraData={isRowActive}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.styleRowList}
-          initialNumToRender={3}
-          maxToRenderPerBatch={2}
+          initialNumToRender={ROW_PREVIEW_COUNT}
+          maxToRenderPerBatch={ROW_PREVIEW_COUNT}
           windowSize={3}
           removeClippedSubviews={false}
-          viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs}
-          renderItem={({ item, index }) => (
+          renderItem={({ item }) => (
             <StylePickerTileMemo
               item={item}
               selectedStyle={selectedStyle}
               onSelect={onSelect}
-              comparisonActive={isTileActive(item.id, index)}
+              comparisonActive={isRowActive}
               interactionPaused={interactionPaused}
+              stickerPackMode={stickerPackMode}
+              selectedStickerIds={selectedStickerIds}
             />
           )}
           ListFooterComponent={
@@ -427,6 +567,7 @@ function CategoryRow({
             ) : null
           }
         />
+        )}
       </Animated.View>
     </View>
   );

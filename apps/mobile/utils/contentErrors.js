@@ -45,6 +45,61 @@ export const NSFW_INLINE_MESSAGE =
 const GENERIC_RETRY = 'Something went wrong. Please try again.';
 const GENERATION_RETRY = "We couldn't create your caricature this time. Please try again.";
 const GENERATION_SOFT = 'Something went wrong while creating your caricature. Please try again.';
+const GENERATION_UNAVAILABLE_MESSAGE =
+  'Image generation is unavailable at the moment. Please try again in a few minutes.';
+
+/** Toast / banner tone for inline generation errors (matches Toast types). */
+export function notificationToneForApiError(message) {
+  const lower = String(message || '').toLowerCase();
+  if (isProviderOutageError(lower)) return 'warning';
+  if (
+    lower.includes('generation is unavailable at the moment') ||
+    lower.includes('generation_unavailable') ||
+    lower.includes('temporarily unavailable') ||
+    lower.includes('server is busy') ||
+    lower.includes('longer than usual')
+  ) {
+    return 'warning';
+  }
+  return 'error';
+}
+
+export function notificationAccentForTone(tone) {
+  if (tone === 'warning') return '#EA580C';
+  if (tone === 'success') return '#10B981';
+  if (tone === 'info') return '#A5B4FC';
+  return '#F87171';
+}
+
+/** User-facing copy for a failed generation (prefers raw API/job error when present). */
+export function resolveGenerationErrorMessage(err) {
+  if (typeof err === 'string') return humanizeApiError(err);
+  const raw = err?.rawErrorMessage || err?.message || String(err);
+  return humanizeApiError(raw);
+}
+
+/** ConfirmDialog copy for failed generation (same pattern as content-policy dialog). */
+export function buildGenerationFailedDialog(err) {
+  const friendly = resolveGenerationErrorMessage(err);
+  const tone = notificationToneForApiError(friendly);
+  return {
+    title: tone === 'warning' ? 'Unavailable' : "Couldn't generate",
+    message: friendly,
+    confirmLabel: 'Got it',
+    hideCancel: true,
+  };
+}
+
+/** Replicate / upstream 5xx (e.g. {"detail":"Internal server error","status":500}). */
+function isProviderOutageError(lower) {
+  return (
+    lower.includes('internal server error') ||
+    lower.includes('service unavailable') ||
+    lower.includes('bad gateway') ||
+    lower.includes('gateway timeout') ||
+    /"status"\s*:\s*50[0234]/.test(lower)
+  );
+}
 
 /**
  * Map technical API / server messages to user-friendly copy.
@@ -59,6 +114,10 @@ export function humanizeApiError(message) {
   }
 
   const lower = raw.toLowerCase();
+
+  if (isProviderOutageError(lower)) {
+    return GENERATION_UNAVAILABLE_MESSAGE;
+  }
 
   if (
     lower.includes('invalid response') ||
@@ -81,7 +140,7 @@ export function humanizeApiError(message) {
   }
 
   if (lower.includes('generation_unavailable') || lower.includes('temporarily unavailable')) {
-    return 'Generation is temporarily unavailable. Please try again later.';
+    return GENERATION_UNAVAILABLE_MESSAGE;
   }
 
   if (lower.includes('job_output_expired') || lower.includes('prediction expired')) {

@@ -14,17 +14,35 @@ import {
   blankOutputErrorMessage,
 } from './_utils/output-validation';
 
+type JobPostBody = {
+  action?: string;
+  jobId?: string;
+  reason?: string;
+};
+
+function parseJobPostBody(req: VercelRequest): JobPostBody | null {
+  try {
+    if (typeof req.body === 'string') {
+      return req.body ? (JSON.parse(req.body) as JobPostBody) : {};
+    }
+    return (req.body || {}) as JobPostBody;
+  } catch {
+    return null;
+  }
+}
+
+function resolveJobAction(req: VercelRequest, body: JobPostBody): string {
+  const queryAction = req.query?.action;
+  const fromQuery = Array.isArray(queryAction) ? queryAction[0] : queryAction;
+  return String(fromQuery || body.action || '').trim();
+}
+
 async function handleReportBadOutput(
   req: VercelRequest,
   res: VercelResponse,
-  userId: string
+  userId: string,
+  body: JobPostBody,
 ) {
-  let body: { jobId?: string; reason?: string } = {};
-  try {
-    body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
-  } catch {
-    return safeErrorResponse(res, 400, 'INVALID_JSON', 'Invalid JSON body');
-  }
 
   const jobId = body.jobId || (req.query.id as string) || (req.query.jobId as string);
   if (!jobId || typeof jobId !== 'string') {
@@ -96,10 +114,14 @@ export default async function handler(
   if (!userId) return;
 
   if (req.method === 'POST') {
-    const action = (req.query.action as string) || '';
+    const body = parseJobPostBody(req);
+    if (!body) {
+      return safeErrorResponse(res, 400, 'INVALID_JSON', 'Invalid JSON body');
+    }
+    const action = resolveJobAction(req, body);
     if (action === 'report-bad-output') {
       try {
-        return await handleReportBadOutput(req, res, userId);
+        return await handleReportBadOutput(req, res, userId, body);
       } catch (err) {
         console.error('[job] report-bad-output failed:', err);
         return safeErrorResponse(res, 500, 'REPORT_FAILED', 'Failed to report bad output');
