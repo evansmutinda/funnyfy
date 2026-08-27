@@ -450,7 +450,7 @@ export default function GalleryScreen({ onBack }) {
       {loading ? (
         <View style={styles.galleryLoadingContainer}>
           <ActivityIndicator size="large" color="#FFFFFF" />
-          <Text style={styles.galleryLoadingText}>Loading your caricatures…</Text>
+          <Text style={styles.galleryLoadingText}>Loading your images…</Text>
         </View>
       ) : items.length === 0 ? (
         <View style={styles.galleryEmptyContainer}>

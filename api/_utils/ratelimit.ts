@@ -294,6 +294,61 @@ export async function checkAllRateLimits(
   };
 }
 
+const QUEUE_KICK_LIMIT_PER_MINUTE = Number(process.env.QUEUE_KICK_LIMIT_PER_MINUTE || 12);
+
+/**
+ * Rate limit mobile queue kicks per user (prevents hammering process-queue).
+ */
+export async function checkQueueKickRateLimit(
+  userId: string
+): Promise<{ allowed: boolean; error?: string }> {
+  const windowStart = getCurrentMinuteWindow();
+
+  try {
+    const rateResult = await query<{ id: string; request_count: number }>(
+      `
+        SELECT id, request_count
+        FROM rate_limits
+        WHERE identifier = $1 AND type = 'queue_kick' AND window_start = $2
+      `,
+      [userId, windowStart]
+    );
+
+    let currentCount = 0;
+    if (rateResult.rows.length === 0) {
+      await query(
+        `
+          INSERT INTO rate_limits (identifier, type, window_start, request_count)
+          VALUES ($1, 'queue_kick', $2, 1)
+          ON CONFLICT (identifier, type, window_start) DO UPDATE
+          SET request_count = rate_limits.request_count + 1
+        `,
+        [userId, windowStart]
+      );
+      currentCount = 1;
+    } else {
+      currentCount = (rateResult.rows[0].request_count ?? 0) + 1;
+      await query(`UPDATE rate_limits SET request_count = $1 WHERE id = $2`, [
+        currentCount,
+        rateResult.rows[0].id,
+      ]);
+    }
+
+    if (currentCount > QUEUE_KICK_LIMIT_PER_MINUTE) {
+      return {
+        allowed: false,
+        error: 'Too many queue requests. Please wait a moment and try again.',
+      };
+    }
+
+    return { allowed: true };
+  } catch (err) {
+    console.error('[ratelimit] Queue kick rate limit check failed:', err);
+    await logRateLimitFailOpen('queue_kick', err);
+    return { allowed: true };
+  }
+}
+
 const ADMIN_LOGIN_MAX_ATTEMPTS = Number(process.env.ADMIN_LOGIN_MAX_ATTEMPTS || 10);
 const ADMIN_LOGIN_WINDOW_MS = 15 * 60 * 1000;
 

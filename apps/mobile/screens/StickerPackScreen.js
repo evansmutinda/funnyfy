@@ -1,6 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  BackHandler,
   Image,
   Platform,
   ScrollView,
@@ -16,20 +17,28 @@ import PressScale from '../components/PressScale';
 import { useNotifications } from '../components/NotificationProvider';
 import { saveToGallery } from './GalleryScreen';
 import {
-  BOTTOM_INSET_MIN,
   FUNNYFY_FOLDER_NAME,
   getSavedImageFileName,
   getStyleImage,
   SAVED_IMAGE_MIME,
   saveToFunnyfyAlbum,
 } from '../constants';
-import { isStickerStyle, stickerSheetAspectRatio } from '../utils/stickerPack';
+import { isStickerStyle } from '../utils/stickerPack';
 import {
   JOB_PROGRESS_PHASE_COUNT,
   getJobProgressCopy,
   resolveCategoryCreatingPhrase,
 } from '../utils/jobProgress';
+import { getUsageQuotaInfo } from '../utils/usageQuota';
 import styles from '../styles';
+
+function getUsagePillLabel(subscriptionInfo, quotaInfo) {
+  if (!subscriptionInfo?.subscription) {
+    return 'No plan';
+  }
+  const tier = subscriptionInfo.subscription.tier;
+  return `${tier.charAt(0).toUpperCase()}${tier.slice(1)} · ${quotaInfo.current}/${quotaInfo.limit}`;
+}
 
 export default function StickerPackScreen({
   selectedStyles = [],
@@ -42,7 +51,7 @@ export default function StickerPackScreen({
   subscriptionInfo,
 }) {
   const insets = useSafeAreaInsets();
-  const { showToast } = useNotifications();
+  const { showToast, showDialog, closeDialog } = useNotifications();
   const [saving, setSaving] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [hasBeenSaved, setHasBeenSaved] = useState(false);
@@ -71,15 +80,20 @@ export default function StickerPackScreen({
     return () => clearInterval(id);
   }, [loading, job?.status]);
 
+  useEffect(() => {
+    if (sheetUrl) setHasBeenSaved(false);
+  }, [sheetUrl]);
+
   const actionsBusy = saving || sharing || loading;
   const saveDisabled = !sheetUrl || actionsBusy;
   const sheetReady = Boolean(sheetUrl) && !loading;
+  const quotaInfo = getUsageQuotaInfo(subscriptionInfo);
 
   const albumPathLabel = Platform.OS === 'android'
     ? `Gallery › ${FUNNYFY_FOLDER_NAME} album`
     : 'Photos';
 
-  const downloadSheet = async () => {
+  const downloadSheet = useCallback(async () => {
     const fileName = getSavedImageFileName();
     const localPath = FileSystem.documentDirectory + fileName;
     const resultDl = await FileSystem.downloadAsync(sheetUrl, localPath);
@@ -87,7 +101,7 @@ export default function StickerPackScreen({
       throw new Error(`Download failed (${resultDl.status})`);
     }
     return resultDl.uri;
-  };
+  }, [sheetUrl]);
 
   const handleShare = async () => {
     if (saveDisabled) return;
@@ -110,19 +124,23 @@ export default function StickerPackScreen({
     }
   };
 
-  const handleSave = async () => {
-    if (saveDisabled || hasBeenSaved) return;
+  const handleSave = useCallback(async (opts = {}) => {
+    const { silent = false } = opts;
+    if (!sheetUrl || loading || saving) return false;
+    if (hasBeenSaved) return true;
     setSaving(true);
     try {
       const uri = await downloadSheet();
       const saveResult = await saveToFunnyfyAlbum(uri);
       if (!saveResult?.ok) {
-        showToast(
-          'Could not save',
-          'Allow FunnyFy to save photos to your gallery, then try again.',
-          'error',
-        );
-        return;
+        if (!silent) {
+          showToast(
+            'Could not save',
+            'Allow FunnyFy to save photos to your gallery, then try again.',
+            'error',
+          );
+        }
+        return false;
       }
       await saveToGallery({
         imageUrl: sheetUrl,
@@ -133,49 +151,129 @@ export default function StickerPackScreen({
         console.warn('[Gallery] sticker sheet save failed (non-fatal):', galleryErr);
       });
       setHasBeenSaved(true);
-      showToast('Saved', albumPathLabel, 'success');
+      if (!silent) {
+        showToast('Saved', albumPathLabel, 'success');
+      }
+      return true;
     } catch (err) {
       console.error('Save error:', err);
-      showToast('Save failed', err?.message || 'Could not save the sticker sheet.', 'error');
+      if (!silent) {
+        showToast('Save failed', err?.message || 'Could not save the sticker sheet.', 'error');
+      }
+      return false;
     } finally {
       setSaving(false);
     }
-  };
+  }, [albumPathLabel, downloadSheet, hasBeenSaved, loading, saving, sheetUrl, showToast]);
+
+  const confirmNavigate = useCallback((navigate) => {
+    if (loading) {
+      showDialog({
+        title: 'Generation in progress',
+        message: 'Your sticker pack is still being created. Please wait for it to finish.',
+        hideCancel: true,
+        confirmLabel: 'OK',
+        onConfirm: closeDialog,
+      });
+      return;
+    }
+
+    if (sheetReady && !hasBeenSaved) {
+      showDialog({
+        title: 'Save before leaving?',
+        message: "Your sticker pack hasn't been saved yet. What would you like to do?",
+        cancelLabel: 'Cancel',
+        neutralLabel: 'Discard',
+        neutralDestructive: true,
+        confirmLabel: 'Save',
+        destructive: false,
+        onCancel: closeDialog,
+        onNeutral: () => {
+          closeDialog();
+          navigate();
+        },
+        onConfirm: async () => {
+          closeDialog();
+          const didSave = await handleSave({ silent: true });
+          if (didSave) {
+            showToast('Saved', albumPathLabel, 'success');
+            setTimeout(() => navigate(), 400);
+          } else {
+            showToast('Save failed', 'Could not save the sticker sheet.', 'error');
+          }
+        },
+      });
+      return;
+    }
+
+    navigate();
+  }, [
+    albumPathLabel,
+    closeDialog,
+    handleSave,
+    hasBeenSaved,
+    loading,
+    sheetReady,
+    showDialog,
+    showToast,
+  ]);
+
+  useEffect(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      confirmNavigate(onBack);
+      return true;
+    });
+    return () => sub.remove();
+  }, [confirmNavigate, onBack]);
 
   return (
     <View style={styles.styleScreenSafe}>
       <StatusBar barStyle="light-content" backgroundColor="#0B0F19" />
       <View style={[styles.styleScreenHeader, { paddingTop: Math.max(insets.top, 8) }]}>
         <View style={styles.headerBar}>
-          <PressScale onPress={onBack} style={styles.iconButton}>
+          <PressScale onPress={() => confirmNavigate(onBack)} style={styles.iconButton}>
             <Feather name="chevron-left" size={22} color="#FFFFFF" />
           </PressScale>
           <Text style={styles.restyleHeaderTitle}>Sticker pack</Text>
-          <PressScale onPress={onOpenUsage} style={styles.iconButton} hitSlop={8}>
-            <Feather name="pie-chart" size={18} color="#FFFFFF" />
+          <PressScale
+            onPress={() => confirmNavigate(onOpenUsage)}
+            style={[
+              styles.uploadHeaderPill,
+              quotaInfo.isLow && styles.uploadHeaderPillLow,
+            ]}
+            disabled={!onOpenUsage}
+          >
+            <View
+              style={[
+                styles.uploadHeaderPillProgress,
+                quotaInfo.isLow && styles.uploadHeaderPillProgressLow,
+              ]}
+            >
+              <View
+                style={[
+                  styles.uploadHeaderPillProgressFill,
+                  quotaInfo.isLow && styles.uploadHeaderPillProgressFillLow,
+                  { width: `${Math.min(quotaInfo.percentage, 100)}%` },
+                ]}
+              />
+            </View>
+            <Text
+              style={[
+                styles.uploadHeaderPillText,
+                quotaInfo.isLow && styles.uploadHeaderPillTextLow,
+              ]}
+            >
+              {getUsagePillLabel(subscriptionInfo, quotaInfo)}
+            </Text>
           </PressScale>
         </View>
       </View>
 
-      <ScrollView
-        style={styles.styleScroll}
-        contentContainerStyle={[
-          styles.stickerPackContainer,
-          { paddingBottom: Math.max(insets.bottom, BOTTOM_INSET_MIN) + 16 },
-        ]}
-        showsVerticalScrollIndicator={false}
-      >
-        <Text style={styles.stickerPackLead}>
-          {loading
-            ? progressCopy.title
-            : sheetReady
-              ? `${previewStyles.length} stickers on one sheet — save or share.`
-              : 'Pick 4, 9, or 12 expressions, then generate a pack.'}
-        </Text>
-
+      <View style={styles.stickerPackBody}>
         {loading ? (
           <View style={styles.stickerPackLoadingCard}>
             <ActivityIndicator size="large" color="#FFFFFF" />
+            <Text style={styles.resultLoadingTitle}>{progressCopy.title}</Text>
             <Text style={styles.resultLoadingSubtitle}>{progressCopy.subtitle}</Text>
             <View style={styles.resultLoadingDots}>
               {Array.from({ length: JOB_PROGRESS_PHASE_COUNT }).map((_, index) => (
@@ -188,26 +286,28 @@ export default function StickerPackScreen({
                 />
               ))}
             </View>
-            {progressCopy.statusHint ? (
-              <Text style={styles.resultLoadingStatusHint}>{progressCopy.statusHint}</Text>
-            ) : null}
           </View>
         ) : sheetUrl ? (
           <Image
             source={{ uri: sheetUrl }}
-            style={[
-              styles.stickerSheetPreview,
-              { aspectRatio: stickerSheetAspectRatio(previewStyles.length) },
-            ]}
+            style={styles.stickerSheetPreview}
             resizeMode="contain"
           />
-        ) : null}
+        ) : (
+          <View style={styles.stickerPackLoadingCard}>
+            <Text style={styles.stickerPackLead}>
+              Pick 4, 9, or 12 expressions, then generate a pack.
+            </Text>
+          </View>
+        )}
 
         {errorMessage ? (
           <Text style={styles.stickerPackError}>{errorMessage}</Text>
         ) : null}
+      </View>
 
-        {previewStyles.length ? (
+      <View style={[styles.stickerPackFooter, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+        {previewStyles.length > 0 ? (
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -236,7 +336,7 @@ export default function StickerPackScreen({
                 hasBeenSaved && styles.resultActionButtonSaved,
                 saveDisabled && styles.buttonDisabled,
               ]}
-              onPress={handleSave}
+              onPress={() => handleSave()}
               disabled={saveDisabled || hasBeenSaved}
             >
               {saving ? (
@@ -273,13 +373,7 @@ export default function StickerPackScreen({
             </PressScale>
           </View>
         ) : null}
-
-        {subscriptionInfo?.isTrial ? (
-          <Text style={styles.stickerPackHint}>
-            Trial has 3 generations. A sticker pack uses 1 generation.
-          </Text>
-        ) : null}
-      </ScrollView>
+      </View>
     </View>
   );
 }

@@ -16,7 +16,7 @@ export default function InfoScreen({ title, content, onBack }) {
           <PressScale onPress={onBack} style={styles.iconButton}>
             <Feather name="chevron-left" size={22} color="#FFFFFF" />
           </PressScale>
-          <Text style={styles.wordmark}>{title}</Text>
+          <Text style={styles.restyleHeaderTitle}>{title}</Text>
           <View style={{ width: 40 }} />
         </View>
         <ScrollView

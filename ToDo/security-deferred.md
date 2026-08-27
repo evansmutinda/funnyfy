@@ -1,71 +1,103 @@
-# FunnyFy — deferred work
+# FunnyFy — backlog
 
-**Last updated:** June 2026  
-**Done recently:** see `ToDo/06-security-audit-followups.md` and `MD/CHANGELOG.md`
+**Last updated:** 26 Aug 2026
 
----
-
-## Error tracking — Sentry
-
-- [x] **Mobile Sentry** — org `funnyfy`, project `react-native`; see `ToDo/SENTRY_INTEGRATION.md`
-- [ ] **API Sentry** (optional) — `@sentry/node` on Vercel for server-side errors
+Action items only. Completed work is listed at the bottom.
 
 ---
 
-## Security — launch blockers
+## Production Vercel env (`funnyfyapp`)
 
-- [ ] **Admin dashboard** — set `ADMIN_USER_IDS` on staging (+ prod); see `ToDo/ADMIN_DASHBOARD_SETUP.md`
-- [ ] **Production release keystore** — replace debug signing for `release` APK builds
-- [ ] **JWT → `expo-secure-store`** — migrate `apps/mobile/services/auth.js`
-- [ ] **Cron queue hardening** — per-user rate limit + scope JWT kick to caller’s pending job
-- [ ] **Admin fail-closed** — deny login when `ADMIN_USER_IDS` empty (after IDs set on staging + prod)
-- [ ] **GitHub branch protection** — require PR + passing CI on `main` (manual in GitHub Settings)
+| Variable | Status | Notes |
+|----------|--------|--------|
+| `CRON_SECRET` | ✅ Done | Also set on cron-job.org as `Authorization: Bearer …` |
+| `JWT_SECRET` | ✅ Done | Different from staging / CRON |
+| `ALLOWED_ORIGIN` | ✅ Done | `https://funnyfyapp.vercel.app` |
+| `PUBLIC_API_URL` | ✅ Done | `https://funnyfyapp.vercel.app` |
+| `TARGET_API_URL` | ✅ Done | `https://api.replicate.com/v1/predictions` |
+| `TARGET_API_KEY` | ✅ Done | Replicate API token (`r8_…`) |
+| `REPLICATE_WEBHOOK_SECRET` | ✅ Done | Webhook `?token=` |
+| `REVENUECAT_WEBHOOK_SECRET` | ✅ Done | Prod webhook URL + secret |
+| `SIGHTENGINE_API_USER` | ✅ Done | Same as staging |
+| `SIGHTENGINE_API_SECRET` | ✅ Done | Same as staging |
+| `DATABASE_URL` | ✅ Done | Prod Supabase pooler |
+| `ADMIN_USER_IDS` | ✅ Done | Prod `users.id` set + redeployed |
 
----
+**Prod Supabase:** schema loaded (`migrations-master` + follow-ups). Org/project created.
 
-## Security — defense in depth (post-launch OK)
-
-- [ ] **Supabase RLS** — baseline policies on `users`, `jobs`, `usage_tracking` (API uses service role today)
-- [ ] **Redis / Upstash rate limits** — if Postgres-backed limits become a bottleneck
-- [ ] **CORS** — `ALLOWED_ORIGIN` per environment (staging vs prod)
-- [ ] **Remove dev auth bypass** — `X-User-Id` in `api/_utils/security.ts` (local `vercel dev` only)
-- [ ] **Android network security config** — pin API hosts in release APK
-- [ ] **Proguard/R8** — enable for release; smoke-test RevenueCat + Expo
-- [ ] **Replicate circuit breaker** — pause enqueue after consecutive provider failures
-- [ ] **Rotate local secrets** — if `.env` files were shared outside this machine
-
----
-
-## Dependencies & audit
-
-- [ ] **`npm audit` fixes** — review before `audit fix --force` on Expo 52 (may jump major SDK)
-- [ ] **Supabase restore drill** — fill backup cadence in `MD/DISASTER_RECOVERY.md`
-
----
-
-## Mobile / ops
-
-- [ ] **Rebuild APK** after `allowBackup: false` (`expo prebuild` + `build-apk-local.ps1`)
-- [ ] **Deploy API** to staging after each backend change; smoke `/api/health` + generate flow
+**Blocked / next:**
+- [x] Set `SIGHTENGINE_API_USER` + `SIGHTENGINE_API_SECRET` on **funnyfyapp** (same as staging)
+- [x] Set `DATABASE_URL` on Vercel **funnyfyapp** (Transaction pooler)
+- [x] Smoke: `GET /api/health` → `{"ok":true}` (26 Aug 2026)
+- [x] Smoke: `GET /api/db-test` → `{"ok":true,"now":"..."}` (26 Aug 2026)
+- [x] **Rotate `CRON_SECRET`** — Vercel + cron-job.org + redeploy (26 Aug 2026)
+- [x] Create or obtain a prod user → set `ADMIN_USER_IDS` (26 Aug 2026)
+- [x] Redeploy after `ADMIN_USER_IDS`
+- [x] Admin login works at `https://funnyfyapp.vercel.app/admin/login` (26 Aug 2026)
 
 ---
 
-## Applied (June 2026) — do not re-do
+## Do next (Play Store prep)
 
-- [x] `GET /api/health` — public liveness probe
-- [x] `MD/DISASTER_RECOVERY.md` — RTO/RPO + runbooks
-- [x] `.github/workflows/ci.yml` — `tsc` + `npm audit` on push/PR
-- [x] DB pool `max: 1` (override `DATABASE_POOL_MAX`); SSL `rejectUnauthorized: true` (escape hatch `DATABASE_SSL_REJECT_UNAUTHORIZED=false`)
-- [x] Rate-limit fail-open → `security_logs` event `rate_limit_fail_open`
-- [x] Webhook idempotency fallback → `crypto.randomUUID()` (not `Date.now()`)
-- [x] Stale `rate_limits` purge on cron tick
-- [x] Mobile Sentry (`@sentry/react-native`, staging environment)
+| # | Task | How |
+|---|------|-----|
+| 1 | Finish prod env vars | ✅ Done (smoke + admin login 26 Aug 2026) |
+| 2 | **Deploy API to staging** | Push/deploy Vercel staging — cron scoping, admin fail-closed, queue kick rate limit |
+| 3 | **Rebuild mobile APK** | `npx expo prebuild --platform android` then `.\build-apk-local.ps1` — `expo-secure-store` is native |
+| 4 | **Generate release keystore** | [MD/RELEASE_SIGNING.md](../MD/RELEASE_SIGNING.md) — run `apps/mobile/scripts/generate-release-keystore.ps1` once; back up `.jks` |
+| 5 | **GitHub branch protection** | [GITHUB_BRANCH_PROTECTION.md](./GITHUB_BRANCH_PROTECTION.md) — ~2 min in repo Settings → Branches |
+| 6 | **Production admin IDs** | [ADMIN_DASHBOARD_SETUP.md](./ADMIN_DASHBOARD_SETUP.md) — after prod DB + first user |
 
 ---
 
-## Suggested order
+## Product backlog
 
-1. Deploy + verify staging (`/api/health`, generate, admin)  
-2. Secure-store + production keystore  
-3. Cron scoping + admin fail-closed  
-4. Optional API Sentry + RLS, Redis, CORS, Proguard as needed
+| Task | Doc |
+|------|-----|
+| App version gating (hide new styles on old APKs) | [APP_VERSION_GATING.md](./APP_VERSION_GATING.md) |
+| Remaining comparison before/after assets | [COMPARISON_ASSETS.md](./COMPARISON_ASSETS.md) |
+
+**Comparison assets still open:**
+- [ ] Pairs for enabled styles that lack curated assets
+- [ ] Upload hero pairs at 832×1248 (no crossfade jump)
+- [ ] `coloured_pencil` asset + enable style
+
+---
+
+## Optional (post-launch)
+
+| Task | Notes |
+|------|--------|
+| API Sentry | [MD/SENTRY_INTEGRATION.md](../MD/SENTRY_INTEGRATION.md) |
+| Supabase RLS | Defense in depth; API uses service role today |
+| Redis rate limits | Only if Postgres limits become slow |
+| CORS per environment | Staging vs prod |
+| Remove `X-User-Id` dev bypass | Must not work in production |
+| Android network pinning | Release hardening |
+| Proguard/R8 | Test RevenueCat after enabling |
+| Replicate circuit breaker | Pause enqueue after provider failures |
+
+---
+
+## Housekeeping
+
+- [ ] **`npm audit`** — review before `audit fix --force` on Expo 52
+- [ ] **Supabase restore drill** — confirm backup cadence in [MD/DISASTER_RECOVERY.md](../MD/DISASTER_RECOVERY.md)
+- [ ] **Deploy API after each backend change** — smoke `/api/health` + one generate
+
+---
+
+## Completed (Aug 2026)
+
+| Item | Where |
+|------|--------|
+| Admin lock (`ADMIN_USER_IDS`) | Staging + prod configured |
+| Admin fail-closed | `api/admin.ts` |
+| JWT → Secure Store | `apps/mobile/services/auth.js` + `expo-secure-store` |
+| Cron queue hardening | `api/cron/process-queue.ts` — scoped user kicks + rate limit |
+| Release signing wiring | `plugins/withReleaseSigning.js`, `scripts/generate-release-keystore.ps1`, [MD/RELEASE_SIGNING.md](../MD/RELEASE_SIGNING.md) |
+| Logo / splash / icon | [MD/SPLASH_ASSET.md](../MD/SPLASH_ASSET.md) |
+| Mobile Sentry | [MD/SENTRY_INTEGRATION.md](../MD/SENTRY_INTEGRATION.md) |
+| Hard paywall (no trial) | App + API |
+| Menu cleanup (no About / Request a style) | `MenuModal.js` |
+| Subscription footer spacing | `SubscriptionScreen.js` |

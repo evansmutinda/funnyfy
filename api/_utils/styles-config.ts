@@ -25,6 +25,12 @@ export interface StyleConfig {
   referenceImage?: string;
   premium?: boolean;
   enabled?: boolean;
+  /**
+   * Oldest app semver that includes assets/UI for this style.
+   * Older clients omit the style from `/api/styles` (see app-version.ts).
+   * Ship the APK first, then set this when enabling the style.
+   */
+  minAppVersion?: string;
 }
 
 /** Models available for a style (pool or single primary). */

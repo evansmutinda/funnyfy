@@ -276,6 +276,18 @@ const styles = StyleSheet.create({
     opacity: 0.92,
   },
 
+  appSplashRoot: {
+    flex: 1,
+    backgroundColor: DARK_BG,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  appSplashLogo: {
+    width: 200,
+    height: 200,
+  },
+
   launchLoaderRoot: {
     flex: 1,
     backgroundColor: DARK_BG,
@@ -661,11 +673,25 @@ const styles = StyleSheet.create({
   },
 
   
-    wordmark: {
-    fontSize: 18,
+    headerBrand: {
+    flexDirection: 'row',
+    // the mark's bottom edge is the F's baseline, so it sits on the wordmark's baseline
+    alignItems: 'baseline',
+  },
+
+  headerLogo: {
+    // 0.74 aspect ratio of the logo mark
+    width: 19,
+    height: 26,
+  },
+
+  headerWordmark: {
+    fontSize: 20,
     fontWeight: '700',
     color: PAPER,
     letterSpacing: -0.3,
+    // tuck the word under the F's lower arm so the lockup reads as one word
+    marginLeft: -4,
   },
 
   
@@ -691,40 +717,105 @@ const styles = StyleSheet.create({
     elevation: 9998,
   },
 
-  
-  menuBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    justifyContent: 'flex-end',
+  updateBannerContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 16,
+    zIndex: 9997,
+    elevation: 9997,
+  },
+
+  updateBannerInner: {
+    alignItems: 'flex-start',
+  },
+
+  updateBannerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 10,
+  },
+
+  updateBannerPrimaryBtn: {
+    paddingVertical: 7,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    backgroundColor: 'rgba(165, 180, 252, 0.22)',
+    borderWidth: 1,
+    borderColor: 'rgba(165, 180, 252, 0.4)',
+  },
+
+  updateBannerPrimaryText: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    color: '#E0E7FF',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+
+  updateBannerDismissBtn: {
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+  },
+
+  updateBannerDismissText: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    color: DARK_MUTED,
+    fontSize: 13,
+    fontWeight: '600',
   },
 
   
-    menuDismissArea: {
+  menuRoot: {
     flex: 1,
+    backgroundColor: DARK_BG,
   },
 
-  
-    menuSheet: {
-    backgroundColor: '#0B0F19',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    borderTopWidth: 1,
-    borderColor: DARK_BORDER,
-    paddingTop: 8,
+  menuHeaderBand: {
+    paddingHorizontal: 16,
+    paddingBottom: 4,
+  },
+
+  menuHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  menuBrand: {
+    alignItems: 'center',
+    paddingTop: 12,
+    paddingBottom: 28,
+    paddingHorizontal: 24,
+  },
+
+  menuLogo: {
+    width: 72,
+    height: 98,
+  },
+
+  menuAppName: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 28,
+    fontWeight: '800',
+    color: PAPER,
+    letterSpacing: -0.8,
+    marginTop: 16,
+  },
+
+  menuVersion: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 13,
+    fontWeight: '500',
+    color: DARK_MUTED,
+    letterSpacing: -0.1,
+    marginTop: 4,
+  },
+
+  menuList: {
     paddingHorizontal: 8,
   },
 
-  
-    menuHandle: {
-    alignSelf: 'center',
-    width: 36,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: 'rgba(255,255,255,0.22)',
-    marginBottom: 8,
-  },
-
-  
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -2271,22 +2362,52 @@ const styles = StyleSheet.create({
     pwdHeroFadeZone: {
     flex: 1,
     overflow: 'hidden',
-    backgroundColor: '#0B0F19',
+    backgroundColor: DARK_BG,
   },
 
   
     pwdHeroFadeContent: {
     flex: 1,
     justifyContent: 'flex-end',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     paddingHorizontal: 20,
-    paddingBottom: 16,
-    gap: 4,
+    paddingBottom: 12,
+  },
+
+  
+    pwdFeatureList: {
+    gap: 12,
+  },
+
+  
+    pwdFeatureRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+
+  
+    pwdFeatureCheck: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: 'rgba(255,255,255,0.16)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  
+    pwdFeatureText: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    letterSpacing: -0.15,
   },
 
   
     pwdPlansBottom: {
-    gap: 9,
+    gap: 12,
   },
 
   
@@ -2334,7 +2455,7 @@ const styles = StyleSheet.create({
 
   
     pwdBottomBarCompact: {
-    paddingTop: 10,
+    paddingTop: 12,
   },
 
   
@@ -2348,7 +2469,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    height: 120,
+    top: '42%',
   },
 
   
@@ -2855,8 +2976,8 @@ const styles = StyleSheet.create({
   
     pwdBottomBar: {
     paddingHorizontal: 20,
-    paddingTop: 10,
-    backgroundColor: '#0B0F19',
+    paddingTop: 4,
+    backgroundColor: DARK_BG,
     gap: 12,
   },
 
@@ -2894,7 +3015,7 @@ const styles = StyleSheet.create({
   },
 
     pwdFooterActionSlot: {
-    minHeight: 32,
+    minHeight: 20,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -2903,14 +3024,9 @@ const styles = StyleSheet.create({
     pwdFooterLinksRow: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-
-  
-    pwdFooterLinksSlot: {
-    flex: 1,
-    alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 4,
+    gap: 10,
+    minHeight: 20,
   },
 
   
@@ -2927,6 +3043,15 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.55)',
     letterSpacing: -0.05,
     textAlign: 'center',
+    lineHeight: 16,
+  },
+
+  
+    pwdFooterLinkDot: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 11.5,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.35)',
     lineHeight: 16,
   },
 
@@ -3334,9 +3459,9 @@ const styles = StyleSheet.create({
   stickerSelectedChip: {
     width: 76,
     alignItems: 'center',
-    gap: 6,
-    paddingTop: 8,
-    paddingBottom: 8,
+    gap: 4,
+    paddingTop: 6,
+    paddingBottom: 6,
     paddingHorizontal: 6,
     borderRadius: 16,
     backgroundColor: '#151B28',
@@ -3437,29 +3562,42 @@ const styles = StyleSheet.create({
 
   stickerSheetPreview: {
     width: '100%',
-    aspectRatio: 1,
+    flex: 1,
     borderRadius: 20,
     backgroundColor: '#151B28',
   },
 
+  stickerPackBody: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingTop: 4,
+    minHeight: 0,
+  },
+
+  stickerPackFooter: {
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    gap: 10,
+  },
+
   stickerPackLoadingCard: {
+    flex: 1,
     width: '100%',
-    minHeight: 280,
     borderRadius: 20,
     backgroundColor: '#151B28',
     borderWidth: 1,
     borderColor: DARK_BORDER,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
-    paddingHorizontal: 24,
-    paddingVertical: 36,
+    gap: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 28,
   },
 
   stickerPackContainer: {
     paddingHorizontal: 16,
-    paddingTop: 8,
-    gap: 14,
+    paddingTop: 4,
+    gap: 10,
   },
 
   stickerPackLead: {

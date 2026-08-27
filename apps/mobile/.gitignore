@@ -34,3 +34,9 @@ npm-debug.log
 yarn-error.log
 
 .env.local
+
+# Release signing (never commit)
+keystore.properties
+*.jks
+*.keystore
+credentials/

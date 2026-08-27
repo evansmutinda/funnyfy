@@ -282,8 +282,8 @@ apps/mobile/utils/funnyfyAlbum.js
 - [x] Eight comparison pairs — `CURATED_PAIR_PATHS` in `data/comparisonPairs.js`; assets under `assets/comparisons/source/` + bundled `tiles/` / `hero/` (see `ToDo/COMPARISON_ASSETS.md`)
 - [ ] Remaining enabled styles — `npm run generate-comparisons` + register pairs
 - [ ] Photo tips real photos in `assets/tips/`
-- [ ] Branded splash PNG — `ToDo/SPLASH_ASSET.md`
-- [x] Sentry mobile — `ToDo/SENTRY_INTEGRATION.md` (staging verified June 2026)
+- [x] Branded splash PNG — `MD/SPLASH_ASSET.md`
+- [x] Sentry mobile — `MD/SENTRY_INTEGRATION.md` (staging verified June 2026)
 
 ---
 

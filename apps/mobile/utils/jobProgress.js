@@ -20,44 +20,17 @@ export function resolveCategoryLabel(style) {
   return STYLE_CATEGORIES.find((cat) => cat.id === categoryId)?.label || null;
 }
 
-/** Singular phrase for "Creating your …" (e.g. paintings → painting). */
-const CATEGORY_CREATING_NAME = {
-  caricatures: 'caricature',
-  cartoons: 'cartoon',
-  paintings: 'painting',
-  '3d-characters': '3D',
-  sculptures: 'sculpture',
-  'stickers': 'sticker',
-  'drawings-sketches': 'drawing',
-  photography: 'photo',
-  'age-transformation': 'age portrait',
-  'retro-nostalgia': 'retro look',
-  historical: 'historical portrait',
-  art: 'artwork',
-  professions: 'portrait',
-  'seasonal-events': 'seasonal portrait',
-  'moods-moments': 'mood portrait',
-};
-
+/** Phrase slotted into "Creating your … image" (style label, or sticker-pack special case). */
 export function resolveCategoryCreatingPhrase(style) {
-  if (!style) return 'look';
+  if (!style) return null;
   if (style.id === 'sticker-sheet') return 'sticker pack';
-  const categoryId = style.categoryId || getStyleCategory(style.id);
-  if (categoryId && CATEGORY_CREATING_NAME[categoryId]) {
-    return CATEGORY_CREATING_NAME[categoryId];
-  }
-  const label = resolveCategoryLabel(style);
-  if (!label) return 'look';
-  const lower = label.toLowerCase();
-  if (lower.endsWith(' characters')) return lower.replace(/ characters$/, ' character');
-  if (lower.endsWith(' games')) return lower.replace(/ games$/, ' game');
-  if (lower.endsWith('s') && !lower.endsWith('ss')) return lower.slice(0, -1);
-  return lower;
+  return style.label || null;
 }
 
 function getCreatingTitle(phrase) {
-  const name = phrase || 'look';
-  return `Creating your ${name}`;
+  if (!phrase) return 'Creating your image';
+  if (phrase === 'sticker pack') return 'Creating your sticker pack';
+  return `Creating your ${phrase} image`;
 }
 
 function getQueueCopy(job) {

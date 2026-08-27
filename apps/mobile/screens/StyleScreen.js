@@ -66,6 +66,7 @@ function StyleScreenContent({
   onCancelRestyle,
   interactionPaused = false,
   initialActiveCategory = null,
+  onActiveCategoryChange,
   selectedStickerIds = [],
   onToggleSticker,
   onCreateStickerPack,
@@ -79,6 +80,14 @@ function StyleScreenContent({
     Array.isArray(selectedStickerIds) && selectedStickerIds.length > 0,
   );
   const styleList = Array.isArray(availableStyles) ? availableStyles : [];
+
+  const changeActiveCategory = useCallback(
+    (next) => {
+      setActiveCategory(next);
+      onActiveCategoryChange?.(next);
+    },
+    [onActiveCategoryChange],
+  );
 
   useEffect(() => {
     setActiveCategory(initialActiveCategory);
@@ -109,8 +118,8 @@ function StyleScreenContent({
   };
 
   useEffect(() => {
-    if (restyleMode) setActiveCategory(null);
-  }, [restyleMode]);
+    if (restyleMode) changeActiveCategory(null);
+  }, [restyleMode, changeActiveCategory]);
 
   const categoryRows = useMemo(() => {
     if (!browsingHome) return [];
@@ -157,11 +166,11 @@ function StyleScreenContent({
         exitPackSelectMode();
         return true;
       }
-      setActiveCategory(null);
+      changeActiveCategory(null);
       return true;
     });
     return () => sub.remove();
-  }, [browsingHome, packSelectMode]);
+  }, [browsingHome, packSelectMode, changeActiveCategory]);
 
   const handleCancel = () => {
     if (onCancelRestyle) onCancelRestyle();
@@ -173,7 +182,7 @@ function StyleScreenContent({
       return;
     }
     if (!browsingHome) {
-      setActiveCategory(null);
+      changeActiveCategory(null);
       return;
     }
     if (restyleMode) handleCancel();
@@ -190,7 +199,21 @@ function StyleScreenContent({
         <View style={styles.headerBar}>
           {browsingHome && !restyleMode ? (
             <>
-              <Text style={styles.wordmark}>FunnyFy</Text>
+              <View
+                style={styles.headerBrand}
+                accessible
+                accessibilityRole="image"
+                accessibilityLabel="FunnyFy"
+              >
+                <Image
+                  source={require('../assets/logo-mark.png')}
+                  style={styles.headerLogo}
+                  resizeMode="contain"
+                />
+                <Text style={styles.headerWordmark} allowFontScaling={false}>
+                  unnyfy
+                </Text>
+              </View>
               <PressScale onPress={onOpenMenu} style={styles.menuButton} hitSlop={8}>
                 <Feather name="menu" size={22} color="#FFFFFF" />
               </PressScale>
@@ -262,7 +285,7 @@ function StyleScreenContent({
                   styleList={row.styles}
                   selectedStyle={selectedStyle}
                   onSelect={handleStylePress}
-                  onSeeAll={() => setActiveCategory(row.id)}
+                  onSeeAll={() => changeActiveCategory(row.id)}
                   rowIndex={rowIndex}
                   interactionPaused={interactionPaused}
                   stickerPackMode={inStickerPackMode}

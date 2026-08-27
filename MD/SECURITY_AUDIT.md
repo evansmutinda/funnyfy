@@ -105,7 +105,7 @@ Note: an earlier pass of this audit flagged hardcoded secrets in `.env.local` an
 - [ ] Set `rejectUnauthorized: true` in [api/_utils/db.ts](../api/_utils/db.ts) — **done** (default true; set `DATABASE_SSL_REJECT_UNAUTHORIZED=false` to roll back)
 - [x] Add rate limiting + security logging on admin login in [api/admin.ts](../api/admin.ts)
 - [x] Auth-gate [api/db-test.ts](../api/db-test.ts) with `CRON_SECRET`
-- [ ] Restrict [api/cron/process-queue.ts](../api/cron/process-queue.ts) to scoped user kick + `CRON_SECRET` (see [ToDo/06-security-audit-followups.md](../ToDo/06-security-audit-followups.md))
+- [ ] Restrict [api/cron/process-queue.ts](../api/cron/process-queue.ts) to scoped user kick + rate limit (done Aug 2026 — see [ToDo/security-deferred.md](../ToDo/security-deferred.md))
 - [ ] Migrate mobile token storage to `expo-secure-store`
 - [ ] Generate and wire up a production release keystore
 - [x] Set `android:allowBackup="false"` (via `app.config.js`; rebuild APK)
@@ -116,7 +116,7 @@ Note: an earlier pass of this audit flagged hardcoded secrets in `.env.local` an
 - [ ] Run `npm audit`
 - [ ] (Precautionary) Rotate `.env.local` / `apps/mobile/.env` secrets if the files were ever shared outside this machine
 
-**Deferred detail:** [ToDo/06-security-audit-followups.md](../ToDo/06-security-audit-followups.md) · [ToDo/security-deferred.md](../ToDo/security-deferred.md)
+**Deferred detail:** [ToDo/security-deferred.md](../ToDo/security-deferred.md)
 
 ---
 
@@ -171,7 +171,7 @@ A second pass organized by infra category, covering areas not fully broken out a
 - Queue worker processes jobs one at a time per cron tick despite `MAX_CONCURRENT_JOBS=10` being configured — throughput-limited. **Medium.** *Recommendation:* batch-process up to the concurrency limit per invocation.
 
 ### 11. Error Tracking & Logs
-- **Mobile:** Sentry integrated (`@sentry/react-native`, org `funnyfy`, project `react-native`) — see `ToDo/SENTRY_INTEGRATION.md`. API backend Sentry still optional.
+- **Mobile:** Sentry integrated (`@sentry/react-native`, org `funnyfy`, project `react-native`) — see `MD/SENTRY_INTEGRATION.md`. API backend Sentry still optional.
 - Logging is unstructured `console.log`/`console.error` calls rather than structured JSON — harder to query/alert on at scale. **Medium.**
 - Mobile `console.log` of sensitive data — already tracked as High #8 above (now `__DEV__`-gated per checklist).
 
@@ -187,7 +187,7 @@ A second pass organized by infra category, covering areas not fully broken out a
 - [x] Write disaster-recovery doc — `MD/DISASTER_RECOVERY.md`
 - [x] Postgres pool `max: 1` per serverless instance (`DATABASE_POOL_MAX` override); SSL verify on (`DATABASE_SSL_REJECT_UNAUTHORIZED=false` escape hatch)
 - [ ] Add baseline Supabase RLS policies as defense-in-depth
-- [ ] Optional API Sentry (`@sentry/node` on Vercel) — see `ToDo/SENTRY_INTEGRATION.md` + `ToDo/security-deferred.md`
+- [ ] Optional API Sentry (`@sentry/node` on Vercel) — see `MD/SENTRY_INTEGRATION.md` + `ToDo/security-deferred.md`
 - [x] Scheduled cleanup of stale `rate_limits` rows (cron worker)
 - [ ] Add a circuit breaker around Replicate API failures
 - [x] Webhook idempotency fallback uses `crypto.randomUUID()` (not `Date.now()`)

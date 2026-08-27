@@ -1,7 +1,5 @@
 import { query } from './db';
 
-const TRIAL_LIMIT = 3;
-
 const TIER_QUOTAS: Record<string, number> = {
   starter: 50,
   popular: 100,
@@ -14,20 +12,6 @@ export function getCurrentMonthDate(): string {
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, '0');
   return `${year}-${month}-01`;
-}
-
-async function hasActiveSubscription(userId: string): Promise<boolean> {
-  const result = await query<{ id: string }>(
-    `
-      SELECT id
-      FROM subscriptions
-      WHERE user_id = $1 AND status = 'active'
-      ORDER BY created_at DESC
-      LIMIT 1
-    `,
-    [userId]
-  );
-  return result.rows.length > 0;
 }
 
 /**
@@ -48,56 +32,6 @@ export async function creditUsageForJob(jobId: string, userId: string): Promise<
   if (creditResult.rows.length === 0) {
     console.log(`[usage] Job ${jobId} already credited — skipping duplicate increment`);
     return false;
-  }
-
-  const subscribed = await hasActiveSubscription(userId);
-
-  if (subscribed) {
-    const currentMonth = getCurrentMonthDate();
-    await query(
-      `
-        INSERT INTO usage_tracking (user_id, month, count, last_reset_at)
-        VALUES ($1, $2, 1, NOW())
-        ON CONFLICT (user_id, month)
-        DO UPDATE SET count = usage_tracking.count + 1
-      `,
-      [userId, currentMonth]
-    );
-    return true;
-  }
-
-  const userResult = await query<{
-    subscription_status: string;
-    trial_generations_used: number;
-  }>(
-    `
-      SELECT subscription_status, trial_generations_used
-      FROM users
-      WHERE id = $1
-    `,
-    [userId]
-  );
-
-  if (userResult.rows.length === 0) {
-    return false;
-  }
-
-  const { subscription_status: subscriptionStatus, trial_generations_used: trialUsed } = userResult.rows[0];
-  const trialGenerationsUsed = trialUsed ?? 0;
-  const isTrialUser =
-    subscriptionStatus === 'trial' ||
-    (subscriptionStatus !== 'active' && trialGenerationsUsed < TRIAL_LIMIT);
-
-  if (isTrialUser) {
-    await query(
-      `
-        UPDATE users
-        SET trial_generations_used = trial_generations_used + 1
-        WHERE id = $1
-      `,
-      [userId]
-    );
-    return true;
   }
 
   const currentMonth = getCurrentMonthDate();
@@ -141,29 +75,17 @@ export async function revokeUsageForJob(jobId: string, userId: string): Promise<
     : new Date();
   const month = `${completedAt.getFullYear()}-${String(completedAt.getMonth() + 1).padStart(2, '0')}-01`;
 
-  const subscribed = await hasActiveSubscription(userId);
-  if (subscribed) {
-    await query(
-      `
-        UPDATE usage_tracking
-        SET count = GREATEST(0, count - 1)
-        WHERE user_id = $1 AND month = $2
-      `,
-      [userId, month]
-    );
-  } else {
-    await query(
-      `
-        UPDATE users
-        SET trial_generations_used = GREATEST(0, trial_generations_used - 1)
-        WHERE id = $1
-      `,
-      [userId]
-    );
-  }
+  await query(
+    `
+      UPDATE usage_tracking
+      SET count = GREATEST(0, count - 1)
+      WHERE user_id = $1 AND month = $2
+    `,
+    [userId, month]
+  );
 
   console.log(`[usage] Revoked credit for job ${jobId} (user ${userId})`);
   return true;
 }
 
-export { TRIAL_LIMIT, TIER_QUOTAS };
+export { TIER_QUOTAS };

@@ -12,7 +12,6 @@ import { useNotifications } from '../components/NotificationProvider';
 import PressScale from '../components/PressScale';
 import UploadFlowHeader, { getUploadQuotaInfo } from '../components/UploadFlowHeader';
 import useImagePicker from '../hooks/useImagePicker';
-import { isTrialUser, getTrialRemaining } from '../utils/trialWarnings';
 import styles from '../styles';
 
 /**
@@ -39,9 +38,11 @@ export default function PhotoReviewScreen({
   const getQuotaInfo = () => getUploadQuotaInfo(subscriptionInfo);
 
   const quotaInfo = getQuotaInfo();
-  const trialRemaining = isTrialUser(subscriptionInfo) ? getTrialRemaining(subscriptionInfo) : null;
+  const hasPlan = Boolean(subscriptionInfo?.subscription);
+  const needsSubscription = Boolean(subscriptionInfo) && !hasPlan;
   const quotaOk = canGenerateMore !== false;
-  const canGenerate = !!imageUri && !picking && !isGenerating && quotaOk && isOnline;
+  // Blocked users keep a tappable button so the press can open the paywall.
+  const canGenerate = !!imageUri && !picking && !isGenerating && isOnline;
 
   const handleChooseAnother = async () => {
     const next = await pickImage(false);
@@ -59,10 +60,14 @@ export default function PhotoReviewScreen({
       );
       return;
     }
+    if (needsSubscription && onSubscribe) {
+      onSubscribe();
+      return;
+    }
     if (!quotaOk && onSubscribe) {
       showDialog({
         title: 'Quota Exceeded',
-        message: `You've used all ${quotaInfo.limit} caricatures this month. Upgrade your plan to continue.`,
+        message: `You've used all ${quotaInfo.limit} images this month. Upgrade your plan to continue.`,
         cancelLabel: 'Cancel',
         confirmLabel: 'Upgrade',
         onCancel: closeDialog,
@@ -89,18 +94,18 @@ export default function PhotoReviewScreen({
           onOpenUsage={onOpenUsage}
         />
 
-        {quotaInfo.isExceeded ? (
+        {needsSubscription ? (
+          <TouchableOpacity onPress={onSubscribe} style={styles.uploadInlineBanner}>
+            <Feather name="lock" size={14} color="#FCD34D" />
+            <Text style={styles.uploadInlineBannerText}>
+              Subscription required — tap to subscribe
+            </Text>
+          </TouchableOpacity>
+        ) : quotaInfo.isExceeded ? (
           <TouchableOpacity onPress={onSubscribe} style={styles.uploadInlineBanner}>
             <Feather name="alert-circle" size={14} color="#FCA5A5" />
             <Text style={styles.uploadInlineBannerText}>
               Quota reached — tap to upgrade
-            </Text>
-          </TouchableOpacity>
-        ) : trialRemaining === 1 ? (
-          <TouchableOpacity onPress={onSubscribe} style={styles.uploadInlineBanner}>
-            <Feather name="alert-circle" size={14} color="#FCD34D" />
-            <Text style={styles.uploadInlineBannerText}>
-              1 caricature left on your trial — tap to upgrade
             </Text>
           </TouchableOpacity>
         ) : null}
@@ -142,6 +147,8 @@ export default function PhotoReviewScreen({
               ? 'No internet connection'
               : isGenerating
                 ? 'Generation in progress…'
+              : needsSubscription
+                ? 'Subscribe to generate'
               : quotaOk
                 ? 'Generate'
                 : 'Upgrade to continue'}

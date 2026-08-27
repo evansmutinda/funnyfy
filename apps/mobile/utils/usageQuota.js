@@ -5,9 +5,9 @@ export function getUsageQuotaInfo(subscriptionInfo) {
   if (!subscriptionInfo?.usage) {
     return {
       current: 0,
-      limit: 3,
+      limit: 0,
       percentage: 0,
-      remaining: 3,
+      remaining: 0,
       isLow: false,
       isExceeded: false,
     };

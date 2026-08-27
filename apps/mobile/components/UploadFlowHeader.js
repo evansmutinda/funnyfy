@@ -10,8 +10,8 @@ export function getUploadQuotaInfo(subscriptionInfo) {
 }
 
 function getUsagePillLabel(subscriptionInfo, quotaInfo) {
-  if (!subscriptionInfo || subscriptionInfo.isTrial || !subscriptionInfo.subscription) {
-    return `Trial · ${quotaInfo.current}/${quotaInfo.limit}`;
+  if (!subscriptionInfo?.subscription) {
+    return 'No plan';
   }
   const tier = subscriptionInfo.subscription.tier;
   return `${tier.charAt(0).toUpperCase()}${tier.slice(1)} · ${quotaInfo.current}/${quotaInfo.limit}`;

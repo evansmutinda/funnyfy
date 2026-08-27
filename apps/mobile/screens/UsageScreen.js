@@ -11,7 +11,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import PressScale from '../components/PressScale';
 import { BOTTOM_INSET_MIN } from '../constants';
-import { getTrialRemaining, isTrialUser } from '../utils/trialWarnings';
 import { formatSubscriptionDate, getDisplayRenewalDate } from '../utils/subscriptionDates';
 import { getUsageQuotaInfo } from '../utils/usageQuota';
 import styles from '../styles';
@@ -31,12 +30,10 @@ export default function UsageScreen({
 }) {
   const insets = useSafeAreaInsets();
 
-  const isTrial = isTrialUser(subscriptionInfo);
   const subscription = subscriptionInfo?.subscription;
   const quotaInfo = getUsageQuotaInfo(subscriptionInfo);
-  const trialRemaining = isTrial ? getTrialRemaining(subscriptionInfo) : null;
 
-  const renewalDate = !isTrial && subscription
+  const renewalDate = subscription
     ? getDisplayRenewalDate(subscription, subscriptionInfo?.revenueCatExpiration)
     : null;
   const renewalLabel = renewalDate ? formatSubscriptionDate(renewalDate) : '';
@@ -51,13 +48,10 @@ export default function UsageScreen({
     if (isCanceling) {
       return { label: 'CANCELING', pill: styles.pwdStatusPillCancel, text: styles.pwdStatusPillTextCancel };
     }
-    if (isTrial) {
-      return { label: 'TRIAL', pill: styles.pwdStatusPillTrial, text: styles.pwdStatusPillTextTrial };
-    }
     if (subscription) {
       return { label: 'ACTIVE', pill: styles.pwdStatusPillActive, text: styles.pwdStatusPillTextActive };
     }
-    return null;
+    return { label: 'NO PLAN', pill: styles.pwdStatusPillTrial, text: styles.pwdStatusPillTextTrial };
   })();
 
   return (
@@ -73,7 +67,7 @@ export default function UsageScreen({
           <View style={styles.galleryHeaderSpacer} />
         </View>
         <Text style={styles.galleryHeaderSubtitle}>
-          Your plan and caricature allowance
+          Your plan and image allowance
         </Text>
       </View>
 
@@ -106,7 +100,7 @@ export default function UsageScreen({
                     quotaInfo.isLow && styles.pwdUsagePlanNameLow,
                   ]}
                 >
-                  {planName ? `${planName} plan` : 'Free trial'}
+                  {planName ? `${planName} plan` : 'No active plan'}
                 </Text>
                 <Text
                   style={[
@@ -114,9 +108,9 @@ export default function UsageScreen({
                     quotaInfo.isLow && styles.pwdUsageLineLow,
                   ]}
                 >
-                  {isTrial
-                    ? `${quotaInfo.remaining} of ${quotaInfo.limit} free caricatures left`
-                    : `${quotaInfo.remaining} of ${quotaInfo.limit} left`}
+                  {subscription
+                    ? `${quotaInfo.remaining} of ${quotaInfo.limit} images left`
+                    : 'Subscribe to start generating'}
                 </Text>
               </View>
               {statusPill ? (
@@ -153,14 +147,7 @@ export default function UsageScreen({
               </Text>
             </View>
 
-            {isTrial && trialRemaining === 1 ? (
-              <View style={styles.pwdFootnoteRow}>
-                <Feather name="alert-circle" size={13} color="rgba(255,255,255,0.55)" />
-                <Text style={styles.pwdFootnoteText}>1 caricature left on your trial</Text>
-              </View>
-            ) : null}
-
-            {!isTrial && renewalLabel ? (
+            {renewalLabel ? (
               <View style={styles.pwdFootnoteRow}>
                 <Feather
                   name="calendar"
@@ -204,7 +191,7 @@ export default function UsageScreen({
         {onOpenSubscription ? (
           <PressScale onPress={onOpenSubscription} style={styles.usageManageLink}>
             <Text style={styles.usageManageLinkText}>
-              {isTrial || !subscription ? 'View subscription plans' : 'Manage subscription'}
+              {subscription ? 'Manage subscription' : 'View subscription plans'}
             </Text>
             <Feather name="chevron-right" size={16} color="rgba(255,255,255,0.55)" />
           </PressScale>

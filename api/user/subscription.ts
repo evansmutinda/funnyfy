@@ -6,7 +6,7 @@ import { query } from '../_utils/db';
 import { applyMiddleware } from '../_utils/middleware';
 import { requireAuth } from '../_utils/auth';
 import { safeErrorResponse } from '../_utils/security';
-import { getCurrentMonthDate, getTierQuota, TRIAL_LIMIT } from '../_utils/usage';
+import { getCurrentMonthDate, getTierQuota } from '../_utils/usage';
 
 export default async function handler(
   req: VercelRequest,
@@ -28,11 +28,10 @@ export default async function handler(
       id: string;
       subscription_tier: string | null;
       subscription_status: string | null;
-      trial_generations_used: number | null;
       billing_date: string | null;
     }>(
       `
-        SELECT id, subscription_tier, subscription_status, trial_generations_used, billing_date
+        SELECT id, subscription_tier, subscription_status, billing_date
         FROM users
         WHERE id::text = $1
            OR revenuecat_user_id = $1
@@ -48,10 +47,8 @@ export default async function handler(
 
     const user = userResult.rows[0];
     const userId = user.id;
-    const subscriptionStatus = user.subscription_status ?? 'trial';
-    const trialGenerationsUsed = user.trial_generations_used ?? 0;
 
-    // Get active subscription (if any) — must run before isTrialUser
+    // Get active subscription (if any)
     let subscriptionResult: { rows: Array<{ tier: string; status: string; current_period_start: string; current_period_end: string; cancel_at_period_end: boolean; pending_tier?: string | null }> };
     try {
       subscriptionResult = await query(
@@ -66,12 +63,6 @@ export default async function handler(
         [userId]
       );
     }
-
-    // Active subscription record wins over trial status (handles stale user row after purchase)
-    const isTrialUser = subscriptionResult.rows.length === 0 && (
-      subscriptionStatus === 'trial' ||
-      (subscriptionStatus !== 'active' && trialGenerationsUsed < TRIAL_LIMIT)
-    );
 
     let subscription = null;
     if (subscriptionResult.rows.length > 0) {
@@ -93,16 +84,10 @@ export default async function handler(
       };
     }
 
-    // Get usage
+    // Get usage — no subscription means no quota (hard paywall)
     let usage = { current: 0, limit: 0, month: getCurrentMonthDate() };
 
-    if (isTrialUser) {
-      usage = {
-        current: trialGenerationsUsed,
-        limit: TRIAL_LIMIT,
-        month: getCurrentMonthDate()
-      };
-    } else if (subscription) {
+    if (subscription) {
       const currentMonth = getCurrentMonthDate();
       const usageResult = await query<{ count: number }>(
         `
@@ -126,7 +111,7 @@ export default async function handler(
       ok: true,
       subscription,
       usage,
-      isTrial: isTrialUser
+      isTrial: false
     });
   } catch (err: any) {
     console.error('[user/subscription] Failed to get subscription:', err);

@@ -10,31 +10,33 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PressScale from '../components/PressScale';
 import PaywallStyleFade from '../components/PaywallStyleFade';
-import { BOTTOM_INSET_MIN, PAYWALL_MARQUEE_IMAGES } from '../constants';
-import { isTrialUser } from '../utils/trialWarnings';
+import { PAYWALL_MARQUEE_IMAGES } from '../constants';
 import styles from '../styles';
 
 const DARK_BG = '#0B0F19';
+
+const PREMIUM_FEATURES = [
+  'Unlock all styles',
+  'Save & share your work',
+  'New styles added regularly',
+];
 
 const TIER_INFO = {
   starter: {
     name: 'Starter',
     price: '$5',
     quota: 50,
-    perCaricature: '~$0.10',
   },
   popular: {
     name: 'Popular',
     price: '$10',
     quota: 100,
-    perCaricature: '~$0.10',
     popular: true,
   },
   pro: {
     name: 'Pro',
     price: '$25',
     quota: 250,
-    perCaricature: '~$0.10',
   },
 };
 
@@ -53,19 +55,16 @@ export default function SubscriptionScreen({
   const insets = useSafeAreaInsets();
   const [selectedTier, setSelectedTier] = useState(null);
 
-  const isTrial = isTrialUser(subscriptionInfo);
   const subscription = subscriptionInfo?.subscription;
 
   useEffect(() => {
-    if (subscriptionLoading || selectedTier) return;
-    if (isTrial) {
-      setSelectedTier('popular');
-    }
-  }, [isTrial, subscriptionLoading, selectedTier]);
+    if (subscriptionLoading || selectedTier || subscription) return;
+    setSelectedTier('popular');
+  }, [subscription, subscriptionLoading, selectedTier]);
 
   const canSubscribe = !!selectedTier && !subscribeLoading;
   const isCanceling = !!subscription?.cancelAtPeriodEnd;
-  const showManageLink = !isTrial && Boolean(subscription);
+  const showManageLink = Boolean(subscription);
 
   const subscribeLabel = subscribeLoading
     ? 'Processing…'
@@ -98,16 +97,31 @@ export default function SubscriptionScreen({
               style={styles.pwdHeroTopScrim}
             />
             <LinearGradient
-              colors={['rgba(11,15,25,0)', 'rgba(11,15,25,0.95)']}
+              dither
+              start={{ x: 0, y: 0 }}
+              end={{ x: 0, y: 1 }}
+              colors={[
+                'rgba(11,15,25,0)',
+                'rgba(11,15,25,0.35)',
+                'rgba(11,15,25,0.72)',
+                DARK_BG,
+                DARK_BG,
+              ]}
+              locations={[0, 0.35, 0.68, 0.92, 1]}
               style={styles.pwdHeroBottomScrim}
             />
           </View>
           <View style={styles.pwdHeroFadeContent}>
-            <Text style={styles.pwdBrandMarkCompact}>FunnyFy</Text>
-            <Text style={styles.pwdBrandTierCompact}>Premium</Text>
-            <Text style={styles.pwdBenefitsInline}>
-              Unlock all styles · More caricatures · Save & share
-            </Text>
+            <View style={styles.pwdFeatureList}>
+              {PREMIUM_FEATURES.map((label) => (
+                <View key={label} style={styles.pwdFeatureRow}>
+                  <View style={styles.pwdFeatureCheck}>
+                    <Feather name="check" size={12} color="#FFFFFF" />
+                  </View>
+                  <Text style={styles.pwdFeatureText}>{label}</Text>
+                </View>
+              ))}
+            </View>
           </View>
         </View>
       </View>
@@ -116,7 +130,7 @@ export default function SubscriptionScreen({
         style={[
           styles.pwdBottomBar,
           styles.pwdBottomBarCompact,
-          { paddingBottom: Math.max(insets.bottom, BOTTOM_INSET_MIN) + 6 },
+          { paddingBottom: Math.max(insets.bottom, 12) },
         ]}
       >
         <View style={styles.pwdPlansBottom}>
@@ -211,7 +225,7 @@ export default function SubscriptionScreen({
                     solidWhite && styles.pwdTierMetaDark,
                   ]}
                 >
-                  {info.quota} caricatures · {info.perCaricature} each
+                  {info.quota} images
                 </Text>
               </PressScale>
             );
@@ -220,7 +234,7 @@ export default function SubscriptionScreen({
 
         {!showManageLink ? (
           <View style={styles.pwdFooterActionSlot}>
-            <Text style={styles.pwdFooterHint}>Cancel anytime.</Text>
+            <Text style={styles.pwdFooterHint}>You can cancel anytime.</Text>
           </View>
         ) : (
           <View style={styles.pwdFooterActionSlot}>
@@ -256,30 +270,30 @@ export default function SubscriptionScreen({
         </PressScale>
 
         <View style={styles.pwdFooterLinksRow}>
-          <View style={styles.pwdFooterLinksSlot}>
-            {onOpenPrivacy ? (
-              <PressScale onPress={onOpenPrivacy} hitSlop={8} style={styles.pwdFooterLinkPress}>
-                <Text style={styles.pwdFooterLink}>Privacy</Text>
-              </PressScale>
-            ) : null}
-          </View>
-          <View style={styles.pwdFooterLinksSlot}>
-            {onOpenTerms ? (
+          {onOpenTerms ? (
+            <>
               <PressScale onPress={onOpenTerms} hitSlop={8} style={styles.pwdFooterLinkPress}>
                 <Text style={styles.pwdFooterLink}>Terms</Text>
               </PressScale>
-            ) : null}
-          </View>
-          <View style={styles.pwdFooterLinksSlot}>
-            <PressScale
-              onPress={onRestorePurchases}
-              disabled={subscribeLoading}
-              hitSlop={8}
-              style={styles.pwdFooterLinkPress}
-            >
-              <Text style={styles.pwdFooterLink}>Restore</Text>
-            </PressScale>
-          </View>
+              <Text style={styles.pwdFooterLinkDot}>·</Text>
+            </>
+          ) : null}
+          {onOpenPrivacy ? (
+            <>
+              <PressScale onPress={onOpenPrivacy} hitSlop={8} style={styles.pwdFooterLinkPress}>
+                <Text style={styles.pwdFooterLink}>Privacy</Text>
+              </PressScale>
+              <Text style={styles.pwdFooterLinkDot}>·</Text>
+            </>
+          ) : null}
+          <PressScale
+            onPress={onRestorePurchases}
+            disabled={subscribeLoading}
+            hitSlop={8}
+            style={styles.pwdFooterLinkPress}
+          >
+            <Text style={styles.pwdFooterLink}>Restore</Text>
+          </PressScale>
         </View>
       </View>
     </View>

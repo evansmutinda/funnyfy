@@ -82,7 +82,7 @@ FunnyFy is a React Native mobile app (Android & iOS) that transforms user photos
 - ✅ **Upload → Review** two-screen flow with `UploadFlowHeader` (back + style pill left + usage pill right)
 - ✅ **Photo tips**: auto-opens on Upload per style; "Do not show again" per style; OS crop via `expo-image-picker`
 - ✅ Before/after compare on result (no Before/After badges); **Try another style** restyle flow; **Try another photo** on result
-- ✅ Menu **Contact us**, **Share app**, **Request a style**; Gallery, save/share, toast notifications (`warning` = orange for offline), ConfirmDialog
+- ✅ Menu **Contact us**, **Share app**; Gallery, save/share, toast notifications (`warning` = orange for offline), ConfirmDialog
 - ✅ RevenueCat subscriptions + backend sync
 - ✅ Usage quota, NSFW moderation, JWT auth, **admin dashboard** (Finance, Growth, dark theme)
 - ✅ **Auto versioning** on local/EAS builds

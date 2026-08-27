@@ -34,12 +34,15 @@ export function stickerSheetAspectRatio(count) {
 }
 
 export function stickerPackQuotaMessage(subscriptionInfo, selectedCount = 1) {
+  if (subscriptionInfo && !subscriptionInfo.subscription) {
+    return 'A subscription is required to create a sticker pack.';
+  }
   const quota = getUsageQuotaInfo(subscriptionInfo);
   if (quota.isExceeded) {
-    return 'You have no generations left. Upgrade to create a sticker pack.';
+    return 'You have no images left. Upgrade to create a sticker pack.';
   }
   if (quota.remaining < 1) {
-    return `A sticker pack uses 1 generation. You have ${quota.remaining} left.`;
+    return `A sticker pack uses 1 image. You have ${quota.remaining} left.`;
   }
   return null;
 }

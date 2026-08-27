@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   StatusBar,
@@ -9,7 +9,6 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNotifications } from '../components/NotificationProvider';
 import PressScale from '../components/PressScale';
 import UploadFlowHeader, { getUploadQuotaInfo } from '../components/UploadFlowHeader';
 import ComparisonFade from '../components/ComparisonFade';
@@ -17,7 +16,6 @@ import PhotoTipsSheet from '../components/PhotoTipsSheet';
 import useImagePicker from '../hooks/useImagePicker';
 import { getComparisonPair } from '../data/comparisonPairs';
 import { getStylePhotoTips } from '../data/stylePhotoTips';
-import { getTrialRemaining, getTrialWarningMessage, isTrialUser } from '../utils/trialWarnings';
 import { isPhotoTipsDismissed, setPhotoTipsDismissed } from '../utils/photoTipsPrefs';
 import styles from '../styles';
 
@@ -33,16 +31,13 @@ export default function UploadScreen({
   style,
   onPicked,
   onBackToStyle,
-  canGenerateMore,
   subscriptionInfo,
   onSubscribe,
   onOpenUsage,
 }) {
   const insets = useSafeAreaInsets();
-  const { showToast } = useNotifications();
   const { pickImage, picking, pickingSource } = useImagePicker();
   const [tipsVisible, setTipsVisible] = useState(false);
-  const trialWarnedRef = useRef(false);
   const styleTips = getStylePhotoTips(style?.id);
 
   useEffect(() => {
@@ -61,23 +56,11 @@ export default function UploadScreen({
     };
   }, [style?.id, styleTips]);
 
-  useEffect(() => {
-    if (trialWarnedRef.current || !subscriptionInfo) return;
-    if (!isTrialUser(subscriptionInfo)) return;
-    const remaining = getTrialRemaining(subscriptionInfo);
-    const message = getTrialWarningMessage(remaining);
-    if (!message) return;
-    trialWarnedRef.current = true;
-    showToast('Trial', message, remaining === 1 ? 'warning' : 'info', {
-      actionLabel: remaining === 1 ? 'Upgrade' : undefined,
-      onAction: remaining === 1 ? onSubscribe : undefined,
-    });
-  }, [subscriptionInfo]);
-
   const getQuotaInfo = () => getUploadQuotaInfo(subscriptionInfo);
 
   const quotaInfo = getQuotaInfo();
-  const trialRemaining = isTrialUser(subscriptionInfo) ? getTrialRemaining(subscriptionInfo) : null;
+  const hasPlan = Boolean(subscriptionInfo?.subscription);
+  const needsSubscription = Boolean(subscriptionInfo) && !hasPlan;
   const comparisonPair = getComparisonPair(style);
 
   const handlePick = async (useCamera) => {
@@ -137,18 +120,18 @@ export default function UploadScreen({
           onOpenUsage={onOpenUsage}
         />
 
-        {quotaInfo.isExceeded ? (
+        {needsSubscription ? (
+          <TouchableOpacity onPress={onSubscribe} style={styles.uploadInlineBanner}>
+            <Feather name="lock" size={14} color="#FCD34D" />
+            <Text style={styles.uploadInlineBannerText}>
+              Subscription required — tap to subscribe
+            </Text>
+          </TouchableOpacity>
+        ) : quotaInfo.isExceeded ? (
           <TouchableOpacity onPress={onSubscribe} style={styles.uploadInlineBanner}>
             <Feather name="alert-circle" size={14} color="#FCA5A5" />
             <Text style={styles.uploadInlineBannerText}>
               Quota reached — tap to upgrade
-            </Text>
-          </TouchableOpacity>
-        ) : trialRemaining === 1 ? (
-          <TouchableOpacity onPress={onSubscribe} style={styles.uploadInlineBanner}>
-            <Feather name="alert-circle" size={14} color="#FCD34D" />
-            <Text style={styles.uploadInlineBannerText}>
-              1 caricature left on your trial — tap to upgrade
             </Text>
           </TouchableOpacity>
         ) : null}

@@ -86,7 +86,7 @@ Violations recorded in `infringements` table (`infringement_type`: `nsfw`). Deta
 ## User Experience
 
 - **While generating:** Result overlay shows **Checking content guidelines…** during moderation.
-- **On block:** Friendly dialog — **This photo can't be used**; acknowledges false alarms; account-limit note only after repeat flags. Violations logged in server `infringements`, locally on device, and as Sentry info events (not crashes).
+- **On block:** Neutral dialog — **Photo rejected**; attributes the block to the model without naming a reason; account-limit note only after repeat flags. Violations logged in server `infringements`, locally on device, and as Sentry info events (not crashes).
 - Replicate E005 / sensitive rejections show the same dialog (not a generic generation error).
 - No retry limit on content-policy errors (user can pick a different photo).
 

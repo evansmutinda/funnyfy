@@ -3,8 +3,10 @@
 // Falls back to a locally generated ID if the backend is unavailable (e.g. DB issue).
 
 import * as FileSystem from 'expo-file-system';
+import * as SecureStore from 'expo-secure-store';
 
-const AUTH_FILE = FileSystem.documentDirectory + '.funnyfyauth.json';
+const AUTH_KEY = 'funnyfy.auth';
+const LEGACY_AUTH_FILE = FileSystem.documentDirectory + '.funnyfyauth.json';
 
 const devLog = (...args) => {
   if (__DEV__) console.log(...args);
@@ -22,20 +24,37 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = FETCH_TIMEOUT_MS)
   }
 }
 
-// Read stored auth from device
+async function migrateLegacyAuthFile() {
+  try {
+    const text = await FileSystem.readAsStringAsync(LEGACY_AUTH_FILE);
+    const data = JSON.parse(text);
+    if (data?.userId) {
+      await SecureStore.setItemAsync(AUTH_KEY, JSON.stringify(data));
+      await FileSystem.deleteAsync(LEGACY_AUTH_FILE, { idempotent: true });
+      devLog('[Auth] Migrated legacy auth file to SecureStore');
+      return data;
+    }
+  } catch {
+    // No legacy file or unreadable — normal on fresh installs.
+  }
+  return null;
+}
+
+// Read stored auth from device (SecureStore, with one-time legacy file migration).
 async function readStored() {
   try {
-    const text = await FileSystem.readAsStringAsync(AUTH_FILE);
-    return JSON.parse(text);
-  } catch {
-    return null;
+    const text = await SecureStore.getItemAsync(AUTH_KEY);
+    if (text) return JSON.parse(text);
+  } catch (err) {
+    console.warn('[Auth] SecureStore read failed:', err?.message || err);
   }
+  return migrateLegacyAuthFile();
 }
 
 // Write auth to device
 async function writeStored(data) {
   try {
-    await FileSystem.writeAsStringAsync(AUTH_FILE, JSON.stringify(data));
+    await SecureStore.setItemAsync(AUTH_KEY, JSON.stringify(data));
   } catch (err) {
     console.warn('[Auth] Failed to persist auth:', err.message);
   }
@@ -43,7 +62,7 @@ async function writeStored(data) {
 
 // Generate a UUID v4 without any external library
 function generateUUID() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
     return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
   });
@@ -62,7 +81,7 @@ export async function initAuth(apiBase, revenuecatUserId = null) {
   }
   if (stored?.userId && !stored?.token) {
     devLog('[Auth] Stored auth has no token, clearing and re-authenticating...');
-    await FileSystem.deleteAsync(AUTH_FILE, { idempotent: true });
+    await clearAuth();
   }
 
   // Try to get auth from backend (creates user in DB) — retry a few times on transient failures
@@ -73,9 +92,7 @@ export async function initAuth(apiBase, revenuecatUserId = null) {
       const res = await fetchWithTimeout(`${apiBase}/api/auth/token`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(
-          revenuecatUserId ? { revenuecatUserId } : {}
-        ),
+        body: JSON.stringify(revenuecatUserId ? { revenuecatUserId } : {}),
       });
 
       if (res.ok) {
@@ -117,7 +134,10 @@ export async function initAuth(apiBase, revenuecatUserId = null) {
 // Clear stored auth (e.g. on logout)
 export async function clearAuth() {
   try {
-    await FileSystem.deleteAsync(AUTH_FILE, { idempotent: true });
+    await SecureStore.deleteItemAsync(AUTH_KEY);
+  } catch {}
+  try {
+    await FileSystem.deleteAsync(LEGACY_AUTH_FILE, { idempotent: true });
   } catch {}
 }
 
@@ -133,7 +153,7 @@ export async function resetAuthIfLocal() {
     const stored = await readStored();
     if (stored?.isLocal) {
       devLog('[Auth] Clearing local fallback ID to get real auth...');
-      await FileSystem.deleteAsync(AUTH_FILE, { idempotent: true });
+      await clearAuth();
     }
   } catch {}
 }

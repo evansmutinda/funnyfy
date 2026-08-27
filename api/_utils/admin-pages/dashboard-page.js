@@ -786,7 +786,7 @@
             cap(u.subscription_status) +
             '</span>'
         ) +
-        fieldRow('Trial Used', u.trial_generations_used + ' / 3') +
+        fieldRow('Legacy Trial Used', String(u.trial_generations_used ?? 0)) +
         fieldRow('Usage This Month', String(u.usage_this_month)) +
         fieldRow('Infringements', String(d.infringements)) +
         fieldRow('Banned', isBanned ? esc(fmtDate(u.banned_at)) : 'No') +

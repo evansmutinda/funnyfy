@@ -36,6 +36,10 @@
       "destination": "/api/health?check=db"
     },
     {
+      "source": "/api/app-config",
+      "destination": "/api/styles?appConfig=1"
+    },
+    {
       "source": "/admin/login-page.js",
       "destination": "/api/admin?page=login-page.js"
     },

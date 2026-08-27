@@ -1,6 +1,8 @@
 # Comparison assets (before/after pairs)
 
-**Status:** Curated pairs for enabled styles — see [`MD/STYLES.md`](../MD/STYLES.md) for current counts.
+**Status:** Most enabled styles have pairs; a few still missing — see [`MD/STYLES.md`](../MD/STYLES.md).
+
+**In plain English:** These are the before → after photos that animate on style tiles and the upload screen. When a style has no pair, it shows a static picture (or a placeholder).
 
 ---
 

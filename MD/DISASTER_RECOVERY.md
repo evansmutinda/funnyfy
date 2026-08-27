@@ -139,4 +139,4 @@ Fill in before launch:
 
 - `MD/SECURITY_AUDIT.md` — findings checklist
 - `ToDo/security-deferred.md` — remaining hardening (optional API Sentry, RLS, etc.)
-- `ToDo/SENTRY_INTEGRATION.md` — mobile Sentry reference (live)
+- `MD/SENTRY_INTEGRATION.md` — mobile Sentry reference (live)

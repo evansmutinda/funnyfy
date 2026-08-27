@@ -59,6 +59,6 @@ Required for: splash plugin, RevenueCat native modules, new permissions, etc.
 
 ## Related
 
-- Branded splash (optional later): `ToDo/SPLASH_ASSET.md`
+- Branded splash: `MD/SPLASH_ASSET.md`
 - Local APK build: `MD/BUILD_APK_GUIDE.md`
 - JDK for Gradle: **Java 17** at `C:\Program Files\Java\jdk-17` (not Java 25)

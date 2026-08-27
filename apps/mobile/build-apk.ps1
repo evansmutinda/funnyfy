@@ -95,8 +95,9 @@ $confirm = Read-Host "Press Enter to continue, or Ctrl+C to cancel"
 Write-Host ""
 Write-Host "Verifying required assets..." -ForegroundColor Yellow
 $requiredAssets = @(
-    "assets/icon.jpg",
-    "assets/splash-transparent.png",
+    "assets/icon.png",
+    "assets/adaptive-icon.png",
+    "assets/splash-logo.png",
     "assets/toon.jpg"
 )
 

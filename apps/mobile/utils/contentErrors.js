@@ -13,23 +13,23 @@ export function isNsfwContentError(message) {
     lower.includes('content policy') ||
     lower.includes('inappropriate') ||
     lower.includes('violat') ||
-    lower.includes("can't be used") ||
-    lower.includes('couldn\'t use this photo')
+    lower.includes('rejected by the model') ||
+    lower.includes('photo was rejected')
   );
 }
 
 /** Friendlier dialog copy; only mentions account limits after repeat flags. */
 export function buildContentPolicyDialog(infringementCount = 0) {
   let message =
-    "We couldn't use this photo for a caricature. Sometimes lighting, clothing, or background triggers a false alarm — please try a different photo.";
+    "This photo was rejected by the model, so we couldn't create an image. Rejections happen for all sorts of reasons — please try a different photo.";
 
   if (infringementCount >= 2) {
     message +=
-      ' If flagged uploads keep happening, we may need to limit account access.';
+      ' If rejected uploads keep happening, we may need to limit account access.';
   }
 
   return {
-    title: "This photo can't be used",
+    title: 'Photo rejected',
     message,
     confirmLabel: 'Got it',
     hideCancel: true,
@@ -40,13 +40,23 @@ export const NSFW_REJECT_DIALOG = buildContentPolicyDialog(0);
 
 /** Short inline copy for error banners (never show raw API codes to users). */
 export const NSFW_INLINE_MESSAGE =
-  "This photo couldn't be used. Try a different picture — false alarms happen sometimes.";
+  'This photo was rejected by the model. Please try a different picture.';
 
-const GENERIC_RETRY = 'Something went wrong. Please try again.';
-const GENERATION_RETRY = "We couldn't create your caricature this time. Please try again.";
-const GENERATION_SOFT = 'Something went wrong while creating your caricature. Please try again.';
+const GENERIC_RETRY = 'Something went wrong on our end. Please try again.';
+const GENERATION_RETRY =
+  "This one didn't work out. Tap Try again — this attempt didn't use up any of your images.";
+const GENERATION_SOFT =
+  "Something went wrong while making your image. Tap Try again — this attempt didn't use up any of your images.";
 const GENERATION_UNAVAILABLE_MESSAGE =
   'Image generation is unavailable at the moment. Please try again in a few minutes.';
+
+/** Shared with App.js so the same sentence is not written twice. */
+export const SERVER_UNREACHABLE_MESSAGE =
+  'We lost our connection to the server. Your image may still be on the way — tap Try again to check.';
+export const TAKING_LONGER_MESSAGE =
+  'This is taking longer than usual. Tap Try again — your image may still be on the way.';
+export const BLANK_OUTPUT_MESSAGE =
+  "Your image came back blank. Tap Try again — this one didn't use up any of your images.";
 
 /** Toast / banner tone for inline generation errors (matches Toast types). */
 export function notificationToneForApiError(message) {
@@ -124,7 +134,7 @@ export function humanizeApiError(message) {
     lower.includes('non-json') ||
     lower.includes('unexpected token')
   ) {
-    return 'We had trouble talking to the server. Tap Try again — your caricature may still be processing.';
+    return SERVER_UNREACHABLE_MESSAGE;
   }
 
   if (
@@ -132,11 +142,15 @@ export function humanizeApiError(message) {
     lower.includes('failed to fetch') ||
     lower.includes('networkerror')
   ) {
-    return 'Check your internet connection and try again.';
+    return 'You seem to be offline. Check your connection and try again.';
   }
 
-  if (lower.includes('blank_or_unloadable_output') || lower.includes('came back empty')) {
-    return 'The caricature came back empty or could not be loaded. Please try again — you were not charged.';
+  if (
+    lower.includes('blank_or_unloadable_output') ||
+    lower.includes('came back blank') ||
+    lower.includes('came back empty')
+  ) {
+    return BLANK_OUTPUT_MESSAGE;
   }
 
   if (lower.includes('generation_unavailable') || lower.includes('temporarily unavailable')) {
@@ -144,22 +158,26 @@ export function humanizeApiError(message) {
   }
 
   if (lower.includes('job_output_expired') || lower.includes('prediction expired')) {
-    return 'Your caricature took too long to retrieve. Please generate again — failed runs are not billed.';
+    return "Your image took too long to arrive. Please generate again — this attempt didn't use up any of your images.";
   }
 
   if (lower.includes('job_stuck') || lower.includes('worker interrupted')) {
-    return 'Generation was interrupted. Tap Try again — we will pick up where it left off.';
+    return "Generation was interrupted. Tap Try again — we'll pick up where it left off.";
   }
 
   if (lower.includes('timed out') || lower.includes('timeout') || lower.includes('job_poll_timeout')) {
-    return 'This is taking longer than usual. Tap Try again — we may still be finishing your caricature.';
+    return TAKING_LONGER_MESSAGE;
   }
 
   if (lower.includes('authentication_required') || lower.includes('auth')) {
     return 'Your session expired. Close and reopen the app, then try again.';
   }
 
-  if (lower.includes('quota') || lower.includes('trial_expired')) {
+  if (lower.includes('subscription_required') || lower.includes('subscription_inactive')) {
+    return 'A subscription is required to generate images. Subscribe to continue.';
+  }
+
+  if (lower.includes('quota')) {
     return raw.replace(/^[A-Z][A-Z0-9_]*:\s*/, '') || 'You have reached your generation limit.';
   }
 
@@ -186,7 +204,7 @@ export function humanizeApiError(message) {
   }
 
   if (lower.includes('no job id')) {
-    return 'We could not start your caricature. Please go back and tap Generate again.';
+    return "We couldn't start your image. Please go back and tap Generate again.";
   }
 
   if (/^[A-Z][A-Z0-9_]*:/.test(raw)) {

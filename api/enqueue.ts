@@ -15,7 +15,7 @@ import { requireAuth } from './_utils/auth';
 import { safeErrorResponse } from './_utils/security';
 import { checkAllRateLimits } from './_utils/ratelimit';
 import { getEstimatedWaitTime } from './_utils/queue-stats';
-import { getCurrentMonthDate, getTierQuota, TRIAL_LIMIT } from './_utils/usage';
+import { getCurrentMonthDate, getTierQuota } from './_utils/usage';
 import { shouldPauseQueue } from './_utils/cost-protection';
 import { generationUnavailableResponse } from './_utils/queue-pause';
 import {
@@ -79,16 +79,14 @@ export default async function handler(
   // Look up user
   let userTier: string | null = null;
   let subscriptionStatus: string | null = null;
-  let trialGenerationsUsed: number = 0;
 
   try {
     const userResult = await query<{ 
       subscription_tier: string; 
       subscription_status: string;
-      trial_generations_used: number;
     }>(
       `
-        SELECT subscription_tier, subscription_status, trial_generations_used
+        SELECT subscription_tier, subscription_status
         FROM users
         WHERE id = $1
       `,
@@ -100,23 +98,13 @@ export default async function handler(
     
     subscriptionStatus = userResult.rows[0].subscription_status;
     userTier = userResult.rows[0].subscription_tier;
-    trialGenerationsUsed = userResult.rows[0].trial_generations_used ?? 0;
 
-    if (subscriptionStatus === 'trial' || (subscriptionStatus !== 'active' && trialGenerationsUsed < TRIAL_LIMIT)) {
-      if (trialGenerationsUsed >= TRIAL_LIMIT) {
-        return safeErrorResponse(
-          res,
-          403,
-          'TRIAL_EXPIRED',
-          'You\'ve used all 3 free trial generations. Please subscribe to continue.'
-        );
-      }
-    } else if (subscriptionStatus !== 'active') {
+    if (subscriptionStatus !== 'active') {
       return safeErrorResponse(
         res,
         403,
-        'SUBSCRIPTION_INACTIVE',
-        'Your subscription is not active. Please subscribe to continue.'
+        'SUBSCRIPTION_REQUIRED',
+        'A subscription is required to generate images. Please subscribe to continue.'
       );
     }
   } catch (userErr) {
@@ -136,9 +124,8 @@ export default async function handler(
   }
 
   // Determine user tier and quota
-  const isTrialUser = subscriptionStatus === 'trial' || (subscriptionStatus !== 'active' && trialGenerationsUsed < TRIAL_LIMIT);
-  const effectiveTier = isTrialUser ? 'trial' : (userTier || 'trial');
-  const monthlyQuota = isTrialUser ? TRIAL_LIMIT : getQuotaForTier(userTier);
+  const effectiveTier = userTier || 'starter';
+  const monthlyQuota = getQuotaForTier(userTier);
 
   // Check all rate limits (IP + Tier Burst + Daily Safety)
   const rateLimitCheck = await checkAllRateLimits(req, userId, effectiveTier, monthlyQuota);
@@ -152,7 +139,7 @@ export default async function handler(
   }
 
   // Monthly quota check (primary limit)
-  if (!isTrialUser) {
+  {
     const currentMonth = getCurrentMonthDate();
     const quotaLimit = getQuotaForTier(userTier);
 

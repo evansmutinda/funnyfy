@@ -31,12 +31,14 @@ import {
 import { initAuth, resetAuthIfLocal, forceReAuth } from './services/auth.js';
 import NotificationProvider, { useNotifications } from './components/NotificationProvider';
 import NetworkProvider, { useNetwork } from './components/NetworkProvider';
-import MenuModal from './components/MenuModal';
 import GalleryScreen from './screens/GalleryScreen';
+import MenuScreen from './screens/MenuScreen';
 import UsageScreen from './screens/UsageScreen';
 import InfoScreen from './screens/InfoScreen';
 import StyleScreen from './screens/StyleScreen';
+import AppSplash from './components/AppSplash';
 import StylesLaunchLoader from './components/StylesLaunchLoader';
+import UpdateBanner from './components/UpdateBanner';
 import UploadScreen from './screens/UploadScreen';
 import PhotoReviewScreen from './screens/PhotoReviewScreen';
 import SubscriptionScreen from './screens/SubscriptionScreen';
@@ -58,13 +60,25 @@ import {
   API_BASE,
   PRIVACY_POLICY_TEXT,
   TERMS_TEXT,
-  ABOUT_TEXT,
   SUPPORT_EMAIL,
+  APP_STORE_LISTING_URL,
 } from './constants';
 import { mergeServerStyles, getServerConfirmedStyleIds } from './utils/mergeServerStyles';
 import { readStylesCache, writeStylesCache } from './utils/stylesCache';
-import { getTrialRemaining, getTrialWarningMessage, isTrialUser } from './utils/trialWarnings';
-import { isNsfwContentError, buildContentPolicyDialog, buildGenerationFailedDialog } from './utils/contentErrors';
+import {
+  dismissUpdateBanner,
+  getInstalledAppVersion,
+  shouldPromptUpdate,
+  wasUpdateBannerDismissed,
+} from './utils/appVersion';
+import {
+  isNsfwContentError,
+  buildContentPolicyDialog,
+  buildGenerationFailedDialog,
+  SERVER_UNREACHABLE_MESSAGE,
+  TAKING_LONGER_MESSAGE,
+  BLANK_OUTPUT_MESSAGE,
+} from './utils/contentErrors';
 import {
   isContentPolicyError,
   recordContentViolation,
@@ -72,7 +86,7 @@ import {
 } from './utils/contentViolations';
 import { pollJobUntilDone } from './utils/jobClient';
 import { setSentryUser, captureAppError } from './utils/sentry';
-import { openContactSupport, openStyleRequest } from './utils/contactSupport';
+import { openContactSupport } from './utils/contactSupport';
 import { shareApp } from './utils/shareApp';
 
 // Enforce HTTPS for security — prevent accidental HTTP misconfiguration
@@ -115,10 +129,11 @@ export default function App() {
   );
 }
 
-function AppShell({ children }) {
+function AppShell({ children, updateBanner = null }) {
   return (
     <View style={{ flex: 1, backgroundColor: DARK_BG }}>
       {children}
+      {updateBanner}
     </View>
   );
 }
@@ -138,11 +153,11 @@ function AppContent({ fontsLoaded }) {
   const [job, setJob] = useState(null);
   const [availableStyles, setAvailableStyles] = useState([]);
   const [stylesLoading, setStylesLoading] = useState(true);
+  const [updatePrompt, setUpdatePrompt] = useState(null);
   const [subscribeLoading, setSubscribeLoading] = useState(false);
   const [hasRcKey, setHasRcKey] = useState(false);
   const [subscriptionInfo, setSubscriptionInfo] = useState(null);
   const [subscriptionLoading, setSubscriptionLoading] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [restyleMode, setRestyleMode] = useState(false);
   const [styleReturnCategory, setStyleReturnCategory] = useState(null);
   const [selectedStickerIds, setSelectedStickerIds] = useState([]);
@@ -403,9 +418,24 @@ function AppContent({ fontsLoaded }) {
 
   useEffect(() => {
     if (!fontsLoaded || !authReady) return;
-    ExpoSplashScreen.hideAsync()
-      .catch(() => {})
-      .finally(() => setSplashHidden(true));
+
+    // Paint the in-app splash before removing the native layer (Expo Go ignores app.config splash).
+    let cancelled = false;
+    const frame = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (cancelled) return;
+        ExpoSplashScreen.hideAsync()
+          .catch(() => {})
+          .finally(() => {
+            if (!cancelled) setSplashHidden(true);
+          });
+      });
+    });
+
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(frame);
+    };
   }, [fontsLoaded, authReady]);
 
   useEffect(() => {
@@ -421,16 +451,6 @@ function AppContent({ fontsLoaded }) {
 
     return () => { subscription.remove(); };
   }, [screen, splashHidden]);
-
-  const showTrialWarningIfNeeded = (subInfo) => {
-    if (!isTrialUser(subInfo)) return;
-    const remaining = getTrialRemaining(subInfo);
-    if (remaining !== 1) return;
-    showToast('Trial', getTrialWarningMessage(remaining), 'warning', {
-      actionLabel: 'Upgrade',
-      onAction: () => setScreen('subscription'),
-    });
-  };
 
   const refreshSubscription = async (retryCount = 0) => {
     const refreshSeq = ++subscriptionRefreshSeqRef.current;
@@ -461,7 +481,7 @@ function AppContent({ fontsLoaded }) {
       }
 
       if (!authTokenRef.current) {
-        console.warn('[subscription] No JWT token — refresh may fail in production. Re-authenticate if stuck on trial.');
+        console.warn('[subscription] No JWT token — refresh may fail in production. Re-authenticate if the plan never loads.');
       }
 
       const res = await fetch(`${API_BASE}/api/user/subscription?userId=${encodeURIComponent(currentUserId)}&debug=1`, {
@@ -538,12 +558,46 @@ function AppContent({ fontsLoaded }) {
     return merged;
   }, []);
 
+  const applyUpdatePromptFromServer = useCallback(async (data) => {
+    const latest = data?.latestAppVersion || null;
+    const storeUrl = (data?.storeUrl || APP_STORE_LISTING_URL || '').trim();
+    const installed = getInstalledAppVersion();
+    const serverSaysUpdate = data?.updateAvailable === true;
+    const clientSaysUpdate = shouldPromptUpdate(installed, latest);
+
+    if (!(serverSaysUpdate || clientSaysUpdate) || !latest) {
+      setUpdatePrompt(null);
+      return;
+    }
+
+    if (await wasUpdateBannerDismissed(latest)) {
+      setUpdatePrompt(null);
+      return;
+    }
+
+    setUpdatePrompt({
+      latestAppVersion: latest,
+      storeUrl,
+    });
+  }, []);
+
+  const handleDismissUpdateBanner = useCallback(async () => {
+    const latest = updatePrompt?.latestAppVersion;
+    setUpdatePrompt(null);
+    if (latest) {
+      await dismissUpdateBanner(latest);
+    }
+  }, [updatePrompt]);
+
   const fetchStyles = useCallback(async ({ background = false } = {}) => {
     if (!background) {
       setStylesLoading(true);
     }
     try {
-      const res = await fetch(`${API_BASE}/api/styles`);
+      const installed = getInstalledAppVersion();
+      const res = await fetch(`${API_BASE}/api/styles`, {
+        headers: installed ? { 'X-App-Version': installed } : undefined,
+      });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
 
@@ -556,6 +610,7 @@ function AppContent({ fontsLoaded }) {
         }));
         applyStyles(serverStyles);
         await writeStylesCache(serverStyles);
+        await applyUpdatePromptFromServer(data);
       } else {
         throw new Error('No styles returned');
       }
@@ -567,7 +622,7 @@ function AppContent({ fontsLoaded }) {
     } finally {
       setStylesLoading(false);
     }
-  }, [applyStyles]);
+  }, [applyStyles, applyUpdatePromptFromServer]);
 
   useEffect(() => {
     let cancelled = false;
@@ -665,8 +720,7 @@ function AppContent({ fontsLoaded }) {
           console.warn('[callApi] Failsafe timeout reached - forcing loading off');
           if (manageLoading) {
             setLoading(false);
-            pendingFailureDialogRef.current =
-              'This is taking longer than usual. Tap Try again — we may still be finishing your caricature.';
+            pendingFailureDialogRef.current = TAKING_LONGER_MESSAGE;
           }
         }, 200000);
 
@@ -694,10 +748,9 @@ function AppContent({ fontsLoaded }) {
           } catch (parseErr) {
             console.error('Enqueue - JSON parse error:', parseErr, enqueueText?.slice?.(0, 200));
             if (!manageLoading) {
-              throw new Error('We had trouble talking to the server. Tap Try again — your caricature may still be processing.');
+              throw new Error(SERVER_UNREACHABLE_MESSAGE);
             }
-            pendingFailureDialogRef.current =
-              'We had trouble talking to the server. Tap Try again — your caricature may still be processing.';
+            pendingFailureDialogRef.current = SERVER_UNREACHABLE_MESSAGE;
             setFailedAttempts((prev) => prev + 1);
             return;
           }
@@ -728,7 +781,7 @@ function AppContent({ fontsLoaded }) {
 
           const jobId = enqueueJson.jobId;
           if (!jobId) {
-            throw new Error('NO_JOB_ID: We could not start your caricature');
+            throw new Error('NO_JOB_ID: We could not start your image');
           }
           setPendingJobId(jobId);
           setJob({
@@ -759,10 +812,9 @@ function AppContent({ fontsLoaded }) {
           setFailedAttempts(0);
           setPendingJobId(null);
 
-          setTimeout(async () => {
+          setTimeout(() => {
             devLog('[App] Auto-refreshing subscription after generation...');
-            const sub = await refreshSubscription();
-            if (sub) showTrialWarningIfNeeded(sub);
+            refreshSubscription();
           }, 1500);
 
           return pollResult;
@@ -1125,9 +1177,14 @@ function AppContent({ fontsLoaded }) {
       );
       return;
     }
+    if (subscriptionInfo && !subscriptionInfo.subscription) {
+      setStickerPackPending(false);
+      setScreen('subscription');
+      return;
+    }
     const quotaMessage = stickerPackQuotaMessage(subscriptionInfo, selected.length);
     if (quotaMessage) {
-      showToast('Not enough generations', quotaMessage, 'warning');
+      showToast('Not enough images', quotaMessage, 'warning');
       return;
     }
     await runStickerPack();
@@ -1146,17 +1203,10 @@ function AppContent({ fontsLoaded }) {
   };
 
   const handleMenuSelect = useCallback((id) => {
-    setMenuOpen(false);
     setRestyleMode(false);
     if (id === 'contact') {
       openContactSupport(() => {
         showToast('Email', `Contact us at ${SUPPORT_EMAIL}`, 'info');
-      });
-      return;
-    }
-    if (id === 'request-style') {
-      openStyleRequest(() => {
-        showToast('Email', `Email style ideas to ${SUPPORT_EMAIL}`, 'info');
       });
       return;
     }
@@ -1172,8 +1222,7 @@ function AppContent({ fontsLoaded }) {
   const handleUnloadableOutput = useCallback(
     async ({ reason, imageUrl, jobId } = {}) => {
       const resolvedJobId = jobId || result?.jobId || pendingJobId || null;
-      const friendly =
-        'The caricature came back empty or could not be loaded. Please try again — you were not charged.';
+      const friendly = BLANK_OUTPUT_MESSAGE;
 
       captureAppError(new Error('BLANK_OR_UNLOADABLE_OUTPUT'), {
         flow: 'generate_output',
@@ -1288,12 +1337,7 @@ function AppContent({ fontsLoaded }) {
         setScreen('style');
         return true;
       }
-      if (screen === 'sticker-pack') {
-        setScreen('style');
-        setStyleReturnCategory('stickers');
-        return true;
-      }
-      if (screen === 'subscription' || screen === 'usage' || screen === 'privacy' || screen === 'terms' || screen === 'about' || screen === 'gallery') {
+      if (screen === 'subscription' || screen === 'usage' || screen === 'privacy' || screen === 'terms' || screen === 'gallery' || screen === 'menu') {
         setScreen('style');
         return true;
       }
@@ -1311,8 +1355,23 @@ function AppContent({ fontsLoaded }) {
     return () => sub.remove();
   }, [screen, restyleMode]);
 
+  // Hard paywall: generating requires an active plan with quota left. While the
+  // subscription is still unknown we stay permissive — the API is the real gate.
+  const canGenerateMore = !subscriptionInfo
+    ? true
+    : Boolean(
+        subscriptionInfo.subscription &&
+          subscriptionInfo.usage &&
+          subscriptionInfo.usage.limit > 0 &&
+          subscriptionInfo.usage.current < subscriptionInfo.usage.limit,
+      );
+
   if (!splashHidden) {
-    return null;
+    return (
+      <AppShell>
+        <AppSplash />
+      </AppShell>
+    );
   }
 
   if (stylesLoading && availableStyles.length === 0) {
@@ -1323,18 +1382,26 @@ function AppContent({ fontsLoaded }) {
     );
   }
 
+  const updateBannerEl = (
+    <UpdateBanner
+      visible={Boolean(updatePrompt)}
+      storeUrl={updatePrompt?.storeUrl}
+      onDismiss={handleDismissUpdateBanner}
+    />
+  );
+
   if (screen === 'style') {
     return (
-      <AppShell>
+      <AppShell updateBanner={updateBannerEl}>
         <StyleScreen
           selectedStyle={style}
           availableStyles={availableStyles}
           stylesLoading={stylesLoading}
           restyleMode={restyleMode}
           initialActiveCategory={styleReturnCategory}
-          interactionPaused={menuOpen}
+          onActiveCategoryChange={setStyleReturnCategory}
           onCancelRestyle={handleCancelRestyle}
-          onOpenMenu={() => setMenuOpen(true)}
+          onOpenMenu={() => setScreen('menu')}
           selectedStickerIds={selectedStickerIds}
           onToggleSticker={handleToggleSticker}
           onCreateStickerPack={handleCreateStickerPack}
@@ -1372,9 +1439,15 @@ function AppContent({ fontsLoaded }) {
             setScreen('upload');
           }}
         />
-        <MenuModal
-          visible={menuOpen}
-          onClose={() => setMenuOpen(false)}
+      </AppShell>
+    );
+  }
+
+  if (screen === 'menu') {
+    return (
+      <AppShell updateBanner={updateBannerEl}>
+        <MenuScreen
+          onBack={() => setScreen('style')}
           onSelect={handleMenuSelect}
           userId={userId}
           onUserIdCopied={() => {
@@ -1388,7 +1461,7 @@ function AppContent({ fontsLoaded }) {
   if (screen === 'sticker-pack') {
     const packStyles = availableStyles.filter((item) => selectedStickerIds.includes(item.id));
     return (
-      <AppShell>
+      <AppShell updateBanner={updateBannerEl}>
         <StickerPackScreen
           selectedStyles={packStyles}
           loading={loading}
@@ -1408,7 +1481,7 @@ function AppContent({ fontsLoaded }) {
 
   if (screen === 'privacy') {
     return (
-      <AppShell>
+      <AppShell updateBanner={updateBannerEl}>
         <InfoScreen
           title="Privacy Policy"
           content={PRIVACY_POLICY_TEXT}
@@ -1420,7 +1493,7 @@ function AppContent({ fontsLoaded }) {
 
   if (screen === 'terms') {
     return (
-      <AppShell>
+      <AppShell updateBanner={updateBannerEl}>
         <InfoScreen
           title="Terms & Conditions"
           content={TERMS_TEXT}
@@ -1430,21 +1503,9 @@ function AppContent({ fontsLoaded }) {
     );
   }
 
-  if (screen === 'about') {
-    return (
-      <AppShell>
-        <InfoScreen
-          title="About"
-          content={ABOUT_TEXT}
-          onBack={() => setScreen('style')}
-        />
-      </AppShell>
-    );
-  }
-
   if (screen === 'gallery') {
     return (
-      <AppShell>
+      <AppShell updateBanner={updateBannerEl}>
         <GalleryScreen onBack={() => setScreen('style')} />
       </AppShell>
     );
@@ -1452,7 +1513,7 @@ function AppContent({ fontsLoaded }) {
 
   if (screen === 'usage') {
     return (
-      <AppShell>
+      <AppShell updateBanner={updateBannerEl}>
         <UsageScreen
           subscriptionInfo={subscriptionInfo}
           subscriptionLoading={subscriptionLoading}
@@ -1466,7 +1527,7 @@ function AppContent({ fontsLoaded }) {
 
   if (screen === 'subscription') {
     return (
-      <AppShell>
+      <AppShell updateBanner={updateBannerEl}>
         <SubscriptionScreen
           subscriptionInfo={subscriptionInfo}
           subscriptionLoading={subscriptionLoading}
@@ -1485,20 +1546,10 @@ function AppContent({ fontsLoaded }) {
 
   if (screen === 'upload') {
     return (
-      <AppShell>
+      <AppShell updateBanner={updateBannerEl}>
         <UploadScreen
           style={style}
           onPicked={(image) => { setPickedImage(image); setScreen('review'); }}
-          canGenerateMore={
-            subscriptionInfo
-              ? !(
-                  !subscriptionInfo.isTrial &&
-                  subscriptionInfo.usage &&
-                  subscriptionInfo.usage.limit > 0 &&
-                  subscriptionInfo.usage.current >= subscriptionInfo.usage.limit
-                )
-              : true
-          }
           subscriptionInfo={subscriptionInfo}
           onSubscribe={handleSubscribe}
           onOpenUsage={() => setScreen('usage')}
@@ -1510,7 +1561,7 @@ function AppContent({ fontsLoaded }) {
 
   if (screen === 'review') {
     return (
-      <AppShell>
+      <AppShell updateBanner={updateBannerEl}>
         <PhotoReviewScreen
           style={style}
           imageUri={pickedImage?.uri}
@@ -1518,16 +1569,7 @@ function AppContent({ fontsLoaded }) {
           isOnline={isOnline}
           isGenerating={loading}
           subscriptionInfo={subscriptionInfo}
-          canGenerateMore={
-            subscriptionInfo
-              ? !(
-                  !subscriptionInfo.isTrial &&
-                  subscriptionInfo.usage &&
-                  subscriptionInfo.usage.limit > 0 &&
-                  subscriptionInfo.usage.current >= subscriptionInfo.usage.limit
-                )
-              : true
-          }
+          canGenerateMore={canGenerateMore}
           onStart={handleUploadStart}
           onSubscribe={handleSubscribe}
           onOpenUsage={() => setScreen('usage')}
@@ -1540,7 +1582,7 @@ function AppContent({ fontsLoaded }) {
 
   if (screen === 'result') {
     return (
-      <AppShell>
+      <AppShell updateBanner={updateBannerEl}>
         <ResultScreen
         original={original}
         result={result}

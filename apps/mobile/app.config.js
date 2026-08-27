@@ -16,10 +16,9 @@ export default {
     version: versionInfo.version,
     platforms: ['android', 'ios'],
     orientation: 'portrait',
-    icon: './assets/icon.jpg',
+    icon: './assets/icon.png',
     splash: {
-      // Android 12+ needs a splash image drawable; transparent pixel = solid color only.
-      image: './assets/splash-transparent.png',
+      image: './assets/splash-logo.png',
       resizeMode: 'contain',
       backgroundColor: DARK_BG,
     },
@@ -41,6 +40,11 @@ export default {
       package: 'com.evansks.funnyfyapp',
       versionCode: versionInfo.androidVersionCode,
       allowBackup: false,
+      adaptiveIcon: {
+        // Android crops the foreground to a circle; art is sized to survive that.
+        foregroundImage: './assets/adaptive-icon.png',
+        backgroundColor: DARK_BG,
+      },
       permissions: [
         'CAMERA',
         'READ_EXTERNAL_STORAGE',
@@ -61,6 +65,8 @@ export default {
           project: 'react-native',
         },
       ],
+      'expo-secure-store',
+      './plugins/withReleaseSigning.js',
       'expo-font',
       [
         'expo-navigation-bar',
@@ -73,8 +79,10 @@ export default {
         'expo-splash-screen',
         {
           backgroundColor: DARK_BG,
-          image: './assets/splash-transparent.png',
+          image: './assets/splash-logo.png',
           resizeMode: 'contain',
+          // Android 12+ masks the splash icon into a circle; keep it small enough to survive the crop.
+          imageWidth: 200,
         },
       ],
       [

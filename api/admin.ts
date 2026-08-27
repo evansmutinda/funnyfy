@@ -148,30 +148,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!userId) return safeErrorResponse(res, 400, 'MISSING_USER_ID', 'User ID is required');
     if (!JWT_SECRET) return safeErrorResponse(res, 500, 'AUTH_CONFIG_ERROR', 'Authentication not configured');
 
+    if (ADMIN_USER_IDS.length === 0) {
+      return safeErrorResponse(
+        res,
+        503,
+        'ADMIN_NOT_CONFIGURED',
+        'Admin access is not configured. Set ADMIN_USER_IDS in Vercel and redeploy.'
+      );
+    }
+
     try {
       let finalUserId = userId;
 
-      if (ADMIN_USER_IDS.length === 0) {
-        if (!UUID_REGEX.test(userId)) {
-          return safeErrorResponse(res, 400, 'INVALID_USER_ID', 'User ID must be a valid UUID format');
-        }
-      } else {
-        const dbUserId = await lookupUserByLoginId(userId);
-        if (!dbUserId) {
-          return safeErrorResponse(res, 401, 'INVALID_CREDENTIALS', 'Invalid user ID');
-        }
-        finalUserId = dbUserId;
-        const isAdmin = ADMIN_USER_IDS.includes(userId) || ADMIN_USER_IDS.includes(finalUserId);
-        if (!isAdmin) {
-          await logSecurityEvent({
-            eventType: 'admin_login_denied',
-            userId: finalUserId,
-            ip: getClientIp(req),
-            userAgent: req.headers['user-agent'] as string,
-            success: false,
-          });
-          return safeErrorResponse(res, 403, 'ACCESS_DENIED', 'Admin access required.');
-        }
+      const dbUserId = await lookupUserByLoginId(userId);
+      if (!dbUserId) {
+        return safeErrorResponse(res, 401, 'INVALID_CREDENTIALS', 'Invalid user ID');
+      }
+      finalUserId = dbUserId;
+      const isAdmin = ADMIN_USER_IDS.includes(userId) || ADMIN_USER_IDS.includes(finalUserId);
+      if (!isAdmin) {
+        await logSecurityEvent({
+          eventType: 'admin_login_denied',
+          userId: finalUserId,
+          ip: getClientIp(req),
+          userAgent: req.headers['user-agent'] as string,
+          success: false,
+        });
+        return safeErrorResponse(res, 403, 'ACCESS_DENIED', 'Admin access required.');
       }
 
       const token = jwt.sign(
