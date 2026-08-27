@@ -125,7 +125,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - **Menu → Share app** — native share sheet; set `EXPO_PUBLIC_APP_STORE_URL` when listing is live
-- **Menu → Request a style** — email `support@funnyfy.app` with subject “Style request”
+- **Menu → Request a style** — email `funnyfyapp@gmail.com` with subject “Style request”
 
 ### Fixed
 - **Save to Funnyfy album (Android)**: removed DCIM-root fallback; save logic consolidated in `utils/funnyfyAlbum.js` per `MD/GALLERY_SCREEN.md`
@@ -142,7 +142,7 @@ All notable changes to this project will be documented in this file.
 ## [1.0.4] - 2026-06-22
 
 ### Added
-- **Menu → Contact us**: opens mail app to `support@funnyfy.app` (blank subject; user types in mail app)
+- **Menu → Contact us**: opens mail app to `funnyfyapp@gmail.com` (blank subject; user types in mail app)
 - **Result screen → Try another photo**: pick a new photo without leaving the current style (`onTryAnotherPhoto` + `handleTryAnotherPhoto`)
 - **`utils/contactSupport.js`**: shared `openContactSupport()` for menu mailto flow
 - **Cursor rule** (`.cursor/rules/auto-version.mdc`): agent bumps `version.json` patch on user-facing mobile changes

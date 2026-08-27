@@ -80,7 +80,7 @@ const TIER_QUOTAS: Record<string, number> = {
 - **Your profit**: $4.99 - $2.00 = **$2.99/month per user**
 
 **User Perspective:**
-- "I get 50 caricatures per month"
+- "I get 50 images per month"
 - "Each generation uses 1 of my 50 credits"
 - They don't see or care about your API costs
 

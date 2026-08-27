@@ -1,8 +1,8 @@
 # FunnyFy
 
-AI caricature mobile app — React Native (Expo SDK 52) + Vercel serverless backend + Replicate.
+AI image generation mobile app — React Native (Expo SDK 52) + Vercel serverless backend + Replicate.
 
-Transform photos into caricatures across **160 catalog styles** (enabled count in [`MD/STYLES.md`](MD/STYLES.md) / auto-generated [`MD/PROMPTS.md`](MD/PROMPTS.md)), with RevenueCat subscriptions, usage quotas, NSFW moderation, and JWT auth.
+Transform photos into stylized images across **160 catalog styles** (enabled count in [`MD/STYLES.md`](MD/STYLES.md) / auto-generated [`MD/PROMPTS.md`](MD/PROMPTS.md)), with RevenueCat subscriptions, usage quotas, NSFW moderation, and JWT auth.
 
 **Status:** Feature-complete — awaiting app store submission (July 2026)  
 **Version:** see [`apps/mobile/version.json`](apps/mobile/version.json) (single source of truth — do not hardcode semver in docs)
@@ -105,7 +105,7 @@ Deploy via Vercel. See `MD/ENV_SETUP.md` and `MD/SETUP_VERCEL_ENV.md` for enviro
 | [`MD/FUNNYFY_FLOW.md`](MD/FUNNYFY_FLOW.md) | **System architecture & flowcharts** ⭐ |
 | [`MD/FUNNYFY_FLOW.html`](MD/FUNNYFY_FLOW.html) | **Rendered diagrams (open in browser)** |
 | [`ToDo/README.md`](../ToDo/README.md) | Backlog & integration checklists |
-| [`ToDo/SENTRY_INTEGRATION.md`](ToDo/SENTRY_INTEGRATION.md) | Mobile Sentry setup (live) |
+| [`MD/SENTRY_INTEGRATION.md`](MD/SENTRY_INTEGRATION.md) | Mobile Sentry setup (live) |
 | [`ToDo/security-deferred.md`](ToDo/security-deferred.md) | Remaining hardening backlog |
 
 Full doc index: [`MD/README.md`](MD/README.md)

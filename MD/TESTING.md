@@ -120,7 +120,7 @@ npm start
    - Home: **Netflix-style category rows** on dark `#0B0F19`, wordmark + icon-only burger (no chip circle)
    - Tap **See all** → 2-column discovery grid for that category
    - **Restyle** (from result): flat list + banner
-   - **Offline**: orange overlay banner at top; styles use local fallback; Gallery/About still work
+   - **Offline**: orange overlay banner at top; styles use local fallback; Gallery still works
 3. **Upload / Review**:
    - Header: `UploadFlowHeader` — back + **style pill** (left) + **usage pill** (right); no Photo tips chip
    - **Photo tips** auto-open on Upload when style selected; test "Do not show this again"
@@ -131,12 +131,10 @@ npm start
 6. **Gallery**: Tile grid; photos from **`DCIM/Funnyfy/`** (rescans device on open); share + swipe viewer
 7. **Subscription**: Full-bleed dark paywall; usage card + tier cards + pinned CTA
 8. **Trial warning**: Quota/trial banners on upload when applicable
-9. **About**: Version matches `version.json` / `expo-constants`
-10. **Contact us** (menu): Opens mail app to `support@funnyfy.app` with blank subject
-11. **Share app** (menu): Native share sheet (store URL via `EXPO_PUBLIC_APP_STORE_URL` when set)
-12. **Request a style** (menu): Email with subject “Style request”
-13. **Android nav bar**: On a rebuilt APK, bottom bar is solid `#0B0F19` (matches app background)
-14. **Style picker**: Category row titles visible; style tiles show thumbnails only (no per-style names)
+9. **Contact us** (menu): Opens mail app to `funnyfyapp@gmail.com` with blank subject
+10. **Share app** (menu): Native share sheet (store URL via `EXPO_PUBLIC_APP_STORE_URL` when set)
+11. **Android nav bar**: On a rebuilt APK, bottom bar is solid `#0B0F19` (matches app background)
+12. **Style picker**: Category row titles visible; style tiles show thumbnails only (no per-style names)
 
 ---
 
@@ -148,7 +146,7 @@ FunnyFy is **network-required** for generation and purchases. Offline behavior i
 |--------|---------|
 | Generate, subscribe, restore | Blocked with banner + disabled Generate |
 | Fetch styles from API | `DEFAULT_ENABLED_STYLES` fallback |
-| Gallery, About, Privacy, Terms | Still work |
+| Gallery, Privacy, Terms | Still work |
 | Reconnect | Auto-refreshes styles, subscription, auth |
 
 **How to test**
@@ -280,7 +278,7 @@ Mobile Sentry is live for staging. After installing a debug APK:
 
 1. Open [sentry.io](https://sentry.io) → org **funnyfy** → project **react-native** → **Issues**
 2. Filter environment **staging**
-3. Optional one-time ping: set `EXPO_PUBLIC_SENTRY_TEST=true` in `.env`, rebuild APK (see `ToDo/SENTRY_INTEGRATION.md`)
+3. Optional one-time ping: set `EXPO_PUBLIC_SENTRY_TEST=true` in `.env`, rebuild APK (see `MD/SENTRY_INTEGRATION.md`)
 
 Real errors (e.g. failed generation) appear via `captureAppError` in `App.js`.
 

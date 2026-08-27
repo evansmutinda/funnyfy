@@ -1,10 +1,11 @@
 {
   "name": "funnyfy-mobile",
-  "version": "1.1.73",
+  "version": "1.2.7",
   "private": true,
   "main": "index.js",
   "scripts": {
     "start": "expo start",
+    "start:clean": "expo start -c",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "postinstall": "patch-package",
@@ -28,6 +29,7 @@
     "expo-linear-gradient": "~14.0.2",
     "expo-media-library": "~17.0.6",
     "expo-navigation-bar": "~4.0.9",
+    "expo-secure-store": "~14.0.1",
     "expo-sharing": "~13.0.1",
     "expo-splash-screen": "~0.29.24",
     "expo-status-bar": "~2.0.1",

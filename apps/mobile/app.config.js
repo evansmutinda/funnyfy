@@ -32,9 +32,9 @@ export default {
       supportsTablet: true,
       buildNumber: String(versionInfo.iosBuildNumber),
       infoPlist: {
-        NSCameraUsageDescription: 'FunnyFy needs camera access to take photos for caricatures.',
-        NSPhotoLibraryUsageDescription: 'FunnyFy needs photo library access to pick photos for caricatures.',
-        NSPhotoLibraryAddUsageDescription: 'FunnyFy needs permission to save caricatures to your photo library.',
+        NSCameraUsageDescription: 'FunnyFy needs camera access to take photos for image generation.',
+        NSPhotoLibraryUsageDescription: 'FunnyFy needs photo library access to pick photos for image generation.',
+        NSPhotoLibraryAddUsageDescription: 'FunnyFy needs permission to save images to your photo library.',
       },
     },
     android: {
@@ -81,7 +81,7 @@ export default {
         'expo-media-library',
         {
           photosPermission: 'Allow FunnyFy to access your photos.',
-          savePhotosPermission: 'Allow FunnyFy to save your caricatures.',
+          savePhotosPermission: 'Allow FunnyFy to save your images.',
           isAccessMediaLocationEnabled: true,
           granularPermissions: ['photo'],
         },

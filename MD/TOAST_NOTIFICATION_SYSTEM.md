@@ -37,7 +37,7 @@ Dark modal for choices. Supports single-action (OK only), two-button, or three-b
 const { showDialog, closeDialog } = useNotifications();
 showDialog({
   title: 'Generation in progress',
-  message: 'Your caricature is still being created. Please wait for it to finish.',
+  message: 'Your image is still being created. Please wait for it to finish.',
   confirmLabel: 'OK',
   onConfirm: closeDialog,
 });

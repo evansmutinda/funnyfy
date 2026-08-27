@@ -1,21 +1,15 @@
 import { Dimensions, Platform } from 'react-native';
-import Constants from 'expo-constants';
 import * as FileSystem from 'expo-file-system';
 
 export { FUNNYFY_FOLDER_NAME, saveToFunnyfyAlbum } from './utils/funnyfyAlbum';
 
 export const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'https://funnyfy-staging.vercel.app';
 
-export const SUPPORT_EMAIL = 'support@funnyfy.app';
+export const SUPPORT_EMAIL = 'funnyfyapp@gmail.com';
 export const APP_NAME = 'FunnyFy';
 export const COMPANY_NAME = 'FunnyFy';
 /** Set EXPO_PUBLIC_APP_STORE_URL when Play/App Store listing is live. */
 export const APP_STORE_LISTING_URL = process.env.EXPO_PUBLIC_APP_STORE_URL || '';
-
-const APP_VERSION =
-  Constants.expoConfig?.version ??
-  Constants.manifest2?.extra?.expoClient?.version ??
-  require('./version.json').version;
 
 export const PRIVACY_POLICY_TEXT = `Last updated: ${new Date().toLocaleDateString()}
 
@@ -24,21 +18,21 @@ ${COMPANY_NAME} ("we", "us", "our") operates the ${APP_NAME} mobile application 
 1. INFORMATION WE COLLECT
 
 Photos You Upload
-When you generate a caricature, the photo you upload is temporarily processed by our AI partner (Replicate) to create your caricature. Photos are not stored on our servers after processing.
+When you generate an image, the photo you upload is temporarily processed by our AI partner (Replicate) to create your image. Photos are not stored on our servers after processing.
 
 Anonymous Account Identifier
-We generate a random anonymous identifier for your device when you first open the App. This lets us track your trial usage and subscription status without collecting personal data.
+We generate a random anonymous identifier for your device when you first open the App. This lets us track your usage and subscription status without collecting personal data.
 
 Subscription Information
 If you subscribe, our payment processor (RevenueCat with Google Play) handles your payment. We receive only your subscription tier and renewal status — never your credit card or payment details.
 
 Usage Data
-We track how many caricatures you generate to enforce your monthly quota. We may collect basic technical data (device model, OS version, app version) for crash reporting and analytics.
+We track how many images you generate to enforce your monthly quota. We may collect basic technical data (device model, OS version, app version) for crash reporting and analytics.
 
 2. HOW WE USE YOUR INFORMATION
 
 We use the information we collect to:
-• Provide the caricature generation service
+• Provide the image generation service
 • Process your subscription and enforce usage limits
 • Improve the App's performance and fix bugs
 • Comply with legal obligations
@@ -62,7 +56,7 @@ These providers are bound by their own privacy policies and process data only as
 4. DATA RETENTION
 
 • Uploaded photos: Deleted from our servers after processing (within hours)
-• Generated caricatures: Hosted on Replicate's CDN for ~24 hours, then automatically deleted
+• Generated images: Hosted on Replicate's CDN for ~24 hours, then automatically deleted
 • Account data: Retained as long as you use the App. Deleted on request.
 • Subscription records: Retained for legal/tax compliance (typically 7 years)
 
@@ -107,13 +101,13 @@ You must be at least 13 years old to use the App. By using the App, you represen
 3. USE OF THE APP
 
 The App is provided for personal, non-commercial use. You may:
-• Upload photos to generate caricatures
-• Save and share generated caricatures for personal use
+• Upload photos to generate images
+• Save and share generated images for personal use
 
 You may NOT:
 • Upload photos of others without their consent
 • Upload illegal, inappropriate, or copyrighted images without permission
-• Use the App for commercial resale of caricatures without a license
+• Use the App for commercial resale of images without a license
 • Attempt to reverse engineer, hack, or abuse the App
 • Use automated tools, bots, or scripts to interact with the App
 • Upload images of minors in any sexual, suggestive, or exploitative context
@@ -122,9 +116,9 @@ Violation of these terms may result in account suspension or termination.
 
 4. CONTENT OWNERSHIP
 
-You retain ownership of photos you upload. By uploading, you grant us a limited license to process the photo solely for caricature generation.
+You retain ownership of photos you upload. By uploading, you grant us a limited, non-exclusive license to process the photo solely for image generation.
 
-You own the caricatures generated from your photos. We retain no ownership claim on your generated content.
+You own the images generated from your photos. We retain no ownership claim on your generated content.
 
 5. SUBSCRIPTIONS
 
@@ -136,9 +130,9 @@ The App offers monthly subscription plans (Starter, Popular, Pro) with different
 
 Subscription pricing is shown in the App and may change with notice.
 
-6. FREE TRIAL
+6. SUBSCRIPTION REQUIRED
 
-New users receive 3 free caricature generations. After the trial, a subscription is required to continue using the App.
+An active subscription is required to generate images. The App does not offer free generations.
 
 7. INTELLECTUAL PROPERTY
 
@@ -148,7 +142,7 @@ The App, including its design, code, and content (other than user-uploaded photo
 
 THE APP IS PROVIDED "AS IS" WITHOUT WARRANTIES OF ANY KIND. We do not guarantee:
 • Continuous availability of the service
-• The quality or accuracy of generated caricatures
+• The quality or accuracy of generated images
 • That the App will meet your specific needs
 
 9. LIMITATION OF LIABILITY
@@ -171,18 +165,6 @@ These Terms are governed by the laws of the jurisdiction in which ${COMPANY_NAME
 
 For questions about these Terms, contact us at: ${SUPPORT_EMAIL}
 `;
-
-export const ABOUT_TEXT = `${APP_NAME}
-
-Transform your photos into amazing caricatures with the power of AI.
-
-Pick a style, upload a photo, and watch the magic happen.
-
-Version ${APP_VERSION}
-
-Made with care.
-
-Contact: ${SUPPORT_EMAIL}`;
 
 export const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 export const BOTTOM_INSET_MIN = Platform.OS === 'android' ? 48 : 34;

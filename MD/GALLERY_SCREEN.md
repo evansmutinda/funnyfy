@@ -53,7 +53,7 @@ Log markers (dev):
 
 ## Overview
 
-**My Gallery** is the in-app view of caricatures saved to **`DCIM/Funnyfy`**. Clearing the in-app list (trash) does **not** delete files in `DCIM/Funnyfy`.
+**My Gallery** is the in-app view of images saved to **`DCIM/Funnyfy`**. Clearing the in-app list (trash) does **not** delete files in `DCIM/Funnyfy`.
 
 ---
 
@@ -79,7 +79,7 @@ Log markers (dev):
 | Action | Behavior |
 |--------|----------|
 | Tap tile | Opens viewer at that index |
-| Swipe left/right | Previous / next caricature |
+| Swipe left/right | Previous / next image |
 | X (top-right) | Close viewer |
 | Share | `resolveShareableImageUri()` — handles `file://`, `content://`, and MediaLibrary assets |
 | Long-press tile | Remove from in-app list (`DCIM/Funnyfy` unchanged) |

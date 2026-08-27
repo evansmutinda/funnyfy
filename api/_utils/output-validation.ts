@@ -5,9 +5,9 @@
 
 export const BLANK_OUTPUT_CODE = 'BLANK_OR_UNLOADABLE_OUTPUT';
 export const BLANK_OUTPUT_MESSAGE =
-  'The caricature came back empty or could not be loaded. Please try again — you were not charged.';
+  "Your image came back blank. Tap Try again — this one didn't use up any of your images.";
 
-/** Tiny / empty files are almost never a real caricature. */
+/** Tiny / empty files are almost never a real generated image. */
 export const MIN_OUTPUT_BYTES = 5_000;
 
 const FETCH_TIMEOUT_MS = 20_000;

@@ -125,7 +125,7 @@ See also: `MD/STATUS.md`, `ToDo/ADMIN_DASHBOARD_SETUP.md`, `MD/FUNNYFY_FLOW.md`,
 ### Later (if FunnyFy grows)
 
 - [ ] Registered company + business bank account
-- [ ] `support@funnyfy.com` (or similar) on store & in-app
+- [ ] `funnyfyapp@gmail.com` on store & in-app
 - [ ] Invite collaborators via team access (never share personal passwords)
 
 ---

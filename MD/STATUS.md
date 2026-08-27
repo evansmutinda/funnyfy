@@ -8,7 +8,7 @@
 
 ## 🎯 Overview
 
-FunnyFy is a React Native mobile application that transforms user photos into AI-generated caricatures using the Replicate API. The app has subscription integration via RevenueCat, usage tracking, quota enforcement, NSFW moderation, JWT authentication, and a fully polished UI.
+FunnyFy is a React Native mobile application that transforms user photos into AI-generated images using the Replicate API. The app has subscription integration via RevenueCat, usage tracking, quota enforcement, NSFW moderation, JWT authentication, and a fully polished UI.
 
 ---
 
@@ -38,10 +38,10 @@ FunnyFy is a React Native mobile application that transforms user photos into AI
 - ✅ **ConfirmDialog component**: Custom modal with optional neutral 3rd button
 - ✅ **NotificationContext**: App-wide toast/notification state via React Context
 - ✅ **Full Privacy Policy** and **Terms of Service** (13 sections each, in-app)
-- ✅ **Menu** (`MenuModal.js`): Gallery, Usage, Subscription, **Share app**, **Request a style**, Privacy, Terms, About, Contact us
+- ✅ **Menu** (`MenuModal.js`): Gallery, Usage, Subscription, **Share app**, Privacy, Terms, Contact us
 - ✅ **Dark-first UI** (`#0B0F19`): Style, Upload, Review, Result, Gallery, Info, Subscription, Splash, app shell
 - ✅ **Trial soft warnings**: Banner/toast when 1 free generation remains
-- ✅ **Auto versioning**: `version.json` + bump scripts + Cursor rule; About screen shows runtime version
+- ✅ **Auto versioning**: `version.json` + bump scripts + Cursor rule; `app.config.js` reads the same file
 - ✅ **Android nav bar**: solid `#0B0F19` (matches app shell)
 
 ### Auth System
@@ -134,7 +134,7 @@ Full table (ids, models, comparison pairs, deploy steps): **`MD/STYLES.md`**
 ## 🚧 Deferred / Future
 
 - [ ] Enable more catalog styles (thumbnails + prompts per style)
-- [ ] Remaining style tile comparison pairs (8 of 19 enabled styles have curated assets — see `ToDo/COMPARISON_ASSETS.md`)
+- [ ] Remaining style tile comparison pairs — see [ToDo/COMPARISON_ASSETS.md](../ToDo/COMPARISON_ASSETS.md)
 - [ ] E003 high-demand error: friendly "generators busy" message
 - [ ] Analytics
 - [ ] Subscription trial (time-based 3-day trial via Play Store)
@@ -150,7 +150,7 @@ Full table (ids, models, comparison pairs, deploy steps): **`MD/STYLES.md`**
 - [x] NSFW moderation (Sightengine)
 - [x] JWT authentication
 - [x] Auto versioning for builds
-- [x] Error tracking (Sentry mobile — `ToDo/SENTRY_INTEGRATION.md`)
+- [x] Error tracking (Sentry mobile — `MD/SENTRY_INTEGRATION.md`)
 - [ ] Analytics
 
 ### Business
