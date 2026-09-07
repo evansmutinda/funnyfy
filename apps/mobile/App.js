@@ -88,6 +88,7 @@ import { pollJobUntilDone } from './utils/jobClient';
 import { setSentryUser, captureAppError } from './utils/sentry';
 import { openContactSupport } from './utils/contactSupport';
 import { shareApp } from './utils/shareApp';
+import { markRateAppRated, openPlayStoreListing } from './utils/rateApp';
 
 // Enforce HTTPS for security — prevent accidental HTTP misconfiguration
 if (API_BASE.startsWith('http://') && !API_BASE.includes('localhost') && !API_BASE.includes('127.0.0.1')) {
@@ -101,6 +102,7 @@ const devLog = (...args) => {
 
 const STARTUP_FAILSAFE_MS = 12_000;
 const RC_STARTUP_TIMEOUT_MS = 8_000;
+const EXIT_CONFIRM_MS = 2000;
 
 function withTimeout(promise, ms, label) {
   return Promise.race([
@@ -172,6 +174,7 @@ function AppContent({ fontsLoaded }) {
   const authTokenRef = useRef(null);
   const authInitPromiseRef = useRef(null);
   const resultBackHandlerRef = useRef(null);
+  const lastExitPressRef = useRef(0);
   const pendingFailureDialogRef = useRef(null);
   const subscriptionRefreshSeqRef = useRef(0);
   const revenueCatExpirationRef = useRef(null);
@@ -1216,6 +1219,16 @@ function AppContent({ fontsLoaded }) {
       });
       return;
     }
+    if (id === 'rate-app') {
+      openPlayStoreListing().then((opened) => {
+        if (opened) {
+          markRateAppRated();
+        } else {
+          showToast('Play Store', 'Could not open the Play Store listing.', 'error');
+        }
+      });
+      return;
+    }
     setScreen(id);
   }, [showToast]);
 
@@ -1328,6 +1341,21 @@ function AppContent({ fontsLoaded }) {
   };
 
   useEffect(() => {
+    lastExitPressRef.current = 0;
+  }, [screen]);
+
+  useEffect(() => {
+    const confirmExit = () => {
+      const now = Date.now();
+      if (now - lastExitPressRef.current < EXIT_CONFIRM_MS) {
+        lastExitPressRef.current = 0;
+        return false;
+      }
+      lastExitPressRef.current = now;
+      showToast('Press again to exit the app', '', 'info', { duration: EXIT_CONFIRM_MS });
+      return true;
+    };
+
     const onBackPress = () => {
       if (screen === 'result') {
         resultBackHandlerRef.current?.();
@@ -1335,6 +1363,11 @@ function AppContent({ fontsLoaded }) {
       }
       if (screen === 'upload') {
         setScreen('style');
+        return true;
+      }
+      if (screen === 'review') {
+        setPickedImage(null);
+        setScreen('upload');
         return true;
       }
       if (screen === 'subscription' || screen === 'usage' || screen === 'privacy' || screen === 'terms' || screen === 'gallery' || screen === 'menu') {
@@ -1346,14 +1379,14 @@ function AppContent({ fontsLoaded }) {
           handleCancelRestyle();
           return true;
         }
-        return false;
+        return confirmExit();
       }
-      return false;
+      return confirmExit();
     };
 
     const sub = BackHandler.addEventListener('hardwareBackPress', onBackPress);
     return () => sub.remove();
-  }, [screen, restyleMode]);
+  }, [screen, restyleMode, showToast]);
 
   // Hard paywall: generating requires an active plan with quota left. While the
   // subscription is still unknown we stay permissive — the API is the real gate.

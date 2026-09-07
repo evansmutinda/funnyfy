@@ -47,10 +47,10 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 | Constant | Replicate model | Used for |
 |----------|-----------------|----------|
 | `DEFAULT_MODEL` | `black-forest-labs/flux-kontext-pro` | Most cartoon / art styles |
-| `NANO_BANANA` | `google/nano-banana` | Caricatures, mural, video-game styles, classic-v2, saturday-v1, cross-hatched, fashion, professional, passport, 1980s, 80s-hip-hop, 80s-pop, 2000s, rock-n-roll |
+| `NANO_BANANA` | `google/nano-banana` | Caricatures, mural, video-game styles, classic-v2, saturday-v1, cross-hatched, fashion, professional, passport, 1980s, 80s-hip-hop, 80s-pop, 2000s, 2000s-pop, rock-n-roll |
 | `NANO_BANANA_2` | `google/nano-banana-2` | renoir, impasto, expressive-impasto, hokusai-v2, hiroshige, sesshu, cyberpunk-v2, disney, ghibli, chibi, eyeroll, brick-v2, child, teenager, young-adult, middle-age, elderly, progressive, regressive, video-game-i, video-game-ii, puppet |
 | `SEEDREAM_4` | `bytedance/seedream-4` | lowpoly, pop art v2, graffiti, banksy, mosaic, watercolor, acrylic, gouache, expressionist, impressionist, baroque, van-gogh, monet, classic-v1, saturday-v2, carc1 |
-| `SEEDREAM_4_5` | `bytedance/seedream-4.5` | cezanne, gauguin, matisse, seurat, ink-wash, hokusai-v1, comic, cute, cyberpunk-v1, expressive-impasto-v2, pop-art-v3, line-art, brick-v1, 1960s, 1970s, 90s, 90s-hip-hop, 90s-pop, 2000s-hip-hop, 2000s-pop, 80s-cartoon, victorian |
+| `SEEDREAM_4_5` | `bytedance/seedream-4.5` | cezanne, gauguin, matisse, seurat, ink-wash, hokusai-v1, comic, cute, cyberpunk-v1, expressive-impasto-v2, pop-art-v3, line-art, brick-v1, 1960s, 1970s, 90s, 90s-hip-hop, 90s-pop, 2000s-hip-hop, 80s-cartoon, victorian |
 
 ---
 
@@ -136,12 +136,12 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 | `1980s` | 1980s | retro-nostalgia | nano-banana | ✅ |
 | `80s-hip-hop` | 80s Hip-hop | retro-nostalgia | nano-banana | ✅ |
 | `80s-pop` | 80s Pop | retro-nostalgia | nano-banana | ✅ |
-| `90s` | 90s | retro-nostalgia | seedream-4.5 | ✅ |
+| `90s` | 1990s | retro-nostalgia | seedream-4.5 | ✅ |
 | `90s-hip-hop` | 90s Hip-hop | retro-nostalgia | seedream-4.5 | ✅ |
 | `90s-pop` | 90s Pop | retro-nostalgia | seedream-4.5 | ✅ |
 | `2000s` | 2000s | retro-nostalgia | nano-banana | ✅ |
 | `2000s-hip-hop` | 2000s Hip-hop | retro-nostalgia | seedream-4.5 | ✅ |
-| `2000s-pop` | 2000s Pop | retro-nostalgia | seedream-4.5 | ✅ |
+| `2000s-pop` | 2000s Pop | retro-nostalgia | nano-banana | ✅ |
 | `rock-n-roll` | Rock n Roll | retro-nostalgia | nano-banana | ✅ |
 | `paper-cut` | Paper Cut | art | flux-kontext-pro | ✅ |
 | `water-color` | Water Color | paintings | flux-kontext-pro | ✅ |

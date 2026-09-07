@@ -98,7 +98,7 @@ export const STYLE_CATALOG: StyleCatalogEntry[] = [
   { id: "1980s", label: "1980s", categoryId: "retro-nostalgia" },
   { id: "80s-hip-hop", label: "80s Hip-hop", categoryId: "retro-nostalgia" },
   { id: "80s-pop", label: "80s Pop", categoryId: "retro-nostalgia" },
-  { id: "90s", label: "90s", categoryId: "retro-nostalgia" },
+  { id: "90s", label: "1990s", categoryId: "retro-nostalgia" },
   { id: "90s-hip-hop", label: "90s Hip-hop", categoryId: "retro-nostalgia" },
   { id: "90s-pop", label: "90s Pop", categoryId: "retro-nostalgia" },
   { id: "2000s", label: "2000s", categoryId: "retro-nostalgia" },

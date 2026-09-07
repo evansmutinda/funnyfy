@@ -8,8 +8,11 @@ export const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'https://funnyfy-stag
 export const SUPPORT_EMAIL = 'funnyfyapp@gmail.com';
 export const APP_NAME = 'FunnyFy';
 export const COMPANY_NAME = 'FunnyFy';
-/** Set EXPO_PUBLIC_APP_STORE_URL when Play/App Store listing is live. */
-export const APP_STORE_LISTING_URL = process.env.EXPO_PUBLIC_APP_STORE_URL || '';
+export const ANDROID_PACKAGE_ID = 'com.evansks.funnyfyapp';
+/** Live Play Store listing. Override with EXPO_PUBLIC_APP_STORE_URL if needed. */
+export const APP_STORE_LISTING_URL =
+  process.env.EXPO_PUBLIC_APP_STORE_URL ||
+  `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_ID}`;
 
 export const PRIVACY_POLICY_TEXT = `Last updated: ${new Date().toLocaleDateString()}
 

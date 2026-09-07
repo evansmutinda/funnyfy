@@ -12,6 +12,7 @@ const ITEMS = [
   { id: 'usage', label: 'Usage', icon: 'bar-chart-2' },
   { id: 'subscription', label: 'Subscription', icon: 'credit-card' },
   { id: 'share-app', label: 'Share app', icon: 'share-2' },
+  { id: 'rate-app', label: 'Rate this app', icon: 'star' },
   { id: 'privacy', label: 'Privacy Policy', icon: 'shield' },
   { id: 'terms', label: 'Terms & Conditions', icon: 'file-text' },
   { id: 'contact', label: 'Contact us', icon: 'mail' },

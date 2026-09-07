@@ -27,6 +27,12 @@ import {
   JOB_PROGRESS_PHASE_COUNT,
   resolveCategoryCreatingPhrase,
 } from '../utils/jobProgress';
+import {
+  RATE_PROMPT_DELAY_MS,
+  noteSuccessfulGeneration,
+  presentRateAppDialog,
+  shouldPromptRateApp,
+} from '../utils/rateApp';
 import styles from '../styles';
 
 export function getImageUrlFromOutput(output) {
@@ -73,6 +79,7 @@ export default function ResultScreen({
   const sliderDemoDoneRef = useRef(false);
   const sliderUserTouchedRef = useRef(false);
   const unloadableReportedRef = useRef(false);
+  const skipRatePromptRef = useRef(false);
   const hasResult = !!result && !!imageUrl;
   const maxRetriesReached = !hasResult && failedAttempts >= 3;
   const showRetry = !loading && !hasResult && failedAttempts > 0 && failedAttempts < 3;
@@ -99,6 +106,23 @@ export default function ResultScreen({
     const id = setInterval(() => setProgressTick((t) => t + 1), 1000);
     return () => clearInterval(id);
   }, [loading, hasResult, job?.status]);
+
+  useEffect(() => {
+    if (!showCompare) return undefined;
+    const jobId = result?.jobId || imageUrl;
+    noteSuccessfulGeneration(jobId);
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      if (cancelled || skipRatePromptRef.current) return;
+      if (!(await shouldPromptRateApp())) return;
+      if (cancelled || skipRatePromptRef.current) return;
+      presentRateAppDialog({ showDialog, closeDialog, showToast });
+    }, RATE_PROMPT_DELAY_MS);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [showCompare, result?.jobId, imageUrl, showDialog, closeDialog, showToast]);
   useEffect(() => {
     if (hasResult) {
       setMix(0);
@@ -107,6 +131,7 @@ export default function ResultScreen({
       unloadableReportedRef.current = false;
       sliderDemoDoneRef.current = false;
       sliderUserTouchedRef.current = false;
+      skipRatePromptRef.current = false;
     }
   }, [hasResult, imageUrl]);
 
@@ -230,6 +255,7 @@ export default function ResultScreen({
   }, [showCompare, canvasWidth, imageUrl]);
 
   const handleShare = async () => {
+    skipRatePromptRef.current = true;
     if (!imageUrl || actionsBusy) return;
     setSharing(true);
     try {
@@ -253,6 +279,7 @@ export default function ResultScreen({
 
   const handleDownload = async (opts = {}) => {
     const { silent = false } = opts;
+    skipRatePromptRef.current = true;
     if (!imageUrl || loading) return false;
     if (saving) return false;
     setSaving(true);
@@ -324,6 +351,7 @@ export default function ResultScreen({
   };
 
   const confirmNavigate = useCallback((navigate) => {
+    skipRatePromptRef.current = true;
     const generationInProgress = loading && !hasResult;
 
     if (generationInProgress) {
