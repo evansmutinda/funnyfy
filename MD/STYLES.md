@@ -183,7 +183,7 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 | `ice` | Ice | sculptures | nano-banana-2 | ✅ |
 | `metal` | Metal | sculptures | nano-banana-2 | ✅ |
 | `chrome` | Chrome | sculptures | nano-banana-2 | ✅ |
-| `mountain` | Mountain | sculptures | nano-banana | ✅ |
+| `mountain` | Mountain | sculptures | grok-imagine-image | ✅ |
 | `wood` | Wood | sculptures | nano-banana-2 | ✅ |
 | `gold` | Gold | sculptures | nano-banana-2 | ✅ |
 | `porcelain` | Porcelain | sculptures | seedream-4.5 | ✅ |

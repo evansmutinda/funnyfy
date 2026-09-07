@@ -20,6 +20,8 @@ const MODEL_LABELS = {
   'google/nano-banana-2': 'nano-banana-2',
   'bytedance/seedream-4': 'seedream-4',
   'bytedance/seedream-4.5': 'seedream-4.5',
+  GROK_IMAGINE: 'grok-imagine-image',
+  'xai/grok-imagine-image': 'grok-imagine-image',
 };
 
 const CATEGORY_ORDER = [
@@ -210,6 +212,7 @@ function main() {
     '| `NANO_BANANA_2` | `google/nano-banana-2` |',
     '| `SEEDREAM_4` | `bytedance/seedream-4` |',
     '| `SEEDREAM_4_5` | `bytedance/seedream-4.5` |',
+    '| `GROK_IMAGINE` | `xai/grok-imagine-image` |',
     '',
     '---',
     '',

@@ -11,10 +11,11 @@ const costs = {
   'google/nano-banana-2': 0.067,
   'bytedance/seedream-4': 0.04,
   'bytedance/seedream-4.5': 0.04,
+  'xai/grok-imagine-image': 0.03,
 };
 
 const vars = {};
-for (const m of src.matchAll(/const (DEFAULT_MODEL|NANO_BANANA_2|NANO_BANANA|SEEDREAM_4_5|SEEDREAM_4)\s*=\s*'([^']+)'/g)) {
+for (const m of src.matchAll(/const (DEFAULT_MODEL|NANO_BANANA_2|NANO_BANANA|SEEDREAM_4_5|SEEDREAM_4|GROK_IMAGINE)\s*=\s*'([^']+)'/g)) {
   vars[m[1]] = m[2];
 }
 

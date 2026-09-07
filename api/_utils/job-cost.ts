@@ -11,6 +11,7 @@ export function getModelDisplayLabel(modelVersion: string | null): string {
   if (m.includes('nano-banana')) return 'Nano Banana';
   if (m.includes('seedream-4.5')) return 'Seedream 4.5';
   if (m.includes('seedream-4')) return 'Seedream 4';
+  if (m.includes('grok-imagine')) return 'Grok Imagine';
   if (m.includes('flux')) return 'Flux Kontext Pro';
   return modelVersion || 'Unknown';
 }

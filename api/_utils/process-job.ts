@@ -122,6 +122,14 @@ export async function processJob(job: JobRow): Promise<void> {
       input.aspect_ratio = 'match_input_image';
       input.sequential_image_generation = 'disabled';
       input.max_images = 1;
+    } else if (modelVersion.includes('grok-imagine')) {
+      // Grok Imagine image-edit uses `image`; aspect_ratio is ignored when editing.
+      input.image = imageUrl;
+      if (referenceUrl) {
+        console.warn(
+          `[process-job] Style ${job.style_id} has referenceImage but model ${modelVersion} is single-image; using user photo only`
+        );
+      }
     } else {
       input.input_image = imageUrl;
     }

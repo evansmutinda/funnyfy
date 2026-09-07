@@ -78,6 +78,7 @@ const NANO_BANANA = 'google/nano-banana';
 const NANO_BANANA_2 = 'google/nano-banana-2';
 const SEEDREAM_4 = 'bytedance/seedream-4';
 const SEEDREAM_4_5 = 'bytedance/seedream-4.5';
+const GROK_IMAGINE = 'xai/grok-imagine-image';
 
 function placeholderPrompt(label: string): string {
   return (
@@ -1758,7 +1759,7 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
       'Colossal original granite mountain monument carved with the uploaded subject(s) only, in a national-park setting',
     prompt:
       "Preserve the uploaded person's identity exactly. If multiple people are uploaded, preserve each person's identity exactly. Transform the uploaded subject(s) into a colossal granite mountain monument inspired by the monumental rock-carving style of a colossal American-style granite mountain monument with monumental rock-carved portraits, but create an entirely original monument. The uploaded subject(s) must be the ONLY faces carved into the mountain. Completely replace any existing or recognizable mountain carvings. Do not include George Washington, Thomas Jefferson, Theodore Roosevelt, Abraham Lincoln, or any historical figures. Do not recreate the real Mount Rushmore monument. Instead, carve only the uploaded subject(s) into a massive natural granite cliff, faithfully preserving their facial features, hairstyles, expressions, and proportions. The carvings should appear expertly sculpted from solid granite with realistic chisel marks, weathering, cracks, layered rock formations, and natural stone textures. The mountain should exist in a beautiful national-park landscape with pine trees, rocky cliffs, and dramatic blue skies. At the base of the monument, include a large scenic viewing plaza filled with tourists taking photos, pointing, walking, and admiring the monument to emphasize its immense scale. Include observation decks, railings, pathways, park signage, and natural surroundings. Cinematic wide-angle composition, ultra-photorealistic, highly detailed, realistic daylight, epic scale, clean composition, no text, no logos, no watermarks.",
-    model: NANO_BANANA,
+    model: GROK_IMAGINE,
     enabled: true,
     premium: false,
   },

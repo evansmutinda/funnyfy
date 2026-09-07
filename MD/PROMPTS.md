@@ -8,7 +8,7 @@ Regenerate this file after prompt changes:
 node scripts/generate-prompts-md.js
 ```
 
-**Last generated:** 2026-08-18 · **178 enabled** · **11 disabled** in LEGACY_STYLES
+**Last generated:** 2026-09-07 · **178 enabled** · **11 disabled** in LEGACY_STYLES
 
 Prompts are server-side only — the mobile app never bundles them. When adding a style, copy/adapt a prompt here, then add it to `LEGACY_STYLES` and deploy staging.
 
@@ -25,6 +25,7 @@ See also: `MD/STYLES.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`.
 | `NANO_BANANA_2` | `google/nano-banana-2` |
 | `SEEDREAM_4` | `bytedance/seedream-4` |
 | `SEEDREAM_4_5` | `bytedance/seedream-4.5` |
+| `GROK_IMAGINE` | `xai/grok-imagine-image` |
 
 ---
 
@@ -1793,7 +1794,7 @@ Transform the uploaded subject into a polished mirror-chrome sculpture while pre
 #### `mountain` — Mountain
 
 - **Category:** sculptures
-- **Model:** NANO_BANANA
+- **Model:** grok-imagine-image
 - **Description:** Colossal original granite mountain monument carved with the uploaded subject(s) only, in a national-park setting
 
 ```

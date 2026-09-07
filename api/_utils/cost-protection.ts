@@ -10,6 +10,7 @@ export const MODEL_COST_USD: Record<string, number> = {
   'google/nano-banana-2': 0.067,
   'bytedance/seedream-4': 0.04,
   'bytedance/seedream-4.5': 0.04,
+  'xai/grok-imagine-image': 0.03,
   default: 0.04,
 };
 
@@ -20,6 +21,7 @@ export function getModelCost(modelVersion: string): number {
   if (key.includes('nano-banana')) return MODEL_COST_USD['google/nano-banana'];
   if (key.includes('seedream-4.5')) return MODEL_COST_USD['bytedance/seedream-4.5'];
   if (key.includes('seedream-4')) return MODEL_COST_USD['bytedance/seedream-4'];
+  if (key.includes('grok-imagine')) return MODEL_COST_USD['xai/grok-imagine-image'];
   if (key.includes('flux')) return MODEL_COST_USD['black-forest-labs/flux-kontext-pro'];
   return MODEL_COST_USD.default;
 }
