@@ -6,6 +6,7 @@ import {
   filterStylesForClientVersion,
   resolveClientAppVersion,
 } from './_utils/app-version';
+import { tryServeSignedStyleRef } from './_utils/serve-style-ref';
 
 const allowedOrigin = process.env.ALLOWED_ORIGIN || '*';
 
@@ -33,6 +34,8 @@ export default async function handler(
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
+
+  if (await tryServeSignedStyleRef(req, res)) return;
 
   if (req.method !== 'GET') {
     return res.status(405).json({ ok: false, error: 'Only GET allowed' });

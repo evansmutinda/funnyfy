@@ -40,6 +40,10 @@
       "destination": "/api/styles?appConfig=1"
     },
     {
+      "source": "/api/style-ref",
+      "destination": "/api/styles"
+    },
+    {
       "source": "/admin/login-page.js",
       "destination": "/api/admin?page=login-page.js"
     },
