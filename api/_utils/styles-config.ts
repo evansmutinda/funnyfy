@@ -21,7 +21,8 @@ export interface StyleConfig {
   /**
    * Optional style template image (private API asset).
    * Sent as image_input[0]; the user's photo is image_input[1].
-   * Path is relative to api/_assets, e.g. `style-refs/caricatures/mugface.png`.
+   * Path is stored as `style-refs/caricatures/mugface.png` and the file lives in
+   * `server-style-refs/` on the API host (not /public, not the app).
    * Served only via a short-lived signed URL — not in /public or the app.
    */
   referenceImage?: string;

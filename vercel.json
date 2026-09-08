@@ -1,7 +1,7 @@
 {
   "functions": {
     "api/style-ref.ts": {
-      "includeFiles": "api/_assets/style-refs/**",
+      "includeFiles": "server-style-refs/**",
       "maxDuration": 10
     },
     "api/admin.ts": {

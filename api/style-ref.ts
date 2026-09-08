@@ -21,9 +21,9 @@ function queryValue(value: string | string[] | undefined): string {
 
 function assetsRoot(): string {
   const candidates = [
-    path.resolve(process.cwd(), 'api', '_assets', 'style-refs'),
-    path.resolve(__dirname, '_assets', 'style-refs'),
-    path.resolve(__dirname, '..', '_assets', 'style-refs'),
+    path.resolve(process.cwd(), 'server-style-refs'),
+    path.resolve(__dirname, '..', 'server-style-refs'),
+    path.resolve(__dirname, 'server-style-refs'),
   ];
   for (const candidate of candidates) {
     if (fs.existsSync(candidate)) return candidate;
