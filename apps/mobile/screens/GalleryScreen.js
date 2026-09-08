@@ -5,12 +5,10 @@ import {
   Image,
   Modal,
   Pressable,
-  StatusBar,
   Text,
   useWindowDimensions,
   View,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
@@ -18,6 +16,7 @@ import * as Sharing from 'expo-sharing';
 import { useNotifications } from '../components/NotificationProvider';
 import MediaTile from '../components/MediaTile';
 import PressScale from '../components/PressScale';
+import useStableSafeAreaInsets from '../hooks/useStableSafeAreaInsets';
 import { BOTTOM_INSET_MIN, getSavedImageFileName, SAVED_IMAGE_MIME } from '../constants';
 import {
   addGalleryHiddenKeys,
@@ -197,7 +196,7 @@ async function clearGallery(currentItems) {
 export { saveToGallery };
 
 export default function GalleryScreen({ onBack }) {
-  const insets = useSafeAreaInsets();
+  const insets = useStableSafeAreaInsets();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const { showToast, showDialog, closeDialog } = useNotifications();
   const [items, setItems] = useState([]);
@@ -418,8 +417,6 @@ export default function GalleryScreen({ onBack }) {
 
   return (
     <View style={styles.galleryRoot}>
-      <StatusBar barStyle="light-content" backgroundColor="#0B0F19" />
-
       <View style={[styles.galleryCloseWrap, { top: closeTop, right: 8 }]}>
         <PressScale onPress={onBack} style={styles.pwdCloseCircle} hitSlop={8}>
           <Feather name="x" size={20} color="#FFFFFF" />

@@ -56,6 +56,13 @@ export default {
       backgroundColor: DARK_BG,
       barStyle: 'light-content',
     },
+    androidStatusBar: {
+      // Hex only — the word "transparent" is written into colors.xml and
+      // aapt2 fails mergeDebugResources (IllegalStateException).
+      backgroundColor: '#00000000',
+      barStyle: 'light-content',
+      translucent: true,
+    },
     web: { bundler: 'metro' },
     plugins: [
       [

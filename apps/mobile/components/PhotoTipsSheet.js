@@ -9,7 +9,7 @@ import {
   View,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import useStableSafeAreaInsets from '../hooks/useStableSafeAreaInsets';
 import Animated, {
   runOnJS,
   useAnimatedStyle,
@@ -35,7 +35,7 @@ export default function PhotoTipsSheet({
   styleLabel,
   tips = GENERIC_STYLE_PHOTO_TIPS,
 }) {
-  const insets = useSafeAreaInsets();
+  const insets = useStableSafeAreaInsets();
   const translateY = useSharedValue(SCREEN_HEIGHT);
   const [mounted, setMounted] = useState(false);
   const [dontShowAgain, setDontShowAgain] = useState(false);

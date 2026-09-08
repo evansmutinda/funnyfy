@@ -1,16 +1,15 @@
 import React from 'react';
-import { ScrollView, StatusBar, Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PressScale from '../components/PressScale';
 import { BOTTOM_INSET_MIN } from '../constants';
+import useStableSafeAreaInsets from '../hooks/useStableSafeAreaInsets';
 import styles from '../styles';
 
 export default function InfoScreen({ title, content, onBack }) {
-  const insets = useSafeAreaInsets();
+  const insets = useStableSafeAreaInsets();
   return (
     <View style={styles.safe}>
-      <StatusBar barStyle="light-content" backgroundColor="#0B0F19" />
       <View style={[styles.infoContainer, { paddingTop: Math.max(insets.top, 8) }]}>
         <View style={styles.headerBar}>
           <PressScale onPress={onBack} style={styles.iconButton}>

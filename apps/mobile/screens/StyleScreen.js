@@ -1,16 +1,13 @@
-import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  BackHandler,
   FlatList,
   Image,
   ScrollView,
-  StatusBar,
   Text,
   View,
 } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Feather } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MediaTile from '../components/MediaTile';
 import PressScale from '../components/PressScale';
 import { BOTTOM_INSET_MIN, getStyleImage } from '../constants';
@@ -30,6 +27,7 @@ import {
 } from '../utils/stickerPack';
 import { RowFocusProvider, useCategoryRowFocus } from '../hooks/useRowFocus';
 import StyleLoadingEmptyState from '../components/StyleLoadingEmptyState';
+import useStableSafeAreaInsets from '../hooks/useStableSafeAreaInsets';
 import styles from '../styles';
 
 function resolveStyleCategory(style) {
@@ -71,8 +69,9 @@ function StyleScreenContent({
   onToggleSticker,
   onCreateStickerPack,
   onClearStickerPack,
+  backHandlerRef,
 }) {
-  const insets = useSafeAreaInsets();
+  const insets = useStableSafeAreaInsets();
   const [homeScrollTick, setHomeScrollTick] = useState(0);
   const [categoryScrollTick, setCategoryScrollTick] = useState(0);
   const [activeCategory, setActiveCategory] = useState(initialActiveCategory);
@@ -104,10 +103,11 @@ function StyleScreenContent({
     return selectedStickerIds.map((id) => byId.get(id)).filter(Boolean);
   }, [inStickerPackMode, selectedStickerCount, selectedStickerIds, styleList]);
 
-  const exitPackSelectMode = () => {
+  const homeEntrancePlayedRef = useRef(false);
+  const exitPackSelectMode = useCallback(() => {
     setPackSelectMode(false);
     if (onClearStickerPack) onClearStickerPack();
-  };
+  }, [onClearStickerPack]);
 
   const handleStylePress = (item) => {
     if (packSelectMode && isStickerStyle(item) && onToggleSticker) {
@@ -122,7 +122,6 @@ function StyleScreenContent({
   }, [restyleMode, changeActiveCategory]);
 
   const categoryRows = useMemo(() => {
-    if (!browsingHome) return [];
     const byCategory = new Map();
     for (const style of styleList) {
       const catId = resolveStyleCategory(style);
@@ -133,7 +132,7 @@ function StyleScreenContent({
     return BROWSE_CATEGORIES
       .map((cat) => ({ ...cat, styles: byCategory.get(cat.id) || [] }))
       .filter((row) => row.styles.length > 0 || EMPTY_HOME_CATEGORY_IDS.has(row.id));
-  }, [browsingHome, styleList]);
+  }, [styleList]);
 
   const categoryStyles = useMemo(() => {
     if (browsingHome) return [];
@@ -160,17 +159,26 @@ function StyleScreenContent({
   const categoryGridKey = activeCategory || 'category';
 
   useEffect(() => {
-    if (browsingHome) return undefined;
-    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+    if (browsingHome) homeEntrancePlayedRef.current = true;
+  }, [browsingHome]);
+
+  useEffect(() => {
+    if (!backHandlerRef) return undefined;
+    backHandlerRef.current = () => {
       if (packSelectMode) {
         exitPackSelectMode();
         return true;
       }
-      changeActiveCategory(null);
-      return true;
-    });
-    return () => sub.remove();
-  }, [browsingHome, packSelectMode, changeActiveCategory]);
+      if (!browsingHome) {
+        changeActiveCategory(null);
+        return true;
+      }
+      return false;
+    };
+    return () => {
+      backHandlerRef.current = null;
+    };
+  }, [backHandlerRef, browsingHome, packSelectMode, changeActiveCategory, exitPackSelectMode]);
 
   const handleCancel = () => {
     if (onCancelRestyle) onCancelRestyle();
@@ -193,8 +201,6 @@ function StyleScreenContent({
       style={styles.styleScreenSafe}
       pointerEvents={interactionPaused ? 'none' : 'auto'}
     >
-      <StatusBar barStyle="light-content" backgroundColor="#0B0F19" />
-
       <View style={[styles.styleScreenHeader, { paddingTop: Math.max(insets.top, 8) }]}>
         <View style={styles.headerBar}>
           {browsingHome && !restyleMode ? (
@@ -254,8 +260,12 @@ function StyleScreenContent({
         </View>
       ) : null}
 
-      {browsingHome ? (
-        <RowFocusProvider scrollTick={homeScrollTick} enabled={!interactionPaused}>
+      <View
+        style={browsingHome ? { flex: 1 } : { display: 'none' }}
+        pointerEvents={browsingHome ? 'auto' : 'none'}
+        importantForAccessibility={browsingHome ? 'auto' : 'no-hide-descendants'}
+      >
+        <RowFocusProvider scrollTick={homeScrollTick} enabled={!interactionPaused && browsingHome}>
           <ScrollView
             style={styles.styleScroll}
             contentContainerStyle={[
@@ -287,7 +297,8 @@ function StyleScreenContent({
                   onSelect={handleStylePress}
                   onSeeAll={() => changeActiveCategory(row.id)}
                   rowIndex={rowIndex}
-                  interactionPaused={interactionPaused}
+                  skipEntrance={homeEntrancePlayedRef.current}
+                  interactionPaused={interactionPaused || !browsingHome}
                   stickerPackMode={inStickerPackMode}
                   selectedStickerIds={selectedStickerIds}
                 />
@@ -295,59 +306,64 @@ function StyleScreenContent({
             )}
           </ScrollView>
         </RowFocusProvider>
-      ) : (
-        <RowFocusProvider key={categoryGridKey} scrollTick={categoryScrollTick} enabled={!interactionPaused}>
-          <ScrollView
-            style={styles.styleScroll}
-            contentContainerStyle={[
-              styles.styleContainer,
-              {
-                paddingBottom:
-                  Math.max(insets.bottom, BOTTOM_INSET_MIN) +
-                  (activeCategory === 'stickers'
-                    ? packSelectMode && selectedStickerCount > 0
-                      ? 228
-                      : 108
-                    : 8),
-              },
-            ]}
-            showsVerticalScrollIndicator={false}
-            onScroll={onCategoryScroll}
-            onScrollEndDrag={onCategoryScrollEnd}
-            onMomentumScrollEnd={onCategoryScrollEnd}
-            scrollEventThrottle={200}
-          >
-            {categoryStyles.length === 0 ? (
-              stylesLoading && styleList.length === 0 ? (
-                <StyleLoadingEmptyState />
-              ) : (
-                <View style={styles.styleEmptyState}>
-                  <Text style={styles.styleEmptyStateTitle}>Coming soon</Text>
-                  <Text style={styles.styleEmptyStateText}>
-                    New styles for this category are on the way.
-                  </Text>
-                </View>
-              )
-            ) : (
-              <View style={styles.discoveryGrid}>
-                {categoryGridRows.map((rowStyles, rowIndex) => (
-                  <DiscoveryGridRow
-                    key={`${categoryGridKey}-${rowIndex}`}
-                    rowId={`${categoryGridKey}-${rowIndex}`}
-                    rowIndex={rowIndex}
-                    styleList={rowStyles}
-                    selectedStyle={selectedStyle}
-                    onSelect={handleStylePress}
-                    interactionPaused={interactionPaused}
-                    stickerPackMode={inStickerPackMode}
-                    selectedStickerIds={selectedStickerIds}
-                  />
-                ))}
-              </View>
-            )}
-          </ScrollView>
-        </RowFocusProvider>
-      )}
+      </View>
+
+      {!browsingHome ? (
+        <View style={{ flex: 1 }}>
+          <RowFocusProvider key={categoryGridKey} scrollTick={categoryScrollTick} enabled={!interactionPaused}>
+            <FlatList
+              style={styles.styleScroll}
+              data={categoryGridRows}
+              keyExtractor={(_, rowIndex) => `${categoryGridKey}-${rowIndex}`}
+              initialNumToRender={6}
+              maxToRenderPerBatch={4}
+              windowSize={5}
+              contentContainerStyle={[
+                styles.styleContainer,
+                styles.discoveryGrid,
+                {
+                  paddingBottom:
+                    Math.max(insets.bottom, BOTTOM_INSET_MIN) +
+                    (activeCategory === 'stickers'
+                      ? packSelectMode && selectedStickerCount > 0
+                        ? 228
+                        : 108
+                      : 8),
+                },
+              ]}
+              showsVerticalScrollIndicator={false}
+              onScroll={onCategoryScroll}
+              onScrollEndDrag={onCategoryScrollEnd}
+              onMomentumScrollEnd={onCategoryScrollEnd}
+              scrollEventThrottle={200}
+              ListEmptyComponent={
+                stylesLoading && styleList.length === 0 ? (
+                  <StyleLoadingEmptyState />
+                ) : (
+                  <View style={styles.styleEmptyState}>
+                    <Text style={styles.styleEmptyStateTitle}>Coming soon</Text>
+                    <Text style={styles.styleEmptyStateText}>
+                      New styles for this category are on the way.
+                    </Text>
+                  </View>
+                )
+              }
+              renderItem={({ item: rowStyles, index: rowIndex }) => (
+                <DiscoveryGridRow
+                  rowId={`${categoryGridKey}-${rowIndex}`}
+                  rowIndex={rowIndex}
+                  styleList={rowStyles}
+                  selectedStyle={selectedStyle}
+                  onSelect={handleStylePress}
+                  interactionPaused={interactionPaused}
+                  stickerPackMode={inStickerPackMode}
+                  selectedStickerIds={selectedStickerIds}
+                />
+              )}
+            />
+          </RowFocusProvider>
+        </View>
+      ) : null}
 
       {activeCategory === 'stickers' ? (
         <View style={[styles.stickerPackBar, { paddingBottom: Math.max(insets.bottom, 12) }]}>
@@ -508,6 +524,7 @@ function CategoryRow({
   onSelect,
   onSeeAll,
   rowIndex,
+  skipEntrance = false,
   interactionPaused = false,
   stickerPackMode = false,
   selectedStickerIds = [],
@@ -522,7 +539,7 @@ function CategoryRow({
     <View ref={rowRef} onLayout={onRowLayout}>
       <Animated.View
         entering={
-          rowIndex < MAX_ENTRANCE_ROWS
+          !skipEntrance && rowIndex < MAX_ENTRANCE_ROWS
             ? FadeInDown.delay(rowIndex * ROW_ENTRANCE_STAGGER).duration(260)
             : undefined
         }

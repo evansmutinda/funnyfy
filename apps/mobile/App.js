@@ -9,9 +9,11 @@ import {
   AppState,
   BackHandler,
   Platform,
+  StatusBar,
+  StyleSheet,
   View,
 } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 import {
   initRevenueCat,
   getOfferings,
@@ -121,7 +123,7 @@ export default function App() {
   });
 
   return (
-    <SafeAreaProvider>
+    <SafeAreaProvider initialMetrics={initialWindowMetrics}>
       <NotificationProvider>
         <NetworkProvider>
           <AppContent fontsLoaded={fontsLoaded} />
@@ -134,6 +136,7 @@ export default function App() {
 function AppShell({ children, updateBanner = null }) {
   return (
     <View style={{ flex: 1, backgroundColor: DARK_BG }}>
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
       {children}
       {updateBanner}
     </View>
@@ -174,6 +177,7 @@ function AppContent({ fontsLoaded }) {
   const authTokenRef = useRef(null);
   const authInitPromiseRef = useRef(null);
   const resultBackHandlerRef = useRef(null);
+  const styleBackHandlerRef = useRef(null);
   const lastExitPressRef = useRef(0);
   const pendingFailureDialogRef = useRef(null);
   const subscriptionRefreshSeqRef = useRef(0);
@@ -1399,9 +1403,11 @@ function AppContent({ fontsLoaded }) {
     }
   };
 
+  const onHardwareBackRef = useRef(() => true);
+
   useEffect(() => {
     lastExitPressRef.current = 0;
-  }, [screen]);
+  }, [screen, styleReturnCategory]);
 
   useEffect(() => {
     const confirmExit = () => {
@@ -1415,7 +1421,7 @@ function AppContent({ fontsLoaded }) {
       return true;
     };
 
-    const onBackPress = () => {
+    onHardwareBackRef.current = () => {
       if (screen === 'result') {
         resultBackHandlerRef.current?.();
         return true;
@@ -1434,6 +1440,15 @@ function AppContent({ fontsLoaded }) {
         return true;
       }
       if (screen === 'style') {
+        if (styleBackHandlerRef.current?.()) {
+          lastExitPressRef.current = 0;
+          return true;
+        }
+        if (styleReturnCategory) {
+          setStyleReturnCategory(null);
+          lastExitPressRef.current = 0;
+          return true;
+        }
         if (restyleMode) {
           handleCancelRestyle();
           return true;
@@ -1442,10 +1457,15 @@ function AppContent({ fontsLoaded }) {
       }
       return confirmExit();
     };
+  }, [screen, restyleMode, showToast, styleReturnCategory]);
 
-    const sub = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+  useEffect(() => {
+    const sub = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => onHardwareBackRef.current(),
+    );
     return () => sub.remove();
-  }, [screen, restyleMode, showToast]);
+  }, []);
 
   // Hard paywall: generating requires an active plan with quota left. While the
   // subscription is still unknown we stay permissive — the API is the real gate.
@@ -1482,200 +1502,108 @@ function AppContent({ fontsLoaded }) {
     />
   );
 
-  if (screen === 'style') {
-    return (
-      <AppShell updateBanner={updateBannerEl}>
-        <StyleScreen
-          selectedStyle={style}
-          availableStyles={availableStyles}
-          stylesLoading={stylesLoading}
-          restyleMode={restyleMode}
-          initialActiveCategory={styleReturnCategory}
-          onActiveCategoryChange={setStyleReturnCategory}
-          onCancelRestyle={handleCancelRestyle}
-          onOpenMenu={() => setScreen('menu')}
-          selectedStickerIds={selectedStickerIds}
-          onToggleSticker={handleToggleSticker}
-          onCreateStickerPack={handleCreateStickerPack}
-          onClearStickerPack={() => {
-            setSelectedStickerIds([]);
-            setStickerPackPending(false);
-          }}
-          onNext={(s) => {
-            setSelectedStickerIds([]);
-            setStickerPackPending(false);
-            setStyle(s);
-            setStyleReturnCategory(s?.categoryId || getStyleCategory(s?.id) || null);
-            if (restyleMode && original?.imageDataUrl) {
-              if (!isOnline) {
-                showToast(
-                  'Check your internet connectivity',
-                  'Connect to the internet to generate caricatures.',
-                  'warning',
-                );
-                return;
-              }
-              setRestyleMode(false);
-              setResult(null);
-              setFailedAttempts(0);
-              setPendingJobId(null);
-              setOriginal((prev) => (prev ? { ...prev, prompt: s.prompt } : prev));
-              setScreen('result');
-              callApi({ imageDataUrl: original.imageDataUrl, styleId: s.id });
-              return;
-            }
-            setRestyleMode(false);
-            // Fresh style selection — clear any previously picked photo
-            // so the upload screen starts from its empty state.
-            setPickedImage(null);
-            setScreen('upload');
-          }}
-        />
-      </AppShell>
-    );
-  }
-
+  let overlay = null;
   if (screen === 'menu') {
-    return (
-      <AppShell updateBanner={updateBannerEl}>
-        <MenuScreen
-          onBack={() => setScreen('style')}
-          onSelect={handleMenuSelect}
-          userId={userId}
-          onUserIdCopied={() => {
-            showToast('Copied', 'User ID copied — include it when contacting support', 'success');
-          }}
-        />
-      </AppShell>
+    overlay = (
+      <MenuScreen
+        onBack={() => setScreen('style')}
+        onSelect={handleMenuSelect}
+        userId={userId}
+        onUserIdCopied={() => {
+          showToast('Copied', 'User ID copied — include it when contacting support', 'success');
+        }}
+      />
     );
-  }
-
-  if (screen === 'sticker-pack') {
-    const packStyles = availableStyles.filter((item) => selectedStickerIds.includes(item.id));
-    return (
-      <AppShell updateBanner={updateBannerEl}>
-        <StickerPackScreen
-          selectedStyles={packStyles}
-          loading={loading}
-          job={job}
-          errorMessage={stickerPackError}
-          sheetUrl={stickerPackSheetUrl}
-          subscriptionInfo={subscriptionInfo}
-          onOpenUsage={() => setScreen('usage')}
-          onBack={() => {
-            setStyleReturnCategory('stickers');
-            setScreen('style');
-          }}
-        />
-      </AppShell>
+  } else if (screen === 'sticker-pack') {
+    overlay = (
+      <StickerPackScreen
+        selectedStyles={availableStyles.filter((item) => selectedStickerIds.includes(item.id))}
+        loading={loading}
+        job={job}
+        errorMessage={stickerPackError}
+        sheetUrl={stickerPackSheetUrl}
+        subscriptionInfo={subscriptionInfo}
+        onOpenUsage={() => setScreen('usage')}
+        onBack={() => {
+          setStyleReturnCategory('stickers');
+          setScreen('style');
+        }}
+      />
     );
-  }
-
-  if (screen === 'privacy') {
-    return (
-      <AppShell updateBanner={updateBannerEl}>
-        <InfoScreen
-          title="Privacy Policy"
-          content={PRIVACY_POLICY_TEXT}
-          onBack={() => setScreen('style')}
-        />
-      </AppShell>
+  } else if (screen === 'privacy') {
+    overlay = (
+      <InfoScreen
+        title="Privacy Policy"
+        content={PRIVACY_POLICY_TEXT}
+        onBack={() => setScreen('style')}
+      />
     );
-  }
-
-  if (screen === 'terms') {
-    return (
-      <AppShell updateBanner={updateBannerEl}>
-        <InfoScreen
-          title="Terms & Conditions"
-          content={TERMS_TEXT}
-          onBack={() => setScreen('style')}
-        />
-      </AppShell>
+  } else if (screen === 'terms') {
+    overlay = (
+      <InfoScreen
+        title="Terms & Conditions"
+        content={TERMS_TEXT}
+        onBack={() => setScreen('style')}
+      />
     );
-  }
-
-  if (screen === 'gallery') {
-    return (
-      <AppShell updateBanner={updateBannerEl}>
-        <GalleryScreen onBack={() => setScreen('style')} />
-      </AppShell>
+  } else if (screen === 'gallery') {
+    overlay = <GalleryScreen onBack={() => setScreen('style')} />;
+  } else if (screen === 'usage') {
+    overlay = (
+      <UsageScreen
+        subscriptionInfo={subscriptionInfo}
+        subscriptionLoading={subscriptionLoading}
+        onRefreshSubscription={refreshSubscription}
+        onOpenSubscription={() => setScreen('subscription')}
+        onBack={() => setScreen('style')}
+      />
     );
-  }
-
-  if (screen === 'usage') {
-    return (
-      <AppShell updateBanner={updateBannerEl}>
-        <UsageScreen
-          subscriptionInfo={subscriptionInfo}
-          subscriptionLoading={subscriptionLoading}
-          onRefreshSubscription={refreshSubscription}
-          onOpenSubscription={() => setScreen('subscription')}
-          onBack={() => setScreen('style')}
-        />
-      </AppShell>
+  } else if (screen === 'subscription') {
+    overlay = (
+      <SubscriptionScreen
+        subscriptionInfo={subscriptionInfo}
+        subscriptionLoading={subscriptionLoading}
+        onSubscribe={handleSubscribe}
+        subscribeLoading={subscribeLoading}
+        onManageSubscription={handleManageSubscription}
+        storeSubscriptionLabel={getStoreSubscriptionLabel()}
+        onRestorePurchases={handleRestorePurchases}
+        onOpenPrivacy={() => setScreen('privacy')}
+        onOpenTerms={() => setScreen('terms')}
+        onClose={() => setScreen('style')}
+      />
     );
-  }
-
-  if (screen === 'subscription') {
-    return (
-      <AppShell updateBanner={updateBannerEl}>
-        <SubscriptionScreen
-          subscriptionInfo={subscriptionInfo}
-          subscriptionLoading={subscriptionLoading}
-          onSubscribe={handleSubscribe}
-          subscribeLoading={subscribeLoading}
-          onManageSubscription={handleManageSubscription}
-          storeSubscriptionLabel={getStoreSubscriptionLabel()}
-          onRestorePurchases={handleRestorePurchases}
-          onOpenPrivacy={() => setScreen('privacy')}
-          onOpenTerms={() => setScreen('terms')}
-          onClose={() => setScreen('style')}
-        />
-      </AppShell>
+  } else if (screen === 'upload') {
+    overlay = (
+      <UploadScreen
+        style={style}
+        onPicked={(image) => { setPickedImage(image); setScreen('review'); }}
+        subscriptionInfo={subscriptionInfo}
+        onSubscribe={handleSubscribe}
+        onOpenUsage={() => setScreen('usage')}
+        onBackToStyle={() => { setRestyleMode(false); setScreen('style'); }}
+      />
     );
-  }
-
-  if (screen === 'upload') {
-    return (
-      <AppShell updateBanner={updateBannerEl}>
-        <UploadScreen
-          style={style}
-          onPicked={(image) => { setPickedImage(image); setScreen('review'); }}
-          subscriptionInfo={subscriptionInfo}
-          onSubscribe={handleSubscribe}
-          onOpenUsage={() => setScreen('usage')}
-          onBackToStyle={() => { setRestyleMode(false); setScreen('style'); }}
-        />
-      </AppShell>
+  } else if (screen === 'review') {
+    overlay = (
+      <PhotoReviewScreen
+        style={style}
+        imageUri={pickedImage?.uri}
+        imageDataUrl={pickedImage?.dataUrl}
+        isOnline={isOnline}
+        isGenerating={loading}
+        subscriptionInfo={subscriptionInfo}
+        canGenerateMore={canGenerateMore}
+        onStart={handleUploadStart}
+        onSubscribe={handleSubscribe}
+        onOpenUsage={() => setScreen('usage')}
+        onReplacePhoto={(image) => setPickedImage(image)}
+        onBack={() => { setPickedImage(null); setScreen('upload'); }}
+      />
     );
-  }
-
-  if (screen === 'review') {
-    return (
-      <AppShell updateBanner={updateBannerEl}>
-        <PhotoReviewScreen
-          style={style}
-          imageUri={pickedImage?.uri}
-          imageDataUrl={pickedImage?.dataUrl}
-          isOnline={isOnline}
-          isGenerating={loading}
-          subscriptionInfo={subscriptionInfo}
-          canGenerateMore={canGenerateMore}
-          onStart={handleUploadStart}
-          onSubscribe={handleSubscribe}
-          onOpenUsage={() => setScreen('usage')}
-          onReplacePhoto={(image) => setPickedImage(image)}
-          onBack={() => { setPickedImage(null); setScreen('upload'); }}
-        />
-      </AppShell>
-    );
-  }
-
-  if (screen === 'result') {
-    return (
-      <AppShell updateBanner={updateBannerEl}>
-        <ResultScreen
+  } else if (screen === 'result') {
+    overlay = (
+      <ResultScreen
         original={original}
         result={result}
         loading={loading}
@@ -1703,10 +1631,71 @@ function AppContent({ fontsLoaded }) {
         onTryAnotherStyle={handleTryAnotherStyle}
         onTryAnotherPhoto={handleTryAnotherPhoto}
         onRegenerate={handleRegenerate}
-        />
-      </AppShell>
+      />
     );
   }
 
-  return null;
+  return (
+    <AppShell updateBanner={updateBannerEl}>
+      <View style={{ flex: 1 }}>
+        <View
+          style={{ flex: 1 }}
+          pointerEvents={screen === 'style' ? 'auto' : 'none'}
+          importantForAccessibility={screen === 'style' ? 'auto' : 'no-hide-descendants'}
+        >
+          <StyleScreen
+            selectedStyle={style}
+            availableStyles={availableStyles}
+            stylesLoading={stylesLoading}
+            restyleMode={restyleMode}
+            initialActiveCategory={styleReturnCategory}
+            onActiveCategoryChange={setStyleReturnCategory}
+            onCancelRestyle={handleCancelRestyle}
+            interactionPaused={screen !== 'style'}
+            onOpenMenu={() => setScreen('menu')}
+            selectedStickerIds={selectedStickerIds}
+            onToggleSticker={handleToggleSticker}
+            onCreateStickerPack={handleCreateStickerPack}
+            onClearStickerPack={() => {
+              setSelectedStickerIds([]);
+              setStickerPackPending(false);
+            }}
+            backHandlerRef={styleBackHandlerRef}
+            onNext={(s) => {
+              setSelectedStickerIds([]);
+              setStickerPackPending(false);
+              setStyle(s);
+              setStyleReturnCategory(s?.categoryId || getStyleCategory(s?.id) || null);
+              if (restyleMode && original?.imageDataUrl) {
+                if (!isOnline) {
+                  showToast(
+                    'Check your internet connectivity',
+                    'Connect to the internet to generate caricatures.',
+                    'warning',
+                  );
+                  return;
+                }
+                setRestyleMode(false);
+                setResult(null);
+                setFailedAttempts(0);
+                setPendingJobId(null);
+                setOriginal((prev) => (prev ? { ...prev, prompt: s.prompt } : prev));
+                setScreen('result');
+                callApi({ imageDataUrl: original.imageDataUrl, styleId: s.id });
+                return;
+              }
+              setRestyleMode(false);
+              setPickedImage(null);
+              setScreen('upload');
+            }}
+          />
+        </View>
+        {overlay ? (
+          <View style={[StyleSheet.absoluteFillObject, { backgroundColor: DARK_BG, zIndex: 2 }]}>
+            {overlay}
+          </View>
+        ) : null}
+      </View>
+    </AppShell>
+  );
 }

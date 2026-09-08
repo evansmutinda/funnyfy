@@ -1,10 +1,10 @@
 import React from 'react';
-import { Image, ScrollView, StatusBar, Text, View } from 'react-native';
+import { Image, ScrollView, Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Clipboard from 'expo-clipboard';
 import PressScale from '../components/PressScale';
 import { APP_NAME, BOTTOM_INSET_MIN } from '../constants';
+import useStableSafeAreaInsets from '../hooks/useStableSafeAreaInsets';
 import styles from '../styles';
 
 const ITEMS = [
@@ -27,7 +27,7 @@ function formatUserIdPreview(userId) {
 }
 
 export default function MenuScreen({ onBack, onSelect, userId, onUserIdCopied }) {
-  const insets = useSafeAreaInsets();
+  const insets = useStableSafeAreaInsets();
 
   const handleCopyUserId = async () => {
     if (!userId) return;
@@ -41,8 +41,6 @@ export default function MenuScreen({ onBack, onSelect, userId, onUserIdCopied })
 
   return (
     <View style={styles.menuRoot}>
-      <StatusBar barStyle="light-content" backgroundColor="#0B0F19" />
-
       <View style={[styles.menuHeaderBand, { paddingTop: Math.max(insets.top, 8) }]}>
         <View style={styles.menuHeaderRow}>
           <PressScale onPress={onBack} style={styles.uploadCircleButton}>

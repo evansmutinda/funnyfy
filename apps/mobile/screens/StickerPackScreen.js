@@ -5,16 +5,15 @@ import {
   Image,
   Platform,
   ScrollView,
-  StatusBar,
   Text,
   View,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { Feather } from '@expo/vector-icons';
 import PressScale from '../components/PressScale';
 import { useNotifications } from '../components/NotificationProvider';
+import useStableSafeAreaInsets from '../hooks/useStableSafeAreaInsets';
 import { saveToGallery } from './GalleryScreen';
 import {
   FUNNYFY_FOLDER_NAME,
@@ -50,7 +49,7 @@ export default function StickerPackScreen({
   onOpenUsage,
   subscriptionInfo,
 }) {
-  const insets = useSafeAreaInsets();
+  const insets = useStableSafeAreaInsets();
   const { showToast, showDialog, closeDialog } = useNotifications();
   const [saving, setSaving] = useState(false);
   const [sharing, setSharing] = useState(false);
@@ -228,7 +227,6 @@ export default function StickerPackScreen({
 
   return (
     <View style={styles.styleScreenSafe}>
-      <StatusBar barStyle="light-content" backgroundColor="#0B0F19" />
       <View style={[styles.styleScreenHeader, { paddingTop: Math.max(insets.top, 8) }]}>
         <View style={styles.headerBar}>
           <PressScale onPress={() => confirmNavigate(onBack)} style={styles.iconButton}>

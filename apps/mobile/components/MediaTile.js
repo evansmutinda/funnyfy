@@ -47,7 +47,7 @@ function MediaTile({
   const appForeground = useAppForeground();
   const comparisonPausedRaw =
     !showComparison || !comparisonActive || !appForeground;
-  const [comparisonPaused, setComparisonPaused] = useState(comparisonPausedRaw);
+  const [comparisonPaused, setComparisonPaused] = useState(true);
 
   useEffect(() => {
     if (interactionPaused) return undefined;
@@ -55,19 +55,21 @@ function MediaTile({
     return undefined;
   }, [comparisonPausedRaw, interactionPaused]);
 
-  const [comparisonReady, setComparisonReady] = useState(!interactionPaused);
+  const [comparisonReady, setComparisonReady] = useState(false);
   useEffect(() => {
-    if (interactionPaused) {
+    if (interactionPaused || !comparisonActive) {
       setComparisonReady(false);
       return undefined;
     }
     const timeoutId = setTimeout(() => setComparisonReady(true), 280);
     return () => clearTimeout(timeoutId);
-  }, [interactionPaused]);
+  }, [interactionPaused, comparisonActive]);
 
-  // Menu overlay: skip ComparisonFade entirely so Reanimated stops immediately.
-  const useStaticComparison = interactionPaused && showComparison;
-  const runComparison = showComparison && comparisonReady && !interactionPaused;
+  // Off-screen and overlay tiles stay on a still frame so opening a category
+  // does not decode/animate every comparison at once.
+  const runComparison =
+    showComparison && comparisonReady && comparisonActive && !interactionPaused;
+  const useStaticComparison = showComparison && !runComparison;
 
   const imageWrapperStyle = isDiscovery
     ? [

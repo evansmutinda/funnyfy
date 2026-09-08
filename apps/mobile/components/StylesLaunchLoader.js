@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { StatusBar, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import Animated, {
   Easing,
   FadeIn,
@@ -11,9 +11,9 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import StyleLoadingBar from './StyleLoadingBar';
 import { BOTTOM_INSET_MIN } from '../constants';
+import useStableSafeAreaInsets from '../hooks/useStableSafeAreaInsets';
 import styles from '../styles';
 
 const SKELETON_ROWS = [
@@ -75,15 +75,13 @@ function SkeletonCategoryRow({ titleWidth, tileCount, rowIndex }) {
 }
 
 export default function StylesLaunchLoader() {
-  const insets = useSafeAreaInsets();
+  const insets = useStableSafeAreaInsets();
 
   return (
     <Animated.View
       entering={FadeIn.duration(220)}
       style={[styles.launchLoaderRoot, { paddingTop: insets.top + 12 }]}
     >
-      <StatusBar barStyle="light-content" backgroundColor="#0B0F19" />
-
       <View style={styles.launchLoaderBrand}>
         <Text style={styles.launchLoaderMark}>FunnyFy</Text>
         <Text style={styles.launchLoaderTagline}>Pick a style · Make it funny</Text>

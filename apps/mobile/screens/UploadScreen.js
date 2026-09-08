@@ -1,19 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  StatusBar,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PressScale from '../components/PressScale';
 import UploadFlowHeader, { getUploadQuotaInfo } from '../components/UploadFlowHeader';
 import ComparisonFade from '../components/ComparisonFade';
 import PhotoTipsSheet from '../components/PhotoTipsSheet';
 import useImagePicker from '../hooks/useImagePicker';
+import useStableSafeAreaInsets from '../hooks/useStableSafeAreaInsets';
 import { getComparisonPair } from '../data/comparisonPairs';
 import { getStylePhotoTips } from '../data/stylePhotoTips';
 import { isPhotoTipsDismissed, setPhotoTipsDismissed } from '../utils/photoTipsPrefs';
@@ -35,7 +34,7 @@ export default function UploadScreen({
   onSubscribe,
   onOpenUsage,
 }) {
-  const insets = useSafeAreaInsets();
+  const insets = useStableSafeAreaInsets();
   const { pickImage, picking, pickingSource } = useImagePicker();
   const [tipsVisible, setTipsVisible] = useState(false);
   const styleTips = getStylePhotoTips(style?.id);
@@ -79,8 +78,6 @@ export default function UploadScreen({
 
   return (
     <View style={styles.uploadRoot}>
-      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
-
       {/* Comparison background — looping before/after, including stickers */}
       <ComparisonFade
         key={style?.id || 'upload-comparison'}

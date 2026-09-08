@@ -2012,14 +2012,25 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
+    uploadReviewActionsRow: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    gap: 10,
+    alignSelf: 'stretch',
+  },
+
   
     uploadSmallGhostButton: {
+    flex: 1,
+    minWidth: 0,
+    minHeight: 56,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 6,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 999,
+    paddingVertical: 16,
+    paddingHorizontal: 10,
+    borderRadius: 18,
     backgroundColor: 'rgba(15, 23, 42, 0.8)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.12)',
@@ -2028,38 +2039,57 @@ const styles = StyleSheet.create({
   
     uploadSmallGhostButtonText: {
     fontFamily: FONT_PLUS_JAKARTA,
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '700',
     color: '#FFFFFF',
-    letterSpacing: -0.1,
+    letterSpacing: -0.2,
   },
 
     resultAltActionsRow: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 6,
     alignSelf: 'stretch',
   },
 
     resultAltAction: {
     flex: 1,
+    minWidth: 0,
     minHeight: 52,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
-    paddingVertical: 10,
-    paddingHorizontal: 4,
+    gap: 3,
+    paddingVertical: 8,
+    paddingHorizontal: 2,
     borderRadius: 14,
     backgroundColor: 'rgba(15, 23, 42, 0.8)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.12)',
   },
 
+    resultAltActionPrimary: {
+    backgroundColor: PAPER,
+    borderColor: PAPER,
+  },
+
+    resultAltActionSaved: {
+    backgroundColor: 'rgba(16, 185, 129, 0.14)',
+    borderColor: 'rgba(16, 185, 129, 0.38)',
+  },
+
     resultAltActionText: {
     fontFamily: FONT_PLUS_JAKARTA,
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '600',
     color: '#FFFFFF',
     letterSpacing: -0.1,
+  },
+
+    resultAltActionPrimaryText: {
+    color: INK,
+  },
+
+    resultAltActionSavedText: {
+    color: '#10B981',
   },
 
   
@@ -2069,6 +2099,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+
+    uploadGenerateButtonInRow: {
+    flex: 1,
+    minWidth: 0,
+    minHeight: 56,
+    paddingHorizontal: 10,
   },
 
   

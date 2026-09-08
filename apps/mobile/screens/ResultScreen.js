@@ -4,17 +4,16 @@ import {
   Image,
   PanResponder,
   Platform,
-  StatusBar,
   Text,
   View,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as FileSystem from 'expo-file-system';
-import * as Sharing from 'expo-sharing';
 import { Feather } from '@expo/vector-icons';
 import { useNotifications } from '../components/NotificationProvider';
 import PressScale from '../components/PressScale';
 import UploadFlowHeader from '../components/UploadFlowHeader';
+import useStableSafeAreaInsets from '../hooks/useStableSafeAreaInsets';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 import { saveToGallery } from './GalleryScreen';
 import {
   FUNNYFY_FOLDER_NAME,
@@ -66,7 +65,7 @@ export default function ResultScreen({
   style,
   onUnloadableOutput,
 }) {
-  const insets = useSafeAreaInsets();
+  const insets = useStableSafeAreaInsets();
   const { showToast, showDialog, closeDialog } = useNotifications();
   const imageUrl = result ? getImageUrlFromOutput(result.output) : null;
   const [mix, setMix] = useState(0);
@@ -436,8 +435,6 @@ export default function ResultScreen({
 
   return (
     <View style={styles.resultRoot}>
-      <StatusBar barStyle="light-content" backgroundColor="#0B0F19" />
-
       <View style={[styles.resultHeaderBand, { paddingTop: insets.top + 8 }]}>
         <UploadFlowHeader
           onBack={() => confirmNavigate(onBack)}
@@ -566,7 +563,12 @@ export default function ResultScreen({
           </View>
         ) : null}
 
-        {hasResult && (onTryAnotherStyle || onTryAnotherPhoto || onRegenerate) ? (
+        {/*
+          Result actions — one row: Photo, Style, Again, then Save / Share
+          once a result exists. Save / Share stay hidden while generating.
+          Previous order was Photo / Again / Style.
+        */}
+        {hasResult ? (
           <View style={styles.resultAltActionsRow}>
             {onTryAnotherPhoto ? (
               <PressScale
@@ -575,8 +577,19 @@ export default function ResultScreen({
                 disabled={loading}
                 accessibilityLabel="Try another photo"
               >
-                <Feather name="image" size={18} color="#FFFFFF" />
-                <Text style={styles.resultAltActionText}>Photo</Text>
+                <Feather name="image" size={16} color="#FFFFFF" />
+                <Text style={styles.resultAltActionText} numberOfLines={1}>Photo</Text>
+              </PressScale>
+            ) : null}
+            {onTryAnotherStyle ? (
+              <PressScale
+                style={[styles.resultAltAction, loading && styles.buttonDisabled]}
+                onPress={() => confirmNavigate(onTryAnotherStyle)}
+                disabled={loading}
+                accessibilityLabel="Try another style"
+              >
+                <Feather name="grid" size={16} color="#FFFFFF" />
+                <Text style={styles.resultAltActionText} numberOfLines={1}>Style</Text>
               </PressScale>
             ) : null}
             {onRegenerate ? (
@@ -589,72 +602,69 @@ export default function ResultScreen({
                 disabled={loading}
                 accessibilityLabel="Regenerate this style"
               >
-                <Feather name="refresh-cw" size={18} color="#FFFFFF" />
-                <Text style={styles.resultAltActionText}>Again</Text>
+                <Feather name="refresh-cw" size={16} color="#FFFFFF" />
+                <Text style={styles.resultAltActionText} numberOfLines={1}>Again</Text>
               </PressScale>
             ) : null}
-            {onTryAnotherStyle ? (
+            {!loading ? (
               <PressScale
-                style={[styles.resultAltAction, loading && styles.buttonDisabled]}
-                onPress={() => confirmNavigate(onTryAnotherStyle)}
-                disabled={loading}
-                accessibilityLabel="Try another style"
+                style={[
+                  styles.resultAltAction,
+                  styles.resultAltActionPrimary,
+                  hasBeenSaved && styles.resultAltActionSaved,
+                  saveDisabled && styles.buttonDisabled,
+                ]}
+                onPress={() => handleDownload()}
+                disabled={saveDisabled}
+                accessibilityLabel={hasBeenSaved ? 'Saved' : 'Save'}
               >
-                <Feather name="grid" size={18} color="#FFFFFF" />
-                <Text style={styles.resultAltActionText}>Style</Text>
+                {saving ? (
+                  <ActivityIndicator size="small" color="#0F172A" />
+                ) : (
+                  <Feather
+                    name={hasBeenSaved ? 'check' : 'download'}
+                    size={16}
+                    color={hasBeenSaved ? '#10B981' : '#0F172A'}
+                  />
+                )}
+                <Text
+                  style={[
+                    styles.resultAltActionText,
+                    styles.resultAltActionPrimaryText,
+                    hasBeenSaved && styles.resultAltActionSavedText,
+                  ]}
+                  numberOfLines={1}
+                >
+                  {saving ? '…' : hasBeenSaved ? 'Saved' : 'Save'}
+                </Text>
+              </PressScale>
+            ) : null}
+            {!loading ? (
+              <PressScale
+                style={[
+                  styles.resultAltAction,
+                  styles.resultAltActionPrimary,
+                  saveDisabled && styles.buttonDisabled,
+                ]}
+                onPress={handleShare}
+                disabled={saveDisabled}
+                accessibilityLabel="Share"
+              >
+                {sharing ? (
+                  <ActivityIndicator size="small" color="#0F172A" />
+                ) : (
+                  <Feather name="share-2" size={16} color="#0F172A" />
+                )}
+                <Text
+                  style={[styles.resultAltActionText, styles.resultAltActionPrimaryText]}
+                  numberOfLines={1}
+                >
+                  {sharing ? '…' : 'Share'}
+                </Text>
               </PressScale>
             ) : null}
           </View>
         ) : null}
-
-        <View style={styles.resultActionRow}>
-          <PressScale
-            style={[
-              styles.resultActionButton,
-              hasBeenSaved && styles.resultActionButtonSaved,
-              saveDisabled && styles.buttonDisabled,
-            ]}
-            onPress={() => handleDownload()}
-            disabled={saveDisabled}
-          >
-            {saving ? (
-              <ActivityIndicator size="small" color="#0F172A" />
-            ) : (
-              <Feather
-                name={hasBeenSaved ? 'check' : 'download'}
-                size={18}
-                color={hasBeenSaved ? '#10B981' : '#0F172A'}
-              />
-            )}
-            <Text
-              style={[
-                styles.resultActionButtonText,
-                hasBeenSaved && styles.resultActionButtonTextSaved,
-              ]}
-              numberOfLines={1}
-            >
-              {saving ? 'Saving…' : hasBeenSaved ? 'Saved' : 'Save'}
-            </Text>
-          </PressScale>
-
-          <PressScale
-            style={[
-              styles.resultActionButton,
-              saveDisabled && styles.buttonDisabled,
-            ]}
-            onPress={handleShare}
-            disabled={saveDisabled}
-          >
-            {sharing ? (
-              <ActivityIndicator size="small" color="#0F172A" />
-            ) : (
-              <Feather name="share-2" size={18} color="#0F172A" />
-            )}
-            <Text style={styles.resultActionButtonText} numberOfLines={1}>
-              {sharing ? 'Sharing…' : 'Share'}
-            </Text>
-          </PressScale>
-        </View>
       </View>
     </View>
   );

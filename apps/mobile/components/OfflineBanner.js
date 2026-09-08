@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import useStableSafeAreaInsets from '../hooks/useStableSafeAreaInsets';
 import { useNetwork } from './NetworkProvider';
 import styles from '../styles';
 
@@ -14,7 +14,7 @@ const OFFLINE_SHOW_DELAY_MS = 1500;
  */
 export default function OfflineBanner() {
   const { isOnline } = useNetwork();
-  const insets = useSafeAreaInsets();
+  const insets = useStableSafeAreaInsets();
   const [showBanner, setShowBanner] = useState(false);
 
   useEffect(() => {

@@ -1,16 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import {
-  StatusBar,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PressScale from '../components/PressScale';
 import PaywallStyleFade from '../components/PaywallStyleFade';
 import { PAYWALL_MARQUEE_IMAGES } from '../constants';
+import useStableSafeAreaInsets from '../hooks/useStableSafeAreaInsets';
 import styles from '../styles';
 
 const DARK_BG = '#0B0F19';
@@ -52,7 +51,7 @@ export default function SubscriptionScreen({
   onOpenTerms,
   onClose,
 }) {
-  const insets = useSafeAreaInsets();
+  const insets = useStableSafeAreaInsets();
   const [selectedTier, setSelectedTier] = useState(null);
 
   const subscription = subscriptionInfo?.subscription;
@@ -76,8 +75,6 @@ export default function SubscriptionScreen({
 
   return (
     <View style={styles.pwdRoot}>
-      <StatusBar barStyle="light-content" backgroundColor={DARK_BG} />
-
       <View style={[styles.pwdFloatingCloseWrap, styles.pwdFloatingCloseLeft, { top: insets.top + 4 }]}>
         <PressScale onPress={onClose} style={styles.pwdCloseCircle} hitSlop={8}>
           <Feather name="x" size={20} color="#FFFFFF" />

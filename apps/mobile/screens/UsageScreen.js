@@ -2,15 +2,14 @@ import React from 'react';
 import {
   ActivityIndicator,
   ScrollView,
-  StatusBar,
   Text,
   View,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import PressScale from '../components/PressScale';
 import { BOTTOM_INSET_MIN } from '../constants';
+import useStableSafeAreaInsets from '../hooks/useStableSafeAreaInsets';
 import { formatSubscriptionDate, getDisplayRenewalDate } from '../utils/subscriptionDates';
 import { getUsageQuotaInfo } from '../utils/usageQuota';
 import styles from '../styles';
@@ -28,7 +27,7 @@ export default function UsageScreen({
   onOpenSubscription,
   onBack,
 }) {
-  const insets = useSafeAreaInsets();
+  const insets = useStableSafeAreaInsets();
 
   const subscription = subscriptionInfo?.subscription;
   const quotaInfo = getUsageQuotaInfo(subscriptionInfo);
@@ -56,8 +55,6 @@ export default function UsageScreen({
 
   return (
     <View style={styles.galleryRoot}>
-      <StatusBar barStyle="light-content" backgroundColor="#0B0F19" />
-
       <View style={[styles.galleryHeaderBand, { paddingTop: insets.top + 8 }]}>
         <View style={styles.galleryHeaderRow}>
           <PressScale onPress={onBack} style={styles.uploadCircleButton}>

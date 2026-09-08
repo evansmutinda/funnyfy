@@ -11,7 +11,11 @@ param(
     [switch]$NoVersionBump
 )
 
-$ErrorActionPreference = "Stop"
+# Native tools (npm, expo, gradle) write warnings to stderr. In Windows
+# PowerShell, $ErrorActionPreference=Stop can turn that into a crash with
+# no useful message and close the window before you can read it.
+$ErrorActionPreference = "Continue"
+$PSNativeCommandUseErrorActionPreference = $false
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
@@ -21,10 +25,35 @@ Write-Host ""
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $mobileDir = Join-Path $scriptDir "apps\mobile"
+$logFile = Join-Path $scriptDir "apk-build.log"
+
+function Write-Log([string]$Message) {
+    $line = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')  $Message"
+    Add-Content -Path $logFile -Value $line -Encoding UTF8
+}
+
+function Fail-Build([string]$Message, [object]$ErrorRecord = $null) {
+    Write-Host ""
+    Write-Host "BUILD FAILED" -ForegroundColor Red
+    Write-Host $Message -ForegroundColor Red
+    if ($ErrorRecord) {
+        Write-Host ($ErrorRecord | Out-String) -ForegroundColor DarkRed
+        Write-Log ($ErrorRecord | Out-String)
+    }
+    Write-Host ""
+    Write-Host "Full log: $logFile" -ForegroundColor Yellow
+    Write-Log "FAILED: $Message"
+    Write-Host ""
+    Read-Host "Press Enter to close"
+    exit 1
+}
+
+Set-Content -Path $logFile -Value "FunnyFy local APK build log`n" -Encoding UTF8
+Write-Host "Log file: $logFile" -ForegroundColor Gray
+Write-Log "Starting (Release=$Release SkipPrebuild=$SkipPrebuild NoVersionBump=$NoVersionBump)"
 
 if (-not (Test-Path $mobileDir)) {
-    Write-Host "Error: apps/mobile not found. Run from project root." -ForegroundColor Red
-    exit 1
+    Fail-Build "apps/mobile not found. Run from project root."
 }
 
 Set-Location $mobileDir
@@ -35,6 +64,7 @@ if (-not (Test-Path $envFile)) {
     Write-Host "Warning: apps/mobile/.env not found." -ForegroundColor Yellow
     Write-Host "Copy env.example to .env and set EXPO_PUBLIC_API_URL + RevenueCat keys." -ForegroundColor Yellow
     Write-Host ""
+    Write-Log "Warning: .env missing"
 }
 
 # Check Android SDK
@@ -43,69 +73,84 @@ if (-not $androidHome) {
     $androidHome = "$env:LOCALAPPDATA\Android\Sdk"
 }
 if (-not (Test-Path $androidHome)) {
-    Write-Host "Android SDK not found." -ForegroundColor Red
-    Write-Host ""
-    Write-Host "Install Android Studio, then set ANDROID_HOME:" -ForegroundColor Yellow
-    Write-Host '  $env:ANDROID_HOME = "$env:LOCALAPPDATA\Android\Sdk"' -ForegroundColor Gray
-    Write-Host ""
-    Write-Host "In Android Studio: SDK Manager -> install Android SDK Platform 35 (or 34)" -ForegroundColor Yellow
-    exit 1
+    Fail-Build "Android SDK not found at $androidHome. Install Android Studio, then set ANDROID_HOME."
 }
 Write-Host "Android SDK: $androidHome" -ForegroundColor Green
+Write-Log "Android SDK: $androidHome"
 
-# Gradle/React Native need JDK 17; default PATH may point at a newer JDK (e.g. 25).
-if (-not $env:JAVA_HOME -or -not (Test-Path (Join-Path $env:JAVA_HOME "bin\java.exe"))) {
-    $jdk17Candidates = @(
+# Gradle/React Native need JDK 17. PATH often points at Java 25, which crashes Gradle.
+function Find-Jdk17Home {
+    $exact = @(
         "C:\Program Files\Java\jdk-17",
+        "C:\Program Files\Eclipse Adoptium\jdk-17",
+        "C:\Program Files\Microsoft\jdk-17"
+    )
+    foreach ($root in $exact) {
+        if (Test-Path (Join-Path $root "bin\java.exe")) { return $root }
+    }
+    $globs = @(
+        "C:\Program Files\Java\jdk-17*",
         "C:\Program Files\Eclipse Adoptium\jdk-17*",
         "C:\Program Files\Microsoft\jdk-17*"
     )
-    foreach ($pattern in $jdk17Candidates) {
+    foreach ($pattern in $globs) {
         $match = Get-Item $pattern -ErrorAction SilentlyContinue | Select-Object -First 1
         if ($match -and (Test-Path (Join-Path $match.FullName "bin\java.exe"))) {
-            $env:JAVA_HOME = $match.FullName
-            break
+            return $match.FullName
         }
     }
+    if ($env:JAVA_HOME -and (Test-Path (Join-Path $env:JAVA_HOME "bin\java.exe"))) {
+        $out = cmd /c "`"$env:JAVA_HOME\bin\java.exe`" -version 2>&1"
+        if ("$out" -match 'version "17') { return $env:JAVA_HOME }
+    }
+    return $null
 }
-if ($env:JAVA_HOME) {
-    $env:PATH = (Join-Path $env:JAVA_HOME "bin") + ";" + $env:PATH
-    Write-Host "JAVA_HOME: $env:JAVA_HOME" -ForegroundColor Green
-} else {
-    Write-Host "Warning: JDK 17 not found. Install JDK 17 and set JAVA_HOME before building." -ForegroundColor Yellow
+
+$jdk17Home = Find-Jdk17Home
+if (-not $jdk17Home) {
+    Fail-Build "JDK 17 not found. Install JDK 17 (not 21/25). PATH currently has a newer Java that crashes Gradle."
 }
+$env:JAVA_HOME = $jdk17Home
+$env:PATH = (Join-Path $env:JAVA_HOME "bin") + ";" + $env:PATH
+Write-Host "JAVA_HOME: $env:JAVA_HOME (forced JDK 17)" -ForegroundColor Green
+Write-Log "JAVA_HOME: $env:JAVA_HOME"
+
+try {
 
 Write-Host ""
 Write-Host "Installing npm dependencies..." -ForegroundColor Yellow
+Write-Log "npm install"
 npm install
-if ($LASTEXITCODE -ne 0) { exit 1 }
+if ($LASTEXITCODE -ne 0) { Fail-Build "npm install failed (exit $LASTEXITCODE)." }
 
 if (-not $NoVersionBump) {
     Write-Host ""
     Write-Host "Bumping build numbers (version.json)..." -ForegroundColor Yellow
+    Write-Log "bump-version --build"
     node scripts/bump-version.js --build
-    if ($LASTEXITCODE -ne 0) { exit 1 }
+    if ($LASTEXITCODE -ne 0) { Fail-Build "Version bump failed (exit $LASTEXITCODE)." }
 } else {
     Write-Host "Skipping version bump (-NoVersionBump)" -ForegroundColor Gray
 }
 
 $versionInfo = Get-Content (Join-Path $mobileDir "version.json") -Raw | ConvertFrom-Json
 Write-Host "App version: $($versionInfo.version) (Android versionCode $($versionInfo.androidVersionCode))" -ForegroundColor Cyan
+Write-Log "App version $($versionInfo.version) code $($versionInfo.androidVersionCode)"
 
 if (-not $SkipPrebuild) {
     Write-Host ""
     Write-Host "Generating native Android project (expo prebuild)..." -ForegroundColor Yellow
     Write-Host "This may take a few minutes the first time." -ForegroundColor Gray
+    Write-Log "expo prebuild --platform android --clean"
     npx expo prebuild --platform android --clean
-    if ($LASTEXITCODE -ne 0) { exit 1 }
+    if ($LASTEXITCODE -ne 0) { Fail-Build "expo prebuild failed (exit $LASTEXITCODE)." }
 } else {
     Write-Host "Skipping prebuild (-SkipPrebuild)" -ForegroundColor Gray
 }
 
 $androidDir = Join-Path $mobileDir "android"
 if (-not (Test-Path $androidDir)) {
-    Write-Host "Error: android/ folder missing. Run without -SkipPrebuild." -ForegroundColor Red
-    exit 1
+    Fail-Build "android/ folder missing. Run without -SkipPrebuild."
 }
 
 # Gradle wrapper defaults to 10s network timeout — too short for gradle-8.x zip on slow networks.
@@ -125,6 +170,19 @@ $env:ANDROID_SDK_ROOT = $androidHome
 $sdkDirProp = "sdk.dir=" + ($androidHome.Replace('\', '\\').Replace(':', '\:'))
 Set-Content -Path (Join-Path $androidDir "local.properties") -Value $sdkDirProp -Encoding ASCII -NoNewline
 Add-Content -Path (Join-Path $androidDir "local.properties") -Value "" -Encoding ASCII
+
+# Expo writes androidStatusBar.backgroundColor "transparent" as a literal
+# <color> which aapt2 cannot compile. Hex #00000000 is valid.
+$colorsXml = Join-Path $androidDir "app\src\main\res\values\colors.xml"
+if (Test-Path $colorsXml) {
+    $colors = Get-Content $colorsXml -Raw
+    $patchedColors = $colors -replace '>(transparent)<' , '>#00000000<'
+    if ($patchedColors -ne $colors) {
+        [System.IO.File]::WriteAllText($colorsXml, $patchedColors)
+        Write-Host "Patched colors.xml: transparent -> #00000000" -ForegroundColor Green
+        Write-Log "Patched colors.xml transparent color"
+    }
+}
 
 # Debug builds skip JS bundling by default - patch so APK works without Metro/USB.
 $buildGradle = Join-Path $androidDir "app\build.gradle"
@@ -148,21 +206,20 @@ Write-Host ""
 Write-Host "Building $variant APK (gradlew $task)..." -ForegroundColor Green
 Write-Host "First build can take 10-20 minutes." -ForegroundColor Gray
 Write-Host ""
+Write-Log "gradlew $task"
 
-.\gradlew.bat $task
-
+cmd /c "gradlew.bat $task"
 if ($LASTEXITCODE -ne 0) {
-    Write-Host ""
-    Write-Host "Build failed. Common fixes:" -ForegroundColor Red
-    Write-Host "  - Install JDK 17 and set JAVA_HOME" -ForegroundColor Gray
-    Write-Host "  - Open Android Studio -> SDK Manager -> install SDK Platform + Build-Tools" -ForegroundColor Gray
-    Write-Host "  - Release builds need signing; use debug build (no -Release flag) for testing" -ForegroundColor Gray
-    exit 1
+    Fail-Build "Gradle $task failed (exit $LASTEXITCODE). See log above and $logFile"
 }
 
 $apkSubdir = if ($Release) { "release" } else { "debug" }
 $apkName = if ($Release) { "app-release.apk" } else { "app-debug.apk" }
 $apkPath = Join-Path $androidDir "app\build\outputs\apk\$apkSubdir\$apkName"
+if (-not (Test-Path $apkPath)) {
+    Fail-Build "Gradle reported success but APK was not found at $apkPath"
+}
+Write-Log "APK: $apkPath"
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Green
@@ -177,3 +234,8 @@ Write-Host "  1. Copy APK to the device (USB, email, Drive, etc.)" -ForegroundCo
 Write-Host "  2. Enable Install unknown apps for your file manager" -ForegroundColor Gray
 Write-Host "  3. Tap the APK to install" -ForegroundColor Gray
 Write-Host ""
+Write-Host "Log: $logFile" -ForegroundColor Gray
+
+} catch {
+    Fail-Build $_.Exception.Message $_
+}

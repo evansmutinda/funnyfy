@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Text, TouchableOpacity, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import useStableSafeAreaInsets from '../hooks/useStableSafeAreaInsets';
 import styles from '../styles';
 
 const TYPE_META = {
@@ -48,7 +48,7 @@ export default function Toast({
   onHide,
 }) {
   const slideAnim = useRef(new Animated.Value(-100)).current;
-  const insets = useSafeAreaInsets();
+  const insets = useStableSafeAreaInsets();
   const hasAction = Boolean(actionLabel && onAction);
   const meta = TYPE_META[type] || TYPE_META.info;
   const isWarning = type === 'warning';

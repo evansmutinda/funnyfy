@@ -1,17 +1,16 @@
 import React from 'react';
 import {
   Image,
-  StatusBar,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNotifications } from '../components/NotificationProvider';
 import PressScale from '../components/PressScale';
 import UploadFlowHeader, { getUploadQuotaInfo } from '../components/UploadFlowHeader';
 import useImagePicker from '../hooks/useImagePicker';
+import useStableSafeAreaInsets from '../hooks/useStableSafeAreaInsets';
 import styles from '../styles';
 
 /**
@@ -31,7 +30,7 @@ export default function PhotoReviewScreen({
   onReplacePhoto,
   onBack,
 }) {
-  const insets = useSafeAreaInsets();
+  const insets = useStableSafeAreaInsets();
   const { showToast, showDialog, closeDialog } = useNotifications();
   const { pickImage, picking } = useImagePicker();
 
@@ -83,8 +82,6 @@ export default function PhotoReviewScreen({
 
   return (
     <View style={styles.reviewRoot}>
-      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
-
       <View style={[styles.reviewHeaderBand, { paddingTop: insets.top + 8 }]}>
         <UploadFlowHeader
           onBack={onBack}
@@ -123,37 +120,37 @@ export default function PhotoReviewScreen({
       </View>
 
       <View style={[styles.reviewActionBand, { paddingBottom: Math.max(insets.bottom, 16) + 8 }]}>
-        <View style={styles.uploadInlineActionsRow}>
+        <View style={styles.uploadReviewActionsRow}>
           <PressScale
             onPress={handleChooseAnother}
             style={styles.uploadSmallGhostButton}
             disabled={picking}
           >
             <Feather name="refresh-ccw" size={14} color="#FFFFFF" />
-            <Text style={styles.uploadSmallGhostButtonText}>Choose another</Text>
+            <Text style={styles.uploadSmallGhostButtonText} numberOfLines={1}>Choose another</Text>
+          </PressScale>
+          <PressScale
+            onPress={handleGenerate}
+            disabled={!canGenerate || picking}
+            style={[
+              styles.uploadGenerateButton,
+              styles.uploadGenerateButtonInRow,
+              (!canGenerate || picking) && styles.uploadGenerateButtonDisabled,
+            ]}
+          >
+            <Text style={styles.uploadGenerateButtonText} numberOfLines={1}>
+              {!isOnline
+                ? 'No internet connection'
+                : isGenerating
+                  ? 'Generation in progress…'
+                : needsSubscription
+                  ? 'Subscribe to generate'
+                : quotaOk
+                  ? 'Generate'
+                  : 'Upgrade to continue'}
+            </Text>
           </PressScale>
         </View>
-
-        <PressScale
-          onPress={handleGenerate}
-          disabled={!canGenerate || picking}
-          style={[
-            styles.uploadGenerateButton,
-            (!canGenerate || picking) && styles.uploadGenerateButtonDisabled,
-          ]}
-        >
-          <Text style={styles.uploadGenerateButtonText}>
-            {!isOnline
-              ? 'No internet connection'
-              : isGenerating
-                ? 'Generation in progress…'
-              : needsSubscription
-                ? 'Subscribe to generate'
-              : quotaOk
-                ? 'Generate'
-                : 'Upgrade to continue'}
-          </Text>
-        </PressScale>
       </View>
     </View>
   );

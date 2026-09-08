@@ -1,7 +1,7 @@
 import React from 'react';
 import { Linking, Text, TouchableOpacity, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import useStableSafeAreaInsets from '../hooks/useStableSafeAreaInsets';
 import styles from '../styles';
 
 /**
@@ -14,7 +14,7 @@ export default function UpdateBanner({
   onDismiss,
   message = 'Update FunnyFy for the latest styles and fixes',
 }) {
-  const insets = useSafeAreaInsets();
+  const insets = useStableSafeAreaInsets();
 
   if (!visible) return null;
 
