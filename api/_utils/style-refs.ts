@@ -1,18 +1,9 @@
 import crypto from 'crypto';
-import fs from 'fs';
-import path from 'path';
 
 /** Replicate may not fetch immediately if the queue is busy. */
 const STYLE_REF_TTL_SEC = 30 * 60;
 
 const REF_PATH_RE = /^style-refs\/[a-z0-9][a-z0-9._/-]*$/i;
-
-const MIME_BY_EXT: Record<string, string> = {
-  '.png': 'image/png',
-  '.jpg': 'image/jpeg',
-  '.jpeg': 'image/jpeg',
-  '.webp': 'image/webp',
-};
 
 function hmacSecret(): string | null {
   const secret = (
@@ -56,33 +47,6 @@ export function normalizeStyleRefKey(referenceImage: string): string | null {
   return raw;
 }
 
-function assetsRoot(): string {
-  const candidates = [
-    path.resolve(process.cwd(), 'api', '_assets', 'style-refs'),
-    path.resolve(__dirname, '..', '_assets', 'style-refs'),
-  ];
-  for (const candidate of candidates) {
-    if (fs.existsSync(candidate)) return candidate;
-  }
-  return candidates[0];
-}
-
-export function resolveStyleRefDiskPath(referenceImage: string): string | null {
-  const key = normalizeStyleRefKey(referenceImage);
-  if (!key) return null;
-
-  const relative = key.replace(/^style-refs\//, '');
-  const root = assetsRoot();
-  const resolved = path.resolve(root, relative);
-  const rootWithSep = root.endsWith(path.sep) ? root : `${root}${path.sep}`;
-  if (resolved !== root && !resolved.startsWith(rootWithSep)) return null;
-  return resolved;
-}
-
-export function styleRefMimeType(filePath: string): string {
-  return MIME_BY_EXT[path.extname(filePath).toLowerCase()] || 'application/octet-stream';
-}
-
 function signPayload(key: string, exp: number, secret: string): string {
   return crypto.createHmac('sha256', secret).update(`${key}.${exp}`).digest('hex');
 }
@@ -117,21 +81,14 @@ export function buildSignedStyleRefUrl(referenceImage: string): string | null {
   return url.toString();
 }
 
-export function verifyStyleRefRequest(p: string, e: string, s: string): {
-  ok: true;
-  filePath: string;
-} | { ok: false } {
+/** Validate HMAC + expiry. Does not touch disk (keeps images out of other lambdas). */
+export function verifyStyleRefSignature(p: string, e: string, s: string): string | null {
   const key = normalizeStyleRefKey(p);
   const secret = hmacSecret();
   const exp = Number(e);
   const sig = (s || '').trim().toLowerCase();
-  if (!key || !secret || !sig || !Number.isFinite(exp)) return { ok: false };
-  if (exp < Math.floor(Date.now() / 1000)) return { ok: false };
-  if (!signaturesMatch(signPayload(key, exp, secret), sig)) return { ok: false };
-
-  const filePath = resolveStyleRefDiskPath(key);
-  if (!filePath || !fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
-    return { ok: false };
-  }
-  return { ok: true, filePath };
+  if (!key || !secret || !sig || !Number.isFinite(exp)) return null;
+  if (exp < Math.floor(Date.now() / 1000)) return null;
+  if (!signaturesMatch(signPayload(key, exp, secret), sig)) return null;
+  return key;
 }
