@@ -26,6 +26,7 @@ export default {
     assetBundlePatterns: [
       'assets/**/*',
       '!assets/comparisons/source/**',
+      '!assets/style-refs/**',
     ],
     ios: {
       supportsTablet: true,

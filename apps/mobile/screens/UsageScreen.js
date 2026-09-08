@@ -166,7 +166,8 @@ export default function UsageScreen({
 
             {subscription?.pendingTier ? (
               <Text style={styles.pwdPendingText}>
-                Changing to {TIER_NAMES[subscription.pendingTier] || subscription.pendingTier} at next renewal
+                Switching to {TIER_NAMES[subscription.pendingTier] || subscription.pendingTier}
+                {renewalLabel ? ` on ${renewalLabel}` : ' at next renewal'}
               </Text>
             ) : null}
           </Animated.View>

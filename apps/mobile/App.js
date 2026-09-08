@@ -67,6 +67,8 @@ import {
 } from './constants';
 import { mergeServerStyles, getServerConfirmedStyleIds } from './utils/mergeServerStyles';
 import { readStylesCache, writeStylesCache } from './utils/stylesCache';
+import { formatSubscriptionDate, getDisplayRenewalDate } from './utils/subscriptionDates';
+import { getTierName, isSubscriptionDowngrade } from './utils/subscriptionTiers';
 import {
   dismissUpdateBanner,
   getInstalledAppVersion,
@@ -898,6 +900,40 @@ function AppContent({ fontsLoaded }) {
       );
       return;
     }
+
+    const currentTier = subscriptionInfo?.subscription?.tier;
+    const downgrade = isSubscriptionDowngrade(currentTier, selectedTier);
+    if (downgrade) {
+      const currentName = getTierName(currentTier);
+      const nextName = getTierName(selectedTier);
+      const renewalDate = getDisplayRenewalDate(
+        subscriptionInfo.subscription,
+        subscriptionInfo?.revenueCatExpiration,
+      );
+      const renewalLabel = formatSubscriptionDate(renewalDate) || 'your next renewal';
+      showDialog({
+        title: 'Takes effect next renewal',
+        message: `You'll keep ${currentName} until ${renewalLabel}. Then you'll switch to ${nextName} and the new image allowance will apply.`,
+        confirmLabel: `Continue with ${nextName}`,
+        cancelLabel: 'Keep current plan',
+        onCancel: closeDialog,
+        onConfirm: () => {
+          closeDialog();
+          runSubscriptionPurchase(selectedTier, {
+            downgrade: true,
+            currentName,
+            nextName,
+            renewalLabel,
+          });
+        },
+      });
+      return;
+    }
+
+    await runSubscriptionPurchase(selectedTier, { downgrade: false });
+  };
+
+  const runSubscriptionPurchase = async (selectedTier, { downgrade = false, currentName, nextName, renewalLabel } = {}) => {
     setSubscribeLoading(true);
     try {
       const auth = await ensureAuthenticated();
@@ -912,7 +948,6 @@ function AppContent({ fontsLoaded }) {
 
       if (!hasRcKey) {
         showToast('Subscriptions', 'RevenueCat SDK key is missing. Please set EXPO_PUBLIC_REVENUECAT_* env vars.', 'error');
-        setSubscribeLoading(false);
         return;
       }
 
@@ -925,7 +960,6 @@ function AppContent({ fontsLoaded }) {
         } catch (reInitErr) {
           console.error('[RevenueCat] Re-init failed:', reInitErr);
           showToast('Purchase failed', 'Could not initialize payment system. Please restart the app.', 'error');
-          setSubscribeLoading(false);
           return;
         }
       }
@@ -935,7 +969,6 @@ function AppContent({ fontsLoaded }) {
 
       if (!pkgs || pkgs.length === 0) {
         showToast('Subscriptions', 'No subscription packages available yet', 'error');
-        setSubscribeLoading(false);
         return;
       }
 
@@ -980,7 +1013,16 @@ function AppContent({ fontsLoaded }) {
 
         await ensureAuthenticated();
         await syncSubscriptionToBackend(customerInfo);
-        showToast('Purchase successful', 'Your subscription is now active', 'success');
+        if (downgrade) {
+          showToast(
+            'Downgrade scheduled',
+            `You'll keep ${currentName} until ${renewalLabel || 'your next renewal'}, then switch to ${nextName}.`,
+            'info',
+            { duration: 6000 },
+          );
+        } else {
+          showToast('Purchase successful', 'Your subscription is now active', 'success');
+        }
         await refreshSubscription();
       } else {
         console.warn('[RevenueCat] Purchase completed but no active subscription found yet');
@@ -999,11 +1041,12 @@ function AppContent({ fontsLoaded }) {
       console.error('[RevenueCat] Underlying error:', err?.underlyingErrorMessage);
       console.error('[RevenueCat] Full error:', err);
 
-      // Better error messages based on error type
-      let errorMessage = 'Purchase failed or was cancelled.';
       if (err?.userCancelled) {
-        errorMessage = 'Purchase was cancelled.';
-      } else if (err?.underlyingErrorMessage && err?.message) {
+        return;
+      }
+
+      let errorMessage = 'Purchase failed or was cancelled.';
+      if (err?.underlyingErrorMessage && err?.message) {
         errorMessage = `${err.message} (${err.underlyingErrorMessage})`;
       } else if (err?.message) {
         errorMessage = err.message;

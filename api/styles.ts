@@ -73,11 +73,11 @@ export default async function handler(
     res.setHeader('Vary', 'X-App-Version');
   }
 
-  // Return styles (prompts are protected on server - not sent to client)
+  // Return styles (prompts and style-ref paths stay on the server)
   return res.status(200).json({
     ok: true,
     categories: STYLE_CATEGORIES,
-    styles: styles.map(({ prompt, model, models, ...style }) => ({
+    styles: styles.map(({ prompt, model, models, referenceImage, ...style }) => ({
       ...style,
     })),
     ...appConfig,

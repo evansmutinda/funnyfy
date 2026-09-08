@@ -3091,6 +3091,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
+    pwdDowngradeNotice: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    backgroundColor: 'rgba(245, 158, 11, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.28)',
+  },
+
+    pwdDowngradeNoticeText: {
+    flex: 1,
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#FBBF24',
+    lineHeight: 17,
+    letterSpacing: -0.1,
+  },
+
   
     pwdFooterLinksRow: {
     flexDirection: 'row',

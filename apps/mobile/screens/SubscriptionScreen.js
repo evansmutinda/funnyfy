@@ -10,6 +10,8 @@ import PressScale from '../components/PressScale';
 import PaywallStyleFade from '../components/PaywallStyleFade';
 import { PAYWALL_MARQUEE_IMAGES } from '../constants';
 import useStableSafeAreaInsets from '../hooks/useStableSafeAreaInsets';
+import { formatSubscriptionDate, getDisplayRenewalDate } from '../utils/subscriptionDates';
+import { getTierName, isSubscriptionDowngrade } from '../utils/subscriptionTiers';
 import styles from '../styles';
 
 const DARK_BG = '#0B0F19';
@@ -64,14 +66,27 @@ export default function SubscriptionScreen({
   const canSubscribe = !!selectedTier && !subscribeLoading;
   const isCanceling = !!subscription?.cancelAtPeriodEnd;
   const showManageLink = Boolean(subscription);
+  const pendingTier = subscription?.pendingTier;
+  const isDowngradeSelection = isSubscriptionDowngrade(subscription?.tier, selectedTier);
+  const renewalDate = subscription
+    ? getDisplayRenewalDate(subscription, subscriptionInfo?.revenueCatExpiration)
+    : null;
+  const renewalLabel = renewalDate ? formatSubscriptionDate(renewalDate) : '';
+  const downgradeNotice = pendingTier
+    ? `Switching to ${getTierName(pendingTier)} on your next renewal${renewalLabel ? ` (${renewalLabel})` : ''}. You keep ${getTierName(subscription.tier)} until then.`
+    : isDowngradeSelection
+      ? `This change takes effect on your next renewal${renewalLabel ? ` (${renewalLabel})` : ''}. You'll keep ${getTierName(subscription.tier)} until then.`
+      : null;
 
   const subscribeLabel = subscribeLoading
     ? 'Processing…'
-    : selectedTier
-      ? `Continue with ${TIER_INFO[selectedTier]?.name}`
-      : subscription
-        ? 'Select a plan to change'
-        : 'Select a plan';
+    : isDowngradeSelection
+      ? `Switch to ${TIER_INFO[selectedTier]?.name} next renewal`
+      : selectedTier
+        ? `Continue with ${TIER_INFO[selectedTier]?.name}`
+        : subscription
+          ? 'Select a plan to change'
+          : 'Select a plan';
 
   return (
     <View style={styles.pwdRoot}>
@@ -228,6 +243,13 @@ export default function SubscriptionScreen({
             );
           })}
         </View>
+
+        {downgradeNotice ? (
+          <View style={styles.pwdDowngradeNotice}>
+            <Feather name="info" size={14} color="#FBBF24" style={{ marginTop: 1 }} />
+            <Text style={styles.pwdDowngradeNoticeText}>{downgradeNotice}</Text>
+          </View>
+        ) : null}
 
         {!showManageLink ? (
           <View style={styles.pwdFooterActionSlot}>

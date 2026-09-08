@@ -6,6 +6,7 @@
 // Single source of truth — all API routes import from this file.
 
 import { STYLE_CATALOG } from './style-catalog';
+import { buildSignedStyleRefUrl } from './style-refs';
 
 export interface StyleConfig {
   id: string;
@@ -18,9 +19,10 @@ export interface StyleConfig {
   /** Optional pool — process-job picks one at random per generation. */
   models?: string[];
   /**
-   * Optional style template image (public path or absolute URL).
+   * Optional style template image (private API asset).
    * Sent as image_input[0]; the user's photo is image_input[1].
-   * Example: `style-refs/caricatures/mugface.png` → served from /public on Vercel.
+   * Path is relative to api/_assets, e.g. `style-refs/caricatures/mugface.png`.
+   * Served only via a short-lived signed URL — not in /public or the app.
    */
   referenceImage?: string;
   premium?: boolean;
@@ -51,26 +53,12 @@ export function resolveStyleModel(style: StyleConfig): string {
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
-/** Public HTTPS URL for a style's bundled reference/template image. */
+/** Short-lived HTTPS URL for a style's private reference/template image. */
 export function resolveStyleReferenceUrl(style: StyleConfig): string | null {
   const ref = style.referenceImage?.trim();
   if (!ref) return null;
   if (/^https?:\/\//i.test(ref)) return ref;
-
-  const base =
-    process.env.STYLE_ASSETS_BASE_URL?.replace(/\/$/, '') ||
-    process.env.PUBLIC_BASE_URL?.replace(/\/$/, '') ||
-    (process.env.VERCEL_PROJECT_PRODUCTION_URL
-      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-      : null) ||
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null);
-
-  if (!base) {
-    console.warn('[styles] No STYLE_ASSETS_BASE_URL / VERCEL_URL for reference image', style.id);
-    return null;
-  }
-
-  return `${base}/${ref.replace(/^\//, '')}`;
+  return buildSignedStyleRefUrl(ref);
 }
 
 const DEFAULT_MODEL = 'black-forest-labs/flux-kontext-pro';
@@ -1995,7 +1983,7 @@ const LEGACY_STYLES: Record<string, StyleConfig> = {
     categoryId: 'caricatures',
     description: 'Traditional hand-drawn editorial caricature with colored-pencil and ink illustration style',
     prompt:
-      "Using the uploaded photo as the visual reference, create a hand-drawn editorial caricature of the subject. The caricature should feature a very large, exaggerated head and a small, simplified body, preserving the subject's core facial likeness while emphasizing distinctive features. Strongly exaggerate: Head size and facial proportions, Nose, cheeks, jaw, and brow, Eye spacing and expression. Style: Traditional colored-pencil and ink illustration, Visible pencil strokes, Cross-hatching and line shading, Slightly uneven, hand-drawn outlines, Subtle paper texture. Shading should be: Built with layered pencil tones, Warm, earthy colors, No smooth digital gradients. Facial expression should be expressive and characterful, leaning slightly humorous or serious depending on the reference photo. Clothing should be simplified and secondary, drawn with minimal detail to keep focus on the face. Background: Plain, light, off-white or beige, Minimal texture only, No scenery, no environment. Overall look: Classic newspaper / magazine caricature, Hand-drawn, imperfect, human, Exaggerated but recognizable. Full-bleed illustration. No borders. Avoid 3D, avoid painterly styles, avoid realism.",
+      "Using the uploaded photo as the visual reference, create a hand-drawn editorial caricature of all subjects and objects. The caricature should feature a very large, exaggerated head and a small, simplified body, preserving the subject's core facial likeness while emphasizing distinctive features. Strongly exaggerate: Head size and facial proportions, Nose, cheeks, jaw, and brow, Eye spacing and expression. Style: Traditional colored-pencil and ink illustration, Visible pencil strokes, Cross-hatching and line shading, Slightly uneven, hand-drawn outlines, Subtle paper texture. Shading should be: Built with layered pencil tones, Warm, earthy colors, No smooth digital gradients. Facial expression should be expressive and characterful, leaning slightly humorous or serious depending on the reference photo. Clothing should be simplified and secondary, drawn with minimal detail to keep focus on the face. Background: Plain, light, off-white or beige, Minimal texture only, No scenery, no environment. Overall look: Classic newspaper / magazine caricature, Hand-drawn, imperfect, human, Exaggerated but recognizable. Full-bleed illustration. No borders. Avoid 3D, avoid painterly styles, avoid realism.",
     model: NANO_BANANA,
     enabled: true,
     premium: false,
