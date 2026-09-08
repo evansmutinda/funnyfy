@@ -1,7 +1,6 @@
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
-import { getPublicApiBaseUrl } from './replicate-sync';
 
 /** Replicate may not fetch immediately if the queue is busy. */
 const STYLE_REF_TTL_SEC = 30 * 60;
@@ -26,15 +25,27 @@ function hmacSecret(): string | null {
 }
 
 function publicBaseUrl(): string | null {
-  const fromApi = getPublicApiBaseUrl();
-  if (fromApi) return fromApi;
+  const candidates = [
+    process.env.PUBLIC_API_URL,
+    process.env.WEBHOOK_BASE_URL,
+    process.env.ALLOWED_ORIGIN,
+    process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL.replace(/^https?:\/\//, '')}`
+      : null,
+    process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL.replace(/^https?:\/\//, '')}`
+      : null,
+    process.env.STYLE_ASSETS_BASE_URL,
+  ];
 
-  const vercel = (process.env.VERCEL_URL || '').trim().replace(/^https?:\/\//, '');
-  if (vercel) return `https://${vercel.replace(/\/$/, '')}`;
-
-  const styled = (process.env.STYLE_ASSETS_BASE_URL || '').trim().replace(/\/$/, '');
-  if (styled.startsWith('https://')) return styled;
-
+  for (const raw of candidates) {
+    const value = String(raw || '')
+      .trim()
+      .replace(/\/$/, '');
+    if (value.startsWith('https://') && value !== 'https://*') {
+      return value;
+    }
+  }
   return null;
 }
 
