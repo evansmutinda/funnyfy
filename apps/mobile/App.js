@@ -750,10 +750,15 @@ function AppContent({ fontsLoaded }) {
             enqueueJson = JSON.parse(enqueueText);
           } catch (parseErr) {
             console.error('Enqueue - JSON parse error:', parseErr, enqueueText?.slice?.(0, 200));
+            const enqueueFailed =
+              /function_invocation_timeout/i.test(enqueueText || '') ||
+              /an error occurred with your deployment/i.test(enqueueText || '')
+                ? TAKING_LONGER_MESSAGE
+                : SERVER_UNREACHABLE_MESSAGE;
             if (!manageLoading) {
-              throw new Error(SERVER_UNREACHABLE_MESSAGE);
+              throw new Error(enqueueFailed);
             }
-            pendingFailureDialogRef.current = SERVER_UNREACHABLE_MESSAGE;
+            pendingFailureDialogRef.current = enqueueFailed;
             setFailedAttempts((prev) => prev + 1);
             return;
           }
@@ -1205,6 +1210,60 @@ function AppContent({ fontsLoaded }) {
     setScreen('upload');
   };
 
+  const handleRegenerate = () => {
+    if (!isOnline) {
+      showToast(
+        'Check your internet connectivity',
+        'Connect to the internet to generate caricatures.',
+        'warning',
+      );
+      return;
+    }
+    if (loading) {
+      showToast(
+        'Generation in progress',
+        'Wait for the current caricature to finish, or cancel it first.',
+        'warning',
+      );
+      return;
+    }
+    if (!original?.imageDataUrl || !style?.id) {
+      showToast('Regenerate', 'Photo and style are missing. Pick them again.', 'warning');
+      return;
+    }
+    if (subscriptionInfo && !subscriptionInfo.subscription) {
+      setScreen('subscription');
+      return;
+    }
+    const usage = subscriptionInfo?.usage;
+    const quotaOk = !subscriptionInfo
+      || Boolean(
+        subscriptionInfo.subscription
+        && usage
+        && usage.limit > 0
+        && usage.current < usage.limit,
+      );
+    if (!quotaOk) {
+      showDialog({
+        title: 'Quota Exceeded',
+        message: `You've used all ${usage?.limit ?? ''} images this month. Upgrade your plan to continue.`,
+        cancelLabel: 'Cancel',
+        confirmLabel: 'Upgrade',
+        onCancel: closeDialog,
+        onConfirm: () => {
+          closeDialog();
+          setScreen('subscription');
+        },
+      });
+      return;
+    }
+    setFailedAttempts(0);
+    setPendingJobId(null);
+    setJob(null);
+    setResult(null);
+    callApi({ imageDataUrl: original.imageDataUrl, styleId: style.id });
+  };
+
   const handleMenuSelect = useCallback((id) => {
     setRestyleMode(false);
     if (id === 'contact') {
@@ -1643,6 +1702,7 @@ function AppContent({ fontsLoaded }) {
         onOpenGallery={() => setScreen('gallery')}
         onTryAnotherStyle={handleTryAnotherStyle}
         onTryAnotherPhoto={handleTryAnotherPhoto}
+        onRegenerate={handleRegenerate}
         />
       </AppShell>
     );

@@ -59,6 +59,7 @@ export default function ResultScreen({
   onOpenGallery,
   onTryAnotherStyle,
   onTryAnotherPhoto,
+  onRegenerate,
   subscriptionInfo,
   onOpenUsage,
   backHandlerRef,
@@ -350,7 +351,7 @@ export default function ResultScreen({
     }
   };
 
-  const confirmNavigate = useCallback((navigate) => {
+  const confirmNavigate = useCallback((navigate, copy) => {
     skipRatePromptRef.current = true;
     const generationInProgress = loading && !hasResult;
 
@@ -367,8 +368,8 @@ export default function ResultScreen({
 
     if (hasResult && !hasBeenSaved) {
       showDialog({
-        title: 'Save before leaving?',
-        message: 'Your caricature hasn\'t been saved yet. What would you like to do?',
+        title: copy?.title || 'Save before leaving?',
+        message: copy?.message || 'Your caricature hasn\'t been saved yet. What would you like to do?',
         cancelLabel: 'Cancel',
         neutralLabel: 'Discard',
         neutralDestructive: true,
@@ -565,26 +566,42 @@ export default function ResultScreen({
           </View>
         ) : null}
 
-        {hasResult && (onTryAnotherStyle || onTryAnotherPhoto) ? (
-          <View style={styles.uploadInlineActionsRow}>
+        {hasResult && (onTryAnotherStyle || onTryAnotherPhoto || onRegenerate) ? (
+          <View style={styles.resultAltActionsRow}>
             {onTryAnotherPhoto ? (
               <PressScale
-                style={[styles.uploadSmallGhostButton, loading && styles.buttonDisabled]}
+                style={[styles.resultAltAction, loading && styles.buttonDisabled]}
                 onPress={() => confirmNavigate(onTryAnotherPhoto)}
                 disabled={loading}
+                accessibilityLabel="Try another photo"
               >
-                <Feather name="image" size={14} color="#FFFFFF" />
-                <Text style={styles.uploadSmallGhostButtonText}>Try another photo</Text>
+                <Feather name="image" size={18} color="#FFFFFF" />
+                <Text style={styles.resultAltActionText}>Photo</Text>
+              </PressScale>
+            ) : null}
+            {onRegenerate ? (
+              <PressScale
+                style={[styles.resultAltAction, loading && styles.buttonDisabled]}
+                onPress={() => confirmNavigate(onRegenerate, {
+                  title: 'Save this version?',
+                  message: 'Regenerating uses another image from your plan and replaces what is on screen.',
+                })}
+                disabled={loading}
+                accessibilityLabel="Regenerate this style"
+              >
+                <Feather name="refresh-cw" size={18} color="#FFFFFF" />
+                <Text style={styles.resultAltActionText}>Again</Text>
               </PressScale>
             ) : null}
             {onTryAnotherStyle ? (
               <PressScale
-                style={[styles.uploadSmallGhostButton, loading && styles.buttonDisabled]}
+                style={[styles.resultAltAction, loading && styles.buttonDisabled]}
                 onPress={() => confirmNavigate(onTryAnotherStyle)}
                 disabled={loading}
+                accessibilityLabel="Try another style"
               >
-                <Feather name="refresh-ccw" size={14} color="#FFFFFF" />
-                <Text style={styles.uploadSmallGhostButtonText}>Try another style</Text>
+                <Feather name="grid" size={18} color="#FFFFFF" />
+                <Text style={styles.resultAltActionText}>Style</Text>
               </PressScale>
             ) : null}
           </View>

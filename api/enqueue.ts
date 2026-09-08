@@ -234,30 +234,11 @@ export default async function handler(
     );
     const queuePosition = queuePositionResult.rows[0]?.count ?? 0;
 
-    // Calculate estimated wait time
     const estimatedWaitTime = await getEstimatedWaitTime(queuePosition);
 
-    // Fire-and-forget background queue processor trigger
-    try {
-      const protocol = req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
-      const host = req.headers.host || 'localhost:3000';
-      const triggerUrl = `${protocol}://${host}/api/cron/process-queue`;
-      const cronSecret = process.env.CRON_SECRET;
-      
-      const fetchHeaders: Record<string, string> = {};
-      if (cronSecret) {
-        fetchHeaders['Authorization'] = `Bearer ${cronSecret}`;
-      }
-
-      fetch(triggerUrl, {
-        method: 'GET',
-        headers: fetchHeaders
-      }).catch(err => {
-        console.warn('[enqueue] Failed to trigger background queue execution (catch):', err?.message || err);
-      });
-    } catch (triggerErr) {
-      console.warn('[enqueue] Failed to trigger background queue execution (exception):', triggerErr);
-    }
+    // Do not kick /api/cron/process-queue from here. An in-flight fetch to that
+    // 60s worker can keep the isolate busy so Vercel never flushes this JSON
+    // before enqueue's duration cap, and the client already kicks the queue.
 
     return res.status(200).json({
       ok: true,

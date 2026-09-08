@@ -1107,6 +1107,12 @@ const styles = StyleSheet.create({
     rowGap: 14,
   },
 
+  galleryGridRow: {
+    paddingHorizontal: 16,
+    justifyContent: 'space-between',
+    marginBottom: 14,
+  },
+
   
   galleryItem: {
     width: '48%',
@@ -2023,6 +2029,34 @@ const styles = StyleSheet.create({
     uploadSmallGhostButtonText: {
     fontFamily: FONT_PLUS_JAKARTA,
     fontSize: 12,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    letterSpacing: -0.1,
+  },
+
+    resultAltActionsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    alignSelf: 'stretch',
+  },
+
+    resultAltAction: {
+    flex: 1,
+    minHeight: 52,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    paddingVertical: 10,
+    paddingHorizontal: 4,
+    borderRadius: 14,
+    backgroundColor: 'rgba(15, 23, 42, 0.8)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+  },
+
+    resultAltActionText: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 11,
     fontWeight: '600',
     color: '#FFFFFF',
     letterSpacing: -0.1,

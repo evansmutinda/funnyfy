@@ -34,21 +34,8 @@ function mapAssetToGalleryItem(asset, imageUrl = asset.uri) {
   };
 }
 
-async function enrichAssetDisplayUri(asset) {
-  let imageUrl = asset.uri;
-  try {
-    const info = await MediaLibrary.getAssetInfoAsync(asset, {
-      shouldDownloadFromNetwork: false,
-    });
-    imageUrl = info.localUri || info.uri || asset.uri;
-  } catch {
-    // Some devices only expose content:// on asset.uri — keep it.
-  }
-  return mapAssetToGalleryItem(asset, imageUrl);
-}
-
-async function mapAssetsToGalleryItems(assets) {
-  return Promise.all(assets.map((asset) => enrichAssetDisplayUri(asset)));
+function mapAssetsToGalleryItems(assets) {
+  return assets.map((asset) => mapAssetToGalleryItem(asset));
 }
 
 async function listFunnyfyAlbums() {
@@ -228,29 +215,45 @@ async function discoverFunnyfyAlbumFromExistingPhotos() {
 }
 
 async function getAssetsFromAlbum(album, first) {
-  try {
-    const result = await MediaLibrary.getAssetsAsync({
-      album: album.id,
-      mediaType: MediaLibrary.MediaType.photo,
-      first,
-      sortBy: [[MediaLibrary.SortBy.creationTime, false]],
-    });
-    return result.assets;
-  } catch (err) {
-    console.warn('[Gallery] getAssetsAsync(album) failed:', err?.message || err);
+  const assets = [];
+  let after;
+
+  while (assets.length < first) {
+    const batchSize = Math.min(100, first - assets.length);
     try {
       const result = await MediaLibrary.getAssetsAsync({
         album: album.id,
         mediaType: MediaLibrary.MediaType.photo,
-        first,
-        sortBy: MediaLibrary.SortBy.creationTime,
+        first: batchSize,
+        after,
+        sortBy: [[MediaLibrary.SortBy.creationTime, false]],
       });
-      return result.assets;
-    } catch (fallbackErr) {
-      console.warn('[Gallery] album asset fallback failed:', fallbackErr?.message || fallbackErr);
-      return [];
+      if (!result.assets?.length) break;
+      assets.push(...result.assets);
+      if (!result.hasNextPage || assets.length >= first) break;
+      after = result.endCursor;
+    } catch (err) {
+      console.warn('[Gallery] getAssetsAsync(album) failed:', err?.message || err);
+      try {
+        const result = await MediaLibrary.getAssetsAsync({
+          album: album.id,
+          mediaType: MediaLibrary.MediaType.photo,
+          first: batchSize,
+          after,
+          sortBy: MediaLibrary.SortBy.creationTime,
+        });
+        if (!result.assets?.length) break;
+        assets.push(...result.assets);
+        if (!result.hasNextPage || assets.length >= first) break;
+        after = result.endCursor;
+      } catch (fallbackErr) {
+        console.warn('[Gallery] album asset fallback failed:', fallbackErr?.message || fallbackErr);
+        break;
+      }
     }
   }
+
+  return assets.slice(0, first);
 }
 
 /**
@@ -291,7 +294,7 @@ async function scanFunnyfySavedPhotos({ first = 50, scanPool = 800 } = {}) {
         continue;
       }
 
-      if (FUNNYFY_PATH_PATTERN.test(asset.uri || '')) {
+      if (FUNNYFY_PATH_PATTERN.test(asset.uri || '') || FUNNYFY_FILENAME_PREFIX.test(asset.filename || '')) {
         seen.add(asset.id);
         matches.push(asset);
         continue;
@@ -328,14 +331,10 @@ async function scanFunnyfySavedPhotos({ first = 50, scanPool = 800 } = {}) {
   return matches;
 }
 
-export async function getFunnyfyAlbumAssets({ first = 50, rescan = false } = {}) {
+export async function getFunnyfyAlbumAssets({ first = 1000, rescan = false } = {}) {
   const canRead = await requestGalleryReadPermission();
   if (!canRead) {
     return [];
-  }
-
-  if (rescan) {
-    await AsyncStorage.removeItem(FUNNYFY_ALBUM_ID_KEY);
   }
 
   const assets = [];
@@ -367,23 +366,31 @@ export async function getFunnyfyAlbumAssets({ first = 50, rescan = false } = {})
     }
   }
 
-  if (assets.length < first) {
-    const cachedId = await AsyncStorage.getItem(FUNNYFY_ALBUM_ID_KEY);
-    if (cachedId && !funnyfyAlbums.some((album) => album.id === cachedId)) {
-      const cachedAlbum = { id: cachedId, title: FUNNYFY_FOLDER_NAME };
-      const batch = await getAssetsFromAlbum(cachedAlbum, first - assets.length);
-      if (batch.length > 0) {
-        addAssets(batch);
-      } else {
-        await AsyncStorage.removeItem(FUNNYFY_ALBUM_ID_KEY);
-      }
+  // Album already has photos — skip camera-roll discovery (that path is very slow).
+  if (assets.length > 0) {
+    console.log('[Gallery] Loaded', assets.length, 'photo(s) from', FUNNYFY_DCIM_RELATIVE_PATH);
+    return mapAssetsToGalleryItems(assets.slice(0, first));
+  }
+
+  if (rescan) {
+    await AsyncStorage.removeItem(FUNNYFY_ALBUM_ID_KEY);
+  }
+
+  const cachedId = await AsyncStorage.getItem(FUNNYFY_ALBUM_ID_KEY);
+  if (cachedId && !funnyfyAlbums.some((album) => album.id === cachedId)) {
+    const cachedAlbum = { id: cachedId, title: FUNNYFY_FOLDER_NAME };
+    const batch = await getAssetsFromAlbum(cachedAlbum, first);
+    if (batch.length > 0) {
+      addAssets(batch);
+    } else {
+      await AsyncStorage.removeItem(FUNNYFY_ALBUM_ID_KEY);
     }
   }
 
-  if (assets.length < first) {
+  if (assets.length === 0) {
     const resolved = await resolveFunnyfyAlbum({ rescan: true });
     if (resolved && !funnyfyAlbums.some((album) => album.id === resolved.id)) {
-      const batch = await getAssetsFromAlbum(resolved, first - assets.length);
+      const batch = await getAssetsFromAlbum(resolved, first);
       if (batch.length > 0) {
         addAssets(batch);
         await AsyncStorage.setItem(FUNNYFY_ALBUM_ID_KEY, resolved.id);
@@ -391,10 +398,10 @@ export async function getFunnyfyAlbumAssets({ first = 50, rescan = false } = {})
     }
   }
 
-  if (assets.length < first) {
+  if (assets.length === 0) {
     const scanned = await scanFunnyfySavedPhotos({
-      first: first - assets.length,
-      scanPool: 800,
+      first,
+      scanPool: 400,
     });
     addAssets(scanned);
   }
@@ -627,7 +634,7 @@ async function resolveDeviceAssetIdsForGalleryItems(items) {
     return [...assetIds];
   }
 
-  const albumItems = await getFunnyfyAlbumAssets({ first: 100, rescan: false });
+  const albumItems = await getFunnyfyAlbumAssets({ first: 200, rescan: false });
   const usedAlbumIds = new Set(assetIds);
 
   for (const item of unresolved) {

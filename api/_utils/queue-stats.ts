@@ -115,26 +115,11 @@ export async function getQueueStats(): Promise<QueueStats> {
 }
 
 /**
- * Get estimated wait time for a job based on queue position
+ * Cheap wait estimate for enqueue / job poll. Do not query analytics here —
+ * enqueue must return before the Vercel duration cap.
  */
 export async function getEstimatedWaitTime(queuePosition: number): Promise<number> {
-  try {
-    const stats = await getQueueStats();
-    
-    if (stats.averageWaitTime === 0) {
-      // Default estimate: 30 seconds per job
-      return queuePosition * 30;
-    }
-
-    // Estimate based on average wait time and current processing capacity
-    const processingCapacity = 10; // MAX_CONCURRENT_JOBS
-    const jobsAhead = queuePosition;
-    
-    // Estimate: (jobs ahead / processing capacity) * average wait time
-    return Math.round((jobsAhead / processingCapacity) * stats.averageWaitTime);
-  } catch (err) {
-    console.error('[queue-stats] Failed to get estimated wait time:', err);
-    return queuePosition * 30; // Fallback estimate
-  }
+  const ahead = Number.isFinite(queuePosition) ? Math.max(0, queuePosition) : 0;
+  return Math.max(15, ahead * 20);
 }
 

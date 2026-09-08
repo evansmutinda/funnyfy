@@ -4,7 +4,7 @@
       "includeFiles": "api/_utils/admin-pages/**"
     },
     "api/enqueue.ts": {
-      "maxDuration": 10
+      "maxDuration": 30
     },
     "api/job.ts": {
       "maxDuration": 60

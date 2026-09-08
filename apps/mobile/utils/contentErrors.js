@@ -130,9 +130,18 @@ export function humanizeApiError(message) {
   }
 
   if (
+    lower.includes('function_invocation_timeout') ||
+    lower.includes('an error occurred with your deployment')
+  ) {
+    return TAKING_LONGER_MESSAGE;
+  }
+
+  if (
     lower.includes('invalid response') ||
     lower.includes('non-json') ||
-    lower.includes('unexpected token')
+    lower.includes('unexpected token') ||
+    lower.includes('unexpected character') ||
+    lower.includes('json parse error')
   ) {
     return SERVER_UNREACHABLE_MESSAGE;
   }

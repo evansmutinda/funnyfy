@@ -1,11 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
   Image,
   Modal,
   Pressable,
-  ScrollView,
   StatusBar,
   Text,
   useWindowDimensions,
@@ -34,7 +33,7 @@ import {
 import styles from '../styles';
 
 const GALLERY_STORAGE_KEY = '@funnyfy_gallery';
-const GALLERY_MAX_ITEMS = 50;
+const GALLERY_MAX_ITEMS = 1000;
 const GALLERY_FOLDER = FileSystem.documentDirectory + 'gallery/';
 
 async function ensureGalleryFolder() {
@@ -98,41 +97,29 @@ async function saveToGallery(item) {
   }
 }
 
-async function verifyStoredItems(storedItems) {
-  const results = await Promise.all(
-    storedItems.map(async (item) => {
-      if (item.isLocal && item.imageUrl?.startsWith('file://')) {
-        try {
-          const info = await FileSystem.getInfoAsync(item.imageUrl);
-          return info.exists ? item : null;
-        } catch {
-          return null;
-        }
-      }
-      return item;
-    }),
-  );
-  return results.filter(Boolean);
-}
-
-
-async function loadGallery({ rescanDevice = true } = {}) {
+async function loadGallery({ rescanDevice = false, onCached } = {}) {
   try {
     const data = await AsyncStorage.getItem(GALLERY_STORAGE_KEY);
     const previousStored = data ? JSON.parse(data) : [];
-    const verifiedStored = await verifyStoredItems(previousStored);
     const hiddenKeys = await getGalleryHiddenKeys();
+    const cachedVisible = filterHiddenGalleryItems(previousStored, hiddenKeys)
+      .slice(0, GALLERY_MAX_ITEMS);
+    onCached?.(cachedVisible);
 
     const albumItems = await getFunnyfyAlbumAssets({
       first: GALLERY_MAX_ITEMS,
       rescan: rescanDevice,
     });
     const merged = filterHiddenGalleryItems(
-      mergeGalleryItems(verifiedStored, albumItems),
+      mergeGalleryItems(cachedVisible, albumItems),
       hiddenKeys,
     ).slice(0, GALLERY_MAX_ITEMS);
 
-    if (JSON.stringify(merged) !== JSON.stringify(previousStored)) {
+    const changed =
+      merged.length !== previousStored.length ||
+      merged[0]?.id !== previousStored[0]?.id ||
+      merged[merged.length - 1]?.id !== previousStored[previousStored.length - 1]?.id;
+    if (changed) {
       await AsyncStorage.setItem(GALLERY_STORAGE_KEY, JSON.stringify(merged));
     }
 
@@ -225,6 +212,11 @@ export default function GalleryScreen({ onBack }) {
 
   const closeTop = insets.top + 12;
   const selectedCount = selectedIds.size;
+  const tileWidth = useMemo(
+    () => (windowWidth - 16 * 2 - 12) / 2,
+    [windowWidth],
+  );
+  const gridBottomPad = Math.max(insets.bottom, BOTTOM_INSET_MIN) + (selectionMode ? 88 : 16);
 
   const exitSelectionMode = useCallback(() => {
     setSelectionMode(false);
@@ -248,12 +240,19 @@ export default function GalleryScreen({ onBack }) {
   }, [items]);
 
   const refresh = useCallback(async () => {
-    setLoading(true);
     try {
       const canRead = await requestGalleryReadPermission();
       setPermissionDenied(!canRead);
 
-      const merged = await loadGallery({ rescanDevice: true });
+      const merged = await loadGallery({
+        rescanDevice: false,
+        onCached: (cached) => {
+          if (cached.length > 0) {
+            setItems(cached);
+            setLoading(false);
+          }
+        },
+      });
       setItems(merged);
     } finally {
       setLoading(false);
@@ -329,6 +328,35 @@ export default function GalleryScreen({ onBack }) {
     setSelectionMode(true);
     setSelectedIds(initialItemId ? new Set([initialItemId]) : new Set());
   }, []);
+
+  const renderGalleryItem = useCallback(({ item, index }) => {
+    const isSelected = selectedIds.has(item.id);
+    return (
+      <Pressable
+        style={[styles.galleryItem, { width: tileWidth }]}
+        onPress={() => {
+          if (selectionMode) {
+            toggleItemSelection(item.id);
+            return;
+          }
+          setViewerIndex(index);
+          setViewerVisible(true);
+        }}
+        onLongPress={() => handleEnterSelection(item.id)}
+        android_ripple={null}
+      >
+        <MediaTile
+          imageSource={{ uri: item.imageUrl }}
+          isSelected={isSelected}
+        />
+        {selectionMode && isSelected ? (
+          <View style={styles.gallerySelectBadge}>
+            <Feather name="check" size={14} color="#FFFFFF" />
+          </View>
+        ) : null}
+      </Pressable>
+    );
+  }, [handleEnterSelection, selectedIds, selectionMode, tileWidth, toggleItemSelection]);
 
   const handleClearAll = () => {
     showDialog({
@@ -447,7 +475,7 @@ export default function GalleryScreen({ onBack }) {
         ) : null}
       </View>
 
-      {loading ? (
+      {items.length === 0 && loading ? (
         <View style={styles.galleryLoadingContainer}>
           <ActivityIndicator size="large" color="#FFFFFF" />
           <Text style={styles.galleryLoadingText}>Loading your images…</Text>
@@ -465,47 +493,25 @@ export default function GalleryScreen({ onBack }) {
           </Text>
         </View>
       ) : (
-        <ScrollView
+        <FlatList
+          data={items}
+          keyExtractor={(item) => item.id}
+          numColumns={2}
+          renderItem={renderGalleryItem}
+          extraData={selectedIds}
+          initialNumToRender={12}
+          maxToRenderPerBatch={8}
+          windowSize={5}
+          removeClippedSubviews
           style={{ flex: 1 }}
           contentContainerStyle={{
-            paddingHorizontal: 16,
-            paddingBottom: Math.max(insets.bottom, BOTTOM_INSET_MIN) + (selectionMode ? 88 : 16),
+            paddingTop: 8,
+            paddingBottom: gridBottomPad,
           }}
+          columnWrapperStyle={styles.galleryGridRow}
           showsVerticalScrollIndicator={false}
           overScrollMode="never"
-        >
-          <View style={styles.galleryGrid}>
-            {items.map((item, index) => {
-              const isSelected = selectedIds.has(item.id);
-              return (
-                <Pressable
-                  key={item.id}
-                  style={styles.galleryItem}
-                  onPress={() => {
-                    if (selectionMode) {
-                      toggleItemSelection(item.id);
-                      return;
-                    }
-                    setViewerIndex(index);
-                    setViewerVisible(true);
-                  }}
-                  onLongPress={() => handleEnterSelection(item.id)}
-                  android_ripple={null}
-                >
-                  <MediaTile
-                    imageSource={{ uri: item.imageUrl }}
-                    isSelected={isSelected}
-                  />
-                  {selectionMode && isSelected ? (
-                    <View style={styles.gallerySelectBadge}>
-                      <Feather name="check" size={14} color="#FFFFFF" />
-                    </View>
-                  ) : null}
-                </Pressable>
-              );
-            })}
-          </View>
-        </ScrollView>
+        />
       )}
 
       {selectionMode && items.length > 0 ? (

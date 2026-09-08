@@ -33,6 +33,7 @@ export default function PressScale({
   // eslint-disable-next-line no-unused-vars
   scaleTo = 0.96,
   hitSlop,
+  accessibilityLabel,
 }) {
   return (
     <TouchableOpacity
@@ -42,6 +43,8 @@ export default function PressScale({
       hitSlop={hitSlop}
       style={style}
       activeOpacity={0.85}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
     >
       {children}
     </TouchableOpacity>

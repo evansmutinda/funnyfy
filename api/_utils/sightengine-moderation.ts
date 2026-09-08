@@ -242,6 +242,9 @@ export async function moderateEnqueueImage(
   }
 }
 
+/** Enqueue is a short Vercel function — abort so Sightengine cannot eat the whole budget. */
+const SIGHTENGINE_TIMEOUT_MS = 8000;
+
 export async function checkImageWithSightengine(
   base64DataUrl: string,
   apiUser: string,
@@ -260,19 +263,26 @@ export async function checkImageWithSightengine(
   form.append('api_user', apiUser);
   form.append('api_secret', apiSecret);
 
-  const modRes = await fetch('https://api.sightengine.com/1.0/check.json', {
-    method: 'POST',
-    body: form,
-  });
-  const modData = await modRes.json().catch(() => ({}));
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), SIGHTENGINE_TIMEOUT_MS);
+  try {
+    const modRes = await fetch('https://api.sightengine.com/1.0/check.json', {
+      method: 'POST',
+      body: form,
+      signal: controller.signal,
+    });
+    const modData = await modRes.json().catch(() => ({}));
 
-  if (!modRes.ok || (modData as { status?: string }).status === 'failure') {
-    throw new Error(
-      `Sightengine HTTP ${modRes.status}: ${JSON.stringify(modData).slice(0, 200)}`
-    );
+    if (!modRes.ok || (modData as { status?: string }).status === 'failure') {
+      throw new Error(
+        `Sightengine HTTP ${modRes.status}: ${JSON.stringify(modData).slice(0, 200)}`
+      );
+    }
+
+    return evaluateModerationResponse(modData);
+  } finally {
+    clearTimeout(timer);
   }
-
-  return evaluateModerationResponse(modData);
 }
 
 export function isReplicateContentPolicyError(message: string | null | undefined): boolean {
