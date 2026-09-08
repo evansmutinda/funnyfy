@@ -1,8 +1,11 @@
+import fs from 'fs';
 import path from 'path';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { applyMiddleware } from './_utils/middleware';
-import { STYLE_REF_BUFFERS } from './_utils/style-ref-buffers';
-import { verifyStyleRefSignature } from './_utils/style-refs';
+import {
+  normalizeStyleRefKey,
+  verifyStyleRefSignature,
+} from './_utils/style-refs';
 
 const MIME_BY_EXT: Record<string, string> = {
   '.png': 'image/png',
@@ -16,6 +19,17 @@ function queryValue(value: string | string[] | undefined): string {
   return value || '';
 }
 
+function resolveStyleRefDiskPath(referenceImage: string): string | null {
+  const key = normalizeStyleRefKey(referenceImage);
+  if (!key) return null;
+  const relative = key.replace(/^style-refs\//, '');
+  const root = path.resolve(process.cwd(), 'server-style-refs');
+  const resolved = path.resolve(root, relative);
+  const rootWithSep = root.endsWith(path.sep) ? root : `${root}${path.sep}`;
+  if (resolved !== root && !resolved.startsWith(rootWithSep)) return null;
+  return resolved;
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!applyMiddleware(req, res, ['GET', 'OPTIONS'])) return;
 
@@ -24,16 +38,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     queryValue(req.query.e),
     queryValue(req.query.s),
   );
-  const body = key ? STYLE_REF_BUFFERS[key] : null;
+  const filePath = key ? resolveStyleRefDiskPath(key) : null;
 
-  if (!key || !body) {
+  if (!filePath || !fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
     res.setHeader('Cache-Control', 'no-store');
     return res.status(404).json({ ok: false, error: 'NOT_FOUND' });
   }
 
-  const mime = MIME_BY_EXT[path.extname(key).toLowerCase()] || 'application/octet-stream';
-  res.setHeader('Content-Type', mime);
-  res.setHeader('Cache-Control', 'private, no-store');
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  return res.status(200).send(body);
+  try {
+    const body = await fs.promises.readFile(filePath);
+    const mime = MIME_BY_EXT[path.extname(filePath).toLowerCase()] || 'application/octet-stream';
+    res.setHeader('Content-Type', mime);
+    res.setHeader('Cache-Control', 'private, no-store');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    return res.status(200).send(body);
+  } catch {
+    res.setHeader('Cache-Control', 'no-store');
+    return res.status(404).json({ ok: false, error: 'NOT_FOUND' });
+  }
 }
