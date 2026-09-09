@@ -13,7 +13,12 @@ const setCors = (res: VercelResponse) => {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 };
 
-// Map product ID to tier (same as webhook)
+const TIER_RANK: Record<string, number> = {
+  starter: 0,
+  popular: 1,
+  pro: 2,
+};
+
 function mapProductIdToTier(productId: string): string {
   const mapping: Record<string, string> = {
     'starter_monthly': 'starter',
@@ -27,6 +32,10 @@ function mapProductIdToTier(productId: string): string {
   if (lower.includes('pro')) return 'pro';
   
   return mapping[productId] || 'starter';
+}
+
+function tierRank(tier: string | null | undefined): number {
+  return TIER_RANK[(tier || '').toLowerCase()] ?? -1;
 }
 
 export default async function handler(
@@ -55,6 +64,9 @@ export default async function handler(
   const tier = body.tier || (body.productId ? mapProductIdToTier(body.productId) : null);
   const productId = body.productId || body.productIdentifier;
   const expirationDate = body.expirationDate || body.expiresDate;
+  const pendingFromClient = body.pendingTier
+    ? mapProductIdToTier(String(body.pendingTier))
+    : null;
 
   if (!userId) {
     return res.status(400).json({
@@ -175,6 +187,16 @@ export default async function handler(
         await query(
           `UPDATE subscriptions SET current_period_end = $1, updated_at = NOW() WHERE id = $2`,
           [periodEnd, existingSub.rows[0].id]
+        );
+      }
+
+      if (
+        pendingFromClient &&
+        tierRank(pendingFromClient) < tierRank(existingSub.rows[0].tier)
+      ) {
+        await query(
+          `UPDATE subscriptions SET pending_tier = $1, updated_at = NOW() WHERE id = $2`,
+          [pendingFromClient, existingSub.rows[0].id]
         );
       }
       subscriptionId = existingSub.rows[0].id;

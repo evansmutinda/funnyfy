@@ -22,3 +22,11 @@ export function isSubscriptionDowngrade(currentTier, nextTier) {
   if (from == null || to == null) return false;
   return to < from;
 }
+
+export function isSubscriptionUpgrade(currentTier, nextTier) {
+  if (!currentTier || !nextTier) return false;
+  const from = TIER_RANK[currentTier];
+  const to = TIER_RANK[nextTier];
+  if (from == null || to == null) return false;
+  return to > from;
+}

@@ -16,17 +16,18 @@ function hmacSecret(): string | null {
 }
 
 function publicBaseUrl(): string | null {
+  // Style files live on this deployment. Never use ALLOWED_ORIGIN — that is CORS
+  // and is often the other project (funnyfyapp vs funnyfy-staging).
   const candidates = [
-    process.env.PUBLIC_API_URL,
-    process.env.WEBHOOK_BASE_URL,
-    process.env.ALLOWED_ORIGIN,
+    process.env.STYLE_ASSETS_BASE_URL,
     process.env.VERCEL_PROJECT_PRODUCTION_URL
       ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL.replace(/^https?:\/\//, '')}`
       : null,
     process.env.VERCEL_URL
       ? `https://${process.env.VERCEL_URL.replace(/^https?:\/\//, '')}`
       : null,
-    process.env.STYLE_ASSETS_BASE_URL,
+    process.env.PUBLIC_API_URL,
+    process.env.WEBHOOK_BASE_URL,
   ];
 
   for (const raw of candidates) {

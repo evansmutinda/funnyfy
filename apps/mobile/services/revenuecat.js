@@ -41,7 +41,39 @@ export async function getOfferings() {
   return offerings?.current?.availablePackages || [];
 }
 
-export async function purchasePackage(pkg) {
+function storeProductId(productId) {
+  if (!productId) return null;
+  return String(productId).split(':')[0];
+}
+
+export function getCurrentStoreProductId(customerInfo) {
+  const activeSubs = customerInfo?.activeSubscriptions;
+  if (Array.isArray(activeSubs) && activeSubs.length > 0) {
+    return storeProductId(activeSubs[0]);
+  }
+  return storeProductId(getActiveSubscriptionDetails(customerInfo)?.productIdentifier);
+}
+
+function googleReplacementMode(isDowngrade) {
+  const modes = Purchases.STORE_REPLACEMENT_MODE || Purchases.PRORATION_MODE || {};
+  if (isDowngrade) return modes.DEFERRED ?? 4;
+  return modes.WITH_TIME_PRORATION ?? modes.IMMEDIATE_WITH_TIME_PRORATION ?? 1;
+}
+
+export async function purchasePackage(pkg, { customerInfo, isDowngrade, isUpgrade } = {}) {
+  const oldProductIdentifier = getCurrentStoreProductId(customerInfo);
+  if (
+    Platform.OS === 'android' &&
+    oldProductIdentifier &&
+    (isDowngrade || isUpgrade)
+  ) {
+    const productChangeInfo = {
+      oldProductIdentifier,
+      replacementMode: googleReplacementMode(!!isDowngrade),
+      prorationMode: googleReplacementMode(!!isDowngrade),
+    };
+    return Purchases.purchasePackage(pkg, null, productChangeInfo);
+  }
   return Purchases.purchasePackage(pkg);
 }
 

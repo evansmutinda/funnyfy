@@ -102,6 +102,16 @@ function mapProductIdToTier(productId: string): string {
   return 'starter'; // Default fallback
 }
 
+const TIER_RANK: Record<string, number> = {
+  starter: 0,
+  popular: 1,
+  pro: 2,
+};
+
+function tierRank(tier: string | null | undefined): number {
+  return TIER_RANK[(tier || '').toLowerCase()] ?? -1;
+}
+
 // Log subscription event to history
 async function logSubscriptionEvent(
   subscriptionId: string | null,
@@ -438,23 +448,44 @@ async function handleRenewal(event: any, eventId: string) {
       })();
 
   const sub = subscription as { pending_tier?: string | null };
-  const newTier = sub.pending_tier || (productId ? mapProductIdToTier(productId) : subscription.tier);
+  const renewalTier = productId ? mapProductIdToTier(productId) : subscription.tier;
+  const pending = (sub.pending_tier || '').toLowerCase() || null;
+  const current = (subscription.tier || '').toLowerCase();
+
+  let applyTier = renewalTier || current;
+  let clearPending = !pending;
+  if (pending) {
+    if (renewalTier === pending) {
+      applyTier = pending;
+      clearPending = true;
+    } else {
+      applyTier = current;
+      clearPending = false;
+    }
+  }
 
   try {
-    await query(
-      `UPDATE subscriptions SET tier = $1, current_period_end = $2, pending_tier = NULL, updated_at = NOW() WHERE id = $3`,
-      [newTier, periodEnd, subscription.id]
-    );
+    if (clearPending) {
+      await query(
+        `UPDATE subscriptions SET tier = $1, current_period_end = $2, pending_tier = NULL, updated_at = NOW() WHERE id = $3`,
+        [applyTier, periodEnd, subscription.id]
+      );
+    } else {
+      await query(
+        `UPDATE subscriptions SET current_period_end = $1, updated_at = NOW() WHERE id = $2`,
+        [periodEnd, subscription.id]
+      );
+    }
   } catch {
     await query(
       `UPDATE subscriptions SET tier = $1, current_period_end = $2, updated_at = NOW() WHERE id = $3`,
-      [newTier, periodEnd, subscription.id]
+      [applyTier, periodEnd, subscription.id]
     );
   }
 
   await query(
     `UPDATE users SET subscription_tier = $1, billing_date = $2, updated_at = NOW() WHERE id = $3`,
-    [newTier, periodEnd.toISOString().slice(0, 10), subscription.user_id]
+    [applyTier, periodEnd.toISOString().slice(0, 10), subscription.user_id]
   );
 
   // Reset usage quota for new billing period
@@ -469,9 +500,9 @@ async function handleRenewal(event: any, eventId: string) {
     [subscription.user_id, currentMonth]
   );
 
-  await logSubscriptionEvent(subscription.id, subscription.user_id, 'renewed', 
-    subscription.tier, subscription.tier, 'active', 'active', {
-      eventId, // Store event ID for idempotency check
+  await logSubscriptionEvent(subscription.id, subscription.user_id, 'renewed',
+    subscription.tier, applyTier, 'active', 'active', {
+      eventId,
     });
 }
 
@@ -488,10 +519,10 @@ async function handleProductChange(event: any, eventId: string) {
 
   const newTier = mapProductIdToTier(newProductId);
 
-  const subResult = await query<{ id: string; user_id: string }>(
+  const subResult = await query<{ id: string; user_id: string; tier: string }>(
     stableSubId
-      ? `SELECT id, user_id FROM subscriptions WHERE revenuecat_subscription_id = $1 AND status = 'active' LIMIT 1`
-      : `SELECT s.id, s.user_id FROM subscriptions s JOIN users u ON u.id = s.user_id
+      ? `SELECT id, user_id, tier FROM subscriptions WHERE revenuecat_subscription_id = $1 AND status = 'active' LIMIT 1`
+      : `SELECT s.id, s.user_id, s.tier FROM subscriptions s JOIN users u ON u.id = s.user_id
          WHERE (u.revenuecat_user_id = $1 OR u.id::text = $1) AND s.status = 'active' ORDER BY s.created_at DESC LIMIT 1`,
     [stableSubId || appUserId]
   );
@@ -502,15 +533,28 @@ async function handleProductChange(event: any, eventId: string) {
   }
 
   const sub = subResult.rows[0];
-  await query(
-    `UPDATE subscriptions SET pending_tier = $1, updated_at = NOW() WHERE id = $2`,
-    [newTier, sub.id]
-  );
+  if (tierRank(newTier) > tierRank(sub.tier)) {
+    await query(
+      `UPDATE subscriptions SET tier = $1, pending_tier = NULL, updated_at = NOW() WHERE id = $2`,
+      [newTier, sub.id]
+    );
+    await query(
+      `UPDATE users SET subscription_tier = $1, updated_at = NOW() WHERE id = $2`,
+      [newTier, sub.user_id]
+    );
+  } else if (tierRank(newTier) < tierRank(sub.tier)) {
+    await query(
+      `UPDATE subscriptions SET pending_tier = $1, updated_at = NOW() WHERE id = $2`,
+      [newTier, sub.id]
+    );
+  }
 
-  await logSubscriptionEvent(sub.id, sub.user_id, 'product_change', null, newTier, 'active', 'active', {
+  await logSubscriptionEvent(sub.id, sub.user_id, 'product_change', sub.tier, newTier, 'active', 'active', {
     eventId,
     new_product_id: newProductId,
-    note: 'Tier change takes effect next cycle or on usage depletion',
+    note: tierRank(newTier) > tierRank(sub.tier)
+      ? 'Upgrade applied immediately'
+      : 'Downgrade takes effect at next renewal',
   });
 }
 

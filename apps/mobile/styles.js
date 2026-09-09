@@ -3089,28 +3089,16 @@ const styles = StyleSheet.create({
     minHeight: 20,
     justifyContent: 'center',
     alignItems: 'center',
+    gap: 2,
   },
 
-    pwdDowngradeNotice: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    backgroundColor: 'rgba(245, 158, 11, 0.12)',
-    borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.28)',
-  },
-
-    pwdDowngradeNoticeText: {
-    flex: 1,
+    pwdDowngradeHint: {
     fontFamily: FONT_PLUS_JAKARTA,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
     color: '#FBBF24',
-    lineHeight: 17,
-    letterSpacing: -0.1,
+    textAlign: 'center',
+    letterSpacing: -0.05,
   },
 
   

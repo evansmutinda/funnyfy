@@ -58,9 +58,10 @@ export default {
       barStyle: 'light-content',
     },
     androidStatusBar: {
+      // Must match splash.backgroundColor or Expo warns on start.
       // Hex only — the word "transparent" is written into colors.xml and
       // aapt2 fails mergeDebugResources (IllegalStateException).
-      backgroundColor: '#00000000',
+      backgroundColor: DARK_BG,
       barStyle: 'light-content',
       translucent: true,
     },

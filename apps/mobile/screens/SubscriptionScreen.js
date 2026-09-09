@@ -72,21 +72,19 @@ export default function SubscriptionScreen({
     ? getDisplayRenewalDate(subscription, subscriptionInfo?.revenueCatExpiration)
     : null;
   const renewalLabel = renewalDate ? formatSubscriptionDate(renewalDate) : '';
-  const downgradeNotice = pendingTier
-    ? `Switching to ${getTierName(pendingTier)} on your next renewal${renewalLabel ? ` (${renewalLabel})` : ''}. You keep ${getTierName(subscription.tier)} until then.`
+  const downgradeHint = pendingTier
+    ? `Switches to ${getTierName(pendingTier)} on ${renewalLabel || 'next renewal'}`
     : isDowngradeSelection
-      ? `This change takes effect on your next renewal${renewalLabel ? ` (${renewalLabel})` : ''}. You'll keep ${getTierName(subscription.tier)} until then.`
+      ? `Takes effect on ${renewalLabel || 'next renewal'}`
       : null;
 
   const subscribeLabel = subscribeLoading
     ? 'Processing…'
-    : isDowngradeSelection
-      ? `Switch to ${TIER_INFO[selectedTier]?.name} next renewal`
-      : selectedTier
-        ? `Continue with ${TIER_INFO[selectedTier]?.name}`
-        : subscription
-          ? 'Select a plan to change'
-          : 'Select a plan';
+    : selectedTier
+      ? `Continue with ${TIER_INFO[selectedTier]?.name}`
+      : subscription
+        ? 'Select a plan to change'
+        : 'Select a plan';
 
   return (
     <View style={styles.pwdRoot}>
@@ -244,19 +242,17 @@ export default function SubscriptionScreen({
           })}
         </View>
 
-        {downgradeNotice ? (
-          <View style={styles.pwdDowngradeNotice}>
-            <Feather name="info" size={14} color="#FBBF24" style={{ marginTop: 1 }} />
-            <Text style={styles.pwdDowngradeNoticeText}>{downgradeNotice}</Text>
-          </View>
-        ) : null}
-
         {!showManageLink ? (
           <View style={styles.pwdFooterActionSlot}>
-            <Text style={styles.pwdFooterHint}>You can cancel anytime.</Text>
+            <Text style={downgradeHint ? styles.pwdDowngradeHint : styles.pwdFooterHint}>
+              {downgradeHint || 'You can cancel anytime.'}
+            </Text>
           </View>
         ) : (
           <View style={styles.pwdFooterActionSlot}>
+            {downgradeHint ? (
+              <Text style={styles.pwdDowngradeHint}>{downgradeHint}</Text>
+            ) : null}
             <PressScale
               onPress={onManageSubscription}
               disabled={subscribeLoading}

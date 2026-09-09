@@ -68,7 +68,7 @@ import {
 import { mergeServerStyles, getServerConfirmedStyleIds } from './utils/mergeServerStyles';
 import { readStylesCache, writeStylesCache } from './utils/stylesCache';
 import { formatSubscriptionDate, getDisplayRenewalDate } from './utils/subscriptionDates';
-import { getTierName, isSubscriptionDowngrade } from './utils/subscriptionTiers';
+import { getTierName, isSubscriptionDowngrade, isSubscriptionUpgrade } from './utils/subscriptionTiers';
 import {
   dismissUpdateBanner,
   getInstalledAppVersion,
@@ -356,7 +356,7 @@ function AppContent({ fontsLoaded }) {
   };
 
   // Push RevenueCat purchase state to our backend (webhook may lag or be unconfigured)
-  const syncSubscriptionToBackend = async (customerInfo) => {
+  const syncSubscriptionToBackend = async (customerInfo, { pendingTier } = {}) => {
     if (!userIdRef.current || !authTokenRef.current) {
       await ensureAuthenticated();
     }
@@ -387,6 +387,7 @@ function AppContent({ fontsLoaded }) {
           tier,
           expirationDate: expirationDate || undefined,
           platform: Platform.OS,
+          ...(pendingTier ? { pendingTier } : {}),
         }),
       });
       const syncResult = await syncResponse.json();
@@ -991,8 +992,22 @@ function AppContent({ fontsLoaded }) {
 
       devLog(`[RevenueCat] Purchasing package: ${packageId} (${priceString})`);
 
+      const currentTier = subscriptionInfo?.subscription?.tier;
+      const isUpgrade = isSubscriptionUpgrade(currentTier, selectedTier);
+
+      let customerInfoForChange = null;
+      try {
+        customerInfoForChange = await getCustomerInfo();
+      } catch (infoErr) {
+        console.warn('[RevenueCat] getCustomerInfo before purchase failed:', infoErr);
+      }
+
       // Attempt purchase
-      const purchaseResult = await purchasePackage(selected);
+      const purchaseResult = await purchasePackage(selected, {
+        customerInfo: customerInfoForChange,
+        isDowngrade: downgrade,
+        isUpgrade,
+      });
 
       devLog('[RevenueCat] Purchase result:', {
         productIdentifier: purchaseResult?.productIdentifier,
@@ -1012,7 +1027,9 @@ function AppContent({ fontsLoaded }) {
         devLog('[RevenueCat] Purchase successful:', subDetails.productIdentifier);
 
         await ensureAuthenticated();
-        await syncSubscriptionToBackend(customerInfo);
+        await syncSubscriptionToBackend(customerInfo, {
+          pendingTier: downgrade ? selectedTier : undefined,
+        });
         if (downgrade) {
           showToast(
             'Downgrade scheduled',
@@ -1031,7 +1048,9 @@ function AppContent({ fontsLoaded }) {
         try {
           customerInfo = await getCustomerInfo();
           await ensureAuthenticated();
-          await syncSubscriptionToBackend(customerInfo);
+          await syncSubscriptionToBackend(customerInfo, {
+            pendingTier: downgrade ? selectedTier : undefined,
+          });
         } catch {}
         await refreshSubscription();
       }
