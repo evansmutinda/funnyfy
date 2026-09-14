@@ -2,10 +2,10 @@ import { getStyleCategory } from './styleCategories';
 import { getUsageQuotaInfo } from './usageQuota';
 
 export const STICKER_SHEET_STYLE_ID = 'sticker-sheet';
-export const STICKER_SHEET_SIZES = [4, 9, 12];
+export const STICKER_SHEET_SIZES = [4, 6, 9, 12];
 export const STICKER_PACK_MIN = 4;
 export const STICKER_PACK_MAX = 12;
-export const STICKER_PACK_SIZE_HINT = '4, 9, or 12';
+export const STICKER_PACK_SIZE_HINT = '4, 6, 9, or 12';
 
 export function isStickerStyle(style) {
   if (!style) return false;
@@ -29,6 +29,7 @@ export function canBuildStickerPack(selectedCount) {
 }
 
 export function stickerSheetAspectRatio(count) {
+  if (count === 6) return 3 / 2;
   if (count === 12) return 3 / 4;
   return 1;
 }

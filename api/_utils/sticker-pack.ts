@@ -6,7 +6,8 @@ import {
 
 export const STICKER_PACK_MIN = 4;
 export const STICKER_PACK_MAX = 12;
-export const STICKER_SHEET_SIZES = [4, 9, 12] as const;
+export const STICKER_SHEET_SIZES = [4, 6, 9, 12] as const;
+export const STICKER_PACK_SIZE_HINT = '4, 6, 9, or 12';
 
 export function isStickerStyle(styleId: string): boolean {
   if (!styleId || styleId === STICKER_SHEET_STYLE_ID) return false;
@@ -16,6 +17,7 @@ export function isStickerStyle(styleId: string): boolean {
 
 export function stickerSheetGridForCount(count: number): { cols: number; rows: number } | null {
   if (count === 4) return { cols: 2, rows: 2 };
+  if (count === 6) return { cols: 3, rows: 2 };
   if (count === 9) return { cols: 3, rows: 3 };
   if (count === 12) return { cols: 3, rows: 4 };
   return null;
@@ -36,7 +38,7 @@ export function normalizeStickerExpressionIds(raw: unknown): string[] {
 
 export function validateStickerSheetExpressions(ids: string[]): string | null {
   if (!stickerSheetGridForCount(ids.length)) {
-    return 'Pick 4, 9, or 12 sticker expressions for a pack.';
+    return `Pick ${STICKER_PACK_SIZE_HINT} sticker expressions for a pack.`;
   }
   if (new Set(ids).size !== ids.length) {
     return 'Duplicate expressions cannot be added to a pack.';

@@ -542,7 +542,7 @@ export default function ResultScreen({
         </View>
       </View>
 
-      <View style={[styles.resultActionBand, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+      <View style={[styles.resultActionBand, { paddingBottom: Math.max(insets.bottom, 8) }]}>
         {!loading && maxRetriesReached ? (
           <View style={styles.errorRetryContainer}>
             <Text style={styles.errorRetryTitle}>Please try again later</Text>

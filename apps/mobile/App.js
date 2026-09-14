@@ -1192,8 +1192,18 @@ function AppContent({ fontsLoaded }) {
       .map((id) => byId.get(id))
       .filter((item) => item && isStickerStyle(item));
     const imageDataUrl = photoDataUrl || original?.imageDataUrl || pickedImage?.dataUrl;
-    if (!canBuildStickerPack(selected.length) || !imageDataUrl) {
+    if (!canBuildStickerPack(selected.length)) {
       setStickerPackError(`Select ${STICKER_PACK_SIZE_HINT} sticker styles and a photo.`);
+      return;
+    }
+    if (!imageDataUrl) {
+      setStickerPackError('Pick a photo before generating a sticker pack.');
+      setStickerPackPending(true);
+      setOriginal(null);
+      setPickedImage(null);
+      setStyle(stickerSheetStyle());
+      setStyleReturnCategory('stickers');
+      setScreen('upload');
       return;
     }
 
@@ -1237,22 +1247,7 @@ function AppContent({ fontsLoaded }) {
       );
       return;
     }
-    setStickerPackPending(true);
-    if (!original?.imageDataUrl && !pickedImage?.dataUrl) {
-      setStyle(stickerSheetStyle());
-      setStyleReturnCategory('stickers');
-      setPickedImage(null);
-      setScreen('upload');
-      showToast(
-        'Photo first',
-        'Pick a photo, then we will generate your sticker pack.',
-        'info',
-        { duration: 10000 },
-      );
-      return;
-    }
     if (subscriptionInfo && !subscriptionInfo.subscription) {
-      setStickerPackPending(false);
       setScreen('subscription');
       return;
     }
@@ -1261,7 +1256,26 @@ function AppContent({ fontsLoaded }) {
       showToast('Not enough images', quotaMessage, 'warning');
       return;
     }
-    await runStickerPack();
+
+    // Always collect a fresh photo for a new pack — never reuse a leftover original.
+    setStickerPackPending(true);
+    setStickerPackError('');
+    setStickerPackSheetUrl(null);
+    setOriginal(null);
+    setPickedImage(null);
+    setResult(null);
+    setJob(null);
+    setPendingJobId(null);
+    setLoading(false);
+    setStyle(stickerSheetStyle());
+    setStyleReturnCategory('stickers');
+    setScreen('upload');
+    showToast(
+      'Photo first',
+      'Pick a photo, then we will generate your sticker pack.',
+      'info',
+      { duration: 10000 },
+    );
   };
 
   const handleTryAnotherPhoto = () => {
@@ -1328,6 +1342,74 @@ function AppContent({ fontsLoaded }) {
     setJob(null);
     setResult(null);
     callApi({ imageDataUrl: original.imageDataUrl, styleId: style.id });
+  };
+
+  const handleTryAnotherStickerStyle = () => {
+    setStickerPackError('');
+    setStickerPackSheetUrl(null);
+    setFailedAttempts(0);
+    setPendingJobId(null);
+    setJob(null);
+    setLoading(false);
+    setStyleReturnCategory('stickers');
+    setScreen('style');
+  };
+
+  const handleTryAnotherStickerPhoto = () => {
+    setRestyleMode(false);
+    setPickedImage(null);
+    setOriginal(null);
+    setResult(null);
+    setStickerPackError('');
+    setStickerPackSheetUrl(null);
+    setFailedAttempts(0);
+    setPendingJobId(null);
+    setJob(null);
+    setLoading(false);
+    setStyle(stickerSheetStyle());
+    setStyleReturnCategory('stickers');
+    setScreen('upload');
+  };
+
+  const handleRegenerateStickerPack = () => {
+    if (!isOnline) {
+      showToast(
+        'Check your internet connectivity',
+        'Connect to the internet to generate a sticker pack.',
+        'warning',
+      );
+      return;
+    }
+    if (loading) {
+      showToast(
+        'Generation in progress',
+        'Wait for the current sticker pack to finish, or cancel it first.',
+        'warning',
+      );
+      return;
+    }
+    if (!original?.imageDataUrl && !pickedImage?.dataUrl) {
+      showToast('Regenerate', 'Photo is missing. Pick it again.', 'warning');
+      return;
+    }
+    if (!canBuildStickerPack(selectedStickerIds.length)) {
+      showToast(
+        `Pick ${STICKER_PACK_SIZE_HINT} stickers`,
+        `A pack sheet needs exactly ${STICKER_PACK_SIZE_HINT} expressions.`,
+        'warning',
+      );
+      return;
+    }
+    if (subscriptionInfo && !subscriptionInfo.subscription) {
+      setScreen('subscription');
+      return;
+    }
+    const quotaMessage = stickerPackQuotaMessage(subscriptionInfo, selectedStickerIds.length);
+    if (quotaMessage) {
+      showToast('Not enough images', quotaMessage, 'warning');
+      return;
+    }
+    runStickerPack();
   };
 
   const handleMenuSelect = useCallback((id) => {
@@ -1586,6 +1668,9 @@ function AppContent({ fontsLoaded }) {
         sheetUrl={stickerPackSheetUrl}
         subscriptionInfo={subscriptionInfo}
         onOpenUsage={() => setScreen('usage')}
+        onTryAnotherPhoto={handleTryAnotherStickerPhoto}
+        onTryAnotherStyle={handleTryAnotherStickerStyle}
+        onRegenerate={handleRegenerateStickerPack}
         onBack={() => {
           setStyleReturnCategory('stickers');
           setScreen('style');

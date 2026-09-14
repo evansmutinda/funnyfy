@@ -47,6 +47,9 @@ export default function StickerPackScreen({
   sheetUrl = null,
   onBack,
   onOpenUsage,
+  onTryAnotherPhoto,
+  onTryAnotherStyle,
+  onRegenerate,
   subscriptionInfo,
 }) {
   const insets = useStableSafeAreaInsets();
@@ -126,7 +129,6 @@ export default function StickerPackScreen({
   const handleSave = useCallback(async (opts = {}) => {
     const { silent = false } = opts;
     if (!sheetUrl || loading || saving) return false;
-    if (hasBeenSaved) return true;
     setSaving(true);
     try {
       const uri = await downloadSheet();
@@ -163,9 +165,9 @@ export default function StickerPackScreen({
     } finally {
       setSaving(false);
     }
-  }, [albumPathLabel, downloadSheet, hasBeenSaved, loading, saving, sheetUrl, showToast]);
+  }, [albumPathLabel, downloadSheet, loading, saving, sheetUrl, showToast]);
 
-  const confirmNavigate = useCallback((navigate) => {
+  const confirmNavigate = useCallback((navigate, copy) => {
     if (loading) {
       showDialog({
         title: 'Generation in progress',
@@ -179,8 +181,8 @@ export default function StickerPackScreen({
 
     if (sheetReady && !hasBeenSaved) {
       showDialog({
-        title: 'Save before leaving?',
-        message: "Your sticker pack hasn't been saved yet. What would you like to do?",
+        title: copy?.title || 'Save before leaving?',
+        message: copy?.message || "Your sticker pack hasn't been saved yet. What would you like to do?",
         cancelLabel: 'Cancel',
         neutralLabel: 'Discard',
         neutralDestructive: true,
@@ -294,7 +296,7 @@ export default function StickerPackScreen({
         ) : (
           <View style={styles.stickerPackLoadingCard}>
             <Text style={styles.stickerPackLead}>
-              Pick 4, 9, or 12 expressions, then generate a pack.
+              Pick 4, 6, 9, or 12 expressions, then generate a pack.
             </Text>
           </View>
         )}
@@ -304,7 +306,7 @@ export default function StickerPackScreen({
         ) : null}
       </View>
 
-      <View style={[styles.stickerPackFooter, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+      <View style={[styles.stickerPackFooter, { paddingBottom: Math.max(insets.bottom, 8) }]}>
         {previewStyles.length > 0 ? (
           <ScrollView
             horizontal
@@ -326,49 +328,101 @@ export default function StickerPackScreen({
           </ScrollView>
         ) : null}
 
-        {sheetReady ? (
-          <View style={styles.resultActionRow}>
-            <PressScale
-              style={[
-                styles.resultActionButton,
-                hasBeenSaved && styles.resultActionButtonSaved,
-                saveDisabled && styles.buttonDisabled,
-              ]}
-              onPress={() => handleSave()}
-              disabled={saveDisabled || hasBeenSaved}
-            >
-              {saving ? (
-                <ActivityIndicator size="small" color="#0F172A" />
-              ) : (
-                <Feather
-                  name={hasBeenSaved ? 'check' : 'download'}
-                  size={18}
-                  color={hasBeenSaved ? '#10B981' : '#0F172A'}
-                />
-              )}
-              <Text
-                style={[
-                  styles.resultActionButtonText,
-                  hasBeenSaved && styles.resultActionButtonTextSaved,
-                ]}
+        {sheetUrl ? (
+          <View style={styles.resultAltActionsRow}>
+            {onTryAnotherPhoto ? (
+              <PressScale
+                style={[styles.resultAltAction, loading && styles.buttonDisabled]}
+                onPress={() => confirmNavigate(onTryAnotherPhoto)}
+                disabled={loading}
+                accessibilityLabel="Try another photo"
               >
-                {saving ? 'Saving…' : hasBeenSaved ? 'Saved' : 'Save'}
-              </Text>
-            </PressScale>
-            <PressScale
-              style={[styles.resultActionButton, saveDisabled && styles.buttonDisabled]}
-              onPress={handleShare}
-              disabled={saveDisabled}
-            >
-              {sharing ? (
-                <ActivityIndicator size="small" color="#0F172A" />
-              ) : (
-                <Feather name="share-2" size={18} color="#0F172A" />
-              )}
-              <Text style={styles.resultActionButtonText}>
-                {sharing ? 'Sharing…' : 'Share'}
-              </Text>
-            </PressScale>
+                <Feather name="image" size={16} color="#FFFFFF" />
+                <Text style={styles.resultAltActionText} numberOfLines={1}>Photo</Text>
+              </PressScale>
+            ) : null}
+            {onTryAnotherStyle ? (
+              <PressScale
+                style={[styles.resultAltAction, loading && styles.buttonDisabled]}
+                onPress={() => confirmNavigate(onTryAnotherStyle)}
+                disabled={loading}
+                accessibilityLabel="Try another style"
+              >
+                <Feather name="grid" size={16} color="#FFFFFF" />
+                <Text style={styles.resultAltActionText} numberOfLines={1}>Style</Text>
+              </PressScale>
+            ) : null}
+            {onRegenerate ? (
+              <PressScale
+                style={[styles.resultAltAction, loading && styles.buttonDisabled]}
+                onPress={() => confirmNavigate(onRegenerate, {
+                  title: 'Save this version?',
+                  message: 'Regenerating uses another image from your plan and replaces the sticker pack on screen.',
+                })}
+                disabled={loading}
+                accessibilityLabel="Regenerate this sticker pack"
+              >
+                <Feather name="refresh-cw" size={16} color="#FFFFFF" />
+                <Text style={styles.resultAltActionText} numberOfLines={1}>Again</Text>
+              </PressScale>
+            ) : null}
+            {!loading ? (
+              <PressScale
+                style={[
+                  styles.resultAltAction,
+                  styles.resultAltActionPrimary,
+                  hasBeenSaved && styles.resultAltActionSaved,
+                  saveDisabled && styles.buttonDisabled,
+                ]}
+                onPress={() => handleSave()}
+                disabled={saveDisabled}
+                accessibilityLabel={hasBeenSaved ? 'Saved' : 'Save'}
+              >
+                {saving ? (
+                  <ActivityIndicator size="small" color="#0F172A" />
+                ) : (
+                  <Feather
+                    name={hasBeenSaved ? 'check' : 'download'}
+                    size={16}
+                    color={hasBeenSaved ? '#10B981' : '#0F172A'}
+                  />
+                )}
+                <Text
+                  style={[
+                    styles.resultAltActionText,
+                    styles.resultAltActionPrimaryText,
+                    hasBeenSaved && styles.resultAltActionSavedText,
+                  ]}
+                  numberOfLines={1}
+                >
+                  {saving ? '…' : hasBeenSaved ? 'Saved' : 'Save'}
+                </Text>
+              </PressScale>
+            ) : null}
+            {!loading ? (
+              <PressScale
+                style={[
+                  styles.resultAltAction,
+                  styles.resultAltActionPrimary,
+                  saveDisabled && styles.buttonDisabled,
+                ]}
+                onPress={handleShare}
+                disabled={saveDisabled}
+                accessibilityLabel="Share"
+              >
+                {sharing ? (
+                  <ActivityIndicator size="small" color="#0F172A" />
+                ) : (
+                  <Feather name="share-2" size={16} color="#0F172A" />
+                )}
+                <Text
+                  style={[styles.resultAltActionText, styles.resultAltActionPrimaryText]}
+                  numberOfLines={1}
+                >
+                  {sharing ? '…' : 'Share'}
+                </Text>
+              </PressScale>
+            ) : null}
           </View>
         ) : null}
       </View>

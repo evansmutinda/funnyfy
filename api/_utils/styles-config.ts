@@ -305,6 +305,8 @@ export function parseSheetExpressions(raw: string | null | undefined): string[] 
 
 function stickerSheetGrid(count: number): { cols: number; rows: number } {
   if (count === 4) return { cols: 2, rows: 2 };
+  if (count === 6) return { cols: 3, rows: 2 };
+  if (count === 9) return { cols: 3, rows: 3 };
   if (count === 12) return { cols: 3, rows: 4 };
   return { cols: 3, rows: 3 };
 }
@@ -315,7 +317,7 @@ export function buildStickerSheetPrompt(expressionIds: string[]): string {
   const square = cols === rows;
   const composition = square
     ? 'Use a 1:1 square composition filling the entire image.'
-    : `Use a ${cols}:${rows} portrait composition filling the entire image.`;
+    : `Use a ${cols}:${rows} composition filling the entire image.`;
   const lines = expressionIds.map((id, index) => {
     const meta = STICKER_EXPRESSIONS.find((item) => item.id === id);
     return stickerSheetCellLine(meta, id, index);

@@ -72,7 +72,7 @@ export async function processJob(job: JobRow): Promise<void> {
       expressionIds = parseSheetExpressions(stored.rows[0]?.sheet_expressions);
     }
     if (!stickerSheetGridForCount(expressionIds.length)) {
-      throw new Error('Sticker sheet jobs need 4, 9, or 12 expressions.');
+      throw new Error('Sticker sheet jobs need 4, 6, 9, or 12 expressions.');
     }
     sheetExpressionCount = expressionIds.length;
     prompt = buildStickerSheetPrompt(expressionIds);
@@ -80,6 +80,10 @@ export async function processJob(job: JobRow): Promise<void> {
   const imageUrl = job.input_image_url;
   const modelVersion = resolveStyleModel(styleConfig);
   const referenceUrl = resolveStyleReferenceUrl(styleConfig);
+
+  if (job.style_id === STICKER_SHEET_STYLE_ID && !imageUrl) {
+    throw new Error('Sticker sheet jobs require a source photo (image_input).');
+  }
 
   // Persist chosen model early so cost finalization uses the actual run, not the primary.
   await query(`UPDATE jobs SET model_version = $1 WHERE id = $2`, [modelVersion, job.id]);
