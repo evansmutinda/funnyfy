@@ -187,6 +187,8 @@ function AppContent({ fontsLoaded }) {
   const wasOnlineRef = useRef(true);
   const serverStyleIdsRef = useRef(null);
   const hasStylesRef = useRef(false);
+  /** Show paywall once per cold start when the user has no active plan. */
+  const launchPaywallShownRef = useRef(false);
 
   // Keep refs in sync so async functions always use the latest values
   useEffect(() => {
@@ -675,6 +677,17 @@ function AppContent({ fontsLoaded }) {
     }
   }, [authReady]);
 
+  // New installs / users without a plan: open paywall once on launch.
+  // They can dismiss (X) and browse styles, but generate stays hard-gated.
+  useEffect(() => {
+    if (!splashHidden || !authReady || subscriptionLoading) return;
+    if (!subscriptionInfo) return;
+    if (subscriptionInfo.subscription) return;
+    if (launchPaywallShownRef.current) return;
+    launchPaywallShownRef.current = true;
+    setScreen('subscription');
+  }, [splashHidden, authReady, subscriptionLoading, subscriptionInfo]);
+
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextAppState) => {
       if (nextAppState === 'active' && authReady) {
@@ -1041,6 +1054,7 @@ function AppContent({ fontsLoaded }) {
           showToast('Purchase successful', 'Your subscription is now active', 'success');
         }
         await refreshSubscription();
+        setScreen('style');
       } else {
         console.warn('[RevenueCat] Purchase completed but no active subscription found yet');
         showToast('Purchase completed', 'Subscription will appear shortly. Tap Refresh if it doesn\'t update.', 'warning');
@@ -1099,6 +1113,7 @@ function AppContent({ fontsLoaded }) {
       if (Object.keys(activeEntitlements).length > 0) {
         showToast('Restored', 'Your previous purchase has been restored', 'success');
         setTimeout(() => refreshSubscription(), 1000);
+        setScreen('style');
       } else {
         showToast('No purchases found', 'No previous purchases on this account', 'info');
       }
