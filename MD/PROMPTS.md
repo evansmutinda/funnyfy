@@ -8,7 +8,7 @@ Regenerate this file after prompt changes:
 node scripts/generate-prompts-md.js
 ```
 
-**Last generated:** 2026-09-07 · **178 enabled** · **11 disabled** in LEGACY_STYLES
+**Last generated:** 2026-09-15 · **177 enabled** · **12 disabled** in LEGACY_STYLES
 
 Prompts are server-side only — the mobile app never bundles them. When adding a style, copy/adapt a prompt here, then add it to `LEGACY_STYLES` and deploy staging.
 
@@ -41,16 +41,6 @@ See also: `MD/STYLES.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`.
 
 ```
 Using the uploaded photo as the visual reference, create a hand-drawn editorial caricature of all subjects and objects. The caricature should feature a very large, exaggerated head and a small, simplified body, preserving the subject's core facial likeness while emphasizing distinctive features. Strongly exaggerate: Head size and facial proportions, Nose, cheeks, jaw, and brow, Eye spacing and expression. Style: Traditional colored-pencil and ink illustration, Visible pencil strokes, Cross-hatching and line shading, Slightly uneven, hand-drawn outlines, Subtle paper texture. Shading should be: Built with layered pencil tones, Warm, earthy colors, No smooth digital gradients. Facial expression should be expressive and characterful, leaning slightly humorous or serious depending on the reference photo. Clothing should be simplified and secondary, drawn with minimal detail to keep focus on the face. Background: Plain, light, off-white or beige, Minimal texture only, No scenery, no environment. Overall look: Classic newspaper / magazine caricature, Hand-drawn, imperfect, human, Exaggerated but recognizable. Full-bleed illustration. No borders. Avoid 3D, avoid painterly styles, avoid realism.
-```
-
-#### `exaggerated` — Exaggerated
-
-- **Category:** caricatures
-- **Model:** NANO_BANANA
-- **Description:** Exaggerated 3D cartoon caricature with playful proportions
-
-```
-Make this an Exaggerated 3d cartoon caricature
 ```
 
 #### `carc1` — Caricature 1
@@ -1834,6 +1824,16 @@ Preserve the uploaded person's identity exactly. Transform the uploaded person i
 ---
 
 ## Disabled (LEGACY_STYLES)
+
+#### `exaggerated` — Exaggerated *(disabled)*
+
+- **Category:** caricatures
+- **Model:** NANO_BANANA
+- **Description:** Exaggerated 3D cartoon caricature with playful proportions
+
+```
+Make this an Exaggerated 3d cartoon caricature
+```
 
 #### `coloured_pencil` — Coloured Pencil *(disabled)*
 

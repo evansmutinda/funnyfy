@@ -205,7 +205,7 @@ See also: `MD/PROMPTS.md`, `MD/ADDING_MORE_STYLES_GUIDE.md`, `apps/mobile/assets
 | `figurine-v4` | Figurine V4 | 3d-characters | nano-banana-2 | ✅ |
 | `handd` | Hand-Drawn | caricatures | nano-banana | ✅ |
 | `editorial` | Editorial | art | nano-banana | ✅ |
-| `exaggerated` | Exaggerated | caricatures | nano-banana | ✅ |
+| `exaggerated` | Exaggerated | caricatures | nano-banana | ❌ |
 | `watercolor` | Watercolor | cartoons | seedream-4 | ✅ |
 | `carc1` | Caricature 1 | caricatures | seedream-4 | ✅ |
 | `carc2` | Caricature 2 | caricatures | nano-banana-2 | ✅ |

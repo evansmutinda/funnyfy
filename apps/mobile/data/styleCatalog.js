@@ -703,7 +703,6 @@ export const DEFAULT_ENABLED_STYLES = [
   { id: "figurine-v4", label: "Figurine V4", categoryId: "3d-characters", description: "Hyper-realistic chibi collectible figurine product photo on a wooden table with graffiti backdrop" },
   { id: "handd", label: "Hand-Drawn", categoryId: "caricatures", description: "Hand-drawn editorial caricature" },
   { id: "editorial", label: "Editorial", categoryId: "art", description: "Sophisticated magazine editorial caricature" },
-  { id: "exaggerated", label: "Exaggerated", categoryId: "caricatures", description: "Exaggerated 3D cartoon caricature" },
   { id: "watercolor", label: "Watercolor", categoryId: "cartoons", description: "Watercolor caricature with soft painterly washes and stylized shading" },
   { id: "carc1", label: "Caricature 1", categoryId: "caricatures", description: "Full-body stylized 3D caricature" },
   { id: "carc2", label: "Caricature 2", categoryId: "caricatures", description: "Hilarious caricature with exaggerated facial features" },
