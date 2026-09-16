@@ -1741,7 +1741,7 @@ function AppContent({ fontsLoaded }) {
         style={style}
         onPicked={(image) => { setPickedImage(image); setScreen('review'); }}
         subscriptionInfo={subscriptionInfo}
-        onSubscribe={handleSubscribe}
+        onSubscribe={() => setScreen('subscription')}
         onOpenUsage={() => setScreen('usage')}
         onBackToStyle={() => { setRestyleMode(false); setScreen('style'); }}
       />
@@ -1757,7 +1757,7 @@ function AppContent({ fontsLoaded }) {
         subscriptionInfo={subscriptionInfo}
         canGenerateMore={canGenerateMore}
         onStart={handleUploadStart}
-        onSubscribe={handleSubscribe}
+        onSubscribe={() => setScreen('subscription')}
         onOpenUsage={() => setScreen('usage')}
         onReplacePhoto={(image) => setPickedImage(image)}
         onBack={() => { setPickedImage(null); setScreen('upload'); }}

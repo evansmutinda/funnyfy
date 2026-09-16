@@ -26,11 +26,12 @@ node_modules
 /.vscode
 /.idea
 /.vercel
-package.json
-package-lock.json
-README.md
-vercel.json
-tsconfig.json
+# Leading / = repo root only (bare package.json would also exclude apps/mobile/package.json)
+/package.json
+/package-lock.json
+/README.md
+/vercel.json
+/tsconfig.json
 
 # --- Native projects (EAS runs prebuild on the server) ---
 apps/mobile/android

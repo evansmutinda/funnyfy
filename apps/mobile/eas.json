@@ -12,7 +12,9 @@
       "distribution": "internal",
       "env": {
         "SENTRY_ORG": "funnyfy",
-        "SENTRY_PROJECT": "react-native"
+        "SENTRY_PROJECT": "react-native",
+        "EXPO_PUBLIC_API_URL": "https://funnyfyapp.vercel.app",
+        "EXPO_PUBLIC_SENTRY_ENV": "production"
       },
       "android": {
         "buildType": "apk"
@@ -21,7 +23,9 @@
     "production": {
       "env": {
         "SENTRY_ORG": "funnyfy",
-        "SENTRY_PROJECT": "react-native"
+        "SENTRY_PROJECT": "react-native",
+        "EXPO_PUBLIC_API_URL": "https://funnyfyapp.vercel.app",
+        "EXPO_PUBLIC_SENTRY_ENV": "production"
       },
       "android": {
         "buildType": "app-bundle"

@@ -144,7 +144,7 @@ export default function PhotoReviewScreen({
                 : isGenerating
                   ? 'Generation in progress…'
                 : needsSubscription
-                  ? 'Subscribe to generate'
+                  ? 'Subscribe'
                 : quotaOk
                   ? 'Generate'
                   : 'Upgrade to continue'}
