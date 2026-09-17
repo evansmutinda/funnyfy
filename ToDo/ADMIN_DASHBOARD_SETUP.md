@@ -1,6 +1,6 @@
 # Admin dashboard setup
 
-**Status:** ✅ Staging admin login verified · ⏳ Production needs `admin_users` row (+ deploy)
+**Status:** ✅ Staging + production `admin_users` seeded (`funnyfyapp@gmail.com`) · deploy login wiring
 **URLs:** Staging `https://funnyfy-staging.vercel.app/admin/login` · Production `https://funnyfyapp.vercel.app/admin/login`
 
 ---
