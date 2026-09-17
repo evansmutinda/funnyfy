@@ -208,50 +208,6 @@
       .join('');
   }
 
-  function renderStatusStrip(containerId, chips) {
-    const el = document.getElementById(containerId);
-    if (!el) return;
-    if (!chips || !chips.length) {
-      el.innerHTML = '';
-      return;
-    }
-    el.innerHTML = chips
-      .map(function (c) {
-        const tone = c.tone || 'ok';
-        const inner =
-          '<span class="dot" aria-hidden="true"></span>' +
-          '<span class="chip-label">' +
-          esc(c.label) +
-          '</span>' +
-          (c.meta ? '<span class="chip-meta">' + esc(c.meta) + '</span>' : '');
-        if (c.page) {
-          return (
-            '<button type="button" class="status-chip status-chip-btn status-chip-' +
-            tone +
-            '" data-nav="' +
-            esc(c.page) +
-            '">' +
-            inner +
-            '</button>'
-          );
-        }
-        return '<div class="status-chip status-chip-' + tone + '">' + inner + '</div>';
-      })
-      .join('');
-
-    el.querySelectorAll('[data-nav]').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        const page = btn.getAttribute('data-nav');
-        if (page) navigateTo(page);
-      });
-    });
-  }
-
-  function navigateTo(page) {
-    const nav = document.querySelector('.nav-item[data-page="' + page + '"]');
-    if (nav) nav.click();
-  }
-
   function setCapBar(el, pct) {
     if (!el) return;
     const scale = Math.min(Math.max(pct / 100, 0), 1);
@@ -325,10 +281,9 @@
               );
             })
             .join('') || '<tr><td colspan="3" class="empty">No data</td></tr>';
-
-        refreshOverviewAlerts();
       }
 
+      refreshOverviewAlerts();
       setRefreshed();
     } catch (e) {
       console.error(e);
@@ -342,26 +297,28 @@
   function refreshOverviewAlerts() {
     if (!lastOverviewStats) return;
     const queue = lastOverviewQueue;
-    const failedToday = (lastOverviewStats.jobs.last7Days || []).reduce(function (s, r) {
+    const failed7d = (lastOverviewStats.jobs.last7Days || []).reduce(function (s, r) {
       return s + (r.failed || 0);
     }, 0);
-    const infringements = Number(lastOverviewStats.moderation.totalInfringements) || 0;
-    const banned = Number(lastOverviewStats.users.banned) || 0;
 
-    const infrStat = document.getElementById('ov-infringements-stat');
-    const bannedStat = document.getElementById('ov-banned-stat');
-    if (infrStat) {
-      infrStat.classList.toggle('stat-warn', infringements > 0);
-    }
-    if (bannedStat) {
-      bannedStat.classList.toggle('stat-danger', banned > 0);
-    }
-
-    var chips = [];
+    const badge = document.getElementById('ov-system-badge');
     var alerts = [];
 
     if (queue) {
+      const pending = queue.queue.pending;
+      const pct = queue.today.costPercent;
+      setText('ov-system-pending', String(pending));
+      setText(
+        'ov-system-cap',
+        pct + '% · ' + fmtMoney(queue.today.costUsd, 2) + ' / ' + fmtMoney(queue.today.costCap, 2)
+      );
+
       if (queue.queue.isPaused) {
+        setText('ov-system-queue', 'Paused');
+        if (badge) {
+          badge.className = 'badge badge-red';
+          badge.textContent = 'Paused';
+        }
         alerts.push({
           kind: 'danger',
           title:
@@ -374,60 +331,39 @@
               ? ' Top up Replicate, then Resume on the Queue page.'
               : ''),
         });
-        chips.push({
-          tone: 'danger',
-          label: 'Queue paused',
-          meta: String(queue.queue.pending) + ' pending',
-          page: 'jobs',
-        });
-      } else if (queue.today.costPercent >= 80) {
+      } else if (pct >= 80) {
+        setText('ov-system-queue', 'Active');
+        if (badge) {
+          badge.className = 'badge badge-amber';
+          badge.textContent = 'Cap high';
+        }
         alerts.push({
           kind: 'warn',
-          title: 'Cost cap at ' + queue.today.costPercent + '%',
+          title: 'Cost cap at ' + pct + '%',
           body:
             'Today: ' +
             fmtMoney(queue.today.costUsd, 2) +
             ' of ' +
             fmtMoney(queue.today.costCap, 2),
         });
-        chips.push({
-          tone: 'warn',
-          label: 'Cap ' + queue.today.costPercent + '%',
-          meta: fmtMoney(queue.today.costUsd, 2) + ' today',
-          page: 'finance',
-        });
       } else {
-        chips.push({
-          tone: 'ok',
-          label: 'Operational',
-          meta:
-            queue.queue.pending +
-            ' pending · cap ' +
-            queue.today.costPercent +
-            '%',
-        });
+        setText('ov-system-queue', 'Active');
+        if (badge) {
+          badge.className = 'badge badge-green';
+          badge.textContent = 'Operational';
+        }
+      }
+    } else {
+      setText('ov-system-queue', '—');
+      setText('ov-system-pending', '—');
+      setText('ov-system-cap', '—');
+      if (badge) {
+        badge.className = 'badge badge-gray';
+        badge.textContent = 'Unknown';
       }
     }
 
-    if (failedToday > 0) {
-      chips.push({
-        tone: 'warn',
-        label: failedToday + ' failed (7d)',
-        meta: 'Review jobs',
-        page: 'jobs',
-      });
-    }
-
-    if (infringements > 0) {
-      chips.push({
-        tone: 'warn',
-        label: infringements + ' infringements',
-        meta: 'Open moderation',
-        page: 'moderation',
-      });
-    }
-
-    renderStatusStrip('overview-status', chips);
+    setText('ov-system-failed', String(failed7d));
     renderAlerts('overview-alerts', alerts);
   }
 
