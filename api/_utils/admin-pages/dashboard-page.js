@@ -208,6 +208,50 @@
       .join('');
   }
 
+  function renderStatusStrip(containerId, chips) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    if (!chips || !chips.length) {
+      el.innerHTML = '';
+      return;
+    }
+    el.innerHTML = chips
+      .map(function (c) {
+        const tone = c.tone || 'ok';
+        const inner =
+          '<span class="dot" aria-hidden="true"></span>' +
+          '<span class="chip-label">' +
+          esc(c.label) +
+          '</span>' +
+          (c.meta ? '<span class="chip-meta">' + esc(c.meta) + '</span>' : '');
+        if (c.page) {
+          return (
+            '<button type="button" class="status-chip status-chip-btn status-chip-' +
+            tone +
+            '" data-nav="' +
+            esc(c.page) +
+            '">' +
+            inner +
+            '</button>'
+          );
+        }
+        return '<div class="status-chip status-chip-' + tone + '">' + inner + '</div>';
+      })
+      .join('');
+
+    el.querySelectorAll('[data-nav]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        const page = btn.getAttribute('data-nav');
+        if (page) navigateTo(page);
+      });
+    });
+  }
+
+  function navigateTo(page) {
+    const nav = document.querySelector('.nav-item[data-page="' + page + '"]');
+    if (nav) nav.click();
+  }
+
   function setCapBar(el, pct) {
     if (!el) return;
     const scale = Math.min(Math.max(pct / 100, 0), 1);
@@ -301,7 +345,21 @@
     const failedToday = (lastOverviewStats.jobs.last7Days || []).reduce(function (s, r) {
       return s + (r.failed || 0);
     }, 0);
+    const infringements = Number(lastOverviewStats.moderation.totalInfringements) || 0;
+    const banned = Number(lastOverviewStats.users.banned) || 0;
+
+    const infrStat = document.getElementById('ov-infringements-stat');
+    const bannedStat = document.getElementById('ov-banned-stat');
+    if (infrStat) {
+      infrStat.classList.toggle('stat-warn', infringements > 0);
+    }
+    if (bannedStat) {
+      bannedStat.classList.toggle('stat-danger', banned > 0);
+    }
+
+    var chips = [];
     var alerts = [];
+
     if (queue) {
       if (queue.queue.isPaused) {
         alerts.push({
@@ -316,6 +374,12 @@
               ? ' Top up Replicate, then Resume on the Queue page.'
               : ''),
         });
+        chips.push({
+          tone: 'danger',
+          label: 'Queue paused',
+          meta: String(queue.queue.pending) + ' pending',
+          page: 'jobs',
+        });
       } else if (queue.today.costPercent >= 80) {
         alerts.push({
           kind: 'warn',
@@ -326,12 +390,17 @@
             ' of ' +
             fmtMoney(queue.today.costCap, 2),
         });
+        chips.push({
+          tone: 'warn',
+          label: 'Cap ' + queue.today.costPercent + '%',
+          meta: fmtMoney(queue.today.costUsd, 2) + ' today',
+          page: 'finance',
+        });
       } else {
-        alerts.push({
-          kind: 'ok',
-          title: 'Systems operational',
-          body:
-            'Queue active · ' +
+        chips.push({
+          tone: 'ok',
+          label: 'Operational',
+          meta:
             queue.queue.pending +
             ' pending · cap ' +
             queue.today.costPercent +
@@ -339,20 +408,26 @@
         });
       }
     }
+
     if (failedToday > 0) {
-      alerts.push({
-        kind: 'warn',
-        title: failedToday + ' failed jobs (7d)',
-        body: 'Check the Jobs page for retries.',
+      chips.push({
+        tone: 'warn',
+        label: failedToday + ' failed (7d)',
+        meta: 'Review jobs',
+        page: 'jobs',
       });
     }
-    if (lastOverviewStats.moderation.totalInfringements > 0) {
-      alerts.push({
-        kind: 'warn',
-        title: lastOverviewStats.moderation.totalInfringements + ' content infringements',
-        body: 'Review flagged uploads on the Moderation page.',
+
+    if (infringements > 0) {
+      chips.push({
+        tone: 'warn',
+        label: infringements + ' infringements',
+        meta: 'Open moderation',
+        page: 'moderation',
       });
     }
+
+    renderStatusStrip('overview-status', chips);
     renderAlerts('overview-alerts', alerts);
   }
 

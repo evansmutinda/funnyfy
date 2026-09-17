@@ -1,6 +1,6 @@
 # ToDo
 
-**Last updated:** 26 Aug 2026
+**Last updated:** 17 Sep 2026
 
 ### Production Vercel (`funnyfyapp`) — Phase 1–2 done
 
@@ -17,7 +17,8 @@
 | **Prod launch order** | [PRODUCTION_LAUNCH_ORDER.md](./PRODUCTION_LAUNCH_ORDER.md) | Full chronological checklist (Google + RC + Replicate) |
 | Before Play Store | [GITHUB_BRANCH_PROTECTION.md](./GITHUB_BRANCH_PROTECTION.md) | Manual GitHub step |
 | Before Play Store | [MD/RELEASE_SIGNING.md](../MD/RELEASE_SIGNING.md) | Run keystore script once |
-| When prod DB is live | [ADMIN_DASHBOARD_SETUP.md](./ADMIN_DASHBOARD_SETUP.md) | Production admin IDs |
+| When prod DB is live | [ADMIN_DASHBOARD_SETUP.md](./ADMIN_DASHBOARD_SETUP.md) | Production admin (`admin_users`) |
+| **Future versions** | [CREDIT_PACKS.md](./CREDIT_PACKS.md) | Consumable top-ups when quota maxed — deferred |
 | Later | [APP_VERSION_GATING.md](./APP_VERSION_GATING.md) | Not built |
 | Ongoing | [COMPARISON_ASSETS.md](./COMPARISON_ASSETS.md) | Some pairs missing |
 
