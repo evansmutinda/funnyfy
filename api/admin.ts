@@ -40,6 +40,39 @@ const ADMIN_PAGES_DIR = path.join(__dirname, '_utils', 'admin-pages');
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+type AdminIdentity = { id: string; role: string; source: 'admin_users' | 'legacy_users' };
+
+/** Prefer `admin_users` (separate from app users). Legacy: `users` + ADMIN_USER_IDS. */
+async function lookupAdminByLoginId(loginId: string): Promise<AdminIdentity | null> {
+  const trimmed = loginId.trim();
+  if (!trimmed) return null;
+
+  try {
+    const adminResult = await query<{ id: string; role: string }>(
+      UUID_REGEX.test(trimmed)
+        ? `SELECT id, role FROM admin_users WHERE id = $1::uuid LIMIT 1`
+        : `SELECT id, role FROM admin_users WHERE lower(email) = lower($1) LIMIT 1`,
+      [trimmed]
+    );
+    if (adminResult.rows[0]) {
+      return {
+        id: adminResult.rows[0].id,
+        role: adminResult.rows[0].role || 'admin',
+        source: 'admin_users',
+      };
+    }
+  } catch (err) {
+    console.warn('[admin] admin_users lookup failed (table missing?):', err);
+  }
+
+  // Legacy allowlist: app users.id must also be listed in ADMIN_USER_IDS
+  if (ADMIN_USER_IDS.length === 0) return null;
+  const dbUserId = await lookupUserByLoginId(trimmed);
+  if (!dbUserId) return null;
+  if (!ADMIN_USER_IDS.includes(trimmed) && !ADMIN_USER_IDS.includes(dbUserId)) return null;
+  return { id: dbUserId, role: 'admin', source: 'legacy_users' };
+}
+
 /** Avoid `varchar = uuid` errors when looking up by UUID (revenuecat_user_id is text). */
 async function lookupUserByLoginId(loginId: string): Promise<string | null> {
   const trimmed = loginId.trim();
@@ -50,6 +83,15 @@ async function lookupUserByLoginId(loginId: string): Promise<string | null> {
     [trimmed]
   );
   return userResult.rows[0]?.id ?? null;
+}
+
+async function hasAdminUsersTableRows(): Promise<boolean> {
+  try {
+    const count = await safeCount(`SELECT COUNT(*)::int AS count FROM admin_users`);
+    return count > 0;
+  } catch {
+    return false;
+  }
 }
 
 async function safeCount(sql: string, params: any[] = []): Promise<number> {
@@ -145,31 +187,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     const userId = body.userId?.trim();
 
-    if (!userId) return safeErrorResponse(res, 400, 'MISSING_USER_ID', 'User ID is required');
+    if (!userId) return safeErrorResponse(res, 400, 'MISSING_USER_ID', 'Admin ID or email is required');
     if (!JWT_SECRET) return safeErrorResponse(res, 500, 'AUTH_CONFIG_ERROR', 'Authentication not configured');
 
-    if (ADMIN_USER_IDS.length === 0) {
+    const adminConfigured =
+      ADMIN_USER_IDS.length > 0 || (await hasAdminUsersTableRows());
+    if (!adminConfigured) {
       return safeErrorResponse(
         res,
         503,
         'ADMIN_NOT_CONFIGURED',
-        'Admin access is not configured. Set ADMIN_USER_IDS in Vercel and redeploy.'
+        'Admin access is not configured. Insert a row into admin_users (or set ADMIN_USER_IDS) and redeploy.'
       );
     }
 
     try {
-      let finalUserId = userId;
-
-      const dbUserId = await lookupUserByLoginId(userId);
-      if (!dbUserId) {
-        return safeErrorResponse(res, 401, 'INVALID_CREDENTIALS', 'Invalid user ID');
-      }
-      finalUserId = dbUserId;
-      const isAdmin = ADMIN_USER_IDS.includes(userId) || ADMIN_USER_IDS.includes(finalUserId);
-      if (!isAdmin) {
+      const admin = await lookupAdminByLoginId(userId);
+      if (!admin) {
         await logSecurityEvent({
           eventType: 'admin_login_denied',
-          userId: finalUserId,
+          userId,
           ip: getClientIp(req),
           userAgent: req.headers['user-agent'] as string,
           success: false,
@@ -178,12 +215,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       const token = jwt.sign(
-        { userId: finalUserId, sub: finalUserId, role: 'admin', iat: Math.floor(Date.now() / 1000) },
+        {
+          userId: admin.id,
+          sub: admin.id,
+          role: admin.role || 'admin',
+          iat: Math.floor(Date.now() / 1000),
+        },
         JWT_SECRET,
         { expiresIn: '7d' }
       );
 
-      return res.status(200).json({ ok: true, token, userId: finalUserId, role: 'admin', expiresIn: '7d' });
+      return res.status(200).json({
+        ok: true,
+        token,
+        userId: admin.id,
+        role: admin.role || 'admin',
+        expiresIn: '7d',
+      });
     } catch (err: any) {
       console.error('[admin/login]', err);
       return safeErrorResponse(res, 500, 'LOGIN_FAILED', 'Failed to process login');

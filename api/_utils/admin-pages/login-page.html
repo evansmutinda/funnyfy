@@ -163,24 +163,24 @@
   <div class="login-container">
     <div class="brand">FunnyFy</div>
     <h1>Admin</h1>
-    <p class="subtitle">Sign in with your authorized user ID</p>
+    <p class="subtitle">Sign in with your admin ID or email</p>
 
     <div class="notice notice-error" id="error"></div>
     <div class="notice notice-success" id="success"></div>
 
     <form id="loginForm">
       <div class="form-group">
-        <label for="userId">User ID</label>
+        <label for="userId">Admin ID or email</label>
         <input
           type="text"
           id="userId"
           name="userId"
-          placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+          placeholder="admin@example.com or UUID"
           required
-          autocomplete="off"
+          autocomplete="username"
           spellcheck="false"
         />
-        <p class="help-text">UUID from the same Supabase project as this deployment (staging vs production).</p>
+        <p class="help-text">From the <code>admin_users</code> table in this environment’s Supabase (staging vs production).</p>
       </div>
 
       <button type="submit" id="submitBtn">

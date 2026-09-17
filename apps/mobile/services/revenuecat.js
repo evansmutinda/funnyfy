@@ -110,37 +110,59 @@ export function tierFromProductId(productId) {
   return 'starter';
 }
 
+const TIER_RANK = { starter: 0, popular: 1, pro: 2 };
+
+function tierRankFromProductId(productId) {
+  return TIER_RANK[tierFromProductId(productId)] ?? -1;
+}
+
+/** Prefer the highest-ranked active product so a mid-cycle upgrade wins over a lagging old SKU. */
+function pickHighestProductId(productIds) {
+  const ids = (productIds || []).filter(Boolean);
+  if (ids.length === 0) return null;
+  return ids.reduce((best, id) =>
+    tierRankFromProductId(id) > tierRankFromProductId(best) ? id : best
+  );
+}
+
 // Resolve active subscription details from CustomerInfo (entitlements or activeSubscriptions)
 export function getActiveSubscriptionDetails(customerInfo) {
   if (!customerInfo) return null;
 
   const activeEntitlements = customerInfo.entitlements?.active || {};
-  const entitlementValues = Object.values(activeEntitlements);
-  if (entitlementValues.length > 0) {
-    const ent = entitlementValues.find((e) => e?.productIdentifier) || entitlementValues[0];
-    if (ent?.productIdentifier) {
-      return {
-        productIdentifier: ent.productIdentifier,
-        expirationDate: ent.expirationDate || customerInfo.allExpirationDates?.[ent.productIdentifier] || null,
-      };
-    }
-  }
-
-  const activeSubs = customerInfo.activeSubscriptions;
-  if (Array.isArray(activeSubs) && activeSubs.length > 0) {
-    const productId = activeSubs[0];
+  const entitlementProducts = Object.values(activeEntitlements)
+    .map((e) => e?.productIdentifier)
+    .filter(Boolean);
+  const bestEntitlementProduct = pickHighestProductId(entitlementProducts);
+  if (bestEntitlementProduct) {
+    const ent =
+      Object.values(activeEntitlements).find((e) => e?.productIdentifier === bestEntitlementProduct) ||
+      Object.values(activeEntitlements)[0];
     return {
-      productIdentifier: productId,
-      expirationDate: customerInfo.allExpirationDates?.[productId] || null,
+      productIdentifier: bestEntitlementProduct,
+      expirationDate: ent?.expirationDate || customerInfo.allExpirationDates?.[bestEntitlementProduct] || null,
     };
   }
 
-  const purchased = customerInfo.allPurchasedProductIdentifiers;
-  if (Array.isArray(purchased) && purchased.length > 0) {
-    const productId = purchased[purchased.length - 1];
+  const activeSubs = Array.isArray(customerInfo.activeSubscriptions)
+    ? customerInfo.activeSubscriptions
+    : [];
+  const bestActive = pickHighestProductId(activeSubs);
+  if (bestActive) {
     return {
-      productIdentifier: productId,
-      expirationDate: customerInfo.allExpirationDates?.[productId] || null,
+      productIdentifier: bestActive,
+      expirationDate: customerInfo.allExpirationDates?.[bestActive] || null,
+    };
+  }
+
+  const purchased = Array.isArray(customerInfo.allPurchasedProductIdentifiers)
+    ? customerInfo.allPurchasedProductIdentifiers
+    : [];
+  const bestPurchased = pickHighestProductId(purchased);
+  if (bestPurchased) {
+    return {
+      productIdentifier: bestPurchased,
+      expirationDate: customerInfo.allExpirationDates?.[bestPurchased] || null,
     };
   }
 
@@ -151,16 +173,19 @@ export function getActiveSubscriptionDetails(customerInfo) {
 export function getSubscriptionBillingState(customerInfo) {
   if (!customerInfo) return null;
 
+  const details = getActiveSubscriptionDetails(customerInfo);
+  if (!details?.productIdentifier) return null;
+
   const activeEntitlements = customerInfo.entitlements?.active || {};
-  const entitlementValues = Object.values(activeEntitlements);
-  const ent = entitlementValues.find((e) => e?.productIdentifier) || entitlementValues[0];
-  if (!ent?.productIdentifier) return null;
+  const ent =
+    Object.values(activeEntitlements).find((e) => e?.productIdentifier === details.productIdentifier) ||
+    Object.values(activeEntitlements)[0];
 
   return {
-    productIdentifier: ent.productIdentifier,
-    expirationDate: ent.expirationDate || customerInfo.allExpirationDates?.[ent.productIdentifier] || null,
-    willRenew: ent.willRenew !== false,
-    cancelAtPeriodEnd: ent.willRenew === false,
+    productIdentifier: details.productIdentifier,
+    expirationDate: details.expirationDate,
+    willRenew: ent?.willRenew !== false,
+    cancelAtPeriodEnd: ent?.willRenew === false,
     managementURL: customerInfo.managementURL || null,
   };
 }

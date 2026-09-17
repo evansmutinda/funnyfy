@@ -8,12 +8,13 @@
   const clearLink = document.getElementById('clearStoredLogin');
 
   const ERROR_MESSAGES = {
-    ACCESS_DENIED: 'This user ID is not authorized for admin access. Add it to ADMIN_USER_IDS in Vercel, then redeploy.',
-    INVALID_CREDENTIALS: 'User ID not found in this environment\'s database. Use an ID from the same Supabase project as the URL you\'re on (staging vs production).',
-    LOGIN_FAILED: 'Server error during login. Redeploy staging after the latest admin fixes.',
+    ACCESS_DENIED: 'Not an admin. Use an admin_users id/email, or a legacy users.id listed in ADMIN_USER_IDS.',
+    INVALID_CREDENTIALS: 'Admin not found in this environment. Use admin_users (or staging vs production DB mismatch).',
+    LOGIN_FAILED: 'Server error during login. Redeploy after the latest admin fixes.',
     RATE_LIMITED: 'Too many login attempts. Wait 15 minutes and try again.',
     AUTH_CONFIG_ERROR: 'Server auth is not configured (JWT_SECRET missing on Vercel).',
-    INVALID_USER_ID: 'User ID must be a valid UUID (e.g. d0f0c851-fdd8-4b9b-a1bd-b942d9160638).',
+    ADMIN_NOT_CONFIGURED: 'No admins configured. Insert into admin_users (or set ADMIN_USER_IDS) and redeploy.',
+    INVALID_USER_ID: 'Enter an admin UUID or email.',
   };
 
   function formatError(data, status) {
@@ -54,13 +55,14 @@
 
     const userId = userIdInput.value.trim();
     if (!userId) {
-      showError('User ID is required');
+      showError('Admin ID or email is required');
       return;
     }
 
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    if (!uuidRegex.test(userId)) {
-      showError('User ID must be a valid UUID format');
+    const looksLikeEmail = userId.includes('@');
+    if (!uuidRegex.test(userId) && !looksLikeEmail) {
+      showError('Enter an admin UUID or email');
       return;
     }
 

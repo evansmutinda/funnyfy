@@ -112,6 +112,58 @@ function tierRank(tier: string | null | undefined): number {
   return TIER_RANK[(tier || '').toLowerCase()] ?? -1;
 }
 
+/**
+ * Decide which tier to persist on RENEWAL.
+ * Upgrades must not be overwritten by a lagging renewal of the old SKU.
+ * Only a scheduled downgrade (pending_tier matching the renewal product) may lower the tier.
+ */
+function resolveRenewalTier(current: string, renewalTier: string, pending: string | null): {
+  applyTier: string;
+  clearPending: boolean;
+  note: string;
+} {
+  const currentNorm = (current || '').toLowerCase() || 'starter';
+  const renewalNorm = (renewalTier || '').toLowerCase() || currentNorm;
+  const pendingNorm = (pending || '').toLowerCase() || null;
+  const currentRank = tierRank(currentNorm);
+  const renewalRank = tierRank(renewalNorm);
+
+  // Deferred downgrade taking effect on this renewal
+  if (pendingNorm && renewalNorm === pendingNorm) {
+    return {
+      applyTier: pendingNorm,
+      clearPending: true,
+      note: 'deferred_downgrade_applied',
+    };
+  }
+
+  // Store moved above current — upgrade wins; cancel any stale pending downgrade
+  if (renewalRank > currentRank) {
+    return {
+      applyTier: renewalNorm,
+      clearPending: true,
+      note: 'store_upgrade_applied',
+    };
+  }
+
+  // Same tier renewed — keep a scheduled downgrade for a later cycle
+  if (renewalRank === currentRank) {
+    return {
+      applyTier: currentNorm,
+      clearPending: false,
+      note: pendingNorm ? 'renewed_keep_pending_downgrade' : 'renewed_same_tier',
+    };
+  }
+
+  // Store still reporting a lower SKU while DB already has a higher tier (common after
+  // mid-cycle upgrade before Play catches up). Keep the upgrade; do not revert.
+  return {
+    applyTier: currentNorm,
+    clearPending: false,
+    note: 'kept_higher_tier_ignored_stale_lower_renewal',
+  };
+}
+
 // Log subscription event to history
 async function logSubscriptionEvent(
   subscriptionId: string | null,
@@ -452,17 +504,11 @@ async function handleRenewal(event: any, eventId: string) {
   const pending = (sub.pending_tier || '').toLowerCase() || null;
   const current = (subscription.tier || '').toLowerCase();
 
-  let applyTier = renewalTier || current;
-  let clearPending = !pending;
-  if (pending) {
-    if (renewalTier === pending) {
-      applyTier = pending;
-      clearPending = true;
-    } else {
-      applyTier = current;
-      clearPending = false;
-    }
-  }
+  const { applyTier, clearPending, note: renewalNote } = resolveRenewalTier(
+    current,
+    renewalTier,
+    pending
+  );
 
   try {
     if (clearPending) {
@@ -471,6 +517,7 @@ async function handleRenewal(event: any, eventId: string) {
         [applyTier, periodEnd, subscription.id]
       );
     } else {
+      // Keep current (higher) tier; refresh period only. Preserve pending downgrade if any.
       await query(
         `UPDATE subscriptions SET current_period_end = $1, updated_at = NOW() WHERE id = $2`,
         [periodEnd, subscription.id]
@@ -503,6 +550,9 @@ async function handleRenewal(event: any, eventId: string) {
   await logSubscriptionEvent(subscription.id, subscription.user_id, 'renewed',
     subscription.tier, applyTier, 'active', 'active', {
       eventId,
+      renewalProductId: productId || null,
+      pendingTier: pending,
+      note: renewalNote,
     });
 }
 

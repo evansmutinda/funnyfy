@@ -1,41 +1,53 @@
 # Admin dashboard setup
 
-**Status:** ✅ Staging + production admin login verified
+**Status:** ✅ Staging admin login verified · ⏳ Production needs `admin_users` row (+ deploy)
 **URLs:** Staging `https://funnyfy-staging.vercel.app/admin/login` · Production `https://funnyfyapp.vercel.app/admin/login`
 
 ---
 
 ## Context
 
-- Admin user IDs come from **`users.id`** in Supabase Postgres (not Supabase Auth).
-- Staging and production use **separate** databases — IDs are not shared.
-- If `ADMIN_USER_IDS` is **empty**, login is **denied** (503 `ADMIN_NOT_CONFIGURED`).
-- If `ADMIN_USER_IDS` is **set**, the ID must exist in `users` **and** be listed in the env var.
+- Admins live in **`admin_users`** (separate from app `users`).
+- Login accepts **`admin_users.id`** (UUID) or **`admin_users.email`**.
+- Staging and production use **separate** databases — rows are not shared.
+- If `admin_users` is empty **and** `ADMIN_USER_IDS` is empty, login is **denied** (503 `ADMIN_NOT_CONFIGURED`).
+- Legacy fallback: app `users.id` listed in Vercel `ADMIN_USER_IDS` still works.
+
+Schema (`api/migrations-master.sql`):
+
+```sql
+CREATE TABLE IF NOT EXISTS admin_users (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email      VARCHAR(255) UNIQUE NOT NULL,
+  role       VARCHAR(20)  NOT NULL DEFAULT 'admin', -- 'admin','support','viewer'
+  created_at TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
+```
 
 ---
 
 ## Staging — done
 
-- [x] Admin user ID chosen in staging Supabase
-- [x] `ADMIN_USER_IDS` set on funnyfy-staging Vercel
-- [x] Login verified at `/admin/login`
+- [x] Admin access working on funnyfy-staging
 - [x] Admin fail-closed in code (`api/admin.ts`)
 
 ---
 
-## Production — when ready
+## Production setup
 
-- [ ] Open **production** Supabase → list or create admin user:
+1. Production Supabase → ensure table exists (run migrations if needed).
+2. Insert an admin:
 
 ```sql
-SELECT id, revenuecat_user_id, subscription_tier, subscription_status, created_at
-FROM users
-ORDER BY created_at DESC;
+INSERT INTO admin_users (email, role)
+VALUES ('you@example.com', 'admin')
+RETURNING id, email, role;
 ```
 
-- [x] Vercel → **funnyfyapp** → Environment Variables → set `ADMIN_USER_IDS` (prod UUID)
-- [ ] Redeploy production
-- [x] Verify https://funnyfyapp.vercel.app/admin/login
+3. Deploy API so login uses `admin_users` (this branch).
+4. Open https://funnyfyapp.vercel.app/admin/login → sign in with that **email** or **id**.
+
+Optional legacy: Vercel → **funnyfyapp** → `ADMIN_USER_IDS=<app users.id>` still works as fallback.
 
 See [MD/ACCOUNTS_CHECKLIST.md](../MD/ACCOUNTS_CHECKLIST.md).
 
@@ -43,7 +55,7 @@ See [MD/ACCOUNTS_CHECKLIST.md](../MD/ACCOUNTS_CHECKLIST.md).
 
 ## How app users are created (reference)
 
-New rows in `users` are created when the mobile app calls **`POST /api/auth/token`** on first launch. If the backend is down, the app may use a **local-only** UUID that never appears in Supabase.
+New rows in `users` are created when the mobile app calls **`POST /api/auth/token`** on first launch. Those are **not** admins.
 
 ---
 
