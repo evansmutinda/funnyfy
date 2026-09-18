@@ -68,6 +68,16 @@ export default {
     web: { bundler: 'metro' },
     plugins: [
       [
+        'expo-build-properties',
+        {
+          android: {
+            compileSdkVersion: 36,
+            targetSdkVersion: 36,
+            buildToolsVersion: '36.0.0',
+          },
+        },
+      ],
+      [
         '@sentry/react-native/expo',
         {
           organization: 'funnyfy',
