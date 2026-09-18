@@ -62,11 +62,15 @@ function googleReplacementMode(isDowngrade) {
 
 export async function purchasePackage(pkg, { customerInfo, isDowngrade, isUpgrade } = {}) {
   const oldProductIdentifier = getCurrentStoreProductId(customerInfo);
-  if (
+  const billing = getSubscriptionBillingState(customerInfo);
+  // Play rejects product-change args while a canceling sub is still in its paid period.
+  const canProductChange =
     Platform.OS === 'android' &&
     oldProductIdentifier &&
-    (isDowngrade || isUpgrade)
-  ) {
+    (isDowngrade || isUpgrade) &&
+    !billing?.cancelAtPeriodEnd;
+
+  if (canProductChange) {
     const productChangeInfo = {
       oldProductIdentifier,
       replacementMode: googleReplacementMode(!!isDowngrade),
@@ -75,6 +79,71 @@ export async function purchasePackage(pkg, { customerInfo, isDowngrade, isUpgrad
     return Purchases.purchasePackage(pkg, null, productChangeInfo);
   }
   return Purchases.purchasePackage(pkg);
+}
+
+function purchaseErrorText(err) {
+  const parts = [err?.message, err?.underlyingErrorMessage, err?.readableErrorCode]
+    .filter(Boolean)
+    .map((s) => String(s));
+  return parts.join(' ').toLowerCase();
+}
+
+/**
+ * User-facing copy + whether to report to Sentry for a purchase failure.
+ * Maps Play/RC "invalid arguments" (common while cancel-at-period-end) to a clear message.
+ */
+export function describePurchaseError(err, { cancelAtPeriodEnd, expirationDate } = {}) {
+  if (err?.userCancelled) {
+    return { userCancelled: true, title: null, message: null, shouldReport: false };
+  }
+
+  const text = purchaseErrorText(err);
+  const invalidArgs =
+    text.includes('arguments provided are invalid') ||
+    text.includes('invalid arguments') ||
+    String(err?.code) === 'PurchaseInvalidError' ||
+    err?.readableErrorCode === 'PurchaseInvalidError';
+
+  if (invalidArgs && cancelAtPeriodEnd) {
+    const until = expirationDate
+      ? ` until ${expirationDate}`
+      : ' until the end of your billing period';
+    return {
+      userCancelled: false,
+      title: 'Still subscribed',
+      message: `Your plan stays active${until}. Google Play won't let you buy again until it ends — then you can re-subscribe.`,
+      shouldReport: true,
+      kind: 'active_after_cancel',
+    };
+  }
+
+  if (invalidArgs) {
+    return {
+      userCancelled: false,
+      title: 'Purchase unavailable',
+      message:
+        'Google Play rejected this purchase (often because a subscription is already active on this account). Try Restore, or manage the plan in Google Play.',
+      shouldReport: true,
+      kind: 'invalid_arguments',
+    };
+  }
+
+  let message = 'Purchase failed or was cancelled.';
+  if (err?.underlyingErrorMessage && err?.message) {
+    message = `${err.message} (${err.underlyingErrorMessage})`;
+  } else if (err?.message) {
+    message = err.message;
+  } else if (err?.code != null) {
+    message = `Purchase error (code ${err.code})`;
+  }
+
+  return {
+    userCancelled: false,
+    title: 'Purchase failed',
+    message,
+    shouldReport: true,
+    kind: 'generic',
+  };
 }
 
 export async function restorePurchases() {

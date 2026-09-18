@@ -29,6 +29,7 @@ import {
   openSubscriptionManagement,
   getStoreSubscriptionLabel,
   tierFromProductId,
+  describePurchaseError,
 } from './services/revenuecat';
 import { initAuth, resetAuthIfLocal, forceReAuth } from './services/auth.js';
 import NotificationProvider, { useNotifications } from './components/NotificationProvider';
@@ -1015,6 +1016,21 @@ function AppContent({ fontsLoaded }) {
         console.warn('[RevenueCat] getCustomerInfo before purchase failed:', infoErr);
       }
 
+      const billingBefore = getSubscriptionBillingState(customerInfoForChange);
+      // Re-buy while cancel-at-period-end always fails on Play — explain before the sheet.
+      if (billingBefore?.cancelAtPeriodEnd && !downgrade && !isUpgrade) {
+        const until =
+          formatSubscriptionDate(billingBefore.expirationDate) ||
+          formatSubscriptionDate(subscriptionInfo?.revenueCatExpiration) ||
+          null;
+        const described = describePurchaseError(
+          { message: 'arguments provided are invalid' },
+          { cancelAtPeriodEnd: true, expirationDate: until },
+        );
+        showToast(described.title, described.message, 'info');
+        return;
+      }
+
       // Attempt purchase
       const purchaseResult = await purchasePackage(selected, {
         customerInfo: customerInfoForChange,
@@ -1078,16 +1094,44 @@ function AppContent({ fontsLoaded }) {
         return;
       }
 
-      let errorMessage = 'Purchase failed or was cancelled.';
-      if (err?.underlyingErrorMessage && err?.message) {
-        errorMessage = `${err.message} (${err.underlyingErrorMessage})`;
-      } else if (err?.message) {
-        errorMessage = err.message;
-      } else if (err?.code) {
-        errorMessage = `Purchase error (code ${err.code})`;
+      let billingAtFail = null;
+      try {
+        billingAtFail = getSubscriptionBillingState(await getCustomerInfo());
+      } catch {
+        billingAtFail = getSubscriptionBillingState(null);
+      }
+      const cancelAtPeriodEnd =
+        !!billingAtFail?.cancelAtPeriodEnd ||
+        !!subscriptionInfo?.subscription?.cancelAtPeriodEnd;
+      const until =
+        formatSubscriptionDate(billingAtFail?.expirationDate) ||
+        formatSubscriptionDate(subscriptionInfo?.revenueCatExpiration) ||
+        null;
+
+      const described = describePurchaseError(err, {
+        cancelAtPeriodEnd,
+        expirationDate: until,
+      });
+
+      if (described.shouldReport) {
+        captureAppError(err, {
+          flow: 'purchase',
+          kind: described.kind,
+          selectedTier,
+          downgrade: !!downgrade,
+          cancelAtPeriodEnd,
+          code: err?.code,
+          readableErrorCode: err?.readableErrorCode,
+          underlyingErrorMessage: err?.underlyingErrorMessage,
+          productIdentifier: billingAtFail?.productIdentifier,
+        });
       }
 
-      showToast('Purchase failed', errorMessage, 'error');
+      showToast(
+        described.title || 'Purchase failed',
+        described.message,
+        described.kind === 'active_after_cancel' ? 'info' : 'error',
+      );
     } finally {
       setSubscribeLoading(false);
     }
