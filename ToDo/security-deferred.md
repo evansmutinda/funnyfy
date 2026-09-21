@@ -1,6 +1,6 @@
 # FunnyFy — backlog
 
-**Last updated:** 26 Aug 2026
+**Last updated:** 18 Sep 2026
 
 Action items only. Completed work is listed at the bottom.
 
@@ -46,7 +46,7 @@ Action items only. Completed work is listed at the bottom.
 | 3 | **Rebuild mobile APK** | `npx expo prebuild --platform android` then `.\build-apk-local.ps1` — `expo-secure-store` is native |
 | 4 | **Generate release keystore** | [MD/RELEASE_SIGNING.md](../MD/RELEASE_SIGNING.md) — run `apps/mobile/scripts/generate-release-keystore.ps1` once; back up `.jks` |
 | 5 | **GitHub branch protection** | [GITHUB_BRANCH_PROTECTION.md](./GITHUB_BRANCH_PROTECTION.md) — ~2 min in repo Settings → Branches |
-| 6 | **Production admin IDs** | [ADMIN_DASHBOARD_SETUP.md](./ADMIN_DASHBOARD_SETUP.md) — after prod DB + first user |
+| 6 | **Production admin** | ✅ Done — `admin_users` seeded; `/admin/login` |
 
 ---
 
@@ -54,7 +54,7 @@ Action items only. Completed work is listed at the bottom.
 
 | Task | Doc |
 |------|-----|
-| App version gating (hide new styles on old APKs) | [APP_VERSION_GATING.md](./APP_VERSION_GATING.md) |
+| Closed testing free gens | [CLOSED_TESTING_QUOTA.md](./CLOSED_TESTING_QUOTA.md) |
 | Remaining comparison before/after assets | [COMPARISON_ASSETS.md](./COMPARISON_ASSETS.md) |
 
 **Comparison assets still open:**
@@ -87,17 +87,11 @@ Action items only. Completed work is listed at the bottom.
 
 ---
 
-## Completed (Aug 2026)
+## Completed (recent)
 
-| Item | Where |
+| Item | Notes |
 |------|--------|
-| Admin lock (`ADMIN_USER_IDS`) | Staging + prod configured |
-| Admin fail-closed | `api/admin.ts` |
-| JWT → Secure Store | `apps/mobile/services/auth.js` + `expo-secure-store` |
-| Cron queue hardening | `api/cron/process-queue.ts` — scoped user kicks + rate limit |
-| Release signing wiring | `plugins/withReleaseSigning.js`, `scripts/generate-release-keystore.ps1`, [MD/RELEASE_SIGNING.md](../MD/RELEASE_SIGNING.md) |
-| Logo / splash / icon | [MD/SPLASH_ASSET.md](../MD/SPLASH_ASSET.md) |
-| Mobile Sentry | [MD/SENTRY_INTEGRATION.md](../MD/SENTRY_INTEGRATION.md) |
+| App version gating + update banner | Built; set `LATEST_APP_VERSION` per Play release |
+| Admin dashboard (`admin_users`) | Staging + prod |
+| Play ↔ RC products, RTDN, CANCELING path | Internal testing |
 | Hard paywall (no trial) | App + API |
-| Menu cleanup (no About / Request a style) | `MenuModal.js` |
-| Subscription footer spacing | `SubscriptionScreen.js` |

@@ -275,7 +275,7 @@
 
 ## 📊 Admin Dashboard Testing
 
-**Entry:** `<env-url>/admin/login` · **Setup:** `ToDo/ADMIN_DASHBOARD_SETUP.md` · **Flow reference:** `MD/FUNNYFY_FLOW.md`
+**Entry:** `<env-url>/admin/login` · **Flow reference:** `MD/FUNNYFY_FLOW.md`
 
 ### Dashboard Access
 - [ ] Open `/admin/login` (dark theme)

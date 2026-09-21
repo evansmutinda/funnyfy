@@ -111,7 +111,7 @@ Use a **local debug APK** (`.\build-apk-local.ps1`) instead of **Expo Go** when 
 ### Backend
 - **Staging**: `https://funnyfy-staging.vercel.app`
 - **Production**: `https://funnyfyapp.vercel.app`
-- **Admin**: `<env-url>/admin/login` — see `ToDo/ADMIN_DASHBOARD_SETUP.md`
+- **Admin**: `<env-url>/admin/login` — `admin_users` (see `MD/FUNNYFY_FLOW.md`)
 - **Styles API**: `GET /api/styles` returns enabled styles + `categories`
 - **Architecture**: `MD/FUNNYFY_FLOW.md` (diagrams: `MD/FUNNYFY_FLOW.html`)
 

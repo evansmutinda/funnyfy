@@ -1,6 +1,6 @@
 # Production launch order (chronological)
 
-**Last updated:** 26 Aug 2026  
+**Last updated:** 18 Sep 2026  
 **Package:** `com.evansks.funnyfyapp`  
 **Prod API:** `https://funnyfyapp.vercel.app` · **Staging API:** `https://funnyfy-staging.vercel.app`
 
@@ -76,22 +76,22 @@ Do these in order. Don’t skip ahead to Play Store uploads before the backend D
 
 ---
 
-## Phase 6 — Wire Google ↔ RevenueCat billing
+## Phase 6 — Wire Google ↔ RevenueCat billing ✅ Done
 
-27. [ ] Play Console → create **subscription products** matching FunnyFy tiers (Starter / Popular / Pro) and base plans
-28. [ ] Create Google Cloud **service account** for Play API → download JSON
-29. [ ] Play Console → Users and permissions → grant that service account access (financial + view app info as RC docs require)
-30. [ ] RevenueCat → Android app → upload Play service account JSON; link package `com.evansks.funnyfyapp`
-31. [ ] RevenueCat → map products → entitlement → offering (same as staging catalog if already set)
-32. [ ] Add **license testers** in Play Console (License testing) so sandbox purchases work
+27. [x] Play Console → subscription products (Starter / Popular / Pro)
+28. [x] Google Cloud service account for Play API
+29. [x] Play Console permissions for that SA
+30. [x] RevenueCat → Android app credentials + package link
+31. [x] RevenueCat → products → entitlement → offering
+32. [x] License testers + RTDN; CANCELING verified on internal build
 
 ---
 
 ## Phase 7 — End-to-end test (internal)
 
 33. [ ] Install internal-test build → auth → styles load from **prod** API
-34. [ ] Purchase (license tester) → webhook updates prod DB → usage/quota correct
-35. [ ] Restore purchases; Manage/cancel opens Play subscriptions
+34. [x] Purchase (license tester) → RC / webhook path exercised
+35. [x] Restore purchases; Manage/cancel opens Play; CANCELING in app
 36. [ ] Generate image → Sightengine + Replicate + job completes; usage increments once
 37. [ ] Offline / error toasts still sane
 38. [ ] Admin dashboard sees the test user/jobs on **prod**
@@ -120,7 +120,9 @@ Do these in order. Don’t skip ahead to Play Store uploads before the backend D
 
 | Item | Doc |
 |------|-----|
-| Comparison assets / version gating | `ToDo/COMPARISON_ASSETS.md`, `APP_VERSION_GATING.md` |
+| Comparison assets | `ToDo/COMPARISON_ASSETS.md` |
+| Closed testing quota | `ToDo/CLOSED_TESTING_QUOTA.md` |
+| Version gating ops | Set Vercel `LATEST_APP_VERSION` after each Play release |
 | Password manager folder for all FunnyFy secrets | — |
 | GitHub org transfer | optional pre-public |
 
@@ -128,4 +130,4 @@ Do these in order. Don’t skip ahead to Play Store uploads before the backend D
 
 ## You are here
 
-**Next concrete step:** Phase 4 — Store listing + host a public **privacy policy URL** + support email. Then content rating / Data safety / Internal testing track.
+**Next concrete step:** Finish store listing / closed testing prep. Before closed testers: [CLOSED_TESTING_QUOTA.md](./CLOSED_TESTING_QUOTA.md). Phase 6 (Play ↔ RC) is done.
