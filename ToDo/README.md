@@ -12,7 +12,7 @@
 | **Future** | [CREDIT_PACKS.md](./CREDIT_PACKS.md) | Consumable top-ups — deferred |
 | Ongoing | [COMPARISON_ASSETS.md](./COMPARISON_ASSETS.md) | Caricature pairs done; rest deferred |
 
-**Ops (no ToDo file):** After each Play AAB is live, set Vercel `LATEST_APP_VERSION` (and redeploy) so older installs get the update banner.
+**Ops (no ToDo file):** Soft update = Vercel `LATEST_APP_VERSION` (nudge). Mandatory = `MIN_REQUIRED_APP_VERSION` (blocking dialog, no “Not now”). Set only after that build is on Play; redeploy API. Soft “Not now” resurfaces after 3 cold starts.
 
 **Admin:** Staging/prod `admin_users` seeded — login at `/admin/login` (see [MD/FUNNYFY_FLOW.md](../MD/FUNNYFY_FLOW.md)).
 

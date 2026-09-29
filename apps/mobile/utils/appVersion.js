@@ -1,7 +1,11 @@
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const DISMISS_KEY = 'funnyfy_update_banner_dismissed_for';
+/** Soft “Not now” — resurface after this many cold starts. */
+export const SOFT_UPDATE_SNOOZE_LAUNCHES = 3;
+
+const SOFT_SNOOZE_KEY = 'funnyfy_update_soft_snooze_v2';
+const LEGACY_DISMISS_KEY = 'funnyfy_update_banner_dismissed_for';
 
 /** Compare dotted semver. Returns -1 / 0 / 1. */
 export function compareSemver(a, b) {
@@ -41,21 +45,72 @@ export function shouldPromptUpdate(installedVersion, latestAppVersion) {
   return compareSemver(installedVersion, latestAppVersion) < 0;
 }
 
-export async function wasUpdateBannerDismissed(latestAppVersion) {
-  if (!latestAppVersion) return true;
+export function shouldForceUpdate(installedVersion, minRequiredAppVersion) {
+  if (!installedVersion || !minRequiredAppVersion) return false;
+  return compareSemver(installedVersion, minRequiredAppVersion) < 0;
+}
+
+/**
+ * Soft prompt visibility for this cold start.
+ * After “Not now”, skip the next SOFT_UPDATE_SNOOZE_LAUNCHES launches, then show again.
+ */
+export async function shouldShowSoftUpdatePrompt(latestAppVersion) {
+  if (!latestAppVersion) return false;
+
   try {
-    const dismissedFor = await AsyncStorage.getItem(DISMISS_KEY);
-    return dismissedFor === latestAppVersion;
+    await AsyncStorage.removeItem(LEGACY_DISMISS_KEY).catch(() => {});
+
+    const raw = await AsyncStorage.getItem(SOFT_SNOOZE_KEY);
+    if (!raw) return true;
+
+    let data;
+    try {
+      data = JSON.parse(raw);
+    } catch {
+      await AsyncStorage.removeItem(SOFT_SNOOZE_KEY);
+      return true;
+    }
+
+    if (data?.version !== latestAppVersion) {
+      await AsyncStorage.removeItem(SOFT_SNOOZE_KEY);
+      return true;
+    }
+
+    const skipped = Number(data.skipped) || 0;
+    if (skipped < SOFT_UPDATE_SNOOZE_LAUNCHES) {
+      await AsyncStorage.setItem(
+        SOFT_SNOOZE_KEY,
+        JSON.stringify({ version: latestAppVersion, skipped: skipped + 1 }),
+      );
+      return false;
+    }
+
+    await AsyncStorage.removeItem(SOFT_SNOOZE_KEY);
+    return true;
   } catch {
-    return false;
+    return true;
   }
 }
 
-export async function dismissUpdateBanner(latestAppVersion) {
+/** Call when user taps Not now on a soft update. */
+export async function snoozeSoftUpdatePrompt(latestAppVersion) {
   if (!latestAppVersion) return;
   try {
-    await AsyncStorage.setItem(DISMISS_KEY, latestAppVersion);
+    await AsyncStorage.setItem(
+      SOFT_SNOOZE_KEY,
+      JSON.stringify({ version: latestAppVersion, skipped: 0 }),
+    );
   } catch {
-    // Non-fatal — banner may reappear next launch.
+    // Non-fatal
   }
+}
+
+/** @deprecated Use shouldShowSoftUpdatePrompt / snoozeSoftUpdatePrompt */
+export async function wasUpdateBannerDismissed(latestAppVersion) {
+  return !(await shouldShowSoftUpdatePrompt(latestAppVersion));
+}
+
+/** @deprecated Use snoozeSoftUpdatePrompt */
+export async function dismissUpdateBanner(latestAppVersion) {
+  return snoozeSoftUpdatePrompt(latestAppVersion);
 }

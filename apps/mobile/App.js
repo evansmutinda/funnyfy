@@ -8,6 +8,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   AppState,
   BackHandler,
+  Linking,
   Platform,
   StatusBar,
   StyleSheet,
@@ -41,7 +42,7 @@ import InfoScreen from './screens/InfoScreen';
 import StyleScreen from './screens/StyleScreen';
 import AppSplash from './components/AppSplash';
 import StylesLaunchLoader from './components/StylesLaunchLoader';
-import UpdateBanner from './components/UpdateBanner';
+import ConfirmDialog from './components/ConfirmDialog';
 import UploadScreen from './screens/UploadScreen';
 import PhotoReviewScreen from './screens/PhotoReviewScreen';
 import SubscriptionScreen from './screens/SubscriptionScreen';
@@ -71,10 +72,11 @@ import { readStylesCache, writeStylesCache } from './utils/stylesCache';
 import { formatSubscriptionDate, getDisplayRenewalDate } from './utils/subscriptionDates';
 import { getTierName, isSubscriptionDowngrade, isSubscriptionUpgrade } from './utils/subscriptionTiers';
 import {
-  dismissUpdateBanner,
   getInstalledAppVersion,
+  shouldForceUpdate,
   shouldPromptUpdate,
-  wasUpdateBannerDismissed,
+  shouldShowSoftUpdatePrompt,
+  snoozeSoftUpdatePrompt,
 } from './utils/appVersion';
 import {
   isNsfwContentError,
@@ -136,12 +138,11 @@ export default function App() {
   );
 }
 
-function AppShell({ children, updateBanner = null }) {
+function AppShell({ children }) {
   return (
     <View style={{ flex: 1, backgroundColor: DARK_BG }}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
       {children}
-      {updateBanner}
     </View>
   );
 }
@@ -573,32 +574,55 @@ function AppContent({ fontsLoaded }) {
 
   const applyUpdatePromptFromServer = useCallback(async (data) => {
     const latest = data?.latestAppVersion || null;
+    const minRequired = data?.minRequiredAppVersion || null;
     const storeUrl = (data?.storeUrl || APP_STORE_LISTING_URL || '').trim();
     const installed = getInstalledAppVersion();
-    const serverSaysUpdate = data?.updateAvailable === true;
-    const clientSaysUpdate = shouldPromptUpdate(installed, latest);
+    const force =
+      data?.forceUpdate === true || shouldForceUpdate(installed, minRequired);
+    const soft =
+      data?.updateAvailable === true || shouldPromptUpdate(installed, latest);
 
-    if (!(serverSaysUpdate || clientSaysUpdate) || !latest) {
+    if (force) {
+      setUpdatePrompt({
+        force: true,
+        latestAppVersion: latest || minRequired,
+        minRequiredAppVersion: minRequired,
+        storeUrl,
+      });
+      return;
+    }
+
+    if (!soft || !latest) {
       setUpdatePrompt(null);
       return;
     }
 
-    if (await wasUpdateBannerDismissed(latest)) {
+    if (!(await shouldShowSoftUpdatePrompt(latest))) {
       setUpdatePrompt(null);
       return;
     }
 
     setUpdatePrompt({
+      force: false,
       latestAppVersion: latest,
       storeUrl,
     });
   }, []);
 
-  const handleDismissUpdateBanner = useCallback(async () => {
+  const handleOpenUpdateStore = useCallback(() => {
+    const url = (updatePrompt?.storeUrl || APP_STORE_LISTING_URL || '').trim();
+    if (!url) return;
+    Linking.openURL(url).catch(() => {
+      showToast('Play Store', 'Could not open the Play Store listing.', 'error');
+    });
+  }, [updatePrompt, showToast]);
+
+  const handleDismissSoftUpdate = useCallback(async () => {
+    if (updatePrompt?.force) return;
     const latest = updatePrompt?.latestAppVersion;
     setUpdatePrompt(null);
     if (latest) {
-      await dismissUpdateBanner(latest);
+      await snoozeSoftUpdatePrompt(latest);
     }
   }, [updatePrompt]);
 
@@ -613,6 +637,7 @@ function AppContent({ fontsLoaded }) {
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
+      await applyUpdatePromptFromServer(data);
 
       if (data.ok && Array.isArray(data.styles) && data.styles.length > 0) {
         const serverStyles = data.styles.map((s) => ({
@@ -623,7 +648,6 @@ function AppContent({ fontsLoaded }) {
         }));
         applyStyles(serverStyles);
         await writeStylesCache(serverStyles);
-        await applyUpdatePromptFromServer(data);
       } else {
         throw new Error('No styles returned');
       }
@@ -1681,9 +1705,27 @@ function AppContent({ fontsLoaded }) {
           subscriptionInfo.usage.current < subscriptionInfo.usage.limit,
       );
 
+  const updateDialogEl = (
+    <ConfirmDialog
+      visible={Boolean(updatePrompt)}
+      title={updatePrompt?.force ? 'Update required' : 'Update available'}
+      message={
+        updatePrompt?.force
+          ? 'This version of FunnyFy is no longer supported.'
+          : 'A newer version of FunnyFy is available.'
+      }
+      confirmLabel="Update"
+      cancelLabel="Not now"
+      hideCancel={Boolean(updatePrompt?.force)}
+      onConfirm={handleOpenUpdateStore}
+      onCancel={handleDismissSoftUpdate}
+    />
+  );
+
   if (!splashHidden) {
     return (
       <AppShell>
+        {updateDialogEl}
         <AppSplash />
       </AppShell>
     );
@@ -1692,18 +1734,11 @@ function AppContent({ fontsLoaded }) {
   if (stylesLoading && availableStyles.length === 0) {
     return (
       <AppShell>
+        {updateDialogEl}
         <StylesLaunchLoader />
       </AppShell>
     );
   }
-
-  const updateBannerEl = (
-    <UpdateBanner
-      visible={Boolean(updatePrompt)}
-      storeUrl={updatePrompt?.storeUrl}
-      onDismiss={handleDismissUpdateBanner}
-    />
-  );
 
   let overlay = null;
   if (screen === 'menu') {
@@ -1842,7 +1877,8 @@ function AppContent({ fontsLoaded }) {
   }
 
   return (
-    <AppShell updateBanner={updateBannerEl}>
+    <AppShell>
+      {updateDialogEl}
       <View style={{ flex: 1 }}>
         <View
           style={{ flex: 1 }}

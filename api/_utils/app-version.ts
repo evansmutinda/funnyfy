@@ -2,8 +2,9 @@
  * App version gating for Play Store updates + style catalog filtering.
  *
  * Env (Vercel):
- * - LATEST_APP_VERSION — newest build published on Play (e.g. 1.2.4). Empty = no update nudge.
- * - MIN_APP_VERSION — global minimum for full catalog (optional).
+ * - LATEST_APP_VERSION — newest build on Play (soft update nudge). Empty = no soft nudge.
+ * - MIN_REQUIRED_APP_VERSION — clients below this must update (blocking). Empty = no force update.
+ * - MIN_APP_VERSION — global minimum for full style catalog (optional; separate from force).
  * - APP_STORE_URL — Play Store listing URL.
  */
 
@@ -15,6 +16,7 @@ const DEFAULT_STORE_URL =
 export type AppVersionConfig = {
   latestAppVersion: string | null;
   minAppVersion: string | null;
+  minRequiredAppVersion: string | null;
   storeUrl: string;
 };
 
@@ -50,6 +52,7 @@ export function isVersionAtLeast(clientVersion: string, minimum: string): boolea
 export function getAppVersionConfig(): AppVersionConfig {
   const latest = process.env.LATEST_APP_VERSION?.trim() || null;
   const min = process.env.MIN_APP_VERSION?.trim() || null;
+  const minRequired = process.env.MIN_REQUIRED_APP_VERSION?.trim() || null;
   const storeUrl =
     process.env.APP_STORE_URL?.trim() ||
     process.env.EXPO_PUBLIC_APP_STORE_URL?.trim() ||
@@ -58,6 +61,7 @@ export function getAppVersionConfig(): AppVersionConfig {
   return {
     latestAppVersion: latest,
     minAppVersion: min,
+    minRequiredAppVersion: minRequired,
     storeUrl,
   };
 }
@@ -93,7 +97,12 @@ export function filterStylesForClientVersion(
 
 export function buildAppConfigPayload(clientVersion: string | null) {
   const config = getAppVersionConfig();
-  const updateAvailable = Boolean(
+  const forceUpdate = Boolean(
+    clientVersion &&
+      config.minRequiredAppVersion &&
+      compareSemver(clientVersion, config.minRequiredAppVersion) < 0,
+  );
+  const softUpdate = Boolean(
     clientVersion &&
       config.latestAppVersion &&
       compareSemver(clientVersion, config.latestAppVersion) < 0,
@@ -101,6 +110,7 @@ export function buildAppConfigPayload(clientVersion: string | null) {
 
   return {
     ...config,
-    updateAvailable,
+    updateAvailable: softUpdate || forceUpdate,
+    forceUpdate,
   };
 }
