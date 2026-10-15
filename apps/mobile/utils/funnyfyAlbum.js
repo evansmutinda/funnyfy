@@ -461,33 +461,29 @@ function saveAlbumSuccess(asset) {
 }
 
 async function saveToFunnyfyAlbumAndroid(localFileUri) {
-  let asset;
-  try {
-    asset = await MediaLibrary.createAssetAsync(localFileUri);
-  } catch (assetErr) {
-    console.error('[Save] createAssetAsync failed:', assetErr);
-    return { ok: false };
-  }
-
+  // Android 11+: moving an asset into an album requires MediaStore write
+  // confirmation ("Allow FunnyFy to modify this photo?") on every save.
+  // Create the asset directly in the Funnyfy album instead of create-then-move.
   const persistAlbumId = async (albumRef) => {
     const id = typeof albumRef === 'string' ? albumRef : albumRef?.id;
     if (id) {
       await AsyncStorage.setItem(FUNNYFY_ALBUM_ID_KEY, id);
     }
+    return id;
   };
 
-  const addToAlbum = async (albumRef) => {
-    await MediaLibrary.addAssetsToAlbumAsync([asset], albumRef, false);
+  const createInAlbum = async (albumRef) => {
+    const asset = await MediaLibrary.createAssetAsync(localFileUri, albumRef);
     await persistAlbumId(albumRef);
+    return saveAlbumSuccess(asset);
   };
 
   const cachedId = await AsyncStorage.getItem(FUNNYFY_ALBUM_ID_KEY);
   if (cachedId) {
     try {
-      await addToAlbum(cachedId);
-      return saveAlbumSuccess(asset);
+      return await createInAlbum(cachedId);
     } catch (err) {
-      devWarn('[Save] add to cached album failed:', err?.message || err);
+      devWarn('[Save] createAsset in cached album failed:', err?.message || err);
       await AsyncStorage.removeItem(FUNNYFY_ALBUM_ID_KEY);
     }
   }
@@ -497,10 +493,9 @@ async function saveToFunnyfyAlbumAndroid(localFileUri) {
     const existing = await resolveFunnyfyAlbum({ rescan: true });
     if (existing) {
       try {
-        await addToAlbum(existing);
-        return saveAlbumSuccess(asset);
+        return await createInAlbum(existing);
       } catch (err) {
-        devWarn('[Save] add to resolved album failed:', err?.message || err);
+        devWarn('[Save] createAsset in resolved album failed:', err?.message || err);
       }
     }
   }
@@ -508,18 +503,42 @@ async function saveToFunnyfyAlbumAndroid(localFileUri) {
   try {
     const album = await MediaLibrary.createAlbumAsync(
       FUNNYFY_FOLDER_NAME,
-      asset,
+      undefined,
       false,
+      localFileUri,
+    );
+    await persistAlbumId(album);
+    let asset = null;
+    try {
+      const page = await MediaLibrary.getAssetsAsync({
+        album,
+        first: 1,
+        mediaType: MediaLibrary.MediaType.photo,
+        sortBy: [[MediaLibrary.SortBy.creationTime, false]],
+      });
+      asset = page?.assets?.[0] || null;
+    } catch (listErr) {
+      devWarn('[Save] list new album assets failed:', listErr?.message || listErr);
+    }
+    return saveAlbumSuccess(asset);
+  } catch (createErr) {
+    devWarn('[Save] createAlbumAsync(localUri) failed:', createErr?.message || createErr);
+  }
+
+  // Last resort: copy (not move) so Android never shows the modify-photo dialog.
+  try {
+    const asset = await MediaLibrary.createAssetAsync(localFileUri);
+    const album = await MediaLibrary.createAlbumAsync(
+      FUNNYFY_FOLDER_NAME,
+      asset,
+      true,
     );
     await persistAlbumId(album);
     return saveAlbumSuccess(asset);
-  } catch (createErr) {
-    devWarn('[Save] createAlbumAsync failed:', createErr?.message || createErr);
+  } catch (fallbackErr) {
+    console.error('[Save] Android album save failed:', fallbackErr);
+    return { ok: false };
   }
-
-  // Asset is in the gallery even if album assignment failed (matches iOS behavior).
-  devWarn('[Save] Saved to gallery; Funnyfy album assignment failed');
-  return saveAlbumSuccess(asset);
 }
 
 async function saveToFunnyfyAlbumIos(localFileUri) {

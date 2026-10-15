@@ -83,43 +83,63 @@ export default async function handler(
   }
 
   try {
-    // Find or create user
-    let userResult = await query<{ id: string; email: string | null }>(
-      `
-        SELECT id, email
-        FROM users
-        WHERE id::text = $1 OR revenuecat_user_id = $1
-        ORDER BY created_at DESC
-        LIMIT 1
-      `,
-      [userId]
-    );
+    // Prefer the established RC-linked account (oldest) over a fresh install identity.
+    // Reinstall + restore otherwise attaches Pro to a new userId and drops prior usage.
+    let dbUserId: string | null = null;
 
-    let dbUserId: string;
-    if (userResult.rows.length === 0) {
-      // Create new user
+    if (revenuecatUserId) {
+      const byRc = await query<{ id: string }>(
+        `
+          SELECT id
+          FROM users
+          WHERE revenuecat_user_id = $1 OR id::text = $1
+          ORDER BY created_at ASC
+          LIMIT 1
+        `,
+        [revenuecatUserId]
+      );
+      if (byRc.rows.length > 0) {
+        dbUserId = byRc.rows[0].id;
+      }
+    }
+
+    if (!dbUserId) {
+      const userResult = await query<{ id: string }>(
+        `
+          SELECT id
+          FROM users
+          WHERE id::text = $1 OR revenuecat_user_id = $1
+          ORDER BY created_at ASC
+          LIMIT 1
+        `,
+        [userId]
+      );
+      if (userResult.rows.length > 0) {
+        dbUserId = userResult.rows[0].id;
+      }
+    }
+
+    if (!dbUserId) {
       const insertResult = await query<{ id: string }>(
         `
           INSERT INTO users (
-            revenuecat_user_id, 
-            email, 
-            subscription_tier, 
-            subscription_status, 
+            revenuecat_user_id,
+            email,
+            subscription_tier,
+            subscription_status,
             billing_date
           )
           VALUES ($1, $2, $3, 'active', $4)
           RETURNING id
         `,
         [
-          userId,
+          revenuecatUserId || userId,
           body.email || null,
           tier,
-          new Date().toISOString().slice(0, 10)
+          new Date().toISOString().slice(0, 10),
         ]
       );
       dbUserId = insertResult.rows[0].id;
-    } else {
-      dbUserId = userResult.rows[0].id;
     }
 
     // Keep RevenueCat app user ID linked to the backend user (needed for webhooks)
@@ -220,15 +240,17 @@ export default async function handler(
       [userTierToSet, periodEnd.toISOString().slice(0, 10), dbUserId]
     );
 
-    // Reset usage only for NEW subscriptions (not when just updating expiration)
+    // Ensure a usage row exists for new subs — never wipe an existing count.
+    // (Wiping here reset the generation counter after reinstall + restore.)
     if (existingSub.rows.length === 0) {
-      const currentMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10);
+      const currentMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+        .toISOString()
+        .slice(0, 10);
       await query(
         `
           INSERT INTO usage_tracking (user_id, month, count, last_reset_at)
           VALUES ($1, $2, 0, NOW())
-          ON CONFLICT (user_id, month)
-          DO UPDATE SET count = 0, last_reset_at = NOW()
+          ON CONFLICT (user_id, month) DO NOTHING
         `,
         [dbUserId, currentMonth]
       );

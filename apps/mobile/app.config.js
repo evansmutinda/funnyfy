@@ -74,6 +74,17 @@ export default {
             compileSdkVersion: 36,
             targetSdkVersion: 36,
             buildToolsVersion: '36.0.0',
+            // Play Console: DEX obfuscation was ~3% without R8 (needs ≥25%).
+            enableProguardInReleaseBuilds: true,
+            enableShrinkResourcesInReleaseBuilds: true,
+            // Narrow keeps only — broad -keep packs suppress obfuscation %.
+            extraProguardRules: [
+              '# Reanimated / RN TurboModules',
+              '-keep class com.swmansion.reanimated.** { *; }',
+              '-keep class com.facebook.react.turbomodule.** { *; }',
+              '# RevenueCat',
+              '-keep class com.revenuecat.purchases.** { *; }',
+            ].join('\n'),
           },
         },
       ],

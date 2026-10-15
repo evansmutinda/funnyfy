@@ -72,6 +72,10 @@ import { readStylesCache, writeStylesCache } from './utils/stylesCache';
 import { formatSubscriptionDate, getDisplayRenewalDate } from './utils/subscriptionDates';
 import { getTierName, isSubscriptionDowngrade, isSubscriptionUpgrade } from './utils/subscriptionTiers';
 import {
+  canUseGenerationQuota,
+  requiresSubscriptionPaywall,
+} from './utils/usageQuota';
+import {
   getInstalledAppVersion,
   shouldForceUpdate,
   shouldPromptUpdate,
@@ -397,6 +401,23 @@ function AppContent({ fontsLoaded }) {
       const syncResult = await syncResponse.json();
       if (syncResult.ok) {
         devLog('[subscription] Synced to backend:', syncResult.subscription);
+        // Reinstall creates a new local user; sync may resolve the older RC-linked account.
+        const canonicalId = syncResult.subscription?.userId;
+        if (canonicalId && canonicalId !== userIdRef.current) {
+          devLog('[Auth] Reclaiming restored account:', canonicalId);
+          const rcId = customerInfo?.originalAppUserId || null;
+          const reclaimed = await forceReAuth(API_BASE, rcId);
+          applyAuthState(reclaimed);
+          if (reclaimed?.userId && hasRevenueCatKey()) {
+            await withTimeout(
+              linkRevenueCatToBackend(reclaimed.userId),
+              RC_STARTUP_TIMEOUT_MS,
+              'RevenueCat reclaim link'
+            ).catch((err) =>
+              console.warn('[RevenueCat] reclaim link failed:', err?.message || err)
+            );
+          }
+        }
       } else {
         console.warn('[subscription] Sync failed:', syncResult.error);
       }
@@ -703,11 +724,13 @@ function AppContent({ fontsLoaded }) {
   }, [authReady]);
 
   // New installs / users without a plan: open paywall once on launch.
+  // Closed testers with allowance skip this so they can try the product.
   // They can dismiss (X) and browse styles, but generate stays hard-gated.
   useEffect(() => {
     if (!splashHidden || !authReady || subscriptionLoading) return;
     if (!subscriptionInfo) return;
     if (subscriptionInfo.subscription) return;
+    if (subscriptionInfo.closedTesting) return;
     if (launchPaywallShownRef.current) return;
     launchPaywallShownRef.current = true;
     setScreen('subscription');
@@ -1179,8 +1202,10 @@ function AppContent({ fontsLoaded }) {
       const customerInfo = await restorePurchases();
       const activeEntitlements = customerInfo?.entitlements?.active || {};
       if (Object.keys(activeEntitlements).length > 0) {
+        // Sync first so backend can reclaim the pre-reinstall user + usage.
+        await syncSubscriptionToBackend(customerInfo);
+        await refreshSubscription();
         showToast('Restored', 'Your previous purchase has been restored', 'success');
-        setTimeout(() => refreshSubscription(), 1000);
         setScreen('style');
       } else {
         showToast('No purchases found', 'No previous purchases on this account', 'info');
@@ -1330,7 +1355,7 @@ function AppContent({ fontsLoaded }) {
       );
       return;
     }
-    if (subscriptionInfo && !subscriptionInfo.subscription) {
+    if (requiresSubscriptionPaywall(subscriptionInfo)) {
       setScreen('subscription');
       return;
     }
@@ -1394,28 +1419,28 @@ function AppContent({ fontsLoaded }) {
       showToast('Regenerate', 'Photo and style are missing. Pick them again.', 'warning');
       return;
     }
-    if (subscriptionInfo && !subscriptionInfo.subscription) {
+    if (requiresSubscriptionPaywall(subscriptionInfo)) {
       setScreen('subscription');
       return;
     }
     const usage = subscriptionInfo?.usage;
-    const quotaOk = !subscriptionInfo
-      || Boolean(
-        subscriptionInfo.subscription
-        && usage
-        && usage.limit > 0
-        && usage.current < usage.limit,
-      );
+    const quotaOk = !subscriptionInfo || canUseGenerationQuota(subscriptionInfo);
     if (!quotaOk) {
+      const dailyBlocked =
+        usage?.dailyLimit != null &&
+        usage?.dailyCurrent != null &&
+        usage.dailyCurrent >= usage.dailyLimit;
       showDialog({
-        title: 'Quota Exceeded',
-        message: `You've used all ${usage?.limit ?? ''} images this month. Upgrade your plan to continue.`,
+        title: dailyBlocked ? 'Daily limit reached' : 'Quota Exceeded',
+        message: dailyBlocked
+          ? `Closed testing allows ${usage.dailyLimit} image per day. Come back tomorrow (${usage.current}/${usage.limit} used).`
+          : `You've used all ${usage?.limit ?? ''} images this month. Upgrade your plan to continue.`,
         cancelLabel: 'Cancel',
-        confirmLabel: 'Upgrade',
+        confirmLabel: dailyBlocked ? 'OK' : 'Upgrade',
         onCancel: closeDialog,
         onConfirm: () => {
           closeDialog();
-          setScreen('subscription');
+          if (!dailyBlocked) setScreen('subscription');
         },
       });
       return;
@@ -1483,7 +1508,7 @@ function AppContent({ fontsLoaded }) {
       );
       return;
     }
-    if (subscriptionInfo && !subscriptionInfo.subscription) {
+    if (requiresSubscriptionPaywall(subscriptionInfo)) {
       setScreen('subscription');
       return;
     }
@@ -1694,16 +1719,10 @@ function AppContent({ fontsLoaded }) {
     return () => sub.remove();
   }, []);
 
-  // Hard paywall: generating requires an active plan with quota left. While the
-  // subscription is still unknown we stay permissive — the API is the real gate.
+  // Hard paywall / closed-test: API is the real gate; UI mirrors usage when known.
   const canGenerateMore = !subscriptionInfo
     ? true
-    : Boolean(
-        subscriptionInfo.subscription &&
-          subscriptionInfo.usage &&
-          subscriptionInfo.usage.limit > 0 &&
-          subscriptionInfo.usage.current < subscriptionInfo.usage.limit,
-      );
+    : canUseGenerationQuota(subscriptionInfo);
 
   const updateDialogEl = (
     <ConfirmDialog
