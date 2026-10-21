@@ -1,140 +1,164 @@
-import React, {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
-import Animated, {
-  cancelAnimation,
-  Easing,
-  runOnJS,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated';
+import { Feather } from '@expo/vector-icons';
 
-const HOLD_MS = 4800;
-const FADE_MS = 1800;
+const HOLD_BEFORE_MS = 1100;
+const SWEEP_MS = 1400;
+const HOLD_AFTER_MS = 1800;
+
+const easeInOut = (t) => (t < 0.5 ? 2 * t * t : 1 - ((-2 * t + 2) ** 2) / 2);
 
 /**
- * Cycles style previews using the same two-layer crossfade as ComparisonFade.
- * Index advances in two layout-safe steps so sources never change while visible.
+ * Paywall hero: automated before → after wipe per style, then next style.
+ * mix = 1 full before, mix = 0 full after.
+ * Before is the base layer so style changes never flash the after first.
  */
 export default function PaywallStyleFade({
+  pairs,
   images,
   style,
   imageStyle,
-  holdMs = HOLD_MS,
-  fadeMs = FADE_MS,
+  holdBeforeMs = HOLD_BEFORE_MS,
+  sweepMs = SWEEP_MS,
+  holdAfterMs = HOLD_AFTER_MS,
 }) {
-  const sources = useMemo(
-    () => (Array.isArray(images) ? images.filter(Boolean) : []),
-    [images],
-  );
-  const count = sources.length;
-  const [pair, setPair] = useState({ back: 0, front: 1 });
-  const opacity = useSharedValue(0);
-  const aliveRef = useRef(true);
-  const scheduleNextRef = useRef(null);
-  const pendingStepRef = useRef(null);
-  const skipLayoutRef = useRef(true);
+  const pairList = useMemo(() => {
+    if (Array.isArray(pairs) && pairs.length > 0) {
+      return pairs.filter((p) => p?.before && p?.after);
+    }
+    const sources = Array.isArray(images) ? images.filter(Boolean) : [];
+    return sources.map((after) => ({ before: after, after }));
+  }, [pairs, images]);
 
-  const animatedAfterStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-  }));
+  const count = pairList.length;
+  const [index, setIndex] = useState(0);
+  const [cycleKey, setCycleKey] = useState(0);
+  const [mix, setMix] = useState(1);
+  const [canvasWidth, setCanvasWidth] = useState(0);
 
-  const onPhaseComplete = useCallback(() => {
-    if (count <= 1) return;
-    pendingStepRef.current = 'snap';
-    setPair((prev) => ({ back: prev.front, front: prev.front }));
+  useEffect(() => {
+    setIndex(0);
+    setCycleKey(0);
+    setMix(1);
   }, [count]);
 
-  useEffect(() => {
-    aliveRef.current = true;
-    skipLayoutRef.current = true;
-    pendingStepRef.current = null;
-    setPair({ back: 0, front: count > 1 ? 1 : 0 });
-    opacity.value = 0;
-
-    return () => {
-      aliveRef.current = false;
-      cancelAnimation(opacity);
-    };
-  }, [count, opacity]);
-
-  useEffect(() => {
-    if (count <= 1) return undefined;
-
-    const runCycle = () => {
-      if (!aliveRef.current) return;
-      const ease = Easing.inOut(Easing.cubic);
-
-      opacity.value = withTiming(0, { duration: holdMs, easing: ease }, (holdDone) => {
-        'worklet';
-        if (!holdDone || !aliveRef.current) return;
-        opacity.value = withTiming(1, { duration: fadeMs, easing: ease }, (fadeInDone) => {
-          'worklet';
-          if (!fadeInDone || !aliveRef.current) return;
-          opacity.value = withTiming(1, { duration: holdMs, easing: ease }, (holdAfterDone) => {
-            'worklet';
-            if (!holdAfterDone || !aliveRef.current) return;
-            runOnJS(onPhaseComplete)();
-          });
-        });
-      });
-    };
-
-    scheduleNextRef.current = runCycle;
-    runCycle();
-
-    return () => {
-      cancelAnimation(opacity);
-    };
-  }, [count, holdMs, fadeMs, onPhaseComplete, opacity]);
-
+  // Reset before paint so the new style never mounts with mix=0 (after flash).
   useLayoutEffect(() => {
-    if (count <= 1) return;
+    setMix(1);
+  }, [index, cycleKey]);
 
-    if (skipLayoutRef.current) {
-      skipLayoutRef.current = false;
-      return;
-    }
+  useEffect(() => {
+    if (count === 0) return undefined;
 
-    if (pendingStepRef.current === 'snap') {
-      opacity.value = 0;
-      pendingStepRef.current = 'advance';
-      setPair((prev) => ({
-        back: prev.back,
-        front: (prev.back + 1) % count,
-      }));
-      return;
-    }
+    let frameId = null;
+    let cancelled = false;
 
-    if (pendingStepRef.current === 'advance') {
-      pendingStepRef.current = null;
-      scheduleNextRef.current?.();
-    }
-  }, [pair, count, opacity]);
+    const timeoutId = setTimeout(() => {
+      if (cancelled) return;
+      const start = Date.now();
+
+      const tick = () => {
+        if (cancelled) return;
+        const elapsed = Date.now() - start;
+
+        if (elapsed >= sweepMs) {
+          setMix(0);
+          return;
+        }
+
+        // Sweep from before (1) → after (0)
+        setMix(1 - easeInOut(elapsed / sweepMs));
+        frameId = requestAnimationFrame(tick);
+      };
+
+      frameId = requestAnimationFrame(tick);
+    }, holdBeforeMs);
+
+    const advanceId = setTimeout(() => {
+      if (cancelled) return;
+      // Keep mix at before in the same update as the style change.
+      setMix(1);
+      if (count <= 1) {
+        setCycleKey((k) => k + 1);
+        return;
+      }
+      setIndex((prev) => (prev + 1) % count);
+    }, holdBeforeMs + sweepMs + holdAfterMs);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+      clearTimeout(advanceId);
+      if (frameId != null) cancelAnimationFrame(frameId);
+    };
+  }, [index, cycleKey, count, holdBeforeMs, sweepMs, holdAfterMs]);
 
   if (count === 0) return null;
 
-  const beforeSource = sources[pair.back % count];
-  const afterSource = sources[pair.front % count];
+  const active = pairList[index % count];
+  const afterReveal = 1 - mix; // 0 = hidden, 1 = full after
+  const showAfter = afterReveal > 0.02;
 
   return (
-    <View style={[styles.root, style]}>
+    <View
+      style={[styles.root, style]}
+      onLayout={(e) => setCanvasWidth(e.nativeEvent.layout.width)}
+      pointerEvents="none"
+    >
       <Image
-        source={beforeSource}
+        key={`before-${active.id || index}-${cycleKey}`}
+        source={active.before}
         style={[StyleSheet.absoluteFill, imageStyle]}
+        resizeMode="cover"
       />
+
+      {showAfter ? (
+        <View
+          style={[
+            styles.afterMask,
+            {
+              left: canvasWidth > 0 ? canvasWidth * mix : `${mix * 100}%`,
+              right: 0,
+            },
+          ]}
+        >
+          <Image
+            key={`after-${active.id || index}-${cycleKey}`}
+            source={active.after}
+            style={[
+              styles.afterImage,
+              imageStyle,
+              canvasWidth > 0 && {
+                width: canvasWidth,
+                left: canvasWidth > 0 ? -canvasWidth * mix : 0,
+              },
+            ]}
+            resizeMode="cover"
+          />
+        </View>
+      ) : null}
+
+      {canvasWidth > 0 ? (
+        <View style={styles.sliderHandleContainer}>
+          <View style={[styles.sliderLine, { left: canvasWidth * mix - 1 }]} />
+          <View style={[styles.sliderKnob, { left: canvasWidth * mix - 18 }]}>
+            <View style={styles.sliderKnobIconRow}>
+              <Feather name="chevron-left" size={14} color="#0F172A" />
+              <Feather name="chevron-right" size={14} color="#0F172A" />
+            </View>
+          </View>
+        </View>
+      ) : null}
+
       {count > 1 ? (
-        <Animated.Image
-          source={afterSource}
-          style={[StyleSheet.absoluteFill, imageStyle, animatedAfterStyle]}
-        />
+        <View style={styles.dotsRow}>
+          {pairList.map((pair, i) => (
+            <View
+              key={pair.id || i}
+              style={[styles.dot, i === index && styles.dotActive]}
+            />
+          ))}
+        </View>
       ) : null}
     </View>
   );
@@ -143,5 +167,74 @@ export default function PaywallStyleFade({
 const styles = StyleSheet.create({
   root: {
     overflow: 'hidden',
+  },
+  afterMask: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    overflow: 'hidden',
+  },
+  afterImage: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    height: '100%',
+  },
+  sliderHandleContainer: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  sliderLine: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    width: 2,
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.35,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  sliderKnob: {
+    position: 'absolute',
+    top: '42%',
+    marginTop: -18,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F8FAFC',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.9)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.35,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  sliderKnobIconRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  dotsRow: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 28,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 6,
+  },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: 'rgba(255,255,255,0.35)',
+  },
+  dotActive: {
+    backgroundColor: '#FFFFFF',
+    width: 16,
   },
 });

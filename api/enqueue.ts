@@ -16,6 +16,7 @@ import { safeErrorResponse } from './_utils/security';
 import { checkAllRateLimits } from './_utils/ratelimit';
 import { getEstimatedWaitTime } from './_utils/queue-stats';
 import { getCurrentMonthDate, getTierQuota } from './_utils/usage';
+import { getClosedTestQuotaConfig } from './_utils/closed-test-quota';
 import { shouldPauseQueue } from './_utils/cost-protection';
 import { generationUnavailableResponse } from './_utils/queue-pause';
 import {
@@ -98,19 +99,23 @@ export default async function handler(
     
     subscriptionStatus = userResult.rows[0].subscription_status;
     userTier = userResult.rows[0].subscription_tier;
-
-    if (subscriptionStatus !== 'active') {
-      return safeErrorResponse(
-        res,
-        403,
-        'SUBSCRIPTION_REQUIRED',
-        'A subscription is required to generate images. Please subscribe to continue.'
-      );
-    }
   } catch (userErr) {
     const err = userErr as Error;
     console.error('Failed to look up user:', err?.message ?? err);
     return safeErrorResponse(res, 500, 'USER_LOOKUP_FAILED', 'Failed to verify user account');
+  }
+
+  const closedTest = getClosedTestQuotaConfig();
+  const isSubscribed = subscriptionStatus === 'active';
+  const isClosedTester = !isSubscribed && closedTest.enabled;
+
+  if (!isSubscribed && !isClosedTester) {
+    return safeErrorResponse(
+      res,
+      403,
+      'SUBSCRIPTION_REQUIRED',
+      'A subscription is required to generate images. Please subscribe to continue.'
+    );
   }
 
   // Validate style exists
@@ -124,11 +129,22 @@ export default async function handler(
   }
 
   // Determine user tier and quota
-  const effectiveTier = userTier || 'starter';
-  const monthlyQuota = getQuotaForTier(userTier);
+  const effectiveTier = isClosedTester ? 'trial' : userTier || 'starter';
+  const monthlyQuota = isClosedTester
+    ? closedTest.totalQuota
+    : getQuotaForTier(userTier);
+  const rateLimitOptions = isClosedTester
+    ? { dailyLimit: closedTest.dailyQuota }
+    : undefined;
 
   // Check all rate limits (IP + Tier Burst + Daily Safety)
-  const rateLimitCheck = await checkAllRateLimits(req, userId, effectiveTier, monthlyQuota);
+  const rateLimitCheck = await checkAllRateLimits(
+    req,
+    userId,
+    effectiveTier,
+    monthlyQuota,
+    rateLimitOptions,
+  );
   if (!rateLimitCheck.allowed) {
     return res.status(429).json({
       ok: false,
@@ -138,10 +154,10 @@ export default async function handler(
     });
   }
 
-  // Monthly quota check (primary limit)
+  // Monthly / closed-test total quota check (primary limit)
   {
     const currentMonth = getCurrentMonthDate();
-    const quotaLimit = getQuotaForTier(userTier);
+    const quotaLimit = monthlyQuota;
 
     try {
       const usageResult = await query<{ id: string; count: number }>(
@@ -170,13 +186,15 @@ export default async function handler(
         return res.status(429).json({
           ok: false,
           error: 'QUOTA_EXCEEDED',
-          message: `You've used all ${quotaLimit} images this month (${userTier} plan). Upgrade your plan or wait until next month.`,
+          message: isClosedTester
+            ? `Closed testing limit reached (${quotaLimit} images). Subscribe for more, or wait until next month.`
+            : `You've used all ${quotaLimit} images this month (${userTier} plan). Upgrade your plan or wait until next month.`,
           usage: {
             current: currentCount,
             limit: quotaLimit,
             month: currentMonth,
-            tier: userTier
-          }
+            tier: isClosedTester ? 'closed_test' : userTier,
+          },
         });
       }
     } catch (quotaErr) {

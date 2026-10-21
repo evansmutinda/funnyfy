@@ -127,6 +127,54 @@ export async function pauseQueueForReplicateBilling(
   }).catch(() => {});
 }
 
+const OPERATOR_KEY = 'operator_queue_pause';
+
+export async function getOperatorPauseState(): Promise<{
+  paused: boolean;
+  reason?: string;
+  pausedAt?: string;
+}> {
+  try {
+    await ensureAppSettingsTable();
+    const result = await query<{ value: { paused?: boolean; reason?: string; pausedAt?: string } }>(
+      `SELECT value FROM app_settings WHERE key = $1`,
+      [OPERATOR_KEY]
+    );
+    const value = result.rows[0]?.value;
+    if (!value || typeof value !== 'object') return { paused: false };
+    return {
+      paused: Boolean(value.paused),
+      reason: value.reason,
+      pausedAt: value.pausedAt,
+    };
+  } catch (err) {
+    console.error('[queue-pause] Failed to read operator pause:', err);
+    return { paused: false };
+  }
+}
+
+export async function setOperatorQueuePause(paused: boolean, reason: string): Promise<boolean> {
+  try {
+    await ensureAppSettingsTable();
+    const value = paused
+      ? { paused: true, reason, pausedAt: new Date().toISOString() }
+      : { paused: false, reason, clearedAt: new Date().toISOString() };
+    await query(
+      `
+        INSERT INTO app_settings (key, value, updated_at)
+        VALUES ($1, $2::jsonb, NOW())
+        ON CONFLICT (key)
+        DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()
+      `,
+      [OPERATOR_KEY, JSON.stringify(value)]
+    );
+    return true;
+  } catch (err) {
+    console.error('[queue-pause] Failed to write operator pause:', err);
+    return false;
+  }
+}
+
 export async function clearBillingPause(clearedBy = 'admin'): Promise<boolean> {
   try {
     await ensureAppSettingsTable();

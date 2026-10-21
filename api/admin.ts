@@ -14,6 +14,8 @@
 //   GET  /api/admin?resource=growth
 //   GET  /api/admin?resource=moderation
 //   GET  /api/admin?resource=exchange-rate
+//   GET  /api/admin?resource=runtime          (read-only deployment config)
+//   GET  /api/admin?resource=jobs&id=         (single job inspector)
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import fs from 'fs';
@@ -24,12 +26,17 @@ import { applyMiddleware } from './_utils/middleware';
 import { safeErrorResponse, verifyJWT, getClientIp, setAdminPageSecurityHeaders } from './_utils/security';
 import { getQueueStats } from './_utils/queue-stats';
 import { getTodaySpending, getSpendingStats, shouldPauseQueue } from './_utils/cost-protection';
-import { clearBillingPause } from './_utils/queue-pause';
+import { clearBillingPause, getOperatorPauseState, setOperatorQueuePause } from './_utils/queue-pause';
 import { getRecentSecurityEvents, logSecurityEvent } from './_utils/security-logging';
 import { checkAdminLoginRateLimit } from './_utils/ratelimit';
 import { getUsdToKesRate } from './_utils/exchange-rate';
 import { getModelDisplayLabel } from './_utils/job-cost';
 import { MODEL_COST_USD, getModelCost } from './_utils/cost-protection';
+import { getClosedTestQuotaConfig, getClosedTestUsage } from './_utils/closed-test-quota';
+import { getAppVersionConfig } from './_utils/app-version';
+import { getAdminTimeZone } from './_utils/admin-time';
+import { STYLES_CONFIG } from './_utils/styles-config';
+import { logAdminAction, normalizeAdminReason } from './_utils/admin-audit';
 
 const JWT_SECRET = process.env.JWT_SECRET || process.env.AUTH_SECRET;
 const ADMIN_USER_IDS = (process.env.ADMIN_USER_IDS || '')
@@ -112,6 +119,74 @@ const TIER_PRICES: Record<string, number> = {
 
 function tierPrice(tier: string): number {
   return TIER_PRICES[(tier || '').toLowerCase()] ?? 0;
+}
+
+const ALLOWED_TIERS = ['starter', 'popular', 'pro'];
+
+function readJsonBody(req: VercelRequest): Record<string, any> {
+  if (typeof req.body === 'string') {
+    try {
+      return JSON.parse(req.body || '{}');
+    } catch {
+      return {};
+    }
+  }
+  return (req.body as Record<string, any>) || {};
+}
+
+function styleMeta(styleId: string | null | undefined): { label: string | null; model: string | null } {
+  if (!styleId) return { label: null, model: null };
+  const style = STYLES_CONFIG[styleId];
+  return {
+    label: style?.label || null,
+    model: style?.model || null,
+  };
+}
+
+function httpsUrl(value: unknown): string | null {
+  const raw = String(value || '');
+  if (!raw.startsWith('https://') || raw.length > 2000) return null;
+  return raw;
+}
+
+function csvCell(value: unknown): string {
+  const text = value == null ? '' : String(value);
+  return `"${text.replace(/"/g, '""')}"`;
+}
+
+const USER_NOTE_KEY = 'user_note:';
+
+async function readUserNote(userId: string): Promise<string> {
+  try {
+    const result = await query<{ value: { note?: string } }>(
+      `SELECT value FROM app_settings WHERE key = $1`,
+      [USER_NOTE_KEY + userId]
+    );
+    return String(result.rows[0]?.value?.note || '');
+  } catch {
+    return '';
+  }
+}
+
+async function writeUserNote(userId: string, note: string): Promise<void> {
+  await query(
+    `
+      CREATE TABLE IF NOT EXISTS app_settings (
+        key TEXT PRIMARY KEY,
+        value JSONB NOT NULL DEFAULT '{}'::jsonb,
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `
+  );
+  await query(
+    `
+      INSERT INTO app_settings (key, value, updated_at)
+      VALUES ($1, $2::jsonb, NOW())
+      ON CONFLICT (key)
+      DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()
+    `,
+    [USER_NOTE_KEY + userId, JSON.stringify({ note })]
+  );
 }
 
 const ADMIN_PAGE_FILES: Record<string, string> = {
@@ -293,17 +368,52 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (resource === 'queue-stats') {
       if (req.method === 'POST') {
         const action = req.query.action as string;
+        const reason = normalizeAdminReason(readJsonBody(req).reason);
+        if (!reason) {
+          return safeErrorResponse(res, 400, 'MISSING_REASON', 'A reason is required (280 characters max)');
+        }
         if (action === 'resume') {
           const cleared = await clearBillingPause('admin');
           if (!cleared) {
+            await logAdminAction(req, adminId, 'admin_queue_resume', false, { reason });
             return safeErrorResponse(res, 500, 'RESUME_FAILED', 'Could not clear billing pause');
           }
           const pauseCheck = await shouldPauseQueue();
+          await logAdminAction(req, adminId, 'admin_queue_resume', true, {
+            reason,
+            stillPaused: pauseCheck.paused,
+            pauseKind: pauseCheck.pauseKind || null,
+          });
           return res.status(200).json({
             ok: true,
             message: pauseCheck.paused
-              ? 'Billing pause cleared, but queue still paused (daily cost cap).'
+              ? `Billing pause cleared, but the queue is still paused. ${pauseCheck.reason || ''}`.trim()
               : 'Queue resumed — pending jobs will process on the next worker tick.',
+            stillPaused: pauseCheck.paused,
+            pauseReason: pauseCheck.reason || null,
+            pauseKind: pauseCheck.pauseKind || null,
+          });
+        }
+        if (action === 'pause' || action === 'resume-operator') {
+          const pausing = action === 'pause';
+          const saved = await setOperatorQueuePause(pausing, reason);
+          if (!saved) {
+            await logAdminAction(req, adminId, pausing ? 'admin_queue_pause' : 'admin_queue_resume_operator', false, { reason });
+            return safeErrorResponse(res, 500, 'PAUSE_FAILED', 'Could not update the operator pause');
+          }
+          const pauseCheck = await shouldPauseQueue();
+          await logAdminAction(req, adminId, pausing ? 'admin_queue_pause' : 'admin_queue_resume_operator', true, {
+            reason,
+            stillPaused: pauseCheck.paused,
+            pauseKind: pauseCheck.pauseKind || null,
+          });
+          return res.status(200).json({
+            ok: true,
+            message: pausing
+              ? 'Queue paused. New generations will wait until you resume it.'
+              : pauseCheck.paused
+                ? `Operator pause cleared, but the queue is still paused. ${pauseCheck.reason || ''}`.trim()
+                : 'Queue resumed — pending jobs will process on the next worker tick.',
             stillPaused: pauseCheck.paused,
             pauseReason: pauseCheck.reason || null,
             pauseKind: pauseCheck.pauseKind || null,
@@ -312,8 +422,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return safeErrorResponse(res, 400, 'UNKNOWN_ACTION', `Unknown action: ${action}`);
       }
 
-      const [queueStats, todaySpend, spending7d, pauseCheck] = await Promise.all([
-        getQueueStats(), getTodaySpending(), getSpendingStats(7), shouldPauseQueue(),
+      const [queueStats, todaySpend, spending7d, pauseCheck, operatorPause] = await Promise.all([
+        getQueueStats(), getTodaySpending(), getSpendingStats(7), shouldPauseQueue(), getOperatorPauseState(),
       ]);
       return res.status(200).json({
         ok: true,
@@ -329,6 +439,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           pauseReason: pauseCheck.reason,
           pauseKind: pauseCheck.pauseKind || null,
           canResumeBilling: pauseCheck.pauseKind === 'billing',
+          operatorPaused: operatorPause.paused,
+          canPause: !operatorPause.paused,
+          canResumeOperator: operatorPause.paused,
         },
         today: {
           costUsd: todaySpend.totalCost,
@@ -342,7 +455,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // ── SECURITY LOGS ──────────────────────────────────────────────────────────
     if (resource === 'security-logs') {
       const limit = Math.min(Number(req.query.limit) || 50, 200);
-      const eventType = req.query.eventType as string | undefined;
+      const rawType = String(req.query.eventType || '');
+      const eventType = /^[a-z0-9_*]+$/i.test(rawType) ? rawType : undefined;
       const sp = req.query.success;
       const success = sp === 'true' ? true : sp === 'false' ? false : undefined;
       const userId = req.query.userId as string | undefined;
@@ -356,33 +470,104 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const action = req.query.action as string;
         const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
 
+        const reason = normalizeAdminReason(body.reason);
+        if (!reason) {
+          return safeErrorResponse(res, 400, 'MISSING_REASON', 'A reason is required (280 characters max)');
+        }
+
         if (action === 'ban') {
           if (!body.userId) return safeErrorResponse(res, 400, 'MISSING_USER_ID');
+          const before = await query<{ email: string | null; banned_at: string | null }>(
+            `SELECT email, banned_at FROM users WHERE id = $1`,
+            [body.userId]
+          );
+          if (!before.rows[0]) return safeErrorResponse(res, 404, 'USER_NOT_FOUND');
           await query(`UPDATE users SET banned_at = NOW(), updated_at = NOW() WHERE id = $1`, [body.userId]);
+          await logAdminAction(req, adminId, 'admin_ban', true, {
+            reason,
+            email: before.rows[0].email,
+            previouslyBannedAt: before.rows[0].banned_at,
+          }, body.userId);
           return res.status(200).json({ ok: true, message: 'User banned' });
         }
         if (action === 'unban') {
           if (!body.userId) return safeErrorResponse(res, 400, 'MISSING_USER_ID');
+          const before = await query<{ email: string | null; banned_at: string | null }>(
+            `SELECT email, banned_at FROM users WHERE id = $1`,
+            [body.userId]
+          );
+          if (!before.rows[0]) return safeErrorResponse(res, 404, 'USER_NOT_FOUND');
           await query(`UPDATE users SET banned_at = NULL, updated_at = NOW() WHERE id = $1`, [body.userId]);
+          await logAdminAction(req, adminId, 'admin_unban', true, {
+            reason,
+            email: before.rows[0].email,
+            previouslyBannedAt: before.rows[0].banned_at,
+          }, body.userId);
           return res.status(200).json({ ok: true, message: 'User unbanned' });
         }
         if (action === 'quota') {
           if (!body.userId || body.adjustment === undefined) return safeErrorResponse(res, 400, 'MISSING_PARAMS');
+          const adjustment = Number(body.adjustment);
+          if (!Number.isFinite(adjustment) || !Number.isInteger(adjustment)) {
+            return safeErrorResponse(res, 400, 'INVALID_ADJUSTMENT', 'Adjustment must be a whole number');
+          }
+          const exists = await query<{ id: string }>(`SELECT id FROM users WHERE id = $1`, [body.userId]);
+          if (!exists.rows[0]) return safeErrorResponse(res, 404, 'USER_NOT_FOUND');
           const cm = currentMonthDate();
+          const before = await query<{ count: number }>(
+            `SELECT count FROM usage_tracking WHERE user_id = $1 AND month = $2`,
+            [body.userId, cm]
+          );
+          const previous = before.rows[0]?.count ?? 0;
           await query(
             `INSERT INTO usage_tracking (user_id, month, count, last_reset_at)
              VALUES ($1, $2, GREATEST(0, $3::int), NOW())
              ON CONFLICT (user_id, month)
              DO UPDATE SET count = GREATEST(0, usage_tracking.count + $3::int), last_reset_at = NOW()`,
-            [body.userId, cm, body.adjustment]
+            [body.userId, cm, adjustment]
           );
+          await logAdminAction(req, adminId, 'admin_quota', true, {
+            reason,
+            month: cm,
+            adjustment,
+            previousCount: previous,
+            nextCount: Math.max(0, previous + adjustment),
+          }, body.userId);
           return res.status(200).json({ ok: true, message: 'Quota adjusted' });
         }
         if (action === 'tier') {
           if (!body.userId || !body.tier) return safeErrorResponse(res, 400, 'MISSING_PARAMS');
-          await query(`UPDATE users SET subscription_tier = $1, updated_at = NOW() WHERE id = $2`, [body.tier, body.userId]);
-          await query(`UPDATE subscriptions SET tier = $1, updated_at = NOW() WHERE user_id = $2 AND status = 'active'`, [body.tier, body.userId]);
+          const tier = String(body.tier).trim().toLowerCase();
+          if (!ALLOWED_TIERS.includes(tier)) {
+            return safeErrorResponse(res, 400, 'INVALID_TIER', 'Tier must be starter, popular, or pro');
+          }
+          const before = await query<{ subscription_tier: string | null }>(
+            `SELECT subscription_tier FROM users WHERE id = $1`,
+            [body.userId]
+          );
+          if (!before.rows[0]) return safeErrorResponse(res, 404, 'USER_NOT_FOUND');
+          await query(`UPDATE users SET subscription_tier = $1, updated_at = NOW() WHERE id = $2`, [tier, body.userId]);
+          await query(`UPDATE subscriptions SET tier = $1, updated_at = NOW() WHERE user_id = $2 AND status = 'active'`, [tier, body.userId]);
+          await logAdminAction(req, adminId, 'admin_tier', true, {
+            reason,
+            previousTier: before.rows[0].subscription_tier,
+            nextTier: tier,
+          }, body.userId);
           return res.status(200).json({ ok: true, message: 'Tier updated' });
+        }
+        if (action === 'note') {
+          if (!body.userId) return safeErrorResponse(res, 400, 'MISSING_USER_ID');
+          const exists = await query<{ id: string }>(`SELECT id FROM users WHERE id = $1`, [body.userId]);
+          if (!exists.rows[0]) return safeErrorResponse(res, 404, 'USER_NOT_FOUND');
+          const note = String(body.note ?? '').trim().slice(0, 2000);
+          const previous = await readUserNote(body.userId);
+          await writeUserNote(body.userId, note);
+          await logAdminAction(req, adminId, 'admin_note', true, {
+            reason,
+            previousNote: previous.slice(0, 200),
+            nextNote: note.slice(0, 200),
+          }, body.userId);
+          return res.status(200).json({ ok: true, message: 'Note saved' });
         }
         return safeErrorResponse(res, 400, 'UNKNOWN_ACTION', `Unknown action: ${action}`);
       }
@@ -400,17 +585,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           [userId, cm]
         );
         if (userResult.rows.length === 0) return safeErrorResponse(res, 404, 'USER_NOT_FOUND');
-        const [jobsResult, subResult, infResult] = await Promise.all([
+        const [jobsResult, subResult, infResult, closedUsage, adminNote] = await Promise.all([
           query<any>(`SELECT id, style_id, status, priority, created_at, completed_at, error_message FROM jobs WHERE user_id = $1 ORDER BY created_at DESC LIMIT 20`, [userId]),
           query<any>(`SELECT tier, status, platform, current_period_start, current_period_end, cancel_at_period_end, pending_tier FROM subscriptions WHERE user_id = $1 AND status = 'active' ORDER BY created_at DESC LIMIT 1`, [userId]),
           query<{ count: number }>(`SELECT COUNT(*)::int AS count FROM infringements WHERE user_id = $1`, [userId]),
+          getClosedTestUsage(userId),
+          readUserNote(userId),
         ]);
+        const closedConfig = getClosedTestQuotaConfig();
         return res.status(200).json({
           ok: true,
           user: userResult.rows[0],
           subscription: subResult.rows[0] || null,
           recentJobs: jobsResult.rows,
           infringements: infResult.rows[0]?.count ?? 0,
+          adminNote,
+          closedTest: {
+            enabled: closedConfig.enabled,
+            current: closedUsage.current,
+            limit: closedUsage.limit,
+            dailyCurrent: closedUsage.dailyCurrent,
+            dailyLimit: closedUsage.dailyLimit,
+          },
         });
       }
 
@@ -431,6 +627,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (status) { conditions.push(`u.subscription_status = $${p}`); params.push(status); p++; }
       const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
       params.push(limit, offset);
+      const countParams = params.slice(1, p - 1);
+      const countWhere = conditions.length
+        ? `WHERE ${conditions
+            .map((clause) => clause.replace(/\$(\d+)/g, (_match, n) => `$${Number(n) - 1}`))
+            .join(' AND ')}`
+        : '';
 
       const [usersResult, countResult] = await Promise.all([
         query<any>(
@@ -440,7 +642,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
            ${where} ORDER BY u.created_at DESC LIMIT $${p} OFFSET $${p + 1}`,
           params
         ),
-        query<{ count: number }>(`SELECT COUNT(*)::int AS count FROM users u ${where}`, params),
+        query<{ count: number }>(`SELECT COUNT(*)::int AS count FROM users u ${countWhere}`, countParams),
       ]);
 
       return res.status(200).json({
@@ -458,45 +660,139 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const action = req.query.action as string;
         const jobId = req.query.jobId as string;
         if (!jobId) return safeErrorResponse(res, 400, 'MISSING_JOB_ID');
+        const reason = normalizeAdminReason(readJsonBody(req).reason);
+        if (!reason) {
+          return safeErrorResponse(res, 400, 'MISSING_REASON', 'A reason is required (280 characters max)');
+        }
+        const existing = await query<{
+          id: string;
+          user_id: string | null;
+          status: string;
+          style_id: string;
+          error_message: string | null;
+        }>(
+          `SELECT id, user_id, status, style_id, error_message FROM jobs WHERE id = $1`,
+          [jobId]
+        );
+        const job = existing.rows[0];
+        if (!job) return safeErrorResponse(res, 404, 'JOB_NOT_FOUND');
+
         if (action === 'retry') {
-          await query(`UPDATE jobs SET status = 'pending', error_message = NULL, started_at = NULL, completed_at = NULL, cost_usd = 0, model_version = NULL WHERE id = $1 AND status = 'failed'`, [jobId]);
+          const updated = await query<{ id: string }>(
+            `UPDATE jobs SET status = 'pending', error_message = NULL, started_at = NULL, completed_at = NULL, cost_usd = 0, model_version = NULL WHERE id = $1 AND status = 'failed' RETURNING id`,
+            [jobId]
+          );
+          if (!updated.rows[0]) {
+            await logAdminAction(req, adminId, 'admin_job_retry', false, {
+              reason,
+              jobId,
+              styleId: job.style_id,
+              status: job.status,
+            }, job.user_id);
+            return safeErrorResponse(res, 409, 'JOB_NOT_RETRYABLE', 'Only failed jobs can be retried');
+          }
+          await logAdminAction(req, adminId, 'admin_job_retry', true, {
+            reason,
+            jobId,
+            styleId: job.style_id,
+            previousError: job.error_message,
+          }, job.user_id);
           return res.status(200).json({ ok: true, message: 'Job requeued' });
         }
         if (action === 'cancel') {
-          await query(`UPDATE jobs SET status = 'failed', error_message = 'Cancelled by admin', completed_at = NOW(), cost_usd = 0 WHERE id = $1 AND status IN ('pending','processing')`, [jobId]);
+          const updated = await query<{ id: string }>(
+            `UPDATE jobs SET status = 'failed', error_message = 'Cancelled by admin', completed_at = NOW(), cost_usd = 0 WHERE id = $1 AND status IN ('pending','processing') RETURNING id`,
+            [jobId]
+          );
+          if (!updated.rows[0]) {
+            await logAdminAction(req, adminId, 'admin_job_cancel', false, {
+              reason,
+              jobId,
+              styleId: job.style_id,
+              status: job.status,
+            }, job.user_id);
+            return safeErrorResponse(res, 409, 'JOB_NOT_CANCELLABLE', 'Only pending or processing jobs can be cancelled');
+          }
+          await logAdminAction(req, adminId, 'admin_job_cancel', true, {
+            reason,
+            jobId,
+            styleId: job.style_id,
+            previousStatus: job.status,
+          }, job.user_id);
           return res.status(200).json({ ok: true, message: 'Job cancelled' });
         }
         return safeErrorResponse(res, 400, 'UNKNOWN_ACTION');
+      }
+
+      if (req.query.id) {
+        const jobId = String(req.query.id);
+        if (!UUID_REGEX.test(jobId)) return safeErrorResponse(res, 400, 'INVALID_JOB_ID');
+        const jobResult = await query<any>(
+          `SELECT j.id, j.user_id, j.style_id, j.status, j.priority, j.replicate_prediction_id,
+                  j.input_image_url, j.output_image_url, j.sheet_expressions, j.error_message,
+                  j.created_at, j.started_at, j.completed_at, j.cost_usd, j.model_version,
+                  u.email, u.subscription_tier, u.subscription_status, u.banned_at
+           FROM jobs j
+           LEFT JOIN users u ON u.id = j.user_id
+           WHERE j.id = $1`,
+          [jobId]
+        );
+        const job = jobResult.rows[0];
+        if (!job) return safeErrorResponse(res, 404, 'JOB_NOT_FOUND');
+        const meta = styleMeta(job.style_id);
+        const modelVersion = job.model_version || meta.model;
+        const expressions = typeof job.sheet_expressions === 'string' ? job.sheet_expressions : '';
+        return res.status(200).json({
+          ok: true,
+          job: {
+            ...job,
+            sheet_expressions: expressions ? expressions.slice(0, 500) : null,
+            style_label: meta.label,
+            configured_model: meta.model,
+            model_label: getModelDisplayLabel(modelVersion),
+            cost_usd: Number(job.cost_usd ?? 0),
+          },
+        });
       }
 
       const page = Math.max(1, Number(req.query.page) || 1);
       const limit = Math.min(Number(req.query.limit) || 20, 100);
       const offset = (page - 1) * limit;
       const status = req.query.status as string | undefined;
-      const userId = req.query.userId as string | undefined;
+      const userId = (req.query.userId as string || '').trim();
+      const style = (req.query.style as string || '').trim().slice(0, 80);
+      const q = (req.query.q as string || '').trim().slice(0, 80);
 
       const conditions: string[] = [];
       const params: any[] = [];
       let p = 1;
       if (status) { conditions.push(`j.status = $${p}`); params.push(status); p++; }
-      if (userId) { conditions.push(`j.user_id = $${p}`); params.push(userId); p++; }
+      if (userId) { conditions.push(`j.user_id::text ILIKE $${p}`); params.push(`%${userId}%`); p++; }
+      if (style) { conditions.push(`j.style_id ILIKE $${p}`); params.push(`%${style}%`); p++; }
+      if (q) { conditions.push(`j.id::text ILIKE $${p}`); params.push(`${q}%`); p++; }
       const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+      const filterParams = params.slice();
       params.push(limit, offset);
 
       const [jobsResult, countResult] = await Promise.all([
         query<any>(
           `SELECT j.id, j.user_id, j.style_id, j.status, j.priority, j.output_image_url,
-                  j.error_message, j.created_at, j.completed_at, u.subscription_tier
+                  j.error_message, j.cost_usd, j.model_version, j.created_at, j.completed_at,
+                  u.subscription_tier
            FROM jobs j LEFT JOIN users u ON u.id = j.user_id
            ${where} ORDER BY j.created_at DESC LIMIT $${p} OFFSET $${p + 1}`,
           params
         ),
-        query<{ count: number }>(`SELECT COUNT(*)::int AS count FROM jobs j ${where}`, params),
+        query<{ count: number }>(`SELECT COUNT(*)::int AS count FROM jobs j ${where}`, filterParams),
       ]);
 
       return res.status(200).json({
         ok: true,
-        jobs: jobsResult.rows,
+        jobs: jobsResult.rows.map((row) => ({
+          ...row,
+          style_label: styleMeta(row.style_id).label,
+          cost_usd: Number(row.cost_usd ?? 0),
+        })),
         total: countResult.rows[0]?.count ?? 0,
         page, limit,
         pages: Math.ceil((countResult.rows[0]?.count ?? 0) / limit),
@@ -633,12 +929,38 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const trialRow = economicsByTier.find((r) => r.tier === 'trial');
 
+      let storeGrossUsd = 0;
+      let storeEvents = 0;
+      try {
+        const storeRow = await query<{ gross: number; events: number }>(
+          `SELECT COALESCE(SUM(
+              CASE WHEN (metadata->>'priceUsd') ~ '^[0-9]+(\\.[0-9]+)?$'
+                   THEN (metadata->>'priceUsd')::numeric ELSE 0 END
+            ), 0)::numeric AS gross,
+            COUNT(*) FILTER (
+              WHERE (metadata->>'priceUsd') ~ '^[0-9]+(\\.[0-9]+)?$'
+            )::int AS events
+           FROM subscription_history
+           WHERE created_at >= ${monthStart}
+             AND event_type IN ('created', 'renewed')`
+        );
+        storeGrossUsd = Number(storeRow.rows[0]?.gross ?? 0);
+        storeEvents = Number(storeRow.rows[0]?.events ?? 0);
+      } catch (err) {
+        console.warn('[admin/finance] store cash query failed:', err);
+      }
+      const storeNetEstimateUsd = Number((storeGrossUsd * 0.85).toFixed(2));
+
       return res.status(200).json({
         ok: true,
         revenue: {
           mrrEstimateUsd: mrr.toFixed(2),
           activeByTier: revenueRows,
           totalActiveSubs: revenueRows.reduce((s: number, r: { count: number }) => s + r.count, 0),
+          storeCashMtdUsd: Number(storeGrossUsd.toFixed(2)),
+          storeEventsMtd: storeEvents,
+          storeFeeRate: 0.15,
+          storeNetEstimateUsd,
         },
         generations: {
           monthToDate: {
@@ -685,7 +1007,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           prices: TIER_PRICES,
           modelCosts: MODEL_COST_USD,
           disclaimer:
-            'MRR uses rounded tier prices ($5/$10/$25). Generation costs from jobs.cost_usd. Trial spend has $0 revenue.',
+            'MRR uses rounded tier prices ($5/$10/$25). Store cash is the USD price on purchase and renewal webhooks received after this deploy, before store fees. The 15% fee line is an estimate. Refunds are not subtracted. Generation costs come from jobs.cost_usd.',
           exchange: await getUsdToKesRate(),
         },
       });
@@ -853,6 +1175,127 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({ ok: true, ...fx });
     }
 
+    if (resource === 'runtime') {
+      const closedTest = getClosedTestQuotaConfig();
+      const appVersion = getAppVersionConfig();
+      const pauseCheck = await shouldPauseQueue();
+      const sha = process.env.VERCEL_GIT_COMMIT_SHA || '';
+      return res.status(200).json({
+        ok: true,
+        deployment: {
+          host: String(req.headers['x-forwarded-host'] || req.headers.host || ''),
+          vercelEnv: process.env.VERCEL_ENV || null,
+          gitBranch: process.env.VERCEL_GIT_COMMIT_REF || null,
+          gitCommit: sha ? sha.slice(0, 7) : null,
+        },
+        timezone: getAdminTimeZone(),
+        closedTest: {
+          enabled: closedTest.enabled,
+          totalQuota: closedTest.totalQuota,
+          dailyQuota: closedTest.enabled ? closedTest.dailyQuota : 0,
+        },
+        appVersion: {
+          latestAppVersion: appVersion.latestAppVersion,
+          minAppVersion: appVersion.minAppVersion,
+          minRequiredAppVersion: appVersion.minRequiredAppVersion,
+          storeUrl: appVersion.storeUrl,
+        },
+        spending: {
+          capUsd: pauseCheck.cap,
+          todayCostUsd: pauseCheck.currentSpending,
+          paused: pauseCheck.paused,
+          pauseKind: pauseCheck.pauseKind || null,
+          pauseReason: pauseCheck.reason || null,
+        },
+      });
+    }
+
+    if (resource === 'styles') {
+      const rows = await query<{
+        style_id: string;
+        jobs: number;
+        completed: number;
+        failed: number;
+        cost_usd: number;
+      }>(
+        `SELECT style_id,
+                COUNT(*)::int AS jobs,
+                COUNT(*) FILTER (WHERE status = 'completed')::int AS completed,
+                COUNT(*) FILTER (WHERE status = 'failed')::int AS failed,
+                COALESCE(SUM(cost_usd), 0)::numeric AS cost_usd
+         FROM jobs
+         WHERE created_at >= date_trunc('month', CURRENT_DATE)
+         GROUP BY style_id
+         ORDER BY jobs DESC
+         LIMIT 100`
+      ).catch(() => ({ rows: [] as any[] }));
+
+      return res.status(200).json({
+        ok: true,
+        styles: rows.rows.map((row) => {
+          const jobs = Number(row.jobs) || 0;
+          const failed = Number(row.failed) || 0;
+          return {
+            styleId: row.style_id,
+            label: styleMeta(row.style_id).label,
+            jobs,
+            completed: Number(row.completed) || 0,
+            failed,
+            failRate: jobs > 0 ? Number((failed / jobs).toFixed(3)) : 0,
+            costUsd: Number(row.cost_usd) || 0,
+          };
+        }),
+      });
+    }
+
+    if (resource === 'export') {
+      const kind = String(req.query.kind || '');
+      if (kind !== 'users' && kind !== 'jobs') {
+        return safeErrorResponse(res, 400, 'INVALID_EXPORT', 'kind must be users or jobs');
+      }
+      const cm = currentMonthDate();
+      const lines = [
+        kind === 'users'
+          ? ['id', 'email', 'tier', 'status', 'usage_this_month', 'banned_at', 'created_at']
+          : ['id', 'user_id', 'style_id', 'status', 'cost_usd', 'error_message', 'created_at'],
+      ];
+      if (kind === 'users') {
+        const rows = await query<any>(
+          `SELECT u.id, u.email, u.subscription_tier, u.subscription_status,
+                  COALESCE(ut.count, 0) AS usage_this_month, u.banned_at, u.created_at
+           FROM users u
+           LEFT JOIN usage_tracking ut ON ut.user_id = u.id AND ut.month = $1
+           ORDER BY u.created_at DESC
+           LIMIT 2000`,
+          [cm]
+        );
+        for (const row of rows.rows) {
+          lines.push([
+            row.id, row.email, row.subscription_tier, row.subscription_status,
+            row.usage_this_month, row.banned_at, row.created_at,
+          ].map(csvCell));
+        }
+      } else {
+        const rows = await query<any>(
+          `SELECT id, user_id, style_id, status, cost_usd, error_message, created_at
+           FROM jobs
+           ORDER BY created_at DESC
+           LIMIT 2000`
+        );
+        for (const row of rows.rows) {
+          lines.push([
+            row.id, row.user_id, row.style_id, row.status, row.cost_usd,
+            String(row.error_message || '').slice(0, 180), row.created_at,
+          ].map(csvCell));
+        }
+      }
+      lines[0] = lines[0].map(csvCell);
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="${kind}.csv"`);
+      res.setHeader('Cache-Control', 'no-store');
+      return res.status(200).send(lines.map((line) => line.join(',')).join('\n'));
+    }
+
     // ── MODERATION ─────────────────────────────────────────────────────────────
     if (resource === 'moderation') {
       const limit = Math.min(Number(req.query.limit) || 50, 200);
@@ -860,9 +1303,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         safeCount(`SELECT COUNT(*)::int AS count FROM infringements`),
         query<any>(
           `SELECT i.id, i.user_id, i.infringement_type, i.details, i.created_at,
-                  u.subscription_tier, u.email, u.banned_at
+                  u.subscription_tier, u.email, u.banned_at,
+                  j.input_image_url, j.output_image_url, j.style_id, j.status AS job_status
            FROM infringements i
            LEFT JOIN users u ON u.id = i.user_id
+           LEFT JOIN jobs j ON j.id::text = i.details->>'jobId'
            ORDER BY i.created_at DESC LIMIT $1`,
           [limit]
         ).catch(() => ({ rows: [] })),
@@ -871,7 +1316,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({
         ok: true,
         total,
-        recent: recent.rows,
+        recent: recent.rows.map((row: any) => {
+          const details = row.details && typeof row.details === 'object' ? row.details : {};
+          const violations = Array.isArray(details.violations) ? details.violations.slice(0, 6) : [];
+          return {
+            id: row.id,
+            user_id: row.user_id,
+            infringement_type: row.infringement_type,
+            created_at: row.created_at,
+            subscription_tier: row.subscription_tier,
+            email: row.email,
+            banned_at: row.banned_at,
+            jobId: typeof details.jobId === 'string' ? details.jobId : null,
+            jobStatus: row.job_status || null,
+            styleId: row.style_id || null,
+            source: details.source || null,
+            stage: details.stage || null,
+            imageUrl: httpsUrl(details.imageUrl) || httpsUrl(row.input_image_url) || httpsUrl(row.output_image_url),
+            violations,
+          };
+        }),
       });
     }
 

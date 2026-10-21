@@ -21,7 +21,8 @@ import {
   purchasePackage,
   restorePurchases,
   getCustomerInfo,
-  getAppUserId,
+  getCurrentAppUserId,
+  collectRcIdentityIds,
   hasRevenueCatKey,
   isConfigured as isRcConfigured,
   loginUser,
@@ -32,7 +33,7 @@ import {
   tierFromProductId,
   describePurchaseError,
 } from './services/revenuecat';
-import { initAuth, resetAuthIfLocal, forceReAuth } from './services/auth.js';
+import { initAuth, resetAuthIfLocal, forceReAuth, hasStoredAuth } from './services/auth.js';
 import NotificationProvider, { useNotifications } from './components/NotificationProvider';
 import NetworkProvider, { useNetwork } from './components/NetworkProvider';
 import GalleryScreen from './screens/GalleryScreen';
@@ -282,12 +283,33 @@ function AppContent({ fontsLoaded }) {
     const hasKey = hasRevenueCatKey();
     setHasRcKey(hasKey);
 
-    let rcUserId = null;
+    let rcIdentity = null;
+    let isCleanInstall = false;
     if (hasKey) {
       try {
         await withTimeout(initRevenueCat(null), RC_STARTUP_TIMEOUT_MS, 'RevenueCat init');
-        rcUserId = await withTimeout(getAppUserId(), RC_STARTUP_TIMEOUT_MS, 'RevenueCat user');
-        devLog('[RevenueCat] Initialized, appUserId:', rcUserId);
+        // Clean install: restore before minting a backend user so we reuse the
+        // existing RC-linked account (same usage) instead of creating a new UUID.
+        const stored = await hasStoredAuth();
+        isCleanInstall = !stored;
+        if (isCleanInstall) {
+          try {
+            await withTimeout(
+              restorePurchases(),
+              Math.max(RC_STARTUP_TIMEOUT_MS, 15_000),
+              'RevenueCat restore',
+            );
+            devLog('[RevenueCat] Startup restore finished');
+          } catch (restoreErr) {
+            console.warn(
+              '[RevenueCat] Startup restore skipped:',
+              restoreErr?.message || restoreErr,
+            );
+          }
+        }
+        const revenuecatIds = await collectRcIdentityIds();
+        rcIdentity = { revenuecatIds };
+        devLog('[RevenueCat] Identity ids:', revenuecatIds);
       } catch (err) {
         console.error('[RevenueCat] init error:', err);
       }
@@ -299,7 +321,7 @@ function AppContent({ fontsLoaded }) {
 
     let auth;
     try {
-      auth = await initAuth(API_BASE, rcUserId);
+      auth = await initAuth(API_BASE, rcIdentity);
       applyAuthState(auth);
       devLog('[Auth] API_BASE:', API_BASE);
       devLog('[Auth] userId:', auth.userId);
@@ -309,13 +331,30 @@ function AppContent({ fontsLoaded }) {
       if (auth.isLocal) {
         console.warn('[Auth] Running with local ID — backend unavailable. Check DATABASE_URL in Vercel.');
       } else if (auth.userId && auth.token && hasKey) {
-        // Never block splash/authReady on Purchases.logIn — it can hang past the failsafe
-        // and leave subscription/API calls racing with a half-finished startup.
-        withTimeout(
-          linkRevenueCatToBackend(auth.userId),
-          RC_STARTUP_TIMEOUT_MS,
-          'RevenueCat link'
-        ).catch((err) => console.warn('[RevenueCat] link deferred/failed:', err?.message || err));
+        if (isCleanInstall) {
+          // Serialize link → sync → reclaim so logIn(newUuid) cannot race reclaim(oldUuid).
+          withTimeout(
+            (async () => {
+              await linkRevenueCatToBackend(auth.userId);
+              const info = await getCustomerInfo();
+              const active = info?.entitlements?.active || {};
+              if (Object.keys(active).length === 0) return;
+              await syncSubscriptionToBackend(info);
+              await refreshSubscription().catch(() => {});
+            })(),
+            Math.max(RC_STARTUP_TIMEOUT_MS, 25_000),
+            'Post-restore usage reclaim',
+          ).catch((err) =>
+            console.warn('[Auth] Post-restore reclaim failed:', err?.message || err),
+          );
+        } else {
+          // Never block splash/authReady on Purchases.logIn — it can hang past the failsafe.
+          withTimeout(
+            linkRevenueCatToBackend(auth.userId),
+            RC_STARTUP_TIMEOUT_MS,
+            'RevenueCat link'
+          ).catch((err) => console.warn('[RevenueCat] link deferred/failed:', err?.message || err));
+        }
       }
     } catch (err) {
       console.error('[Auth] init error:', err);
@@ -327,8 +366,12 @@ function AppContent({ fontsLoaded }) {
 
   const refreshAuthToken = async () => {
     devLog('[Auth] Refreshing JWT...');
-    const rcUserId = hasRevenueCatKey() ? await getAppUserId().catch(() => null) : null;
-    const auth = await forceReAuth(API_BASE, rcUserId);
+    let rcIdentity = null;
+    if (hasRevenueCatKey()) {
+      const revenuecatIds = await collectRcIdentityIds().catch(() => []);
+      rcIdentity = revenuecatIds.length ? { revenuecatIds } : null;
+    }
+    const auth = await forceReAuth(API_BASE, rcIdentity);
     applyAuthState(auth);
 
     if (!auth.token && auth.isLocal) {
@@ -385,12 +428,14 @@ function AppContent({ fontsLoaded }) {
     const tier = tierFromProductId(productIdentifier);
 
     try {
+      const currentRcId = await getCurrentAppUserId().catch(() => null);
       const syncResponse = await fetch(`${API_BASE}/api/sync-subscription`, {
         method: 'POST',
         headers: getApiHeaders(),
         body: JSON.stringify({
           userId: syncUserId,
           revenuecatUserId: customerInfo?.originalAppUserId,
+          revenuecatAppUserId: currentRcId || undefined,
           productId: productIdentifier,
           tier,
           expirationDate: expirationDate || undefined,
@@ -401,12 +446,17 @@ function AppContent({ fontsLoaded }) {
       const syncResult = await syncResponse.json();
       if (syncResult.ok) {
         devLog('[subscription] Synced to backend:', syncResult.subscription);
-        // Reinstall creates a new local user; sync may resolve the older RC-linked account.
-        const canonicalId = syncResult.subscription?.userId;
-        if (canonicalId && canonicalId !== userIdRef.current) {
+        // Switch JWT via short-lived reclaimToken from sync (bare userId is rejected).
+        const reclaimToken = syncResult.subscription?.reclaimToken;
+        const canonicalId = syncResult.subscription?.reclaimUserId;
+        if (reclaimToken && canonicalId && canonicalId !== userIdRef.current) {
           devLog('[Auth] Reclaiming restored account:', canonicalId);
-          const rcId = customerInfo?.originalAppUserId || null;
-          const reclaimed = await forceReAuth(API_BASE, rcId);
+          const revenuecatIds = await collectRcIdentityIds(customerInfo);
+          if (currentRcId) revenuecatIds.push(currentRcId);
+          const reclaimed = await forceReAuth(API_BASE, {
+            reclaimToken,
+            revenuecatIds,
+          });
           applyAuthState(reclaimed);
           if (reclaimed?.userId && hasRevenueCatKey()) {
             await withTimeout(
@@ -1202,8 +1252,9 @@ function AppContent({ fontsLoaded }) {
       const customerInfo = await restorePurchases();
       const activeEntitlements = customerInfo?.entitlements?.active || {};
       if (Object.keys(activeEntitlements).length > 0) {
-        // Sync first so backend can reclaim the pre-reinstall user + usage.
-        await syncSubscriptionToBackend(customerInfo);
+        // Sync first → adopt usage + reclaimUserId, then switch JWT to that user.
+        const latestInfo = await getCustomerInfo().catch(() => customerInfo);
+        await syncSubscriptionToBackend(latestInfo);
         await refreshSubscription();
         showToast('Restored', 'Your previous purchase has been restored', 'success');
         setScreen('style');

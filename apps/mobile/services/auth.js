@@ -1,6 +1,9 @@
 // Auth service — gets a real user ID and JWT from the backend on first launch,
 // then stores them on the device so the user stays logged in between sessions.
 // Falls back to a locally generated ID if the backend is unavailable (e.g. DB issue).
+//
+// Across reinstalls, identity is recovered via RevenueCat ids (after Play restore),
+// not via SecureStore (which is wiped).
 
 import * as FileSystem from 'expo-file-system';
 import * as SecureStore from 'expo-secure-store';
@@ -40,7 +43,6 @@ async function migrateLegacyAuthFile() {
   return null;
 }
 
-// Read stored auth from device (SecureStore, with one-time legacy file migration).
 async function readStored() {
   try {
     const text = await SecureStore.getItemAsync(AUTH_KEY);
@@ -51,7 +53,6 @@ async function readStored() {
   return migrateLegacyAuthFile();
 }
 
-// Write auth to device
 async function writeStored(data) {
   try {
     await SecureStore.setItemAsync(AUTH_KEY, JSON.stringify(data));
@@ -60,7 +61,6 @@ async function writeStored(data) {
   }
 }
 
-// Generate a UUID v4 without any external library
 function generateUUID() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
@@ -68,31 +68,99 @@ function generateUUID() {
   });
 }
 
-// Main init function — call this on app startup
-// revenuecatUserId: the anonymous ID from RevenueCat SDK (optional)
-export async function initAuth(apiBase, revenuecatUserId = null) {
-  // Return stored auth if we already have it AND a valid token.
-  // (If token is missing/null we must re-auth — happens when a prior session
-  //  failed to get a token e.g. while the backend DB was down.)
+/** Normalize legacy string or { revenuecatIds / revenuecatUserId } into id list. */
+export function normalizeRevenueCatIdentity(revenuecatIdentity) {
+  if (!revenuecatIdentity) return [];
+  if (typeof revenuecatIdentity === 'string') {
+    const id = revenuecatIdentity.trim();
+    return id ? [id] : [];
+  }
+  const ids = [];
+  const push = (v) => {
+    const id = String(v || '').trim();
+    if (id && !ids.includes(id)) ids.push(id);
+  };
+  if (Array.isArray(revenuecatIdentity.revenuecatIds)) {
+    revenuecatIdentity.revenuecatIds.forEach(push);
+  }
+  push(revenuecatIdentity.revenuecatUserId);
+  push(revenuecatIdentity.revenuecatAppUserId);
+  push(revenuecatIdentity.originalAppUserId);
+  push(revenuecatIdentity.currentAppUserId);
+  return ids;
+}
+
+export async function hasStoredAuth() {
+  const stored = await readStored();
+  return Boolean(stored?.userId && stored?.token);
+}
+
+/**
+ * Main init — call on app startup.
+ * @param {string} apiBase
+ * @param {string|{reclaimToken?: string, userId?: string, revenuecatIds?: string[], revenuecatUserId?: string, revenuecatAppUserId?: string}|null} revenuecatIdentity
+ */
+export async function initAuth(apiBase, revenuecatIdentity = null) {
   const stored = await readStored();
   if (stored?.userId && stored?.token) {
-    devLog('[Auth] Using stored auth, userId:', stored.userId);
-    return stored;
+    // Reclaim must clear first (forceReAuth); otherwise keep stored session.
+    const hasReclaim =
+      revenuecatIdentity &&
+      typeof revenuecatIdentity === 'object' &&
+      revenuecatIdentity.reclaimToken;
+    if (!hasReclaim) {
+      devLog('[Auth] Using stored auth, userId:', stored.userId);
+      return stored;
+    }
+    await clearAuth();
   }
   if (stored?.userId && !stored?.token) {
     devLog('[Auth] Stored auth has no token, clearing and re-authenticating...');
     await clearAuth();
   }
 
-  // Try to get auth from backend (creates user in DB) — retry a few times on transient failures
+  const reclaimToken =
+    revenuecatIdentity &&
+    typeof revenuecatIdentity === 'object' &&
+    typeof revenuecatIdentity.reclaimToken === 'string'
+      ? revenuecatIdentity.reclaimToken.trim()
+      : '';
+  const revenuecatIds = normalizeRevenueCatIdentity(revenuecatIdentity);
+  const body = reclaimToken
+    ? {
+        reclaimToken,
+        ...(revenuecatIds.length
+          ? {
+              revenuecatIds,
+              revenuecatUserId: revenuecatIds[0],
+              ...(revenuecatIds[1] ? { revenuecatAppUserId: revenuecatIds[1] } : {}),
+            }
+          : {}),
+      }
+    : revenuecatIds.length > 0
+      ? {
+          revenuecatIds,
+          revenuecatUserId: revenuecatIds[0],
+          ...(revenuecatIds[1] ? { revenuecatAppUserId: revenuecatIds[1] } : {}),
+        }
+      : {};
+
   const maxAttempts = 3;
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     try {
-      devLog('[Auth] Requesting token from backend...', attempt > 0 ? `(retry ${attempt})` : '');
+      devLog(
+        '[Auth] Requesting token from backend...',
+        attempt > 0 ? `(retry ${attempt})` : '',
+        reclaimToken
+          ? 'reclaimToken'
+          : revenuecatIds.length
+            ? `rcIds=${revenuecatIds.length}`
+            : 'no-rc',
+      );
       const res = await fetchWithTimeout(`${apiBase}/api/auth/token`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(revenuecatUserId ? { revenuecatUserId } : {}),
+        body: JSON.stringify(body),
       });
 
       if (res.ok) {
@@ -116,10 +184,6 @@ export async function initAuth(apiBase, revenuecatUserId = null) {
     }
   }
 
-  // Fallback: generate a local UUID and persist it
-  // This keeps the app working even when the backend/DB is down.
-  // When the backend is fixed, the stored local ID will keep the same
-  // user consistent across sessions until they reinstall.
   const localId = generateUUID();
   const fallback = { userId: localId, token: null, isLocal: true };
   await writeStored(fallback);
@@ -131,7 +195,6 @@ export async function initAuth(apiBase, revenuecatUserId = null) {
   return fallback;
 }
 
-// Clear stored auth (e.g. on logout)
 export async function clearAuth() {
   try {
     await SecureStore.deleteItemAsync(AUTH_KEY);
@@ -141,13 +204,11 @@ export async function clearAuth() {
   } catch {}
 }
 
-// Force a fresh token from the backend (clears stored auth first)
-export async function forceReAuth(apiBase, revenuecatUserId = null) {
+export async function forceReAuth(apiBase, revenuecatIdentity = null) {
   await clearAuth();
-  return initAuth(apiBase, revenuecatUserId);
+  return initAuth(apiBase, revenuecatIdentity);
 }
 
-// Call this once to force re-authentication (clears any local fallback ID)
 export async function resetAuthIfLocal() {
   try {
     const stored = await readStored();

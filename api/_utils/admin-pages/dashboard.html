@@ -3,8 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="color-scheme" content="dark">
   <title>FunnyFy Admin</title>
+  <script>
+    (function () {
+      var saved = localStorage.getItem('admin_theme');
+      document.documentElement.setAttribute('data-theme', saved === 'light' ? 'light' : 'dark');
+    })();
+  </script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -31,8 +36,61 @@
       --red-soft: rgba(239, 68, 68, 0.14);
       --amber: #fbbf24;
       --amber-soft: rgba(245, 158, 11, 0.14);
+      --green-text: #6ee7b7;
+      --red-text: #fca5a5;
+      --amber-text: #fcd34d;
+      --gray-text: #94a3b8;
+      --indigo-text: #a5b4fc;
+      --sidebar-line: rgba(255, 255, 255, 0.06);
+      --sidebar-hover: rgba(255, 255, 255, 0.06);
+      --nav-section: #4b5a70;
+      --nav-hover: #cbd5e1;
+      --topbar: rgba(19, 26, 36, 0.82);
+      --row-hover: rgba(255, 255, 255, 0.03);
+      --ghost-hover: rgba(255, 255, 255, 0.06);
+      --well: #0b1220;
+      --placeholder: #5c6b82;
+      --on-accent: #fff;
       --radius: 12px;
       --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+    html[data-theme="light"] {
+      color-scheme: light;
+      --bg: #c5d0e0;
+      --surface: #ffffff;
+      --surface-2: #e4ebf3;
+      --surface-3: #d5dfeb;
+      --border: #9aadc4;
+      --border-strong: #6d829c;
+      --text: #0b1220;
+      --muted: #334155;
+      --accent: #3730a3;
+      --accent-hover: #312e81;
+      --accent-soft: rgba(55, 48, 163, 0.14);
+      --sidebar: #f8fafc;
+      --sidebar-text: #1e293b;
+      --sidebar-active: #1e1b4b;
+      --green: #047857;
+      --green-soft: rgba(4, 120, 87, 0.16);
+      --red: #b91c1c;
+      --red-soft: rgba(185, 28, 28, 0.12);
+      --amber: #b45309;
+      --amber-soft: rgba(180, 83, 9, 0.16);
+      --green-text: #065f46;
+      --red-text: #991b1b;
+      --amber-text: #92400e;
+      --gray-text: #1e293b;
+      --indigo-text: #312e81;
+      --sidebar-line: #9aadc4;
+      --sidebar-hover: rgba(15, 23, 42, 0.07);
+      --nav-section: #475569;
+      --nav-hover: #0b1220;
+      --topbar: #ffffff;
+      --row-hover: rgba(15, 23, 42, 0.06);
+      --ghost-hover: rgba(15, 23, 42, 0.07);
+      --well: #d5dfeb;
+      --placeholder: #52657a;
+      --shadow: 0 1px 2px rgba(15, 23, 42, 0.1), 0 10px 24px rgba(15, 23, 42, 0.1);
     }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -52,6 +110,7 @@
       position: fixed;
       top: 0; bottom: 0; left: 0;
       z-index: 20;
+      border-right: 1px solid var(--sidebar-line);
     }
     .sidebar-logo {
       padding: 22px 20px 18px;
@@ -59,7 +118,7 @@
       font-size: 15px;
       letter-spacing: -0.02em;
       color: var(--sidebar-active);
-      border-bottom: 1px solid rgba(255,255,255,.06);
+      border-bottom: 1px solid var(--sidebar-line);
     }
     .sidebar-logo span { color: var(--accent-hover); font-weight: 800; }
     .sidebar nav { flex: 1; padding: 12px 10px; overflow-y: auto; }
@@ -68,7 +127,7 @@
       font-weight: 600;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: #4b5a70;
+      color: var(--nav-section);
       padding: 12px 12px 6px;
     }
     .nav-item {
@@ -86,7 +145,7 @@
       user-select: none;
     }
     @media (hover: hover) and (pointer: fine) {
-      .nav-item:hover { background: rgba(255,255,255,.06); color: #cbd5e1; }
+      .nav-item:hover { background: var(--sidebar-hover); color: var(--nav-hover); }
     }
     .nav-item.active { background: var(--accent-soft); color: var(--sidebar-active); }
     .nav-dot {
@@ -96,12 +155,12 @@
       opacity: .35;
       flex-shrink: 0;
     }
-    .nav-item.active .nav-dot { opacity: 1; background: #818cf8; }
-    .sidebar-footer { padding: 12px 10px 16px; border-top: 1px solid rgba(255,255,255,.06); }
+    .nav-item.active .nav-dot { opacity: 1; background: var(--accent-hover); }
+    .sidebar-footer { padding: 12px 10px 16px; border-top: 1px solid var(--sidebar-line); }
 
     .main { margin-left: 232px; flex: 1; min-width: 0; }
     .topbar {
-      background: rgba(19, 26, 36, 0.82);
+      background: var(--topbar);
       border-bottom: 1px solid var(--border);
       padding: 14px 28px;
       display: flex;
@@ -127,13 +186,13 @@
       font-weight: 600;
       letter-spacing: 0.01em;
     }
-    .badge-green { background: var(--green-soft); color: #6ee7b7; }
-    .badge-red { background: var(--red-soft); color: #fca5a5; }
-    .badge-amber { background: var(--amber-soft); color: #fcd34d; }
-    tr.row-trial td { background: rgba(251, 191, 36, 0.08); }
-    tr.row-trial td:first-child { font-weight: 600; color: #fcd34d; }
-    .badge-gray { background: rgba(148, 163, 184, 0.12); color: #94a3b8; }
-    .badge-indigo { background: var(--accent-soft); color: #a5b4fc; }
+    .badge-green { background: var(--green-soft); color: var(--green-text); }
+    .badge-red { background: var(--red-soft); color: var(--red-text); }
+    .badge-amber { background: var(--amber-soft); color: var(--amber-text); }
+    tr.row-trial td { background: var(--amber-soft); }
+    tr.row-trial td:first-child { font-weight: 600; color: var(--amber-text); }
+    .badge-gray { background: rgba(148, 163, 184, 0.12); color: var(--gray-text); }
+    .badge-indigo { background: var(--accent-soft); color: var(--indigo-text); }
 
     .alerts { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
     .alerts:empty { display: none; margin: 0; }
@@ -165,9 +224,10 @@
 
     .stats-row {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
       gap: 14px;
       margin-bottom: 22px;
+      align-items: stretch;
     }
     .stat {
       background: var(--surface);
@@ -175,6 +235,9 @@
       border-radius: var(--radius);
       padding: 16px 18px;
       box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      min-height: 92px;
       opacity: 0;
       transform: translateY(8px);
       animation: statIn 240ms var(--ease-out) forwards;
@@ -197,8 +260,17 @@
       letter-spacing: 0.06em;
       margin-bottom: 6px;
       font-weight: 600;
+      line-height: 1.35;
+      min-height: 2.7em; /* reserve 2 lines so wrapped labels don't shift values */
     }
-    .stat-value { font-size: 26px; font-weight: 700; letter-spacing: -0.03em; color: var(--text); white-space: nowrap; }
+    .stat-value {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: var(--text);
+      white-space: nowrap;
+      margin-top: auto;
+    }
     .stat-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
 
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
@@ -242,9 +314,17 @@
       border-bottom: 1px solid var(--border);
     }
     td { padding: 11px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    /* Flex on <td> breaks row border alignment — wrap buttons instead */
+    td.cell-actions .cell-actions-inner {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      flex-wrap: wrap;
+      min-height: 28px;
+    }
     tr:last-child td { border-bottom: none; }
     @media (hover: hover) and (pointer: fine) {
-      tbody tr:hover td { background: rgba(255, 255, 255, 0.03); }
+      tbody tr:hover td { background: var(--row-hover); }
     }
     .mono { font-family: ui-monospace, 'SF Mono', monospace; font-size: 12px; }
 
@@ -259,7 +339,7 @@
       color: var(--text);
       transition: border-color 140ms var(--ease-out), box-shadow 140ms var(--ease-out);
     }
-    input[type=text]::placeholder { color: #5c6b82; }
+    input[type=text]::placeholder, textarea::placeholder { color: var(--placeholder); }
     input[type=text]:focus, select:focus {
       border-color: var(--accent);
       box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.22);
@@ -280,7 +360,7 @@
       .btn-primary:hover { background: var(--accent-hover); }
       .btn-danger:hover { background: #ef4444; }
       .btn-success:hover { background: #10b981; }
-      .btn-ghost:hover { background: rgba(255, 255, 255, 0.06); border-color: var(--border-strong); }
+      .btn-ghost:hover { background: var(--ghost-hover); border-color: var(--border-strong); }
     }
     .btn-primary { background: var(--accent); color: #fff; }
     .btn-danger { background: var(--red); color: #fff; }
@@ -290,7 +370,7 @@
     .logout-btn {
       width: 100%;
       background: transparent;
-      border: 1px solid rgba(255,255,255,.12);
+      border: 1px solid var(--border);
       color: var(--sidebar-text);
       padding: 8px 12px;
       border-radius: 8px;
@@ -300,7 +380,7 @@
     }
     .logout-btn:active { transform: scale(0.97); }
     @media (hover: hover) and (pointer: fine) {
-      .logout-btn:hover { color: #fca5a5; border-color: rgba(252,165,165,.4); }
+      .logout-btn:hover { color: var(--red-text); border-color: var(--red); }
     }
 
     .pagination { display: flex; gap: 8px; align-items: center; padding: 12px 16px; }
@@ -330,7 +410,7 @@
     .currency-toggle button:active { transform: scale(0.97); }
     .currency-toggle button.active {
       background: var(--accent-soft);
-      color: #c7d2fe;
+      color: var(--indigo-text);
     }
     @media (hover: hover) and (pointer: fine) {
       .currency-toggle button:not(.active):hover { color: var(--text); }
@@ -463,12 +543,49 @@
       letter-spacing: 0.06em;
       margin: 20px 0 10px;
     }
+    .media-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+    .media-grid figure { margin: 0; }
+    .media-grid figcaption { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+    .media-grid img {
+      width: 100%;
+      max-height: 240px;
+      object-fit: contain;
+      background: var(--well);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .mod-thumb {
+      width: 56px;
+      height: 56px;
+      object-fit: cover;
+      border-radius: 6px;
+      background: var(--well);
+      display: block;
+    }
+    #user-note {
+      width: 100%;
+      min-height: 72px;
+      resize: vertical;
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font: inherit;
+      font-size: 13px;
+    }
+    .panel-note {
+      font-size: 13px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
 
     .empty { text-align: center; padding: 40px; color: var(--muted); }
     .spinner {
       display: inline-block;
       width: 16px; height: 16px;
-      border: 2px solid rgba(255, 255, 255, 0.1);
+      border: 2px solid var(--border-strong);
       border-top-color: var(--accent);
       border-radius: 50%;
       animation: spin .55s linear infinite;
@@ -479,7 +596,7 @@
     }
     .error-msg {
       background: var(--red-soft);
-      color: #fca5a5;
+      color: var(--red-text);
       border: 1px solid rgba(248, 113, 113, 0.25);
       padding: 10px 14px;
       border-radius: 8px;
@@ -495,6 +612,7 @@
     <nav id="sidebar-nav">
       <div class="nav-section">Monitor</div>
       <div class="nav-item active" data-page="overview"><span class="nav-dot"></span> Overview</div>
+      <div class="nav-item" data-page="system"><span class="nav-dot"></span> System</div>
       <div class="nav-item" data-page="queue"><span class="nav-dot"></span> Queue</div>
       <div class="nav-item" data-page="security"><span class="nav-dot"></span> Security</div>
       <div class="nav-section">Business</div>
@@ -503,6 +621,7 @@
       <div class="nav-item" data-page="users"><span class="nav-dot"></span> Users</div>
       <div class="nav-section">Operations</div>
       <div class="nav-item" data-page="jobs"><span class="nav-dot"></span> Jobs</div>
+      <div class="nav-item" data-page="styles"><span class="nav-dot"></span> Styles</div>
       <div class="nav-item" data-page="moderation"><span class="nav-dot"></span> Moderation</div>
     </nav>
     <div class="sidebar-footer">
@@ -514,13 +633,16 @@
     <div class="topbar">
       <div class="topbar-title" id="pageTitle">Overview</div>
       <div class="topbar-right">
+        <div class="currency-toggle" id="theme-toggle" role="group" aria-label="Color theme">
+          <button type="button" data-theme-choice="dark">Dark</button>
+          <button type="button" data-theme-choice="light">Light</button>
+        </div>
         <span class="fx-rate" id="fx-rate-label" title="Exchange rate for display only"></span>
         <div class="currency-toggle" id="currency-toggle" role="group" aria-label="Display currency">
           <button type="button" data-currency="USD" class="active">USD</button>
           <button type="button" data-currency="KES">KES</button>
         </div>
         <span class="refresh-indicator" id="lastRefresh"></span>
-        <span id="adminLabel" class="badge badge-indigo"></span>
       </div>
     </div>
 
@@ -572,6 +694,71 @@
         </div>
       </div>
 
+      <div class="page" id="page-system">
+        <div class="card-note" style="margin-bottom:16px">
+          Read-only. These values come from this deployment’s environment. Change them in Vercel, then redeploy.
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head">
+              <h3>This deployment</h3>
+              <span id="sys-env-badge" class="badge badge-gray">—</span>
+            </div>
+            <table>
+              <tbody>
+                <tr><td>Host</td><td id="sys-host" class="mono">—</td></tr>
+                <tr><td>Vercel env</td><td id="sys-vercel-env">—</td></tr>
+                <tr><td>Git branch</td><td id="sys-branch">—</td></tr>
+                <tr><td>Commit</td><td id="sys-commit" class="mono">—</td></tr>
+                <tr><td>Admin timezone</td><td id="sys-tz">—</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-head">
+              <h3>Closed testing</h3>
+              <span id="sys-closed-badge" class="badge badge-gray">—</span>
+            </div>
+            <table>
+              <tbody>
+                <tr><td>Total gens / user</td><td id="sys-closed-total">—</td></tr>
+                <tr><td>Daily gens / user</td><td id="sys-closed-daily">—</td></tr>
+              </tbody>
+            </table>
+            <div class="card-note">Unset or 0 means the production paywall is on.</div>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head">
+              <h3>App version gates</h3>
+              <button class="btn btn-ghost btn-sm" type="button" data-refresh="system">Refresh</button>
+            </div>
+            <table>
+              <tbody>
+                <tr><td>Latest (soft nudge)</td><td id="sys-latest">—</td></tr>
+                <tr><td>Minimum required (blocking)</td><td id="sys-min-required">—</td></tr>
+                <tr><td>Catalog minimum</td><td id="sys-min-catalog">—</td></tr>
+                <tr><td>Store URL</td><td id="sys-store" class="mono">—</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-head">
+              <h3>Spend and queue</h3>
+              <span id="sys-pause-badge" class="badge badge-gray">—</span>
+            </div>
+            <table>
+              <tbody>
+                <tr><td>Daily cap</td><td id="sys-cap">—</td></tr>
+                <tr><td>Spent today</td><td id="sys-today">—</td></tr>
+                <tr><td>Pause</td><td id="sys-pause">—</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <div class="page" id="page-finance">
         <div class="finance-hero">
           <div class="finance-card">
@@ -595,7 +782,9 @@
           <div class="stat"><div class="stat-label">Gens MTD</div><div class="stat-value" id="fin-gens-total" style="font-size:22px">—</div></div>
           <div class="stat"><div class="stat-label">Completed</div><div class="stat-value" id="fin-gens-done" style="font-size:22px">—</div></div>
           <div class="stat"><div class="stat-label">Failed ($0)</div><div class="stat-value" id="fin-gens-failed" style="font-size:22px">—</div></div>
-          <div class="stat"><div class="stat-label">Trial Cost MTD</div><div class="stat-value" id="fin-trial-cost" style="font-size:22px">—</div></div>
+          <div class="stat"><div class="stat-label">No-plan cost MTD</div><div class="stat-value" id="fin-trial-cost" style="font-size:22px">—</div></div>
+          <div class="stat"><div class="stat-label">Store cash MTD</div><div class="stat-value" id="fin-store" style="font-size:22px">—</div></div>
+          <div class="stat"><div class="stat-label">After ~15% fee</div><div class="stat-value" id="fin-store-net" style="font-size:22px">—</div></div>
         </div>
 
         <div class="card">
@@ -604,7 +793,7 @@
             <thead><tr><th>Tier</th><th>Active subs</th><th>Revenue (MRR)</th><th>Gens MTD</th><th>Gen cost MTD</th></tr></thead>
             <tbody id="fin-economics-table"><tr><td colspan="5" class="empty"><span class="spinner"></span></td></tr></tbody>
           </table>
-          <div class="card-note">Trial rows show generation cost with $0 subscription revenue. MRR is estimated from active subs at tier price.</div>
+          <div class="card-note">No-plan rows are accounts without Starter, Popular, or Pro. They have $0 subscription revenue. MRR is estimated from active subs at tier price.</div>
         </div>
 
         <div class="card">
@@ -658,8 +847,8 @@
         </div>
 
         <div class="placeholder-block">
-          <strong>Coming later</strong>
-          RevenueCat reconciliation, store fees, refunds, and per-style margin reports.
+          <strong>Store cash starts with the next purchase</strong>
+          Webhook prices are recorded from this deploy forward. Refunds are not subtracted. Per-style cost is on the Styles page.
         </div>
       </div>
 
@@ -741,19 +930,20 @@
           <input type="text" id="user-search" placeholder="Search by ID, email…" style="width:240px">
           <select id="user-tier">
             <option value="">All tiers</option>
-            <option value="trial">Trial</option>
+            <option value="trial">No plan</option>
             <option value="starter">Starter</option>
             <option value="popular">Popular</option>
             <option value="pro">Pro</option>
           </select>
           <select id="user-status">
             <option value="">All statuses</option>
-            <option value="trial">Trial</option>
+            <option value="trial">Unsubscribed</option>
             <option value="active">Active</option>
             <option value="canceled">Canceled</option>
             <option value="expired">Expired</option>
           </select>
           <button class="btn btn-ghost" type="button" data-refresh="users">Refresh</button>
+          <button class="btn btn-ghost" type="button" data-export="users">Export CSV</button>
         </div>
         <div class="card">
           <table>
@@ -766,6 +956,9 @@
 
       <div class="page" id="page-jobs">
         <div class="controls">
+          <input type="text" id="job-search" placeholder="Job ID…" style="width:160px">
+          <input type="text" id="job-style" placeholder="Style…" style="width:160px">
+          <input type="text" id="job-user" placeholder="User ID…" style="width:180px">
           <select id="job-status">
             <option value="">All statuses</option>
             <option value="pending">Pending</option>
@@ -774,13 +967,28 @@
             <option value="failed">Failed</option>
           </select>
           <button class="btn btn-ghost" type="button" data-refresh="jobs">Refresh</button>
+          <button class="btn btn-ghost" type="button" data-export="jobs">Export CSV</button>
         </div>
         <div class="card">
           <table>
-            <thead><tr><th>Job ID</th><th>User</th><th>Style</th><th>Status</th><th>Priority</th><th>Created</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Job ID</th><th>User</th><th>Style</th><th>Status</th><th>Cost</th><th>Created</th><th>Actions</th></tr></thead>
             <tbody id="jobs-table"><tr><td colspan="7" class="empty"><span class="spinner"></span></td></tr></tbody>
           </table>
           <div class="pagination" id="jobs-pagination"></div>
+        </div>
+      </div>
+
+      <div class="page" id="page-styles">
+        <div class="card">
+          <div class="card-head">
+            <h3>Styles this month</h3>
+            <button class="btn btn-ghost btn-sm" type="button" data-refresh="styles">Refresh</button>
+          </div>
+          <table>
+            <thead><tr><th>Style</th><th>Jobs</th><th>Done</th><th>Failed</th><th>Fail rate</th><th>Cost</th></tr></thead>
+            <tbody id="styles-table"><tr><td colspan="6" class="empty"><span class="spinner"></span></td></tr></tbody>
+          </table>
+          <div class="card-note">Volume, failures, and generation cost since the first of this month.</div>
         </div>
       </div>
 
@@ -800,7 +1008,9 @@
           <div class="card-head">
             <h3>Spending Last 7 Days</h3>
             <div style="display:flex;gap:8px;align-items:center;">
-              <button class="btn btn-ghost btn-sm" type="button" id="q-resume-btn" style="display:none;">Resume queue</button>
+              <button class="btn btn-danger btn-sm" type="button" id="q-pause-btn" style="display:none;">Pause queue</button>
+              <button class="btn btn-ghost btn-sm" type="button" id="q-resume-op-btn" style="display:none;">Resume operator pause</button>
+              <button class="btn btn-ghost btn-sm" type="button" id="q-resume-btn" style="display:none;">Resume billing pause</button>
               <button class="btn btn-ghost btn-sm" type="button" data-refresh="queue">Refresh</button>
             </div>
           </div>
@@ -808,6 +1018,7 @@
             <thead><tr><th>Date</th><th>Cost (USD)</th><th>Jobs</th></tr></thead>
             <tbody id="spending-table"><tr><td colspan="3" class="empty"><span class="spinner"></span></td></tr></tbody>
           </table>
+          <div class="card-note" id="q-priority">—</div>
         </div>
       </div>
 
@@ -818,7 +1029,7 @@
         <div class="card">
           <div class="card-head"><h3>Recent Infringements</h3><button class="btn btn-ghost btn-sm" type="button" data-refresh="moderation">Refresh</button></div>
           <table>
-            <thead><tr><th>Time</th><th>Type</th><th>User</th><th>Tier</th><th>Details</th><th></th></tr></thead>
+            <thead><tr><th>Image</th><th>Time</th><th>Type</th><th>User</th><th>What flagged</th><th></th></tr></thead>
             <tbody id="moderation-table"><tr><td colspan="6" class="empty"><span class="spinner"></span></td></tr></tbody>
           </table>
         </div>
@@ -828,8 +1039,24 @@
         <div class="controls">
           <select id="sec-type">
             <option value="">All events</option>
+            <option value="admin_*">Admin actions</option>
+            <option value="admin_ban">Admin ban</option>
+            <option value="admin_unban">Admin unban</option>
+            <option value="admin_quota">Admin quota</option>
+            <option value="admin_tier">Admin tier</option>
+            <option value="admin_job_retry">Admin job retry</option>
+            <option value="admin_job_cancel">Admin job cancel</option>
+            <option value="admin_queue_resume">Admin queue resume</option>
+            <option value="admin_queue_pause">Admin queue pause</option>
+            <option value="admin_note">Admin note</option>
+            <option value="admin_login_denied">Admin login denied</option>
             <option value="auth_failed">Auth Failed</option>
             <option value="auth_success">Auth Success</option>
+            <option value="webhook_*">Webhooks</option>
+            <option value="webhook_received">Webhook received</option>
+            <option value="webhook_processed">Webhook processed</option>
+            <option value="webhook_auth_failed">Webhook auth failed</option>
+            <option value="webhook_processing_error">Webhook error</option>
           </select>
           <select id="sec-success">
             <option value="">All outcomes</option>
@@ -840,8 +1067,8 @@
         </div>
         <div class="card">
           <table>
-            <thead><tr><th>Time</th><th>Event</th><th>IP</th><th>User</th><th>Result</th></tr></thead>
-            <tbody id="security-table"><tr><td colspan="5" class="empty"><span class="spinner"></span></td></tr></tbody>
+            <thead><tr><th>Time</th><th>Event</th><th>IP</th><th>User</th><th>Result</th><th>Details</th></tr></thead>
+            <tbody id="security-table"><tr><td colspan="6" class="empty"><span class="spinner"></span></td></tr></tbody>
           </table>
         </div>
       </div>
@@ -853,12 +1080,12 @@
 <div class="detail-backdrop" id="panel-backdrop"></div>
 <div class="detail-panel" id="user-panel">
   <div class="panel-head">
-    <strong>User Detail</strong>
+    <strong id="panel-title">User Detail</strong>
     <button class="btn btn-ghost btn-sm" type="button" id="close-panel-btn">Close</button>
   </div>
   <div class="panel-body" id="user-panel-body">Loading…</div>
 </div>
 
-<script src="/admin/dashboard-page.js?v=20260709" defer></script>
+<script src="/admin/dashboard-page.js?v=20261001g" defer></script>
 </body>
 </html>

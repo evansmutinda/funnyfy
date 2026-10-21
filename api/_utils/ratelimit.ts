@@ -191,10 +191,14 @@ export async function checkTierBurstLimit(
 export async function checkDailyLimit(
   userId: string,
   tier: string | null,
-  monthlyQuota: number
+  monthlyQuota: number,
+  dailyLimitOverride?: number
 ): Promise<{ allowed: boolean; current: number; limit: number; error?: string }> {
-  // Daily limit matches monthly quota (users can use quota however they want)
-  const dailyLimit = monthlyQuota;
+  // Default: daily limit matches monthly quota. Override for closed-test (e.g. 1/day).
+  const dailyLimit =
+    dailyLimitOverride != null && dailyLimitOverride > 0
+      ? dailyLimitOverride
+      : monthlyQuota;
   const today = getCurrentDay();
 
   try {
@@ -216,7 +220,7 @@ export async function checkDailyLimit(
         allowed: false,
         current,
         limit: dailyLimit,
-        error: `Daily limit exceeded. You've generated ${current - 1} images today (limit: ${dailyLimit}). This matches your monthly quota.`,
+        error: `Daily limit exceeded. You've generated ${current - 1} images today (limit: ${dailyLimit}).`,
       };
     }
 
@@ -236,7 +240,8 @@ export async function checkAllRateLimits(
   req: VercelRequest,
   userId: string,
   tier: string | null,
-  monthlyQuota: number
+  monthlyQuota: number,
+  options?: { dailyLimit?: number }
 ): Promise<{
   allowed: boolean;
   error?: string;
@@ -269,8 +274,13 @@ export async function checkAllRateLimits(
     };
   }
 
-  // 3. Check daily limit (optional safety net, matches monthly quota)
-  const dailyCheck = await checkDailyLimit(userId, tier, monthlyQuota);
+  // 3. Check daily limit (optional safety net; override for closed-test)
+  const dailyCheck = await checkDailyLimit(
+    userId,
+    tier,
+    monthlyQuota,
+    options?.dailyLimit,
+  );
   if (!dailyCheck.allowed) {
     return {
       allowed: false,

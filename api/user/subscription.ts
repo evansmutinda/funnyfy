@@ -7,6 +7,10 @@ import { applyMiddleware } from '../_utils/middleware';
 import { requireAuth } from '../_utils/auth';
 import { safeErrorResponse } from '../_utils/security';
 import { getCurrentMonthDate, getTierQuota } from '../_utils/usage';
+import {
+  getClosedTestQuotaConfig,
+  getClosedTestUsage,
+} from '../_utils/closed-test-quota';
 
 export default async function handler(
   req: VercelRequest,
@@ -84,8 +88,15 @@ export default async function handler(
       };
     }
 
-    // Get usage — no subscription means no quota (hard paywall)
-    let usage = { current: 0, limit: 0, month: getCurrentMonthDate() };
+    // Get usage — subscribed users use tier quotas; closed testers get temp allowance
+    let usage: {
+      current: number;
+      limit: number;
+      month: string;
+      dailyCurrent?: number;
+      dailyLimit?: number;
+    } = { current: 0, limit: 0, month: getCurrentMonthDate() };
+    let closedTesting = false;
 
     if (subscription) {
       const currentMonth = getCurrentMonthDate();
@@ -105,12 +116,26 @@ export default async function handler(
         limit,
         month: currentMonth
       };
+    } else {
+      const closed = getClosedTestQuotaConfig();
+      if (closed.enabled) {
+        const closedUsage = await getClosedTestUsage(userId);
+        closedTesting = true;
+        usage = {
+          current: closedUsage.current,
+          limit: closedUsage.limit,
+          month: closedUsage.month,
+          dailyCurrent: closedUsage.dailyCurrent,
+          dailyLimit: closedUsage.dailyLimit,
+        };
+      }
     }
 
     return res.status(200).json({
       ok: true,
       subscription,
       usage,
+      closedTesting,
       isTrial: false
     });
   } catch (err: any) {

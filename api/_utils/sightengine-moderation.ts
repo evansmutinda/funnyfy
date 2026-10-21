@@ -229,10 +229,13 @@ export async function moderateEnqueueImage(
   try {
     const moderation = await checkImageWithSightengine(imageUrl, apiUser, apiSecret);
     if (moderation && !moderation.allowed) {
+      const storedImage =
+        imageUrl.startsWith('https://') && imageUrl.length <= 2000 ? imageUrl : undefined;
       await recordContentInfringement(userId, {
         source: 'sightengine',
         violations: moderation.violations,
         stage: 'enqueue',
+        ...(storedImage ? { imageUrl: storedImage } : {}),
       });
     }
     return moderation;
@@ -356,7 +359,7 @@ export async function handleContentPolicyViolation(
   details: Record<string, unknown>
 ): Promise<void> {
   if (userId) {
-    await recordContentInfringement(userId, details);
+    await recordContentInfringement(userId, { ...details, jobId });
   }
   const source = details.source === 'replicate' ? 'replicate' : 'sightengine';
   await failJobContentNotAllowed(jobId, source);

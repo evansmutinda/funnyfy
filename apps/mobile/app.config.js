@@ -52,6 +52,13 @@ export default {
         'WRITE_EXTERNAL_STORAGE',
         'READ_MEDIA_IMAGES',
       ],
+      // FunnyFy only needs photos — strip audio/music (and unused video) from deps.
+      blockedPermissions: [
+        'android.permission.READ_MEDIA_AUDIO',
+        'android.permission.RECORD_AUDIO',
+        'android.permission.MODIFY_AUDIO_SETTINGS',
+        'android.permission.READ_MEDIA_VIDEO',
+      ],
     },
     androidNavigationBar: {
       backgroundColor: DARK_BG,

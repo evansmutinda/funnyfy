@@ -30,7 +30,13 @@ export default function UsageScreen({
   const insets = useStableSafeAreaInsets();
 
   const subscription = subscriptionInfo?.subscription;
+  const closedTesting = !!subscriptionInfo?.closedTesting;
   const quotaInfo = getUsageQuotaInfo(subscriptionInfo);
+  const usage = subscriptionInfo?.usage;
+  const dailyLeft =
+    closedTesting && usage?.dailyLimit != null
+      ? Math.max(0, usage.dailyLimit - (usage.dailyCurrent ?? 0))
+      : null;
 
   const renewalDate = subscription
     ? getDisplayRenewalDate(subscription, subscriptionInfo?.revenueCatExpiration)
@@ -49,6 +55,9 @@ export default function UsageScreen({
     }
     if (subscription) {
       return { label: 'ACTIVE', pill: styles.pwdStatusPillActive, text: styles.pwdStatusPillTextActive };
+    }
+    if (closedTesting) {
+      return { label: 'CLOSED TEST', pill: styles.pwdStatusPillTrial, text: styles.pwdStatusPillTextTrial };
     }
     return { label: 'NO PLAN', pill: styles.pwdStatusPillTrial, text: styles.pwdStatusPillTextTrial };
   })();
@@ -97,7 +106,11 @@ export default function UsageScreen({
                     quotaInfo.isLow && styles.pwdUsagePlanNameLow,
                   ]}
                 >
-                  {planName ? `${planName} plan` : 'No active plan'}
+                  {planName
+                    ? `${planName} plan`
+                    : closedTesting
+                      ? 'Closed testing'
+                      : 'No active plan'}
                 </Text>
                 <Text
                   style={[
@@ -105,8 +118,10 @@ export default function UsageScreen({
                     quotaInfo.isLow && styles.pwdUsageLineLow,
                   ]}
                 >
-                  {subscription
-                    ? `${quotaInfo.remaining} of ${quotaInfo.limit} images left`
+                  {subscription || closedTesting
+                    ? dailyLeft != null
+                      ? `${quotaInfo.remaining} of ${quotaInfo.limit} left · ${dailyLeft}/${usage.dailyLimit} today`
+                      : `${quotaInfo.remaining} of ${quotaInfo.limit} images left`
                     : 'Subscribe to start generating'}
                 </Text>
               </View>

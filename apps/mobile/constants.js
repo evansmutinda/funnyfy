@@ -397,6 +397,7 @@ export const STYLE_CARD_IMAGE_FIGURINE_V2 = require('./assets/comparisons/tiles/
 export const STYLE_CARD_IMAGE_FIGURINE_V3 = require('./assets/comparisons/tiles/after/3d/figurinev3.jpg');
 export const STYLE_CARD_IMAGE_FIGURINE_V4 = require('./assets/comparisons/tiles/after/3d/figurinev4.jpg');
 
+/** @deprecated Prefer getPaywallComparisonPairs() — kept for any leftover imports. */
 export const PAYWALL_MARQUEE_IMAGES = [
   STYLE_CARD_IMAGE_ANIME,
   STYLE_CARD_IMAGE_CHIBI,

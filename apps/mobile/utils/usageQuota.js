@@ -30,3 +30,25 @@ export function getUsageQuotaInfo(subscriptionInfo) {
     isExceeded,
   };
 }
+
+/** True when API says user may enqueue (subscribed or closed-test allowance left). */
+export function canUseGenerationQuota(subscriptionInfo) {
+  if (!subscriptionInfo) return true;
+  const { usage, subscription, closedTesting } = subscriptionInfo;
+  if (!usage || !(usage.limit > 0) || usage.current >= usage.limit) return false;
+  if (
+    usage.dailyLimit != null &&
+    usage.dailyCurrent != null &&
+    usage.dailyCurrent >= usage.dailyLimit
+  ) {
+    return false;
+  }
+  return Boolean(subscription || closedTesting);
+}
+
+/** True when UI should send the user to the paywall instead of generating. */
+export function requiresSubscriptionPaywall(subscriptionInfo) {
+  if (!subscriptionInfo) return false;
+  if (canUseGenerationQuota(subscriptionInfo)) return false;
+  return !subscriptionInfo.subscription;
+}

@@ -3,7 +3,14 @@
 // Usage: POST with body: { userId: "test-user-123", tier: "popular", productId: "popular_monthly" }
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import jwt from 'jsonwebtoken';
 import { query } from './_utils/db';
+import { requireAuth } from './_utils/auth';
+import { getCurrentMonthDate } from './_utils/usage';
+
+const JWT_SECRET = process.env.JWT_SECRET || process.env.AUTH_SECRET;
+/** Only reclaim via period match when within this window of the restored expiration. */
+const PERIOD_RECLAIM_MAX_SEC = 3 * 24 * 60 * 60;
 
 const allowedOrigin = process.env.ALLOWED_ORIGIN || '*';
 
@@ -12,6 +19,20 @@ const setCors = (res: VercelResponse) => {
   res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 };
+
+function mintReclaimToken(donorUserId: string, fromUserId: string): string | null {
+  if (!JWT_SECRET) return null;
+  return jwt.sign(
+    {
+      userId: donorUserId,
+      sub: donorUserId,
+      purpose: 'reclaim',
+      fromUserId,
+    },
+    JWT_SECRET,
+    { expiresIn: '10m' },
+  );
+}
 
 const TIER_RANK: Record<string, number> = {
   starter: 0,
@@ -38,6 +59,97 @@ function tierRank(tier: string | null | undefined): number {
   return TIER_RANK[(tier || '').toLowerCase()] ?? -1;
 }
 
+async function writeUsageCount(userId: string, month: string, usage: number): Promise<void> {
+  await query(
+    `
+      INSERT INTO usage_tracking (user_id, month, count, last_reset_at)
+      VALUES ($1, $2, $3, NOW())
+      ON CONFLICT (user_id, month)
+      DO UPDATE SET count = GREATEST(usage_tracking.count, EXCLUDED.count),
+                    last_reset_at = NOW()
+    `,
+    [userId, month, usage],
+  );
+}
+
+type UsageDonor = { usage: number; donorUserId: string };
+
+/**
+ * Reinstall + Play restore creates a *new* RC anonymous id (transfer), so RC-id
+ * matching often misses the prior backend user. Find that donor by subscription
+ * period/tier, copy usage onto the current user, and return donorUserId so the
+ * client can switch JWT back to the original account.
+ */
+async function adoptPriorUsageIfSafe(opts: {
+  userId: string;
+  tier: string;
+  periodEnd: Date;
+  preferUserId?: string | null;
+}): Promise<UsageDonor | null> {
+  const month = getCurrentMonthDate();
+
+  const adoptFrom = async (donorUserId: string, reason: string): Promise<UsageDonor | null> => {
+    if (!donorUserId || donorUserId === opts.userId) return null;
+    const preferred = await query<{ usage: number }>(
+      `
+        SELECT COALESCE(MAX(ut.count), 0)::int AS usage
+        FROM usage_tracking ut
+        WHERE ut.user_id = $1
+      `,
+      [donorUserId],
+    );
+    const usage = preferred.rows[0]?.usage ?? 0;
+    if (usage <= 0) return null;
+    await writeUsageCount(opts.userId, month, usage);
+    console.log(
+      `[sync-subscription] Adopted ${reason} usage ${usage} from ${donorUserId} onto ${opts.userId}`,
+    );
+    return { usage, donorUserId };
+  };
+
+  // 1) Explicit reclaim candidate (RC identity match).
+  if (opts.preferUserId) {
+    const preferred = await adoptFrom(opts.preferUserId, 'reclaim');
+    if (preferred) return preferred;
+  }
+
+  // 2) Closest period_end on same tier — only if within PERIOD_RECLAIM_MAX_SEC
+  //    (same Play sub after restore transfer). Never steal from an unrelated subscriber.
+  const byPeriod = await query<{ id: string; usage: number; delta_sec: number }>(
+    `
+      SELECT u.id,
+             COALESCE(MAX(ut.count), 0)::int AS usage,
+             ABS(EXTRACT(EPOCH FROM (s.current_period_end - $3::timestamptz)))::float AS delta_sec
+      FROM subscriptions s
+      JOIN users u ON u.id = s.user_id
+      LEFT JOIN usage_tracking ut ON ut.user_id = u.id
+      WHERE LOWER(s.tier) = LOWER($1)
+        AND u.id::text <> $2
+        AND s.current_period_end IS NOT NULL
+        AND s.current_period_end > NOW() - INTERVAL '45 days'
+        AND s.current_period_end < NOW() + INTERVAL '45 days'
+      GROUP BY u.id, s.current_period_end
+      HAVING COALESCE(MAX(ut.count), 0) > 0
+      ORDER BY delta_sec ASC, COALESCE(MAX(ut.count), 0) DESC, u.created_at ASC
+      LIMIT 1
+    `,
+    [opts.tier, opts.userId, opts.periodEnd.toISOString()],
+  );
+  if (byPeriod.rows[0] && byPeriod.rows[0].delta_sec <= PERIOD_RECLAIM_MAX_SEC) {
+    const adopted = await adoptFrom(byPeriod.rows[0].id, 'period-closest');
+    if (adopted) return adopted;
+  } else if (byPeriod.rows[0]) {
+    console.warn(
+      `[sync-subscription] Closest period donor ${byPeriod.rows[0].id} delta=${Math.round(byPeriod.rows[0].delta_sec)}s exceeds ${PERIOD_RECLAIM_MAX_SEC}s — skip`,
+    );
+  }
+
+  console.warn(
+    `[sync-subscription] No prior usage donor for ${opts.userId} tier=${opts.tier}`,
+  );
+  return null;
+}
+
 export default async function handler(
   req: VercelRequest,
   res: VercelResponse
@@ -52,6 +164,9 @@ export default async function handler(
     return res.status(405).json({ ok: false, error: 'Only POST allowed' });
   }
 
+  const authedUserId = requireAuth(req, res);
+  if (!authedUserId) return;
+
   let body: any = {};
   try {
     body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
@@ -59,21 +174,17 @@ export default async function handler(
     return res.status(400).json({ ok: false, error: 'Invalid JSON' });
   }
 
-  const userId = (req.headers['x-user-id'] as string) || body.userId;
+  // Ignore client-supplied userId — JWT is the only identity for sync.
+  const userId = authedUserId;
   const revenuecatUserId = body.revenuecatUserId || body.revenuecat_user_id;
+  const revenuecatAppUserId =
+    body.revenuecatAppUserId || body.revenuecat_app_user_id || null;
   const tier = body.tier || (body.productId ? mapProductIdToTier(body.productId) : null);
   const productId = body.productId || body.productIdentifier;
   const expirationDate = body.expirationDate || body.expiresDate;
   const pendingFromClient = body.pendingTier
     ? mapProductIdToTier(String(body.pendingTier))
     : null;
-
-  if (!userId) {
-    return res.status(400).json({
-      ok: false,
-      error: 'userId required'
-    });
-  }
 
   if (!tier) {
     return res.status(400).json({
@@ -83,40 +194,29 @@ export default async function handler(
   }
 
   try {
-    // Prefer the established RC-linked account (oldest) over a fresh install identity.
-    // Reinstall + restore otherwise attaches Pro to a new userId and drops prior usage.
+    // Attach Pro to the JWT / client user so the current session sees subscription.
+    // Separately find a reclaim candidate (older RC-linked account with usage).
+    const identityIds = Array.from(
+      new Set(
+        [userId, revenuecatUserId, revenuecatAppUserId]
+          .map((v) => (v == null ? '' : String(v).trim()))
+          .filter(Boolean),
+      ),
+    );
+
     let dbUserId: string | null = null;
-
-    if (revenuecatUserId) {
-      const byRc = await query<{ id: string }>(
-        `
-          SELECT id
-          FROM users
-          WHERE revenuecat_user_id = $1 OR id::text = $1
-          ORDER BY created_at ASC
-          LIMIT 1
-        `,
-        [revenuecatUserId]
-      );
-      if (byRc.rows.length > 0) {
-        dbUserId = byRc.rows[0].id;
-      }
-    }
-
-    if (!dbUserId) {
-      const userResult = await query<{ id: string }>(
-        `
-          SELECT id
-          FROM users
-          WHERE id::text = $1 OR revenuecat_user_id = $1
-          ORDER BY created_at ASC
-          LIMIT 1
-        `,
-        [userId]
-      );
-      if (userResult.rows.length > 0) {
-        dbUserId = userResult.rows[0].id;
-      }
+    const byJwt = await query<{ id: string }>(
+      `
+        SELECT id
+        FROM users
+        WHERE id::text = $1 OR revenuecat_user_id = $1
+        ORDER BY created_at ASC
+        LIMIT 1
+      `,
+      [userId],
+    );
+    if (byJwt.rows.length > 0) {
+      dbUserId = byJwt.rows[0].id;
     }
 
     if (!dbUserId) {
@@ -133,20 +233,40 @@ export default async function handler(
           RETURNING id
         `,
         [
-          revenuecatUserId || userId,
+          revenuecatUserId || revenuecatAppUserId || userId,
           body.email || null,
           tier,
           new Date().toISOString().slice(0, 10),
-        ]
+        ],
       );
       dbUserId = insertResult.rows[0].id;
     }
 
+    let reclaimUserId: string | null = null;
+    if (identityIds.length > 0) {
+      const candidates = await query<{ id: string; usage: number }>(
+        `
+          SELECT u.id, COALESCE(MAX(ut.count), 0)::int AS usage
+          FROM users u
+          LEFT JOIN usage_tracking ut ON ut.user_id = u.id
+          WHERE u.id::text = ANY($1::text[])
+             OR u.revenuecat_user_id = ANY($1::text[])
+          GROUP BY u.id
+          ORDER BY COALESCE(MAX(ut.count), 0) DESC, u.created_at ASC
+        `,
+        [identityIds],
+      );
+      if (candidates.rows.length > 0) {
+        reclaimUserId = candidates.rows[0].id;
+      }
+    }
+
     // Keep RevenueCat app user ID linked to the backend user (needed for webhooks)
-    if (revenuecatUserId) {
+    const rcLink = revenuecatUserId || revenuecatAppUserId;
+    if (rcLink) {
       await query(
         `UPDATE users SET revenuecat_user_id = $1, updated_at = NOW() WHERE id = $2 AND (revenuecat_user_id IS NULL OR revenuecat_user_id = $1)`,
-        [revenuecatUserId, dbUserId]
+        [rcLink, dbUserId],
       );
     }
 
@@ -241,31 +361,49 @@ export default async function handler(
     );
 
     // Ensure a usage row exists for new subs — never wipe an existing count.
-    // (Wiping here reset the generation counter after reinstall + restore.)
     if (existingSub.rows.length === 0) {
-      const currentMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-        .toISOString()
-        .slice(0, 10);
+      const currentMonth = getCurrentMonthDate();
       await query(
         `
           INSERT INTO usage_tracking (user_id, month, count, last_reset_at)
           VALUES ($1, $2, 0, NOW())
           ON CONFLICT (user_id, month) DO NOTHING
         `,
-        [dbUserId, currentMonth]
+        [dbUserId, currentMonth],
       );
     }
+
+    // Close restore loophole: copy usage + point client at the prior account.
+    const adopted = await adoptPriorUsageIfSafe({
+      userId: dbUserId,
+      tier,
+      periodEnd,
+      preferUserId: reclaimUserId,
+    });
+    const canonicalReclaimId =
+      (adopted?.donorUserId && adopted.donorUserId !== dbUserId
+        ? adopted.donorUserId
+        : null) ||
+      (reclaimUserId && reclaimUserId !== dbUserId ? reclaimUserId : null);
+
+    const reclaimToken =
+      canonicalReclaimId && JWT_SECRET
+        ? mintReclaimToken(canonicalReclaimId, dbUserId)
+        : null;
 
     return res.status(200).json({
       ok: true,
       message: 'Subscription synced successfully',
       subscription: {
         userId: dbUserId,
+        reclaimUserId: canonicalReclaimId || undefined,
+        reclaimToken: reclaimToken || undefined,
         tier,
         productId,
         periodEnd: periodEnd.toISOString(),
-        subscriptionId
-      }
+        subscriptionId,
+        adoptedUsage: adopted?.usage ?? undefined,
+      },
     });
   } catch (err: any) {
     console.error('[sync-subscription] Error:', err);

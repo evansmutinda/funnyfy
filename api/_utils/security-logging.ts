@@ -117,8 +117,15 @@ export async function getRecentSecurityEvents(
     let paramIndex = 1;
 
     if (eventType) {
-      queryText += ` AND event_type = $${paramIndex}`;
-      params.push(eventType);
+      // Trailing * is a prefix match (admin_* → admin_%). Used by the admin Security filter.
+      if (eventType.endsWith('*')) {
+        const prefix = eventType.slice(0, -1).replace(/[%_]/g, '');
+        queryText += ` AND event_type LIKE $${paramIndex}`;
+        params.push(`${prefix}%`);
+      } else {
+        queryText += ` AND event_type = $${paramIndex}`;
+        params.push(eventType);
+      }
       paramIndex++;
     }
 

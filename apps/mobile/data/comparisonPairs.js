@@ -849,4 +849,25 @@ export function getPickerThumbnail(style) {
   return getStyleImage(style);
 }
 
+/** Style ids shown as before→after on the subscription paywall hero. */
+export const PAYWALL_COMPARISON_STYLE_IDS = [
+  'carc8',
+  '80s-cartoon',
+  'charcoal',
+  'paper-cut',
+  'matisse',
+  'model',
+  'brick-v1',
+  'carc20',
+];
+
+/** Resolved hero pairs for PaywallStyleFade (skips missing assets). */
+export function getPaywallComparisonPairs(tier = 'hero') {
+  return PAYWALL_COMPARISON_STYLE_IDS.map((id) => {
+    const pair = resolveCuratedPair(id, tier);
+    if (!pair?.before || !pair?.after) return null;
+    return { id, before: pair.before, after: pair.after };
+  }).filter(Boolean);
+}
+
 export { DEFAULT_BEFORE, CURATED_PAIR_PATHS };

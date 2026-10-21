@@ -74,7 +74,7 @@ Action items only. Completed work is listed at the bottom.
 | CORS per environment | Staging vs prod |
 | Remove `X-User-Id` dev bypass | Must not work in production |
 | Android network pinning | Release hardening |
-| Proguard/R8 | Test RevenueCat after enabling |
+| Proguard/R8 | See [PLAY_CONSOLE_ANDROID.md](./PLAY_CONSOLE_ANDROID.md) — verify after next AAB; smoke RevenueCat |
 | Replicate circuit breaker | Pause enqueue after provider failures |
 
 ---

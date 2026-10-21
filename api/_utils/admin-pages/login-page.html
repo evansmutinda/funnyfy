@@ -3,8 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="color-scheme" content="dark">
   <title>FunnyFy Admin - Login</title>
+  <script>
+    (function () {
+      var saved = localStorage.getItem('admin_theme');
+      document.documentElement.setAttribute('data-theme', saved === 'light' ? 'light' : 'dark');
+    })();
+  </script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -20,6 +25,25 @@
       --border: rgba(255, 255, 255, 0.1);
       --red-soft: rgba(239, 68, 68, 0.14);
       --green-soft: rgba(16, 185, 129, 0.14);
+      --red-text: #fca5a5;
+      --placeholder: #5c6b82;
+      --shadow: 0 24px 48px rgba(0, 0, 0, 0.45);
+    }
+    html[data-theme="light"] {
+      color-scheme: light;
+      --bg: #c5d0e0;
+      --surface: #ffffff;
+      --surface-2: #e4ebf3;
+      --text: #0b1220;
+      --muted: #334155;
+      --accent: #3730a3;
+      --accent-hover: #312e81;
+      --border: #9aadc4;
+      --red-soft: rgba(185, 28, 28, 0.12);
+      --green-soft: rgba(4, 120, 87, 0.16);
+      --red-text: #991b1b;
+      --placeholder: #52657a;
+      --shadow: 0 16px 40px rgba(15, 23, 42, 0.16);
     }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -38,7 +62,7 @@
     .login-container {
       background: var(--surface);
       border-radius: 16px;
-      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.45);
+      box-shadow: var(--shadow);
       padding: 40px 36px;
       width: 100%;
       max-width: 400px;
@@ -82,7 +106,7 @@
       color: var(--text);
       transition: border-color 140ms var(--ease-out), box-shadow 140ms var(--ease-out);
     }
-    input::placeholder { color: #5c6b82; }
+    input::placeholder { color: var(--placeholder); }
     input:focus {
       outline: none;
       border-color: var(--accent);
@@ -112,7 +136,7 @@
     .notice.show { display: block; }
     .notice-error {
       background: var(--red-soft);
-      color: #fca5a5;
+      color: var(--red-text);
       border: 1px solid rgba(248, 113, 113, 0.25);
     }
     .notice-success {
@@ -157,9 +181,41 @@
       .loading { animation-duration: 1.2s; }
       button[type=submit]:active { transform: none; }
     }
+    .theme-bar {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      z-index: 5;
+    }
+    .theme-toggle {
+      display: flex;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 3px;
+    }
+    .theme-toggle button {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+    .theme-toggle button:active { transform: scale(0.97); }
+    .theme-toggle button.active { background: var(--accent); color: #fff; }
   </style>
 </head>
 <body>
+  <div class="theme-bar">
+    <div class="theme-toggle" id="theme-toggle" role="group" aria-label="Color theme">
+      <button type="button" data-theme-choice="dark">Dark</button>
+      <button type="button" data-theme-choice="light">Light</button>
+    </div>
+  </div>
   <div class="login-container">
     <div class="brand">FunnyFy</div>
     <h1>Admin</h1>
@@ -192,6 +248,23 @@
     </p>
   </div>
 
+  <script>
+    (function () {
+      function applyTheme(theme) {
+        var next = theme === 'light' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('admin_theme', next);
+        document.querySelectorAll('#theme-toggle [data-theme-choice]').forEach(function (btn) {
+          btn.classList.toggle('active', btn.getAttribute('data-theme-choice') === next);
+        });
+      }
+      applyTheme(document.documentElement.getAttribute('data-theme') || 'dark');
+      document.getElementById('theme-toggle').addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-theme-choice]');
+        if (btn) applyTheme(btn.getAttribute('data-theme-choice'));
+      });
+    })();
+  </script>
   <script src="/admin/login-page.js?v=20260705" defer></script>
 </body>
 </html>

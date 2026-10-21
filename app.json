@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "09895e1f-da8e-4d28-88e1-e8ba89949281"
+      }
+    },
+    "android": {
+      "package": "com.evansks.funnyfyapp"
+    }
+  }
+}

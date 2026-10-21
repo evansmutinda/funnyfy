@@ -1,5 +1,5 @@
 import { getStyleCategory } from './styleCategories';
-import { getUsageQuotaInfo } from './usageQuota';
+import { getUsageQuotaInfo, canUseGenerationQuota } from './usageQuota';
 
 export const STICKER_SHEET_STYLE_ID = 'sticker-sheet';
 export const STICKER_SHEET_SIZES = [4, 6, 9, 12];
@@ -35,8 +35,19 @@ export function stickerSheetAspectRatio(count) {
 }
 
 export function stickerPackQuotaMessage(subscriptionInfo, selectedCount = 1) {
-  if (subscriptionInfo && !subscriptionInfo.subscription) {
-    return 'A subscription is required to create a sticker pack.';
+  if (subscriptionInfo && !canUseGenerationQuota(subscriptionInfo)) {
+    if (!subscriptionInfo.subscription && !subscriptionInfo.closedTesting) {
+      return 'A subscription is required to create a sticker pack.';
+    }
+    const usage = subscriptionInfo.usage;
+    if (
+      usage?.dailyLimit != null &&
+      usage?.dailyCurrent != null &&
+      usage.dailyCurrent >= usage.dailyLimit
+    ) {
+      return 'Daily closed-testing limit reached (1 image/day). Try again tomorrow.';
+    }
+    return 'You have no images left. Upgrade to create a sticker pack.';
   }
   const quota = getUsageQuotaInfo(subscriptionInfo);
   if (quota.isExceeded) {

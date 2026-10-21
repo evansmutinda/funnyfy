@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -8,19 +8,13 @@ import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import PressScale from '../components/PressScale';
 import PaywallStyleFade from '../components/PaywallStyleFade';
-import { PAYWALL_MARQUEE_IMAGES } from '../constants';
+import { getPaywallComparisonPairs } from '../data/comparisonPairs';
 import useStableSafeAreaInsets from '../hooks/useStableSafeAreaInsets';
 import { formatSubscriptionDate, getDisplayRenewalDate } from '../utils/subscriptionDates';
 import { getTierName, isSubscriptionDowngrade } from '../utils/subscriptionTiers';
 import styles from '../styles';
 
 const DARK_BG = '#0B0F19';
-
-const PREMIUM_FEATURES = [
-  'Unlock all styles',
-  'Save & share your work',
-  'New styles added regularly',
-];
 
 const TIER_INFO = {
   starter: {
@@ -55,6 +49,7 @@ export default function SubscriptionScreen({
 }) {
   const insets = useStableSafeAreaInsets();
   const [selectedTier, setSelectedTier] = useState(null);
+  const paywallPairs = useMemo(() => getPaywallComparisonPairs('hero'), []);
 
   const subscription = subscriptionInfo?.subscription;
 
@@ -97,7 +92,7 @@ export default function SubscriptionScreen({
       <View style={[styles.pwdBody, { paddingTop: insets.top + 4 }]}>
         <View style={styles.pwdHeroFadeZone}>
           <PaywallStyleFade
-            images={PAYWALL_MARQUEE_IMAGES}
+            pairs={paywallPairs}
             style={StyleSheet.absoluteFill}
             imageStyle={styles.uploadBackgroundImage}
           />
@@ -112,26 +107,14 @@ export default function SubscriptionScreen({
               end={{ x: 0, y: 1 }}
               colors={[
                 'rgba(11,15,25,0)',
-                'rgba(11,15,25,0.35)',
-                'rgba(11,15,25,0.72)',
+                'rgba(11,15,25,0.28)',
+                'rgba(11,15,25,0.7)',
                 DARK_BG,
                 DARK_BG,
               ]}
-              locations={[0, 0.35, 0.68, 0.92, 1]}
+              locations={[0, 0.4, 0.72, 0.92, 1]}
               style={styles.pwdHeroBottomScrim}
             />
-          </View>
-          <View style={styles.pwdHeroFadeContent}>
-            <View style={styles.pwdFeatureList}>
-              {PREMIUM_FEATURES.map((label) => (
-                <View key={label} style={styles.pwdFeatureRow}>
-                  <View style={styles.pwdFeatureCheck}>
-                    <Feather name="check" size={12} color="#FFFFFF" />
-                  </View>
-                  <Text style={styles.pwdFeatureText}>{label}</Text>
-                </View>
-              ))}
-            </View>
           </View>
         </View>
       </View>

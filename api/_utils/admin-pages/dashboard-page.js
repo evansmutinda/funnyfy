@@ -10,10 +10,12 @@
 
   const PAGE_TITLES = {
     overview: 'Overview',
+    system: 'System',
     finance: 'Finance',
     growth: 'Growth',
     users: 'Users',
     jobs: 'Jobs',
+    styles: 'Styles',
     queue: 'Queue',
     moderation: 'Moderation',
     security: 'Security',
@@ -21,10 +23,12 @@
 
   const LOADERS = {
     overview: loadOverview,
+    system: loadSystem,
     finance: loadFinance,
     growth: loadGrowth,
     users: loadUsers,
     jobs: loadJobs,
+    styles: loadStyles,
     queue: loadQueue,
     moderation: loadModeration,
     security: loadSecurity,
@@ -39,6 +43,9 @@
   let lastOverviewStats = null;
   let lastOverviewQueue = null;
   let lastQueueData = null;
+  let lastRuntime = null;
+  let lastJobDetail = null;
+  let jobFilterTimer;
 
   function fmtMoney(usd, decimals) {
     const n = Number(usd) || 0;
@@ -67,6 +74,15 @@
     const n = Number(usd) || 0;
     if (n < 0) return '-' + fmtMoney(Math.abs(n), decimals);
     return fmtMoney(n, decimals);
+  }
+
+  function applyTheme(theme) {
+    const next = theme === 'light' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('admin_theme', next);
+    document.querySelectorAll('#theme-toggle [data-theme-choice]').forEach(function (btn) {
+      btn.classList.toggle('active', btn.dataset.themeChoice === next);
+    });
   }
 
   function updateCurrencyToggleUi() {
@@ -117,6 +133,8 @@
     if (lastFinanceData) renderFinance(lastFinanceData);
     if (lastGrowthData) renderGrowth(lastGrowthData);
     if (lastQueueData) renderQueueMoney(lastQueueData);
+    if (lastRuntime) renderSystem(lastRuntime);
+    if (lastJobDetail) renderJobPanel(lastJobDetail);
   }
 
   // ── Auth ────────────────────────────────────────────────────────────────────
@@ -127,8 +145,6 @@
 
   try {
     const payload = JSON.parse(atob(token.split('.')[1]));
-    const label = document.getElementById('adminLabel');
-    if (label) label.textContent = payload.userId.slice(0, 8) + '…';
     if (payload.exp * 1000 < Date.now()) logout();
   } catch (e) {
     logout();
@@ -254,9 +270,9 @@
             .map(function (r) {
               return (
                 '<tr><td>' +
-                cap(r.subscription_tier) +
+                tierLabel(r.subscription_tier) +
                 '</td><td>' +
-                cap(r.subscription_status) +
+                statusLabel(r.subscription_status) +
                 '</td><td><strong>' +
                 r.count +
                 '</strong></td></tr>'
@@ -491,7 +507,7 @@
           .map(function (r) {
             return (
               '<tr><td>' +
-              cap(r.tier) +
+              tierLabel(r.tier) +
               '</td><td>' +
               r.count +
               '</td><td>' +
@@ -536,6 +552,8 @@
       const trialCost =
         d.generations && d.generations.trial ? d.generations.trial.costMtdUsd : 0;
       setText('fin-trial-cost', fmtMoney(trialCost, 2));
+      setText('fin-store', fmtMoney(d.revenue.storeCashMtdUsd || 0, 2));
+      setText('fin-store-net', fmtMoney(d.revenue.storeNetEstimateUsd || 0, 2));
 
       setText('fin-mrr', fmtMoney(d.revenue.mrrEstimateUsd, 0));
       setText('fin-cost-mtd', fmtMoney(d.costs.monthToDateUsd, 2));
@@ -551,13 +569,12 @@
         econTable.innerHTML =
           rows
             .map(function (r) {
-              const isTrial = r.tier === 'trial';
+              const isUnpaid = r.tier === 'trial';
               return (
                 '<tr class="' +
-                (isTrial ? 'row-trial' : '') +
+                (isUnpaid ? 'row-trial' : '') +
                 '"><td>' +
-                cap(r.tier) +
-                (isTrial ? ' <span class="badge badge-amber">$0 rev</span>' : '') +
+                tierLabel(r.tier) +
                 '</td><td>' +
                 (r.activeSubs || '—') +
                 '</td><td>' +
@@ -634,7 +651,7 @@
             .map(function (r) {
               return (
                 '<tr><td>' +
-                cap(r.tier) +
+                tierLabel(r.tier) +
                 '</td><td>' +
                 r.count +
                 '</td><td>' +
@@ -737,12 +754,12 @@
             '<td><span class="badge ' +
             tierBadge(u.subscription_tier) +
             '">' +
-            cap(u.subscription_tier) +
+            tierLabel(u.subscription_tier) +
             '</span></td>' +
             '<td><span class="badge ' +
             statusBadge(u.subscription_status) +
             '">' +
-            cap(u.subscription_status) +
+            statusLabel(u.subscription_status) +
             '</span></td>' +
             '<td>' +
             u.usage_this_month +
@@ -768,6 +785,8 @@
   }
 
   async function openUserPanel(userId) {
+    lastJobDetail = null;
+    setPanelTitle('User');
     document.getElementById('user-panel').classList.add('open');
     document.getElementById('panel-backdrop').classList.add('open');
     document.getElementById('user-panel-body').innerHTML = '<span class="spinner"></span>';
@@ -787,18 +806,29 @@
         fieldRow('RevenueCat ID', '<span class="mono">' + esc(u.revenuecat_user_id || '—') + '</span>') +
         fieldRow(
           'Tier',
-          '<span class="badge ' + tierBadge(u.subscription_tier) + '">' + cap(u.subscription_tier) + '</span>'
+          '<span class="badge ' + tierBadge(u.subscription_tier) + '">' + tierLabel(u.subscription_tier) + '</span>'
         ) +
         fieldRow(
           'Status',
           '<span class="badge ' +
             statusBadge(u.subscription_status) +
             '">' +
-            cap(u.subscription_status) +
+            statusLabel(u.subscription_status) +
             '</span>'
         ) +
-        fieldRow('Legacy Trial Used', String(u.trial_generations_used ?? 0)) +
         fieldRow('Usage This Month', String(u.usage_this_month)) +
+        fieldRow(
+          'Closed test',
+          d.closedTest && d.closedTest.enabled
+            ? d.closedTest.current +
+              ' / ' +
+              d.closedTest.limit +
+              ' total, today ' +
+              d.closedTest.dailyCurrent +
+              ' / ' +
+              d.closedTest.dailyLimit
+            : 'Off'
+        ) +
         fieldRow('Infringements', String(d.infringements)) +
         fieldRow('Banned', isBanned ? esc(fmtDate(u.banned_at)) : 'No') +
         fieldRow('Joined', fmtDate(u.created_at)) +
@@ -824,6 +854,13 @@
         u.id +
         '">Change Tier</button>' +
         '</div>' +
+        '<div class="section-title">Support note</div>' +
+        '<textarea id="user-note">' +
+        esc(d.adminNote || '') +
+        '</textarea>' +
+        '<div class="panel-actions"><button class="btn btn-ghost btn-sm" type="button" data-action="note" data-user="' +
+        u.id +
+        '">Save note</button></div>' +
         '<div class="section-title">Recent Jobs (' +
         d.recentJobs.length +
         ')</div>' +
@@ -832,9 +869,11 @@
             d.recentJobs
               .map(function (j) {
                 return (
-                  '<tr><td class="mono">' +
+                  '<tr><td><button class="btn btn-ghost btn-sm" type="button" data-job-open="' +
+                  j.id +
+                  '">' +
                   j.id.slice(0, 8) +
-                  '…</td><td>' +
+                  '…</button></td><td>' +
                   esc(j.style_id) +
                   '</td><td><span class="badge ' +
                   statusBadge(j.status) +
@@ -860,11 +899,12 @@
   }
 
   async function adminAction(action, userId) {
-    if (!confirm(cap(action) + ' this user?')) return;
+    const reason = askReason(cap(action) + ' this user');
+    if (!reason) return;
     try {
       const d = await apiFetch('/api/admin?resource=users&action=' + action, {
         method: 'POST',
-        body: JSON.stringify({ userId: userId }),
+        body: JSON.stringify({ userId: userId, reason: reason }),
       });
       if (d.ok) {
         openUserPanel(userId);
@@ -880,20 +920,24 @@
     if (val === null) return;
     const n = parseInt(val, 10);
     if (isNaN(n)) return alert('Enter a number');
+    const reason = askReason('Adjust quota by ' + n);
+    if (!reason) return;
     const d = await apiFetch('/api/admin?resource=users&action=quota', {
       method: 'POST',
-      body: JSON.stringify({ userId: userId, adjustment: n }),
+      body: JSON.stringify({ userId: userId, adjustment: n, reason: reason }),
     });
     if (d.ok) openUserPanel(userId);
     else alert(d.error || 'Failed');
   }
 
   async function adminChangeTier(userId) {
-    const tier = prompt('New tier (trial/starter/popular/pro):');
+    const tier = prompt('New tier (starter, popular, or pro):');
     if (!tier) return;
+    const reason = askReason('Change tier to ' + tier.trim());
+    if (!reason) return;
     const d = await apiFetch('/api/admin?resource=users&action=tier', {
       method: 'POST',
-      body: JSON.stringify({ userId: userId, tier: tier }),
+      body: JSON.stringify({ userId: userId, tier: tier.trim(), reason: reason }),
     });
     if (d.ok) {
       openUserPanel(userId);
@@ -901,11 +945,129 @@
     } else alert(d.error || 'Failed');
   }
 
+  async function adminSaveNote(userId) {
+    const el = document.getElementById('user-note');
+    const note = el ? el.value.trim() : '';
+    const reason = askReason('Save support note');
+    if (!reason) return;
+    const d = await apiFetch('/api/admin?resource=users&action=note', {
+      method: 'POST',
+      body: JSON.stringify({ userId: userId, note: note, reason: reason }),
+    });
+    if (d.ok) openUserPanel(userId);
+    else alert(d.error || 'Failed');
+  }
+
+  // ── System ────────────────────────────────────────────────────────────────
+  async function loadSystem() {
+    try {
+      const d = await apiFetch('/api/admin?resource=runtime');
+      if (!d.ok) return;
+      lastRuntime = d;
+      renderSystem(d);
+      setRefreshed();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function renderSystem(d) {
+    const dep = d.deployment || {};
+    const closed = d.closedTest || {};
+    const ver = d.appVersion || {};
+    const spend = d.spending || {};
+    setText('sys-host', dep.host || '—');
+    setText('sys-vercel-env', dep.vercelEnv || '—');
+    setText('sys-branch', dep.gitBranch || '—');
+    setText('sys-commit', dep.gitCommit || '—');
+    setText('sys-tz', d.timezone || '—');
+    const envBadge = document.getElementById('sys-env-badge');
+    if (envBadge) {
+      const host = String(dep.host || '');
+      const staging = host.indexOf('staging') !== -1;
+      envBadge.textContent = staging ? 'Staging' : (dep.vercelEnv || 'This deploy');
+      envBadge.className = 'badge ' + (staging ? 'badge-amber' : 'badge-indigo');
+    }
+    const closedBadge = document.getElementById('sys-closed-badge');
+    if (closedBadge) {
+      closedBadge.textContent = closed.enabled ? 'On' : 'Off';
+      closedBadge.className = 'badge ' + (closed.enabled ? 'badge-amber' : 'badge-green');
+    }
+    setText('sys-closed-total', closed.enabled ? String(closed.totalQuota) : '0 (paywall)');
+    setText('sys-closed-daily', closed.enabled ? String(closed.dailyQuota) : '—');
+    setText('sys-latest', ver.latestAppVersion || 'Off');
+    setText('sys-min-required', ver.minRequiredAppVersion || 'Off');
+    setText('sys-min-catalog', ver.minAppVersion || 'Off');
+    setText('sys-store', ver.storeUrl || '—');
+    setText('sys-cap', fmtMoney(spend.capUsd, 2));
+    setText('sys-today', fmtMoney(spend.todayCostUsd, 2));
+    setText('sys-pause', spend.paused ? (spend.pauseReason || 'Paused') : 'Running');
+    const pauseBadge = document.getElementById('sys-pause-badge');
+    if (pauseBadge) {
+      pauseBadge.textContent = spend.paused ? 'Paused' : 'Running';
+      pauseBadge.className = 'badge ' + (spend.paused ? 'badge-red' : 'badge-green');
+    }
+  }
+
+  // ── Styles ────────────────────────────────────────────────────────────────
+  async function loadStyles() {
+    document.getElementById('styles-table').innerHTML =
+      '<tr><td colspan="6" class="empty"><span class="spinner"></span></td></tr>';
+    try {
+      const d = await apiFetch('/api/admin?resource=styles');
+      const tbody = document.getElementById('styles-table');
+      if (!d.ok || !d.styles.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="empty">No generations this month</td></tr>';
+        return;
+      }
+      tbody.innerHTML = d.styles
+        .map(function (s) {
+          const name = s.label ? esc(s.label) : esc(s.styleId);
+          const rate = Math.round((s.failRate || 0) * 100);
+          return (
+            '<tr><td title="' +
+            esc(s.styleId) +
+            '">' +
+            name +
+            '</td><td>' +
+            s.jobs +
+            '</td><td>' +
+            s.completed +
+            '</td><td>' +
+            s.failed +
+            '</td><td>' +
+            rate +
+            '%</td><td>' +
+            fmtMoney(s.costUsd, 2) +
+            '</td></tr>'
+          );
+        })
+        .join('');
+      setRefreshed();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   // ── Jobs ──────────────────────────────────────────────────────────────────
+  function debounceLoadJobs() {
+    clearTimeout(jobFilterTimer);
+    jobFilterTimer = setTimeout(function () {
+      jobPage = 1;
+      loadJobs();
+    }, 300);
+  }
+
   async function loadJobs() {
     const status = document.getElementById('job-status').value;
+    const style = document.getElementById('job-style').value.trim();
+    const userId = document.getElementById('job-user').value.trim();
+    const q = document.getElementById('job-search').value.trim();
     const qs = new URLSearchParams({ page: String(jobPage), limit: '20' });
     if (status) qs.set('status', status);
+    if (style) qs.set('style', style);
+    if (userId) qs.set('userId', userId);
+    if (q) qs.set('q', q);
 
     document.getElementById('jobs-table').innerHTML =
       '<tr><td colspan="7" class="empty"><span class="spinner"></span></td></tr>';
@@ -920,16 +1082,21 @@
       }
       tbody.innerHTML = d.jobs
         .map(function (j) {
+          const styleName = j.style_label ? esc(j.style_label) : esc(j.style_id);
           return (
             '<tr>' +
-            '<td class="mono">' +
+            '<td><button class="btn btn-ghost btn-sm" type="button" data-job-open="' +
+            j.id +
+            '">' +
             j.id.slice(0, 8) +
-            '…</td>' +
+            '…</button></td>' +
             '<td class="mono">' +
             (j.user_id ? j.user_id.slice(0, 8) + '…' : '—') +
             '</td>' +
-            '<td>' +
+            '<td title="' +
             esc(j.style_id) +
+            '">' +
+            styleName +
             '</td>' +
             '<td><span class="badge ' +
             statusBadge(j.status) +
@@ -937,12 +1104,12 @@
             j.status +
             '</span></td>' +
             '<td>' +
-            j.priority +
+            fmtMoney(j.cost_usd, 2) +
             '</td>' +
             '<td>' +
             fmtDate(j.created_at) +
             '</td>' +
-            '<td style="display:flex;gap:4px">' +
+            '<td class="cell-actions"><div class="cell-actions-inner">' +
             (j.status === 'failed'
               ? '<button class="btn btn-success btn-sm" type="button" data-job-action="retry" data-job="' +
                 j.id +
@@ -953,7 +1120,7 @@
                 j.id +
                 '">Cancel</button>'
               : '') +
-            '</td>' +
+            '</div></td>' +
             '</tr>'
           );
         })
@@ -968,13 +1135,88 @@
     }
   }
 
+  async function openJobPanel(jobId) {
+    setPanelTitle('Job');
+    document.getElementById('user-panel').classList.add('open');
+    document.getElementById('panel-backdrop').classList.add('open');
+    document.getElementById('user-panel-body').innerHTML = '<span class="spinner"></span>';
+    try {
+      const d = await apiFetch('/api/admin?resource=jobs&id=' + encodeURIComponent(jobId));
+      if (!d.ok || !d.job) {
+        lastJobDetail = null;
+        document.getElementById('user-panel-body').innerHTML =
+          '<div class="error-msg">' + esc(d.error || 'Failed to load job') + '</div>';
+        return;
+      }
+      lastJobDetail = d.job;
+      renderJobPanel(d.job);
+    } catch (e) {
+      lastJobDetail = null;
+      document.getElementById('user-panel-body').innerHTML =
+        '<div class="error-msg">Error loading job</div>';
+    }
+  }
+
+  function renderJobPanel(j) {
+    const styleName = j.style_label ? esc(j.style_label) + ' <span class="mono">(' + esc(j.style_id) + ')</span>' : esc(j.style_id);
+    const input = safeImageUrl(j.input_image_url);
+    const output = safeImageUrl(j.output_image_url);
+    const media =
+      input || output
+        ? '<div class="media-grid">' +
+          (input
+            ? '<figure><figcaption>Input</figcaption><img alt="Input" src="' + esc(input) + '"></figure>'
+            : '') +
+          (output
+            ? '<figure><figcaption>Output</figcaption><img alt="Output" src="' + esc(output) + '"></figure>'
+            : '') +
+          '</div>'
+        : '';
+    document.getElementById('user-panel-body').innerHTML =
+      fieldRow('ID', '<span class="mono">' + esc(j.id) + '</span>') +
+      fieldRow('Status', '<span class="badge ' + statusBadge(j.status) + '">' + esc(j.status) + '</span>') +
+      fieldRow('Style', styleName) +
+      fieldRow('Model', esc(j.model_label || '—')) +
+      fieldRow('Model id', '<span class="mono">' + esc(j.model_version || j.configured_model || '—') + '</span>') +
+      fieldRow('Cost', fmtMoney(j.cost_usd, 4)) +
+      fieldRow('Priority', String(j.priority ?? '—')) +
+      fieldRow('User', j.user_id
+        ? '<button class="btn btn-ghost btn-sm" type="button" data-user="' + esc(j.user_id) + '">' + esc(j.email || j.user_id.slice(0, 8) + '…') + '</button>'
+        : '—') +
+      fieldRow('Tier', j.subscription_tier ? tierLabel(j.subscription_tier) : '—') +
+      fieldRow('Created', fmtDate(j.created_at)) +
+      fieldRow('Started', fmtDate(j.started_at)) +
+      fieldRow('Completed', fmtDate(j.completed_at)) +
+      fieldRow('Replicate', '<span class="mono">' + esc(j.replicate_prediction_id || '—') + '</span>') +
+      '<div class="section-title">Error</div>' +
+      '<div class="panel-note">' + esc(j.error_message || 'None') + '</div>' +
+      (j.sheet_expressions
+        ? '<div class="section-title">Sheet</div><div class="panel-note">' + esc(j.sheet_expressions) + '</div>'
+        : '') +
+      (media ? '<div class="section-title">Images</div>' + media : '') +
+      '<div class="section-title">Actions</div>' +
+      '<div class="panel-actions">' +
+      (j.status === 'failed'
+        ? '<button class="btn btn-success btn-sm" type="button" data-job-action="retry" data-job="' + j.id + '">Retry</button>'
+        : '') +
+      (j.status === 'pending' || j.status === 'processing'
+        ? '<button class="btn btn-danger btn-sm" type="button" data-job-action="cancel" data-job="' + j.id + '">Cancel</button>'
+        : '') +
+      '</div>';
+  }
+
   async function jobAction(action, jobId) {
+    const reason = askReason(cap(action) + ' this job');
+    if (!reason) return;
     try {
       const d = await apiFetch('/api/admin?resource=jobs&action=' + action + '&jobId=' + jobId, {
         method: 'POST',
+        body: JSON.stringify({ reason: reason }),
       });
-      if (d.ok) loadJobs();
-      else alert(d.error || 'Action failed');
+      if (d.ok) {
+        loadJobs();
+        if (lastJobDetail && lastJobDetail.id === jobId) openJobPanel(jobId);
+      } else alert(d.error || 'Action failed');
     } catch (e) {
       alert('Request failed');
     }
@@ -999,10 +1241,24 @@
       setText('q-cap-pct', d.today.costPercent + '%');
 
       var resumeBtn = document.getElementById('q-resume-btn');
-      if (resumeBtn) {
-        resumeBtn.style.display = d.queue.canResumeBilling ? '' : 'none';
-        resumeBtn.onclick = resumeQueue;
-      }
+      if (resumeBtn) resumeBtn.style.display = d.queue.canResumeBilling ? '' : 'none';
+      var pauseBtn = document.getElementById('q-pause-btn');
+      if (pauseBtn) pauseBtn.style.display = d.queue.canPause ? '' : 'none';
+      var resumeOpBtn = document.getElementById('q-resume-op-btn');
+      if (resumeOpBtn) resumeOpBtn.style.display = d.queue.canResumeOperator ? '' : 'none';
+
+      var priority = d.queue.byPriority || {};
+      setText(
+        'q-priority',
+        'Pending by plan — pro ' +
+          (priority.high || 0) +
+          ', popular ' +
+          (priority.medium || 0) +
+          ', other ' +
+          (priority.low || 0) +
+          '. Oldest pending: ' +
+          (d.queue.oldestPendingJob ? fmtDate(d.queue.oldestPendingJob) : 'none')
+      );
 
       renderQueueMoney(d);
 
@@ -1010,12 +1266,16 @@
       if (d.queue.isPaused) {
         queueAlerts.push({
           kind: 'danger',
-          title: d.queue.pauseKind === 'billing' ? 'Paused — Replicate credits' : 'Queue is paused',
+          title:
+            d.queue.pauseKind === 'billing'
+              ? 'Paused — Replicate credits'
+              : d.queue.pauseKind === 'operator'
+                ? 'Paused by an admin'
+                : 'Queue is paused',
           body:
             (d.queue.pauseReason || 'Cost protection triggered.') +
-            (d.queue.canResumeBilling
-              ? ' Top up Replicate, then click Resume queue.'
-              : ''),
+            (d.queue.canResumeBilling ? ' Top up Replicate, then resume the billing pause.' : '') +
+            (d.queue.canResumeOperator ? ' Resume the operator pause when you want generations to run.' : ''),
         });
       } else if (d.today.costPercent >= 75) {
         queueAlerts.push({
@@ -1032,14 +1292,30 @@
     }
   }
 
+  async function queueOperatorAction(action) {
+    const reason = askReason(action === 'pause' ? 'Pause the queue' : 'Resume the operator pause');
+    if (!reason) return;
+    try {
+      const d = await apiFetch('/api/admin?resource=queue-stats&action=' + action, {
+        method: 'POST',
+        body: JSON.stringify({ reason: reason }),
+      });
+      alert(d.message || (d.ok ? 'Updated' : d.error || 'Failed'));
+      loadQueue();
+    } catch (e) {
+      alert('Request failed');
+    }
+  }
+
   async function resumeQueue() {
-    if (!confirm('Resume the queue after topping up Replicate credits?')) return;
+    const reason = askReason('Resume the queue');
+    if (!reason) return;
     try {
       const d = await apiFetch('/api/admin?resource=queue-stats&action=resume', {
         method: 'POST',
-        body: '{}',
+        body: JSON.stringify({ reason: reason }),
       });
-      alert(d.message || (d.ok ? 'Queue resumed' : 'Resume failed'));
+      alert(d.message || (d.ok ? 'Queue resumed' : d.error || 'Resume failed'));
       loadQueue();
     } catch (e) {
       alert('Resume request failed');
@@ -1086,12 +1362,18 @@
 
       tbody.innerHTML = d.recent
         .map(function (row) {
-          const details =
-            row.details && typeof row.details === 'object'
-              ? JSON.stringify(row.details).slice(0, 80) + '…'
-              : row.details || '—';
+          const flags = (row.violations || [])
+            .map(function (v) {
+              return v.category + ' ' + Math.round((v.score || 0) * 100) + '%';
+            })
+            .join(', ');
+          const summary = [row.source, row.stage, flags].filter(Boolean).join(' · ') || '—';
+          const image = safeImageUrl(row.imageUrl);
           return (
             '<tr>' +
+            '<td>' +
+            (image ? '<img class="mod-thumb" alt="" src="' + esc(image) + '">' : '—') +
+            '</td>' +
             '<td style="white-space:nowrap">' +
             fmtDate(row.created_at) +
             '</td>' +
@@ -1102,18 +1384,25 @@
             (row.user_id ? row.user_id.slice(0, 8) + '…' : '—') +
             '</td>' +
             '<td>' +
-            cap(row.subscription_tier || '—') +
+            esc(summary) +
             '</td>' +
-            '<td class="mono" style="max-width:200px;overflow:hidden;text-overflow:ellipsis">' +
-            esc(details) +
-            '</td>' +
-            '<td>' +
+            '<td class="cell-actions"><div class="cell-actions-inner">' +
+            (row.user_id && !row.banned_at
+              ? '<button class="btn btn-danger btn-sm" type="button" data-action="ban" data-user="' +
+                row.user_id +
+                '">Ban</button>'
+              : '') +
             (row.user_id
               ? '<button class="btn btn-ghost btn-sm" type="button" data-user="' +
                 row.user_id +
                 '">User</button>'
               : '') +
-            '</td>' +
+            (row.jobId
+              ? '<button class="btn btn-ghost btn-sm" type="button" data-job-open="' +
+                row.jobId +
+                '">Job</button>'
+              : '') +
+            '</div></td>' +
             '</tr>'
           );
         })
@@ -1134,36 +1423,39 @@
     if (success !== '') qs.set('success', success);
 
     document.getElementById('security-table').innerHTML =
-      '<tr><td colspan="5" class="empty"><span class="spinner"></span></td></tr>';
+      '<tr><td colspan="6" class="empty"><span class="spinner"></span></td></tr>';
 
     try {
       const d = await apiFetch('/api/admin?resource=security-logs&' + qs);
       const tbody = document.getElementById('security-table');
       if (!d.ok || !d.events.length) {
-        tbody.innerHTML = '<tr><td colspan="5" class="empty">No events found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="empty">No events found</td></tr>';
         return;
       }
       tbody.innerHTML = d.events
-        .map(function (e) {
+        .map(function (ev) {
           return (
             '<tr>' +
             '<td style="white-space:nowrap">' +
-            fmtDate(e.created_at) +
+            fmtDate(ev.created_at) +
             '</td>' +
             '<td>' +
-            esc(e.event_type) +
+            esc(ev.event_type) +
             '</td>' +
             '<td class="mono">' +
-            esc(e.ip_address || '—') +
+            esc(ev.ip_address || '—') +
             '</td>' +
             '<td class="mono">' +
-            (e.user_id ? e.user_id.slice(0, 8) + '…' : '—') +
+            (ev.user_id ? ev.user_id.slice(0, 8) + '…' : '—') +
             '</td>' +
             '<td><span class="badge ' +
-            (e.success ? 'badge-green' : 'badge-red') +
+            (ev.success ? 'badge-green' : 'badge-red') +
             '">' +
-            (e.success ? 'OK' : 'FAIL') +
+            (ev.success ? 'OK' : 'FAIL') +
             '</span></td>' +
+            '<td class="panel-note">' +
+            esc(auditSummary(ev.details)) +
+            '</td>' +
             '</tr>'
           );
         })
@@ -1178,6 +1470,80 @@
   function setText(id, value) {
     const el = document.getElementById(id);
     if (el) el.textContent = value;
+  }
+
+  function setPanelTitle(text) {
+    const el = document.getElementById('panel-title');
+    if (el) el.textContent = text;
+  }
+
+  function askReason(label) {
+    const reason = prompt(label + '\n\nReason (required, recorded in Security):');
+    if (reason == null) return null;
+    const trimmed = reason.trim();
+    if (!trimmed) {
+      alert('A reason is required');
+      return null;
+    }
+    if (trimmed.length > 280) {
+      alert('Reason must be 280 characters or fewer');
+      return null;
+    }
+    return trimmed;
+  }
+
+  async function downloadExport(kind) {
+    try {
+      const r = await fetch(API + '/api/admin?resource=export&kind=' + kind, {
+        headers: { Authorization: 'Bearer ' + token },
+      });
+      if (r.status === 401) {
+        logout();
+        return;
+      }
+      if (!r.ok) {
+        alert('Export failed');
+        return;
+      }
+      const blob = await r.blob();
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = kind + '.csv';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(function () { URL.revokeObjectURL(link.href); }, 1000);
+    } catch (e) {
+      alert('Export failed');
+    }
+  }
+
+  function safeImageUrl(url) {
+    if (!url || typeof url !== 'string') return '';
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol === 'https:' || parsed.protocol === 'http:') return parsed.href;
+    } catch (e) {
+      return '';
+    }
+    return '';
+  }
+
+  function auditSummary(details) {
+    if (!details || typeof details !== 'object') return '—';
+    const parts = [];
+    if (details.reason) parts.push(details.reason);
+    if (details.previousTier || details.nextTier) {
+      parts.push((details.previousTier || '—') + ' → ' + (details.nextTier || '—'));
+    }
+    if (details.adjustment != null) {
+      parts.push('adjust ' + details.adjustment + ' (' + details.previousCount + ' → ' + details.nextCount + ')');
+    }
+    if (details.jobId) parts.push('job ' + String(details.jobId).slice(0, 8));
+    if (details.styleId) parts.push(details.styleId);
+    if (details.previousError) parts.push(String(details.previousError).slice(0, 80));
+    if (details.adminId) parts.push('admin ' + String(details.adminId).slice(0, 8));
+    return parts.length ? parts.join(' · ') : '—';
   }
 
   function fieldRow(label, valueHtml) {
@@ -1201,6 +1567,16 @@
 
   function cap(s) {
     return s ? s.charAt(0).toUpperCase() + s.slice(1) : '—';
+  }
+
+  function tierLabel(t) {
+    if (!t || t === 'trial') return 'No plan';
+    return { starter: 'Starter', popular: 'Popular', pro: 'Pro' }[t] || cap(t);
+  }
+
+  function statusLabel(s) {
+    if (!s || s === 'trial') return 'Unsubscribed';
+    return cap(s);
   }
 
   function fmtDate(d) {
@@ -1265,6 +1641,15 @@
   document.getElementById('close-panel-btn').addEventListener('click', closePanel);
   document.getElementById('panel-backdrop').addEventListener('click', closePanel);
 
+  const themeToggle = document.getElementById('theme-toggle');
+  if (themeToggle) {
+    applyTheme(document.documentElement.getAttribute('data-theme') || 'dark');
+    themeToggle.addEventListener('click', function (e) {
+      const btn = e.target.closest('[data-theme-choice]');
+      if (btn) applyTheme(btn.dataset.themeChoice);
+    });
+  }
+
   const currencyToggle = document.getElementById('currency-toggle');
   if (currencyToggle) {
     currencyToggle.addEventListener('click', function (e) {
@@ -1291,6 +1676,10 @@
     jobPage = 1;
     loadJobs();
   });
+  ['job-search', 'job-style', 'job-user'].forEach(function (id) {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', debounceLoadJobs);
+  });
   document.getElementById('sec-type').addEventListener('change', loadSecurity);
   document.getElementById('sec-success').addEventListener('change', loadSecurity);
 
@@ -1315,11 +1704,37 @@
       if (act === 'ban' || act === 'unban') adminAction(act, uid);
       if (act === 'quota') adminAdjustQuota(uid);
       if (act === 'tier') adminChangeTier(uid);
+      if (act === 'note') adminSaveNote(uid);
+      return;
+    }
+
+    const exportBtn = e.target.closest('[data-export]');
+    if (exportBtn) {
+      downloadExport(exportBtn.dataset.export);
+      return;
+    }
+
+    if (e.target.closest('#q-pause-btn')) {
+      queueOperatorAction('pause');
+      return;
+    }
+    if (e.target.closest('#q-resume-op-btn')) {
+      queueOperatorAction('resume-operator');
+      return;
+    }
+    if (e.target.closest('#q-resume-btn')) {
+      resumeQueue();
       return;
     }
 
     const jobBtn = e.target.closest('[data-job-action]');
-    if (jobBtn) jobAction(jobBtn.dataset.jobAction, jobBtn.dataset.job);
+    if (jobBtn) {
+      jobAction(jobBtn.dataset.jobAction, jobBtn.dataset.job);
+      return;
+    }
+
+    const jobOpen = e.target.closest('[data-job-open]');
+    if (jobOpen) openJobPanel(jobOpen.dataset.jobOpen);
   });
 
   // Expose for legacy inline handlers if any remain
@@ -1331,6 +1746,7 @@
 
   setInterval(function () {
     if (currentPage === 'overview') loadOverview();
+    if (currentPage === 'system') loadSystem();
     if (currentPage === 'queue') loadQueue();
     if (currentPage === 'finance') loadFinance();
     if (currentPage === 'growth') loadGrowth();

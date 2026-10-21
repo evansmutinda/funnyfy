@@ -165,6 +165,19 @@ function resolveRenewalTier(current: string, renewalTier: string, pending: strin
 }
 
 // Log subscription event to history
+function storePriceFields(event: any): Record<string, unknown> {
+  const ev = event?.event && typeof event.event === 'object' ? event.event : event || {};
+  const price = Number(ev.price);
+  const purchased = Number(ev.price_in_purchased_currency);
+  return {
+    priceUsd: Number.isFinite(price) ? Math.round(price * 100) / 100 : null,
+    currency: typeof ev.currency === 'string' ? ev.currency : null,
+    priceInPurchasedCurrency: Number.isFinite(purchased) ? purchased : null,
+    store: typeof ev.store === 'string' ? ev.store : null,
+    periodType: typeof ev.period_type === 'string' ? ev.period_type : null,
+  };
+}
+
 async function logSubscriptionEvent(
   subscriptionId: string | null,
   userId: string,
@@ -437,7 +450,8 @@ async function handleInitialPurchase(event: any, eventId: string) {
   await logSubscriptionEvent(subscriptionId, userId, 'created', null, tier, null, 'active', {
     productId,
     platform,
-    eventId, // Store event ID for idempotency check
+    eventId,
+    ...storePriceFields(event),
   });
 }
 
@@ -553,6 +567,7 @@ async function handleRenewal(event: any, eventId: string) {
       renewalProductId: productId || null,
       pendingTier: pending,
       note: renewalNote,
+      ...storePriceFields(event),
     });
 }
 

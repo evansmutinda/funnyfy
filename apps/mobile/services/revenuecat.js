@@ -163,6 +163,51 @@ export async function getAppUserId() {
   }
 }
 
+/** Current RevenueCat app user id (may differ from original after logIn / restore). */
+export async function getCurrentAppUserId() {
+  try {
+    if (typeof Purchases.getAppUserID === 'function') {
+      return (await Purchases.getAppUserID()) || null;
+    }
+  } catch {
+    // fall through
+  }
+  return getAppUserId();
+}
+
+/**
+ * Collect RC identity strings used to find the same backend user after reinstall.
+ * Call after init (and ideally after restorePurchases on a clean install).
+ */
+export async function collectRcIdentityIds(customerInfo = null) {
+  const ids = [];
+  const push = (v) => {
+    const id = String(v || '').trim();
+    if (id && !ids.includes(id)) ids.push(id);
+  };
+
+  try {
+    const info = customerInfo || (await getCustomerInfo());
+    push(info?.originalAppUserId);
+  } catch {
+    // ignore
+  }
+
+  try {
+    push(await getCurrentAppUserId());
+  } catch {
+    // ignore
+  }
+
+  try {
+    push(await getAppUserId());
+  } catch {
+    // ignore
+  }
+
+  return ids;
+}
+
 // Link RevenueCat customer to our backend user UUID (transfers anonymous purchases)
 export async function loginUser(appUserId) {
   if (!appUserId) return null;
