@@ -151,7 +151,7 @@ export function humanizeApiError(message) {
     lower.includes('failed to fetch') ||
     lower.includes('networkerror')
   ) {
-    return 'You seem to be offline. Check your connection and try again.';
+    return 'No Internet. Check your internet connection and try again';
   }
 
   if (

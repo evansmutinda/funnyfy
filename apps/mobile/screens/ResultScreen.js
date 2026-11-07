@@ -12,7 +12,7 @@ import { useNotifications } from '../components/NotificationProvider';
 import PressScale from '../components/PressScale';
 import UploadFlowHeader from '../components/UploadFlowHeader';
 import useStableSafeAreaInsets from '../hooks/useStableSafeAreaInsets';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { saveToGallery } from './GalleryScreen';
 import {

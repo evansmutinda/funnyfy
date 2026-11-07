@@ -11,6 +11,7 @@ import PressScale from '../components/PressScale';
 import UploadFlowHeader, { getUploadQuotaInfo } from '../components/UploadFlowHeader';
 import useImagePicker from '../hooks/useImagePicker';
 import useStableSafeAreaInsets from '../hooks/useStableSafeAreaInsets';
+import { NO_INTERNET_MESSAGE, NO_INTERNET_TITLE } from '../utils/network';
 import styles from '../styles';
 
 /**
@@ -52,11 +53,7 @@ export default function PhotoReviewScreen({
 
   const handleGenerate = () => {
     if (!isOnline) {
-      showToast(
-        'Check your internet connectivity',
-        'Connect to the internet to generate caricatures.',
-        'warning',
-      );
+      showToast(NO_INTERNET_TITLE, NO_INTERNET_MESSAGE, 'warning');
       return;
     }
     if (needsSubscription && onSubscribe) {
@@ -140,7 +137,7 @@ export default function PhotoReviewScreen({
           >
             <Text style={styles.uploadGenerateButtonText} numberOfLines={1}>
               {!isOnline
-                ? 'No internet connection'
+                ? NO_INTERNET_TITLE
                 : isGenerating
                   ? 'Generation in progress…'
                 : needsSubscription

@@ -1,7 +1,7 @@
 # In-app onboarding tutorial
 
-**Status:** Deferred — skip for now  
-**Last updated:** 21 Oct 2026
+**Status:** Shipped (simple before/after screen)  
+**Last updated:** 2 Nov 2026
 
 ## Goal
 

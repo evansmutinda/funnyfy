@@ -1,5 +1,5 @@
 import { Dimensions, Platform } from 'react-native';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 
 export { FUNNYFY_FOLDER_NAME, saveToFunnyfyAlbum } from './utils/funnyfyAlbum';
 

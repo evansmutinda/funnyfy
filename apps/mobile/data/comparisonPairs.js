@@ -861,13 +861,138 @@ export const PAYWALL_COMPARISON_STYLE_IDS = [
   'carc20',
 ];
 
-/** Resolved hero pairs for PaywallStyleFade (skips missing assets). */
-export function getPaywallComparisonPairs(tier = 'hero') {
-  return PAYWALL_COMPARISON_STYLE_IDS.map((id) => {
+/** First-launch onboarding — wipe demos (before → after). */
+export const ONBOARDING_STYLE_IDS = [
+  'carc8',
+  '80s-cartoon',
+  'paper-cut',
+  'matisse',
+];
+
+/** Closing “many more” collage — after images only, not in the wipe set. */
+export const ONBOARDING_COLLAGE_STYLE_IDS = [
+  'charcoal',
+  'model',
+  'brick-v1',
+  'carc20',
+  'neon',
+  'banksy',
+  'graffiti',
+  'mosaic',
+  'lowpoly',
+  'illustration',
+  'impasto',
+  'watercolor',
+  'editorial',
+  'mugface',
+  'disney',
+  'ghibli',
+  'anime',
+  'chibi',
+  'comic',
+  'cyberpunk-v2',
+  'pixar-like',
+  'funko-pop',
+  'marble',
+  'bronze-cast',
+  'gold',
+  '90s-cartoon',
+  'victorian',
+  'carc3',
+  'carc11',
+  'video-game-i',
+  '3d-render-v2',
+  'puppet',
+  'sandstone',
+  'jade',
+];
+
+function resolveComparisonPairs(styleIds, tier = 'hero') {
+  return styleIds.map((id) => {
     const pair = resolveCuratedPair(id, tier);
     if (!pair?.before || !pair?.after) return null;
     return { id, before: pair.before, after: pair.after };
   }).filter(Boolean);
+}
+
+/** Resolved hero pairs for PaywallStyleFade (skips missing assets). */
+export function getPaywallComparisonPairs(tier = 'hero') {
+  return resolveComparisonPairs(PAYWALL_COMPARISON_STYLE_IDS, tier);
+}
+
+/** Wipe demos only (no collage). */
+export function getOnboardingComparisonPairs(tier = 'hero') {
+  return resolveComparisonPairs(ONBOARDING_STYLE_IDS, tier);
+}
+
+/** After-image only — does not require a matching before asset. */
+function resolveAfterAsset(styleId, preferredTier = ['tiles', 'hero']) {
+  const paths = CURATED_PAIR_PATHS[styleId];
+  if (!paths) return null;
+  const afterPathList = Array.isArray(paths.after) ? paths.after : [paths.after];
+  for (const tier of preferredTier) {
+    for (const rel of afterPathList) {
+      const asset = assetForTier(rel, tier);
+      if (asset) return asset;
+    }
+  }
+  return null;
+}
+
+/** Fisher–Yates — mix styles so collage isn't category-ordered. */
+function shuffleArray(items) {
+  const arr = items.slice();
+  for (let i = arr.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = arr[i];
+    arr[i] = arr[j];
+    arr[j] = tmp;
+  }
+  return arr;
+}
+
+/** Cap so the finale feels curated — 3 cols × 5 rows. */
+const ONBOARDING_COLLAGE_MAX = 15;
+
+/**
+ * Unique after-images for the onboarding collage — no style id repeated,
+ * wipe-demo styles excluded. Preferred ids first, then any other curated after.
+ * Final order is shuffled so categories don't clump; capped for a tighter wall.
+ */
+export function getOnboardingCollageImages(tier = 'hero') {
+  const wipe = new Set(ONBOARDING_STYLE_IDS);
+  const seen = new Set();
+  const images = [];
+
+  const push = (id) => {
+    if (!id || wipe.has(id) || seen.has(id)) return;
+    const after = resolveAfterAsset(id, ['tiles', tier, 'hero']);
+    if (!after) return;
+    seen.add(id);
+    images.push(after);
+  };
+
+  ONBOARDING_COLLAGE_STYLE_IDS.forEach(push);
+  Object.keys(CURATED_PAIR_PATHS).forEach(push);
+  return shuffleArray(images).slice(0, ONBOARDING_COLLAGE_MAX);
+}
+
+/**
+ * Onboarding slides: wipe pairs, then a final collage slide when enough
+ * after-images resolve (`{ id: 'many-more', collage: [...] }`).
+ */
+export function getOnboardingSlides(tier = 'hero') {
+  const slides = resolveComparisonPairs(ONBOARDING_STYLE_IDS, tier);
+  const collage = getOnboardingCollageImages(tier);
+
+  if (collage.length >= 4) {
+    slides.push({
+      id: 'many-more',
+      collage,
+    });
+  }
+
+  return slides;
 }
 
 export { DEFAULT_BEFORE, CURATED_PAIR_PATHS };

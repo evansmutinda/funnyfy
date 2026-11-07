@@ -257,12 +257,14 @@ const styles = StyleSheet.create({
 
   styleLoadingBarTrack: {
     width: '100%',
-    maxWidth: 220,
-    height: 4,
+    maxWidth: 168,
+    height: 3,
     borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: 'rgba(255,255,255,0.1)',
     overflow: 'hidden',
-    marginTop: 12,
+    marginTop: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.08)',
   },
 
   styleLoadingBarFill: {
@@ -288,105 +290,12 @@ const styles = StyleSheet.create({
     height: 200,
   },
 
-  launchLoaderRoot: {
-    flex: 1,
-    backgroundColor: DARK_BG,
-  },
-
-  launchLoaderBrand: {
+  appSplashProgress: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: '16%',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingBottom: 20,
-    gap: 6,
-  },
-
-  launchLoaderMark: {
-    fontFamily: FONT_PLUS_JAKARTA,
-    fontSize: 28,
-    fontWeight: '800',
-    color: PAPER,
-    letterSpacing: -0.8,
-  },
-
-  launchLoaderTagline: {
-    fontFamily: FONT_PLUS_JAKARTA,
-    fontSize: 13,
-    fontWeight: '500',
-    color: DARK_MUTED,
-    letterSpacing: -0.1,
-  },
-
-  launchLoaderSkeletonWrap: {
-    flex: 1,
-    paddingTop: 4,
-    gap: 22,
-  },
-
-  launchSkeletonSection: {
-    gap: 10,
-  },
-
-  launchSkeletonHeader: {
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    minHeight: 20,
-  },
-
-  launchSkeletonTileRow: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    gap: 10,
-  },
-
-  launchSkeletonTile: {
-    width: 110,
-    gap: 8,
-  },
-
-  launchSkeletonTileImage: {
-    width: '100%',
-    aspectRatio: 0.72,
-    borderRadius: 18,
-  },
-
-  launchSkeletonTileCaption: {
-    width: '72%',
-    height: 10,
-    borderRadius: 5,
-    alignSelf: 'center',
-  },
-
-  launchShimmerBone: {
-    backgroundColor: DARK_CHIP,
-    borderWidth: 1,
-    borderColor: DARK_BORDER,
-  },
-
-  launchLoaderFooter: {
-    paddingHorizontal: 24,
-    paddingTop: 8,
-    alignItems: 'center',
-    gap: 8,
-  },
-
-  launchLoaderStatus: {
-    fontFamily: FONT_PLUS_JAKARTA,
-    fontSize: 15,
-    fontWeight: '600',
-    color: PAPER,
-    letterSpacing: -0.2,
-  },
-
-  launchLoaderHint: {
-    fontFamily: FONT_PLUS_JAKARTA,
-    fontSize: 13,
-    fontWeight: '400',
-    color: DARK_MUTED,
-    textAlign: 'center',
-    lineHeight: 18,
-    marginBottom: 4,
   },
 
   
@@ -841,7 +750,8 @@ const styles = StyleSheet.create({
   menuUserIdRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
+    paddingTop: 12,
+    paddingBottom: 4,
     paddingHorizontal: 16,
     marginTop: 4,
     borderTopWidth: 1,
@@ -2416,6 +2326,103 @@ const styles = StyleSheet.create({
     marginTop: 2,
     letterSpacing: -0.1,
     textAlign: 'center',
+  },
+
+  onboardRoot: {
+    flex: 1,
+    backgroundColor: DARK_BG,
+  },
+
+  onboardBody: {
+    flex: 1,
+  },
+
+  onboardHeroZone: {
+    flex: 1,
+    overflow: 'hidden',
+    backgroundColor: DARK_BG,
+  },
+
+  onboardHeroTopScrim: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    height: 88,
+  },
+
+  onboardHeroBottomScrim: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    top: '38%',
+  },
+
+  onboardHeroCollageScrim: {
+    ...StyleSheet.absoluteFillObject,
+  },
+
+  onboardBottomBar: {
+    paddingHorizontal: 28,
+    paddingTop: 6,
+    gap: 12,
+    backgroundColor: DARK_BG,
+  },
+
+  onboardCopyBlock: {
+    alignItems: 'center',
+    minHeight: 40,
+    justifyContent: 'center',
+  },
+
+  onboardCopyBlockFinale: {
+    minHeight: 48,
+  },
+
+  onboardCopy: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 14,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.78)',
+    letterSpacing: -0.15,
+    textAlign: 'center',
+    lineHeight: 20,
+    paddingHorizontal: 8,
+  },
+
+  onboardCopyFinale: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.92)',
+    letterSpacing: -0.25,
+    lineHeight: 22,
+  },
+
+  onboardScrollHint: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 12,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.45)',
+    letterSpacing: -0.1,
+    textAlign: 'center',
+    marginTop: -4,
+  },
+
+  onboardPrimaryButton: {
+    backgroundColor: PAPER,
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  onboardPrimaryButtonText: {
+    fontFamily: FONT_PLUS_JAKARTA,
+    fontSize: 15,
+    fontWeight: '700',
+    color: INK,
+    letterSpacing: -0.2,
   },
 
   

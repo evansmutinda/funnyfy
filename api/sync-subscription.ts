@@ -229,7 +229,7 @@ export default async function handler(
             subscription_status,
             billing_date
           )
-          VALUES ($1, $2, $3, 'active', $4)
+          VALUES ($1, $2, $3, 'trial', $4)
           RETURNING id
         `,
         [
@@ -261,37 +261,73 @@ export default async function handler(
       }
     }
 
-    // Keep RevenueCat app user ID linked to the backend user (needed for webhooks)
+    const storeTransactionId = String(body.storeTransactionId || body.store_transaction_id || '').trim();
+
+    // A past or missing expiration is not a live subscription. Do not invent a new period.
+    let periodEnd: Date | null = null;
+    if (expirationDate) {
+      const parsed = new Date(expirationDate);
+      if (!Number.isNaN(parsed.getTime())) periodEnd = parsed;
+    }
+    if (!periodEnd || periodEnd.getTime() <= Date.now()) {
+      return res.status(200).json({
+        ok: true,
+        skipped: 'not_active',
+        message: 'Subscription is not currently active',
+      });
+    }
+
+    const jwtUserId = dbUserId;
+    let canonicalUserId = jwtUserId;
+
+    if (storeTransactionId) {
+      const owner = await query<{ user_id: string }>(
+        `SELECT user_id FROM subscriptions
+         WHERE revenuecat_subscription_id = $1
+         ORDER BY created_at ASC
+         LIMIT 1`,
+        [storeTransactionId],
+      );
+      if (owner.rows[0]?.user_id) canonicalUserId = owner.rows[0].user_id;
+    }
+
+    if (canonicalUserId === jwtUserId && identityIds.length > 0) {
+      const olderIdentity = await query<{ id: string }>(
+        `SELECT id FROM users
+         WHERE (id::text = ANY($1::text[]) OR revenuecat_user_id = ANY($1::text[]))
+           AND id::text <> $2
+         ORDER BY created_at ASC
+         LIMIT 1`,
+        [identityIds, jwtUserId],
+      );
+      if (olderIdentity.rows[0]?.id) canonicalUserId = olderIdentity.rows[0].id;
+    }
+
+    if (canonicalUserId === jwtUserId) {
+      const samePurchase = await query<{ id: string }>(
+        `SELECT u.id
+         FROM subscriptions s
+         JOIN users u ON u.id = s.user_id
+         WHERE LOWER(s.tier) = LOWER($1)
+           AND s.current_period_end IS NOT NULL
+           AND ABS(EXTRACT(EPOCH FROM (s.current_period_end - $2::timestamptz))) <= $3
+         ORDER BY u.created_at ASC
+         LIMIT 1`,
+        [tier, periodEnd.toISOString(), PERIOD_RECLAIM_MAX_SEC],
+      );
+      if (samePurchase.rows[0]?.id) canonicalUserId = samePurchase.rows[0].id;
+    }
+
+    // Keep RevenueCat app user ID on the original subscriber.
     const rcLink = revenuecatUserId || revenuecatAppUserId;
     if (rcLink) {
       await query(
         `UPDATE users SET revenuecat_user_id = $1, updated_at = NOW() WHERE id = $2 AND (revenuecat_user_id IS NULL OR revenuecat_user_id = $1)`,
-        [rcLink, dbUserId],
+        [rcLink, canonicalUserId],
       );
     }
 
-    // Calculate period end (expiration = next renewal date)
-    let periodEnd: Date;
-    if (expirationDate) {
-      periodEnd = new Date(expirationDate);
-      if (Number.isNaN(periodEnd.getTime())) {
-        periodEnd = new Date();
-        periodEnd.setMonth(periodEnd.getMonth() + 1);
-      } else {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const endDay = new Date(periodEnd);
-        endDay.setHours(0, 0, 0, 0);
-        // If expiration is today or in the past, advance one billing month for display/storage
-        if (endDay <= today) {
-          periodEnd = new Date(periodEnd);
-          periodEnd.setMonth(periodEnd.getMonth() + 1);
-        }
-      }
-    } else {
-      periodEnd = new Date();
-      periodEnd.setMonth(periodEnd.getMonth() + 1);
-    }
+    dbUserId = canonicalUserId;
 
     // Update existing subscription for user, or create new one
     const existingSub = await query<{ id: string; tier: string }>(
@@ -345,9 +381,14 @@ export default async function handler(
         `
           INSERT INTO subscriptions (user_id, revenuecat_subscription_id, platform, tier, status, current_period_start, current_period_end)
           VALUES ($1, $2, $3, $4, 'active', NOW(), $5)
+          ON CONFLICT (revenuecat_subscription_id) DO UPDATE SET
+            status = 'active',
+            tier = EXCLUDED.tier,
+            current_period_end = EXCLUDED.current_period_end,
+            updated_at = NOW()
           RETURNING id
         `,
-        [dbUserId, `sync_${Date.now()}`, body.platform || 'manual', tier, periodEnd]
+        [dbUserId, storeTransactionId || `sync_${Date.now()}`, body.platform || 'manual', tier, periodEnd]
       );
       subscriptionId = insertResult.rows[0]?.id ?? '';
     }
@@ -373,22 +414,25 @@ export default async function handler(
       );
     }
 
-    // Close restore loophole: copy usage + point client at the prior account.
-    const adopted = await adoptPriorUsageIfSafe({
-      userId: dbUserId,
-      tier,
-      periodEnd,
-      preferUserId: reclaimUserId,
-    });
-    const canonicalReclaimId =
-      (adopted?.donorUserId && adopted.donorUserId !== dbUserId
-        ? adopted.donorUserId
-        : null) ||
-      (reclaimUserId && reclaimUserId !== dbUserId ? reclaimUserId : null);
+    // Copy usage only when this device is already the original subscriber.
+    // A reinstall must switch back to that subscriber, not the new install id.
+    const adopted = canonicalUserId === jwtUserId
+      ? await adoptPriorUsageIfSafe({
+          userId: dbUserId,
+          tier,
+          periodEnd,
+          preferUserId: reclaimUserId,
+        })
+      : null;
+    const canonicalReclaimId = canonicalUserId !== jwtUserId
+      ? canonicalUserId
+      : (adopted?.donorUserId && adopted.donorUserId !== dbUserId
+          ? adopted.donorUserId
+          : null);
 
     const reclaimToken =
-      canonicalReclaimId && JWT_SECRET
-        ? mintReclaimToken(canonicalReclaimId, dbUserId)
+      canonicalReclaimId && jwtUserId && JWT_SECRET
+        ? mintReclaimToken(canonicalReclaimId, jwtUserId)
         : null;
 
     return res.status(200).json({

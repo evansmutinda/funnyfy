@@ -6,7 +6,7 @@
 | Priority | Item | Why | Status |
 |----------|------|-----|--------|
 | 1 | **DEX / R8 obfuscation** (≥25%; was 3%) | Explicit deadline **Feb 2027**; publishing / visibility risk | Pending — R8 enabled in `app.config.js` (`enableProguardInReleaseBuilds`); verify after next release AAB in App bundle explorer |
-| 2 | **16 KB native library alignment** | Hardware / Play compatibility on 16 KB page-size devices | Pending — needs NDK / Expo toolchain rebuild that ships 16 KB–aligned `.so`s |
+| 2 | **16 KB native library alignment** | Hardware / Play compatibility on 16 KB page-size devices | In progress — upgraded to **Expo SDK 54** (RN 0.81); verify in App bundle explorer after next production AAB |
 | 3 | **Edge-to-edge deprecated APIs** | UX on Android 15+ (window / insets APIs) | Pending — migrate off deprecated edge-to-edge / window display APIs |
 | 4 | **Large-screen orientation / resizability** | Tablets / foldables; Android 16 may ignore locks | Pending — later; app is portrait phone-first |
 

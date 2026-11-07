@@ -5,7 +5,7 @@
 // Across reinstalls, identity is recovered via RevenueCat ids (after Play restore),
 // not via SecureStore (which is wiped).
 
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as SecureStore from 'expo-secure-store';
 
 const AUTH_KEY = 'funnyfy.auth';

@@ -579,7 +579,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const userResult = await query<any>(
           `SELECT u.id, u.email, u.revenuecat_user_id, u.subscription_tier, u.subscription_status,
                   u.trial_generations_used, u.banned_at, u.created_at, u.updated_at,
-                  COALESCE(ut.count, 0) AS usage_this_month
+                  COALESCE(ut.count, 0) AS usage_this_month,
+                  (
+                    SELECT h.metadata->>'countryCode'
+                    FROM subscription_history h
+                    WHERE h.user_id = u.id
+                      AND COALESCE(h.metadata->>'countryCode', '') <> ''
+                    ORDER BY h.created_at DESC
+                    LIMIT 1
+                  ) AS country_code
            FROM users u LEFT JOIN usage_tracking ut ON ut.user_id = u.id AND ut.month = $2
            WHERE u.id = $1`,
           [userId, cm]
@@ -637,7 +645,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const [usersResult, countResult] = await Promise.all([
         query<any>(
           `SELECT u.id, u.email, u.revenuecat_user_id, u.subscription_tier, u.subscription_status,
-                  u.trial_generations_used, u.banned_at, u.created_at, COALESCE(ut.count, 0) AS usage_this_month
+                  u.trial_generations_used, u.banned_at, u.created_at, COALESCE(ut.count, 0) AS usage_this_month,
+                  (
+                    SELECT h.metadata->>'countryCode'
+                    FROM subscription_history h
+                    WHERE h.user_id = u.id
+                      AND COALESCE(h.metadata->>'countryCode', '') <> ''
+                    ORDER BY h.created_at DESC
+                    LIMIT 1
+                  ) AS country_code
            FROM users u LEFT JOIN usage_tracking ut ON ut.user_id = u.id AND ut.month = $1
            ${where} ORDER BY u.created_at DESC LIMIT $${p} OFFSET $${p + 1}`,
           params
@@ -931,25 +947,40 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       let storeGrossUsd = 0;
       let storeEvents = 0;
+      let storeGrossLastUsd = 0;
+      let storeEventsLast = 0;
       try {
-        const storeRow = await query<{ gross: number; events: number }>(
-          `SELECT COALESCE(SUM(
-              CASE WHEN (metadata->>'priceUsd') ~ '^[0-9]+(\\.[0-9]+)?$'
-                   THEN (metadata->>'priceUsd')::numeric ELSE 0 END
-            ), 0)::numeric AS gross,
-            COUNT(*) FILTER (
-              WHERE (metadata->>'priceUsd') ~ '^[0-9]+(\\.[0-9]+)?$'
-            )::int AS events
+        const priceExpr = `(metadata->>'priceUsd') ~ '^[0-9]+(\\.[0-9]+)?$'`;
+        const priceValue = `CASE WHEN ${priceExpr} THEN (metadata->>'priceUsd')::numeric ELSE 0 END`;
+        const lastMonthStart = `${monthStart} - INTERVAL '1 month'`;
+        const storeRow = await query<{
+          gross_mtd: number;
+          events_mtd: number;
+          gross_last: number;
+          events_last: number;
+        }>(
+          `SELECT
+             COALESCE(SUM(${priceValue}) FILTER (WHERE created_at >= ${monthStart}), 0)::numeric AS gross_mtd,
+             COUNT(*) FILTER (WHERE created_at >= ${monthStart} AND ${priceExpr})::int AS events_mtd,
+             COALESCE(SUM(${priceValue}) FILTER (
+               WHERE created_at >= ${lastMonthStart} AND created_at < ${monthStart}
+             ), 0)::numeric AS gross_last,
+             COUNT(*) FILTER (
+               WHERE created_at >= ${lastMonthStart} AND created_at < ${monthStart} AND ${priceExpr}
+             )::int AS events_last
            FROM subscription_history
-           WHERE created_at >= ${monthStart}
-             AND event_type IN ('created', 'renewed')`
+           WHERE event_type IN ('created', 'renewed')
+             AND created_at >= ${lastMonthStart}`
         );
-        storeGrossUsd = Number(storeRow.rows[0]?.gross ?? 0);
-        storeEvents = Number(storeRow.rows[0]?.events ?? 0);
+        storeGrossUsd = Number(storeRow.rows[0]?.gross_mtd ?? 0);
+        storeEvents = Number(storeRow.rows[0]?.events_mtd ?? 0);
+        storeGrossLastUsd = Number(storeRow.rows[0]?.gross_last ?? 0);
+        storeEventsLast = Number(storeRow.rows[0]?.events_last ?? 0);
       } catch (err) {
         console.warn('[admin/finance] store cash query failed:', err);
       }
       const storeNetEstimateUsd = Number((storeGrossUsd * 0.85).toFixed(2));
+      const collectedNetUsd = Number((storeNetEstimateUsd - costMonth).toFixed(2));
 
       return res.status(200).json({
         ok: true,
@@ -959,6 +990,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           totalActiveSubs: revenueRows.reduce((s: number, r: { count: number }) => s + r.count, 0),
           storeCashMtdUsd: Number(storeGrossUsd.toFixed(2)),
           storeEventsMtd: storeEvents,
+          storeCashLastMonthUsd: Number(storeGrossLastUsd.toFixed(2)),
+          storeEventsLastMonth: storeEventsLast,
           storeFeeRate: 0.15,
           storeNetEstimateUsd,
         },
@@ -1001,13 +1034,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         margin: {
           mrrEstimateUsd: mrr,
           costMonthToDateUsd: costMonth,
-          estimatedNetUsd: Number((mrr - costMonth).toFixed(2)),
+          estimatedNetUsd: collectedNetUsd,
         },
         meta: {
           prices: TIER_PRICES,
           modelCosts: MODEL_COST_USD,
           disclaimer:
-            'MRR uses rounded tier prices ($5/$10/$25). Store cash is the USD price on purchase and renewal webhooks received after this deploy, before store fees. The 15% fee line is an estimate. Refunds are not subtracted. Generation costs come from jobs.cost_usd.',
+            'Collected is the USD price on purchase and renewal webhooks, before store fees. Last month is shown on its own so test charges stay out of this month. List-price MRR rounds Starter, Popular, and Pro to $5, $10, and $25. The 15% fee is an estimate. Refunds are not subtracted. Generation costs come from jobs.cost_usd.',
           exchange: await getUsdToKesRate(),
         },
       });

@@ -117,6 +117,25 @@ export function describePurchaseError(err, { cancelAtPeriodEnd, expirationDate }
     };
   }
 
+  const alreadyOwned =
+    text.includes('already purchased') ||
+    text.includes('already owned') ||
+    text.includes('already subscribed') ||
+    text.includes('item is already owned') ||
+    text.includes('product already purchased') ||
+    String(err?.code) === 'ProductAlreadyPurchasedError' ||
+    err?.readableErrorCode === 'ProductAlreadyPurchasedError';
+
+  if (alreadyOwned) {
+    return {
+      userCancelled: false,
+      title: 'Already subscribed',
+      message: 'Your subscription is already active on this Google account.',
+      shouldReport: false,
+      kind: 'already_owned',
+    };
+  }
+
   if (invalidArgs) {
     return {
       userCancelled: false,
@@ -239,7 +258,17 @@ function pickHighestProductId(productIds) {
   );
 }
 
-// Resolve active subscription details from CustomerInfo (entitlements or activeSubscriptions)
+function subscriptionStoreMeta(customerInfo, productIdentifier) {
+  const info = customerInfo?.subscriptionsByProductIdentifier?.[productIdentifier];
+  if (!info) return { storeTransactionId: null, isSandbox: false };
+  return {
+    storeTransactionId: info.storeTransactionId || null,
+    isSandbox: info.isSandbox === true,
+  };
+}
+
+// Resolve the subscription Play/RevenueCat still considers active.
+// A past product id is not a live subscription.
 export function getActiveSubscriptionDetails(customerInfo) {
   if (!customerInfo) return null;
 
@@ -255,6 +284,7 @@ export function getActiveSubscriptionDetails(customerInfo) {
     return {
       productIdentifier: bestEntitlementProduct,
       expirationDate: ent?.expirationDate || customerInfo.allExpirationDates?.[bestEntitlementProduct] || null,
+      ...subscriptionStoreMeta(customerInfo, bestEntitlementProduct),
     };
   }
 
@@ -266,17 +296,7 @@ export function getActiveSubscriptionDetails(customerInfo) {
     return {
       productIdentifier: bestActive,
       expirationDate: customerInfo.allExpirationDates?.[bestActive] || null,
-    };
-  }
-
-  const purchased = Array.isArray(customerInfo.allPurchasedProductIdentifiers)
-    ? customerInfo.allPurchasedProductIdentifiers
-    : [];
-  const bestPurchased = pickHighestProductId(purchased);
-  if (bestPurchased) {
-    return {
-      productIdentifier: bestPurchased,
-      expirationDate: customerInfo.allExpirationDates?.[bestPurchased] || null,
+      ...subscriptionStoreMeta(customerInfo, bestActive),
     };
   }
 

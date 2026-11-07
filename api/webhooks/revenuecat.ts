@@ -175,6 +175,8 @@ function storePriceFields(event: any): Record<string, unknown> {
     priceInPurchasedCurrency: Number.isFinite(purchased) ? purchased : null,
     store: typeof ev.store === 'string' ? ev.store : null,
     periodType: typeof ev.period_type === 'string' ? ev.period_type : null,
+    environment: typeof ev.environment === 'string' ? ev.environment : null,
+    countryCode: typeof ev.country_code === 'string' ? ev.country_code.toUpperCase() : null,
   };
 }
 
@@ -375,7 +377,7 @@ async function handleInitialPurchase(event: any, eventId: string) {
           subscription_status, 
           billing_date
         )
-        VALUES ($1, $2, $3, 'active', $4)
+        VALUES ($1, $2, $3, 'trial', $4)
         RETURNING id
       `,
       [
@@ -411,6 +413,13 @@ async function handleInitialPurchase(event: any, eventId: string) {
 
   // Use original_transaction_id (stable across renewals) for subscription matching - NOT event.id
   const stableSubId = ev?.original_transaction_id || ev?.transaction_id || eventId;
+  const existingOwner = await query<{ user_id: string }>(
+    `SELECT user_id FROM subscriptions WHERE revenuecat_subscription_id = $1 ORDER BY created_at ASC LIMIT 1`,
+    [stableSubId]
+  );
+  if (existingOwner.rows[0]?.user_id && existingOwner.rows[0].user_id !== userId) {
+    userId = existingOwner.rows[0].user_id;
+  }
   const subscriptionResult = await query<{ id: string }>(
     `
       INSERT INTO subscriptions (
@@ -673,25 +682,11 @@ async function handleCancellation(event: any, eventId: string) {
 }
 
 async function handleUncancellation(event: any, eventId: string) {
-  const revenuecatSubId = event.event?.id || event.subscription_id;
-  if (!revenuecatSubId) {
-    throw new Error('Missing subscription_id');
-  }
-
-  const subscriptionResult = await query<{ id: string; user_id: string }>(
-    `
-      SELECT id, user_id
-      FROM subscriptions
-      WHERE revenuecat_subscription_id = $1
-    `,
-    [revenuecatSubId]
-  );
-
-  if (subscriptionResult.rows.length === 0) {
+  const subscription = await findSubscriptionForLifecycleEvent(event);
+  if (!subscription) {
+    console.warn('[revenuecat-webhook] Uncancellation: subscription not found');
     return;
   }
-
-  const subscription = subscriptionResult.rows[0];
 
   // Remove cancellation flag
   await query(
@@ -712,36 +707,54 @@ async function handleUncancellation(event: any, eventId: string) {
     });
 }
 
-async function handleExpiration(event: any, eventId: string) {
-  const revenuecatSubId = event.event?.id || event.subscription_id;
-  if (!revenuecatSubId) {
-    throw new Error('Missing subscription_id');
+async function findSubscriptionForLifecycleEvent(event: any): Promise<{ id: string; user_id: string; tier: string } | null> {
+  const ev = event.event || event;
+  const stableSubId = ev?.original_transaction_id || ev?.transaction_id || null;
+  const appUserId = ev?.app_user_id
+    || ev?.original_app_user_id
+    || event.event?.customer_info?.original_app_user_id
+    || null;
+
+  if (stableSubId) {
+    const byTransaction = await query<{ id: string; user_id: string; tier: string }>(
+      `SELECT id, user_id, tier FROM subscriptions WHERE revenuecat_subscription_id = $1 ORDER BY created_at ASC LIMIT 1`,
+      [stableSubId]
+    );
+    if (byTransaction.rows[0]) return byTransaction.rows[0];
   }
 
-  const subscriptionResult = await query<{ id: string; user_id: string; tier: string }>(
-    `
-      SELECT id, user_id, tier
-      FROM subscriptions
-      WHERE revenuecat_subscription_id = $1
-    `,
-    [revenuecatSubId]
-  );
+  if (appUserId) {
+    const byUser = await query<{ id: string; user_id: string; tier: string }>(
+      `SELECT s.id, s.user_id, s.tier
+       FROM subscriptions s
+       JOIN users u ON u.id = s.user_id
+       WHERE (u.revenuecat_user_id = $1 OR u.id::text = $1) AND s.status = 'active'
+       ORDER BY s.created_at ASC
+       LIMIT 1`,
+      [appUserId]
+    );
+    if (byUser.rows[0]) return byUser.rows[0];
+  }
 
-  if (subscriptionResult.rows.length === 0) {
+  return null;
+}
+
+async function handleExpiration(event: any, eventId: string) {
+  const subscription = await findSubscriptionForLifecycleEvent(event);
+  if (!subscription) {
+    console.warn('[revenuecat-webhook] Expiration: subscription not found');
     return;
   }
 
-  const subscription = subscriptionResult.rows[0];
-
-  // Mark subscription as expired
+  // Mark every active row for this subscriber expired, including older sync_ copies.
   await query(
     `
       UPDATE subscriptions
       SET status = 'expired',
           updated_at = NOW()
-      WHERE id = $1
+      WHERE user_id = $1 AND status = 'active'
     `,
-    [subscription.id]
+    [subscription.user_id]
   );
 
   // Update user status

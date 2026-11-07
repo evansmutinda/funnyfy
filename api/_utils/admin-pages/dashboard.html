@@ -513,6 +513,17 @@
       box-shadow: -12px 0 40px rgba(0, 0, 0, 0.45);
     }
     .detail-panel.open { transform: translateX(0); }
+    .detail-panel.full {
+      left: 0;
+      width: 100%;
+      border-left: none;
+      box-shadow: none;
+    }
+    .detail-panel.full .panel-body {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 28px 32px 48px;
+    }
     .panel-head {
       padding: 16px 20px;
       border-bottom: 1px solid var(--border);
@@ -535,6 +546,15 @@
     .field-label { color: var(--muted); font-size: 13px; flex-shrink: 0; }
     .field-value { font-size: 13px; font-weight: 500; text-align: right; word-break: break-all; }
     .panel-actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+    .users-count {
+      margin-left: auto;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+    }
+    .id-cell { display: flex; align-items: center; gap: 8px; }
+    .copy-id-btn { padding: 2px 8px; font-size: 11px; }
     .section-title {
       font-size: 11px;
       font-weight: 600;
@@ -655,7 +675,7 @@
           <div class="stat"><div class="stat-label">New Today</div><div class="stat-value" id="ov-new-today">—</div></div>
           <div class="stat"><div class="stat-label">New This Week</div><div class="stat-value" id="ov-new-week">—</div></div>
           <div class="stat"><div class="stat-label">Active Subs</div><div class="stat-value" id="ov-active">—</div></div>
-          <div class="stat"><div class="stat-label">MRR (est.)</div><div class="stat-value" id="ov-mrr">—</div></div>
+          <div class="stat"><div class="stat-label">List-price MRR</div><div class="stat-value" id="ov-mrr">—</div></div>
           <div class="stat"><div class="stat-label">Jobs Today</div><div class="stat-value" id="ov-jobs-today">—</div></div>
           <div class="stat"><div class="stat-label">Infringements</div><div class="stat-value" id="ov-infringements">—</div></div>
           <div class="stat"><div class="stat-label">Banned</div><div class="stat-value" id="ov-banned">—</div></div>
@@ -762,38 +782,40 @@
       <div class="page" id="page-finance">
         <div class="finance-hero">
           <div class="finance-card">
-            <div class="label">MRR (estimated)</div>
-            <div class="value" id="fin-mrr">—</div>
-            <div class="hint" id="fin-subs-hint">Active paid subscriptions</div>
+            <div class="label">Collected this month</div>
+            <div class="value" id="fin-collected">—</div>
+            <div class="hint" id="fin-collected-hint">Play charges recorded this month</div>
           </div>
           <div class="finance-card">
-            <div class="label">Cost MTD</div>
-            <div class="value" id="fin-cost-mtd">—</div>
-            <div class="hint" id="fin-margin-hint">Replicate inference spend</div>
+            <div class="label">Last month</div>
+            <div class="value" id="fin-last-month">—</div>
+            <div class="hint" id="fin-last-hint">Prior month, including tests</div>
           </div>
           <div class="finance-card">
-            <div class="label">Est. Net (rough)</div>
+            <div class="label">Net this month</div>
             <div class="value" id="fin-net">—</div>
-            <div class="hint" id="fin-net-hint">MRR minus month-to-date costs</div>
+            <div class="hint" id="fin-net-hint">Collected after the store fee, minus generation cost</div>
           </div>
         </div>
 
         <div class="stats-row" style="grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); margin-bottom: 20px;">
+          <div class="stat"><div class="stat-label">Active subs</div><div class="stat-value" id="fin-active" style="font-size:22px">—</div></div>
+          <div class="stat"><div class="stat-label">List-price MRR</div><div class="stat-value" id="fin-mrr" style="font-size:22px">—</div></div>
+          <div class="stat"><div class="stat-label">Cost MTD</div><div class="stat-value" id="fin-cost-mtd" style="font-size:22px">—</div></div>
+          <div class="stat"><div class="stat-label">After ~15% fee</div><div class="stat-value" id="fin-store-net" style="font-size:22px">—</div></div>
           <div class="stat"><div class="stat-label">Gens MTD</div><div class="stat-value" id="fin-gens-total" style="font-size:22px">—</div></div>
           <div class="stat"><div class="stat-label">Completed</div><div class="stat-value" id="fin-gens-done" style="font-size:22px">—</div></div>
           <div class="stat"><div class="stat-label">Failed ($0)</div><div class="stat-value" id="fin-gens-failed" style="font-size:22px">—</div></div>
           <div class="stat"><div class="stat-label">No-plan cost MTD</div><div class="stat-value" id="fin-trial-cost" style="font-size:22px">—</div></div>
-          <div class="stat"><div class="stat-label">Store cash MTD</div><div class="stat-value" id="fin-store" style="font-size:22px">—</div></div>
-          <div class="stat"><div class="stat-label">After ~15% fee</div><div class="stat-value" id="fin-store-net" style="font-size:22px">—</div></div>
         </div>
 
         <div class="card">
           <div class="card-head"><h3>Month economics by user tier</h3></div>
           <table>
-            <thead><tr><th>Tier</th><th>Active subs</th><th>Revenue (MRR)</th><th>Gens MTD</th><th>Gen cost MTD</th></tr></thead>
+            <thead><tr><th>Tier</th><th>Active subs</th><th>List price</th><th>Gens MTD</th><th>Gen cost MTD</th></tr></thead>
             <tbody id="fin-economics-table"><tr><td colspan="5" class="empty"><span class="spinner"></span></td></tr></tbody>
           </table>
-          <div class="card-note">No-plan rows are accounts without Starter, Popular, or Pro. They have $0 subscription revenue. MRR is estimated from active subs at tier price.</div>
+          <div class="card-note">List price rounds each active Starter, Popular, or Pro to $5, $10, or $25. It is not the amount Play collected. No-plan rows have no subscription price.</div>
         </div>
 
         <div class="card">
@@ -846,10 +868,7 @@
           <div class="card-note" id="fin-30-total">—</div>
         </div>
 
-        <div class="placeholder-block">
-          <strong>Store cash starts with the next purchase</strong>
-          Webhook prices are recorded from this deploy forward. Refunds are not subtracted. Per-style cost is on the Styles page.
-        </div>
+        <div class="card-note" id="fin-disclaimer">Collected is the webhook price. Last month stays separate, including test charges. Refunds are not subtracted.</div>
       </div>
 
       <div class="page" id="page-growth">
@@ -865,9 +884,9 @@
             <div class="hint" id="gr-total-hint">All registered accounts</div>
           </div>
           <div class="finance-card">
-            <div class="label">MRR</div>
+            <div class="label">List-price MRR</div>
             <div class="value" id="gr-mrr">—</div>
-            <div class="hint" id="gr-mrr-hint">Estimated monthly revenue</div>
+            <div class="hint" id="gr-mrr-hint">Rounded tier prices, not Play cash</div>
           </div>
           <div class="finance-card">
             <div class="label">ARR</div>
@@ -944,11 +963,12 @@
           </select>
           <button class="btn btn-ghost" type="button" data-refresh="users">Refresh</button>
           <button class="btn btn-ghost" type="button" data-export="users">Export CSV</button>
+          <span class="users-count" id="users-count"></span>
         </div>
         <div class="card">
           <table>
-            <thead><tr><th>User ID</th><th>Email</th><th>Tier</th><th>Status</th><th>Usage</th><th>Joined</th><th></th></tr></thead>
-            <tbody id="users-table"><tr><td colspan="7" class="empty"><span class="spinner"></span></td></tr></tbody>
+            <thead><tr><th>User ID</th><th>Email</th><th>Country</th><th>Tier</th><th>Status</th><th>Usage</th><th>Joined</th><th></th></tr></thead>
+            <tbody id="users-table"><tr><td colspan="8" class="empty"><span class="spinner"></span></td></tr></tbody>
           </table>
           <div class="pagination" id="users-pagination"></div>
         </div>

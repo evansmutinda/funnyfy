@@ -154,13 +154,22 @@ if (-not (Test-Path $androidDir)) {
 }
 
 # Gradle wrapper defaults to 10s network timeout — too short for gradle-8.x zip on slow networks.
+# services.gradle.org often times out here (ConnectException); same zips are on the Tencent mirror.
 $gradleWrapperProps = Join-Path $androidDir "gradle\wrapper\gradle-wrapper.properties"
 if (Test-Path $gradleWrapperProps) {
     $gw = Get-Content $gradleWrapperProps -Raw
-    if ($gw -match 'networkTimeout=10000') {
-        $gw = $gw -replace 'networkTimeout=10000', 'networkTimeout=600000'
-        [System.IO.File]::WriteAllText($gradleWrapperProps, $gw)
+    $gwPatched = $gw
+    if ($gwPatched -match 'networkTimeout=10000') {
+        $gwPatched = $gwPatched -replace 'networkTimeout=10000', 'networkTimeout=600000'
         Write-Host "Patched gradle-wrapper.properties: networkTimeout=600000 (10 min)" -ForegroundColor Green
+    }
+    if ($gwPatched -match 'services\.gradle\.org/distributions/') {
+        $gwPatched = $gwPatched -replace 'https\\://services\.gradle\.org/distributions/', 'https\://mirrors.cloud.tencent.com/gradle/'
+        Write-Host "Patched gradle-wrapper.properties: distributionUrl -> Tencent mirror" -ForegroundColor Green
+        Write-Log "Patched distributionUrl to Tencent mirror (services.gradle.org unreachable)"
+    }
+    if ($gwPatched -ne $gw) {
+        [System.IO.File]::WriteAllText($gradleWrapperProps, $gwPatched)
     }
 }
 

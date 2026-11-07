@@ -246,9 +246,10 @@
       lastOverviewStats = stats;
       lastOverviewQueue = queue.ok ? queue : null;
 
+      const paidTiers = { starter: 1, popular: 1, pro: 1 };
       const active = (stats.users.byTier || [])
         .filter(function (r) {
-          return r.subscription_status === 'active';
+          return r.subscription_status === 'active' && paidTiers[r.subscription_tier];
         })
         .reduce(function (s, r) {
           return s + r.count;
@@ -431,7 +432,11 @@
         ? s.mauPercentOfTotal + '% of total users generated this month'
         : 'Users with ≥1 generation this month'
     );
-    setText('gr-mrr-hint', (s.activePaidSubs || 0) + ' active paid subscriptions');
+    const paidCount = Number(s.activePaidSubs) || 0;
+    setText(
+      'gr-mrr-hint',
+      paidCount + (paidCount === 1 ? ' active subscription' : ' active subscriptions')
+    );
     setText(
       'gr-churn-hint',
       d.churn && d.churn.ratePercentLastMonth != null
@@ -552,16 +557,31 @@
       const trialCost =
         d.generations && d.generations.trial ? d.generations.trial.costMtdUsd : 0;
       setText('fin-trial-cost', fmtMoney(trialCost, 2));
-      setText('fin-store', fmtMoney(d.revenue.storeCashMtdUsd || 0, 2));
+      const collected = Number(d.revenue.storeCashMtdUsd) || 0;
+      const collectedEvents = Number(d.revenue.storeEventsMtd) || 0;
+      const lastCollected = Number(d.revenue.storeCashLastMonthUsd) || 0;
+      const lastEvents = Number(d.revenue.storeEventsLastMonth) || 0;
+      setText('fin-collected', fmtMoney(collected, 2));
+      setText(
+        'fin-collected-hint',
+        collectedEvents > 0
+          ? collectedEvents + (collectedEvents === 1 ? ' Play charge' : ' Play charges')
+          : 'No Play price recorded this month'
+      );
+      setText('fin-last-month', fmtMoney(lastCollected, 2));
+      setText(
+        'fin-last-hint',
+        lastEvents > 0
+          ? lastEvents + (lastEvents === 1 ? ' charge, including tests' : ' charges, including tests')
+          : 'No Play price recorded last month'
+      );
       setText('fin-store-net', fmtMoney(d.revenue.storeNetEstimateUsd || 0, 2));
-
-      setText('fin-mrr', fmtMoney(d.revenue.mrrEstimateUsd, 0));
+      setText('fin-active', String(d.revenue.totalActiveSubs ?? '—'));
+      setText('fin-mrr', fmtMoney(d.revenue.mrrEstimateUsd, 2));
       setText('fin-cost-mtd', fmtMoney(d.costs.monthToDateUsd, 2));
       setText('fin-net', fmtMoneySigned(d.margin.estimatedNetUsd, 2));
-      setText(
-        'fin-subs-hint',
-        d.revenue.totalActiveSubs + ' active paid subscriptions'
-      );
+      const finNote = document.getElementById('fin-disclaimer');
+      if (finNote && d.meta && d.meta.disclaimer) finNote.textContent = d.meta.disclaimer;
 
       const econTable = document.getElementById('fin-economics-table');
       if (econTable) {
@@ -731,13 +751,14 @@
     if (status) qs.set('status', status);
 
     document.getElementById('users-table').innerHTML =
-      '<tr><td colspan="7" class="empty"><span class="spinner"></span></td></tr>';
+      '<tr><td colspan="8" class="empty"><span class="spinner"></span></td></tr>';
 
     try {
       const d = await apiFetch('/api/admin?resource=users&' + qs);
       const tbody = document.getElementById('users-table');
+      setUsersCount(d, status, tier);
       if (!d.ok || !d.users.length) {
-        tbody.innerHTML = '<tr><td colspan="7" class="empty">No users found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="empty">No users found</td></tr>';
         document.getElementById('users-pagination').innerHTML = '';
         return;
       }
@@ -745,11 +766,16 @@
         .map(function (u) {
           return (
             '<tr>' +
-            '<td class="mono">' +
+            '<td><div class="id-cell"><span class="mono">' +
             u.id.slice(0, 8) +
-            '…</td>' +
+            '…</span><button class="btn btn-ghost btn-sm copy-id-btn" type="button" data-copy-id="' +
+            esc(u.id) +
+            '">Copy</button></div></td>' +
             '<td>' +
             (u.email || '<span style="color:var(--muted)">—</span>') +
+            '</td>' +
+            '<td>' +
+            esc(countryLabel(u.country_code)) +
             '</td>' +
             '<td><span class="badge ' +
             tierBadge(u.subscription_tier) +
@@ -784,9 +810,46 @@
     }
   }
 
+  function setUsersCount(d, status, tier) {
+    const el = document.getElementById('users-count');
+    if (!el) return;
+    const n = d && d.ok ? Number(d.total) || 0 : 0;
+    const parts = [];
+    if (status) parts.push(statusLabel(status));
+    if (tier) parts.push(tierLabel(tier));
+    el.textContent = n + (parts.length ? ' ' + parts.join(' · ') : ' users');
+  }
+
+  function countryLabel(code) {
+    const raw = String(code || '').trim().toUpperCase();
+    if (!raw) return '—';
+    try {
+      const name = new Intl.DisplayNames(['en'], { type: 'region' }).of(raw);
+      return name || raw;
+    } catch (e) {
+      return raw;
+    }
+  }
+
+  async function copyUserId(btn) {
+    const id = btn && btn.dataset ? btn.dataset.copyId : '';
+    if (!id) return;
+    try {
+      await navigator.clipboard.writeText(id);
+      const previous = btn.textContent;
+      btn.textContent = 'Copied';
+      setTimeout(function () {
+        btn.textContent = previous;
+      }, 1200);
+    } catch (e) {
+      btn.textContent = 'Failed';
+    }
+  }
+
   async function openUserPanel(userId) {
     lastJobDetail = null;
     setPanelTitle('User');
+    document.getElementById('user-panel').classList.add('full');
     document.getElementById('user-panel').classList.add('open');
     document.getElementById('panel-backdrop').classList.add('open');
     document.getElementById('user-panel-body').innerHTML = '<span class="spinner"></span>';
@@ -801,8 +864,16 @@
       const u = d.user;
       const isBanned = !!u.banned_at;
       document.getElementById('user-panel-body').innerHTML =
-        fieldRow('ID', '<span class="mono">' + esc(u.id) + '</span>') +
+        fieldRow(
+          'ID',
+          '<span class="id-cell"><span class="mono">' +
+            esc(u.id) +
+            '</span><button class="btn btn-ghost btn-sm copy-id-btn" type="button" data-copy-id="' +
+            esc(u.id) +
+            '">Copy</button></span>'
+        ) +
         fieldRow('Email', esc(u.email || '—')) +
+        fieldRow('Country', esc(countryLabel(u.country_code))) +
         fieldRow('RevenueCat ID', '<span class="mono">' + esc(u.revenuecat_user_id || '—') + '</span>') +
         fieldRow(
           'Tier',
@@ -894,7 +965,9 @@
   }
 
   function closePanel() {
-    document.getElementById('user-panel').classList.remove('open');
+    const panel = document.getElementById('user-panel');
+    panel.classList.remove('open');
+    panel.classList.remove('full');
     document.getElementById('panel-backdrop').classList.remove('open');
   }
 
@@ -1137,6 +1210,7 @@
 
   async function openJobPanel(jobId) {
     setPanelTitle('Job');
+    document.getElementById('user-panel').classList.remove('full');
     document.getElementById('user-panel').classList.add('open');
     document.getElementById('panel-backdrop').classList.add('open');
     document.getElementById('user-panel-body').innerHTML = '<span class="spinner"></span>';
@@ -1688,6 +1762,12 @@
     if (refresh) {
       const loader = LOADERS[refresh.dataset.refresh];
       if (loader) loader();
+      return;
+    }
+
+    const copyBtn = e.target.closest('[data-copy-id]');
+    if (copyBtn) {
+      copyUserId(copyBtn);
       return;
     }
 

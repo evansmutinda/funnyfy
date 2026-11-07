@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as ExpoImagePicker from 'expo-image-picker';
 import { useNotifications } from '../components/NotificationProvider';
 
@@ -10,7 +10,8 @@ import { useNotifications } from '../components/NotificationProvider';
  * Omit width/height so uCrop uses SOURCE_IMAGE_ASPECT_RATIO (full photo selected).
  * freeStyleCropEnabled lets the user shrink the crop when needed.
  *
- * Expo Go: no native uCrop — pick full photo only (OS crop cannot default to full).
+ * Expo Go: no native uCrop module — fall back to expo-image-picker allowsEditing
+ * (OS crop UI). Full uCrop returns in a development / production APK build.
  */
 const IS_EXPO_GO =
   Constants.executionEnvironment === ExecutionEnvironment.StoreClient ||
@@ -95,7 +96,8 @@ async function pickThenCropNative(useCamera) {
 async function pickExpo(useCamera) {
   const pickerOptions = {
     mediaTypes: ['images'],
-    allowsEditing: false,
+    // Expo Go / no native uCrop: OS crop UI. Native builds use uCrop instead.
+    allowsEditing: true,
     quality: 0.9,
   };
 

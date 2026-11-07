@@ -82,7 +82,8 @@ export default {
             targetSdkVersion: 36,
             buildToolsVersion: '36.0.0',
             // Play Console: DEX obfuscation was ~3% without R8 (needs ≥25%).
-            enableProguardInReleaseBuilds: true,
+            // SDK 54: enableProguardInReleaseBuilds → enableMinifyInReleaseBuilds
+            enableMinifyInReleaseBuilds: true,
             enableShrinkResourcesInReleaseBuilds: true,
             // Narrow keeps only — broad -keep packs suppress obfuscation %.
             extraProguardRules: [
@@ -104,6 +105,7 @@ export default {
       ],
       'expo-secure-store',
       './plugins/withReleaseSigning.js',
+      './plugins/withDarkNavigationBar.js',
       'expo-font',
       [
         'expo-navigation-bar',

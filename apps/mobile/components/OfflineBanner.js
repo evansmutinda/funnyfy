@@ -3,6 +3,7 @@ import { Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import useStableSafeAreaInsets from '../hooks/useStableSafeAreaInsets';
 import { useNetwork } from './NetworkProvider';
+import { NO_INTERNET_MESSAGE, NO_INTERNET_TITLE } from '../utils/network';
 import styles from '../styles';
 
 /** Ignore brief NetInfo flaps during API failures (looked like a flash toast). */
@@ -40,10 +41,8 @@ export default function OfflineBanner() {
           <Feather name="wifi-off" size={15} color="#EA580C" />
         </View>
         <View style={styles.toastTextWrap}>
-          <Text style={styles.toastTitleWarning}>Check your internet connectivity</Text>
-          <Text style={styles.toastMessageWarning}>
-            Generation and purchases need internet
-          </Text>
+          <Text style={styles.toastTitleWarning}>{NO_INTERNET_TITLE}</Text>
+          <Text style={styles.toastMessageWarning}>{NO_INTERNET_MESSAGE}</Text>
         </View>
       </View>
     </View>

@@ -3,7 +3,7 @@ import { Image, ScrollView, Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import PressScale from '../components/PressScale';
-import { APP_NAME, BOTTOM_INSET_MIN } from '../constants';
+import { APP_NAME } from '../constants';
 import useStableSafeAreaInsets from '../hooks/useStableSafeAreaInsets';
 import styles from '../styles';
 
@@ -12,7 +12,8 @@ const ITEMS = [
   { id: 'usage', label: 'Usage', icon: 'bar-chart-2' },
   { id: 'subscription', label: 'Subscription', icon: 'credit-card' },
   { id: 'share-app', label: 'Share app', icon: 'share-2' },
-  { id: 'rate-app', label: 'Rate this app', icon: 'star' },
+  { id: 'rate-app', label: 'Rate this app', icon: 'star', iconColor: '#F5C542' },
+  { id: 'request-style', label: 'Request a style', icon: 'plus-circle' },
   { id: 'privacy', label: 'Privacy Policy', icon: 'shield' },
   { id: 'terms', label: 'Terms & Conditions', icon: 'file-text' },
   { id: 'contact', label: 'Contact us', icon: 'mail' },
@@ -52,7 +53,7 @@ export default function MenuScreen({ onBack, onSelect, userId, onUserIdCopied })
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{
-          paddingBottom: Math.max(insets.bottom, BOTTOM_INSET_MIN) + 16,
+          paddingBottom: Math.max(insets.bottom, 8),
         }}
         showsVerticalScrollIndicator={false}
       >
@@ -81,7 +82,12 @@ export default function MenuScreen({ onBack, onSelect, userId, onUserIdCopied })
               style={styles.menuItem}
               onPress={() => onSelect(item.id)}
             >
-              <Feather name={item.icon} size={20} color="#FFFFFF" style={styles.menuItemIcon} />
+              <Feather
+                name={item.icon}
+                size={20}
+                color={item.iconColor || '#FFFFFF'}
+                style={styles.menuItemIcon}
+              />
               <Text style={styles.menuItemText}>{item.label}</Text>
               <Feather name="chevron-right" size={18} color="rgba(255,255,255,0.45)" />
             </PressScale>

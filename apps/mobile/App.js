@@ -1,9 +1,10 @@
-import {
-  useFonts,
-  PlusJakartaSans_400Regular,
-} from '@expo-google-fonts/plus-jakarta-sans';
+import { PlusJakartaSans_400Regular } from '@expo-google-fonts/plus-jakarta-sans';
+import { useFonts } from 'expo-font';
 import * as ExpoSplashScreen from 'expo-splash-screen';
-import { configureAndroidNavigationBar } from './utils/androidNavigationBar';
+import {
+  configureAndroidNavigationBar,
+  hideAndroidNavigationBar,
+} from './utils/androidNavigationBar';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AppState,
@@ -42,11 +43,11 @@ import UsageScreen from './screens/UsageScreen';
 import InfoScreen from './screens/InfoScreen';
 import StyleScreen from './screens/StyleScreen';
 import AppSplash from './components/AppSplash';
-import StylesLaunchLoader from './components/StylesLaunchLoader';
 import ConfirmDialog from './components/ConfirmDialog';
 import UploadScreen from './screens/UploadScreen';
 import PhotoReviewScreen from './screens/PhotoReviewScreen';
 import SubscriptionScreen from './screens/SubscriptionScreen';
+import OnboardingScreen from './screens/OnboardingScreen';
 import ResultScreen from './screens/ResultScreen';
 import StickerPackScreen from './screens/StickerPackScreen';
 import { getStyleCategory } from './utils/styleCategories';
@@ -97,10 +98,12 @@ import {
   ContentPolicyBlockedError,
 } from './utils/contentViolations';
 import { pollJobUntilDone } from './utils/jobClient';
+import { NO_INTERNET_MESSAGE, NO_INTERNET_TITLE } from './utils/network';
 import { setSentryUser, captureAppError } from './utils/sentry';
-import { openContactSupport } from './utils/contactSupport';
+import { openContactSupport, openStyleRequest } from './utils/contactSupport';
 import { shareApp } from './utils/shareApp';
 import { markRateAppRated, openPlayStoreListing } from './utils/rateApp';
+import { hasSeenOnboarding, markOnboardingSeen } from './utils/onboardingPrefs';
 
 // Enforce HTTPS for security — prevent accidental HTTP misconfiguration
 if (API_BASE.startsWith('http://') && !API_BASE.includes('localhost') && !API_BASE.includes('127.0.0.1')) {
@@ -128,15 +131,24 @@ function withTimeout(promise, ms, label) {
 ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function App() {
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     PlusJakartaSans_400Regular,
   });
+
+  useEffect(() => {
+    if (fontError) {
+      console.warn('[Fonts] Failed to load:', fontError?.message || fontError);
+    }
+  }, [fontError]);
+
+  // Do not gate the UI on fonts — custom font can load in the background.
+  void fontsLoaded;
 
   return (
     <SafeAreaProvider initialMetrics={initialWindowMetrics}>
       <NotificationProvider>
         <NetworkProvider>
-          <AppContent fontsLoaded={fontsLoaded} />
+          <AppContent />
         </NetworkProvider>
       </NotificationProvider>
     </SafeAreaProvider>
@@ -152,7 +164,7 @@ function AppShell({ children }) {
   );
 }
 
-function AppContent({ fontsLoaded }) {
+function AppContent() {
   const { showToast, showDialog, closeDialog } = useNotifications();
   const { isOnline } = useNetwork();
   const [screen, setScreen] = useState('style');
@@ -196,6 +208,10 @@ function AppContent({ fontsLoaded }) {
   const hasStylesRef = useRef(false);
   /** Show paywall once per cold start when the user has no active plan. */
   const launchPaywallShownRef = useRef(false);
+  /** First-launch onboarding — wait for AsyncStorage before paywall. */
+  const [onboardingReady, setOnboardingReady] = useState(false);
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
+  const onboardingShownRef = useRef(false);
 
   // Keep refs in sync so async functions always use the latest values
   useEffect(() => {
@@ -424,7 +440,7 @@ function AppContent({ fontsLoaded }) {
       return { ok: false, error: 'no_active_subscription' };
     }
 
-    const { productIdentifier, expirationDate } = details;
+    const { productIdentifier, expirationDate, storeTransactionId, isSandbox } = details;
     const tier = tierFromProductId(productIdentifier);
 
     try {
@@ -439,6 +455,8 @@ function AppContent({ fontsLoaded }) {
           productId: productIdentifier,
           tier,
           expirationDate: expirationDate || undefined,
+          storeTransactionId: storeTransactionId || undefined,
+          isSandbox: isSandbox === true,
           platform: Platform.OS,
           ...(pendingTier ? { pendingTier } : {}),
         }),
@@ -501,35 +519,42 @@ function AppContent({ fontsLoaded }) {
     return () => clearTimeout(failsafe);
   }, []);
 
+  // Hide splash as soon as the JS tree mounts — don't wait on auth/fonts.
+  // Auth continues in the background; screens already handle loading states.
   useEffect(() => {
-    if (!fontsLoaded || !authReady) return;
-
-    // Paint the in-app splash before removing the native layer (Expo Go ignores app.config splash).
     let cancelled = false;
+    const hide = () => {
+      if (cancelled) return;
+      setSplashHidden(true);
+      ExpoSplashScreen.hideAsync().catch(() => {});
+    };
+
     const frame = requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        if (cancelled) return;
-        ExpoSplashScreen.hideAsync()
-          .catch(() => {})
-          .finally(() => {
-            if (!cancelled) setSplashHidden(true);
-          });
-      });
+      requestAnimationFrame(hide);
     });
+    const failsafe = setTimeout(hide, 800);
 
     return () => {
       cancelled = true;
       cancelAnimationFrame(frame);
+      clearTimeout(failsafe);
     };
-  }, [fontsLoaded, authReady]);
+  }, []);
 
   useEffect(() => {
     if (Platform.OS !== 'android' || !splashHidden) return undefined;
 
-    configureAndroidNavigationBar();
+    if (screen === 'onboarding') {
+      hideAndroidNavigationBar();
+    } else {
+      configureAndroidNavigationBar();
+    }
 
     const subscription = AppState.addEventListener('change', (nextAppState) => {
-      if (nextAppState === 'active') {
+      if (nextAppState !== 'active') return;
+      if (screen === 'onboarding') {
+        hideAndroidNavigationBar();
+      } else {
         configureAndroidNavigationBar();
       }
     });
@@ -773,18 +798,66 @@ function AppContent({ fontsLoaded }) {
     }
   }, [authReady]);
 
+  // Load whether first-launch onboarding has already been dismissed.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const seen = await hasSeenOnboarding();
+      if (cancelled) return;
+      setNeedsOnboarding(!seen);
+      setOnboardingReady(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // First launch: show before/after onboarding once (skip if subscribed).
+  useEffect(() => {
+    if (!splashHidden || !authReady || !onboardingReady) return;
+    if (subscriptionLoading || !subscriptionInfo) return;
+    if (!needsOnboarding) return;
+
+    // Production: subscribed users skip onboarding. In Expo (__DEV__), still
+    // show it so reload can preview the screen even with an active plan.
+    if (subscriptionInfo.subscription && !__DEV__) {
+      markOnboardingSeen();
+      setNeedsOnboarding(false);
+      return;
+    }
+
+    if (onboardingShownRef.current) return;
+    onboardingShownRef.current = true;
+    setScreen('onboarding');
+  }, [
+    splashHidden,
+    authReady,
+    onboardingReady,
+    needsOnboarding,
+    subscriptionLoading,
+    subscriptionInfo,
+  ]);
+
   // New installs / users without a plan: open paywall once on launch.
+  // Wait until onboarding is finished/seen so the two screens do not fight.
   // Closed testers with allowance skip this so they can try the product.
-  // They can dismiss (X) and browse styles, but generate stays hard-gated.
   useEffect(() => {
     if (!splashHidden || !authReady || subscriptionLoading) return;
+    if (!onboardingReady || needsOnboarding) return;
     if (!subscriptionInfo) return;
     if (subscriptionInfo.subscription) return;
     if (subscriptionInfo.closedTesting) return;
     if (launchPaywallShownRef.current) return;
     launchPaywallShownRef.current = true;
     setScreen('subscription');
-  }, [splashHidden, authReady, subscriptionLoading, subscriptionInfo]);
+  }, [
+    splashHidden,
+    authReady,
+    subscriptionLoading,
+    subscriptionInfo,
+    onboardingReady,
+    needsOnboarding,
+  ]);
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextAppState) => {
@@ -1005,11 +1078,7 @@ function AppContent({ fontsLoaded }) {
       selectedTier = null;
     }
     if (!isOnline) {
-      showToast(
-        'Check your internet connectivity',
-        'Connect to the internet to purchase or restore subscriptions.',
-        'warning',
-      );
+      showToast(NO_INTERNET_TITLE, NO_INTERNET_MESSAGE, 'warning');
       return;
     }
 
@@ -1051,8 +1120,8 @@ function AppContent({ fontsLoaded }) {
       const auth = await ensureAuthenticated();
       if (!auth?.userId || !auth?.token) {
         showToast(
-          'Connection required',
-          'Could not connect to the server. Check your internet and try again.',
+          NO_INTERNET_TITLE,
+          NO_INTERNET_MESSAGE,
           'error'
         );
         return;
@@ -1140,47 +1209,59 @@ function AppContent({ fontsLoaded }) {
         hasCustomerInfo: !!purchaseResult?.customerInfo,
       });
 
-      // Re-fetch customer info — entitlements may not be populated immediately in purchaseResult
-      let customerInfo = purchaseResult?.customerInfo;
-      try {
-        customerInfo = (await getCustomerInfo()) || customerInfo;
-      } catch (infoErr) {
-        console.warn('[RevenueCat] getCustomerInfo after purchase failed:', infoErr);
+      // Entitlements can lag a beat after Play confirms — poll briefly.
+      let customerInfo = purchaseResult?.customerInfo || null;
+      let subDetails = getActiveSubscriptionDetails(customerInfo);
+      for (let attempt = 0; attempt < 5 && !subDetails?.productIdentifier; attempt += 1) {
+        if (attempt > 0) {
+          await new Promise((r) => setTimeout(r, 700));
+        }
+        try {
+          customerInfo = (await getCustomerInfo()) || customerInfo;
+        } catch (infoErr) {
+          console.warn('[RevenueCat] getCustomerInfo after purchase failed:', infoErr);
+        }
+        subDetails = getActiveSubscriptionDetails(customerInfo);
       }
 
-      const subDetails = getActiveSubscriptionDetails(customerInfo);
+      await ensureAuthenticated();
       if (subDetails?.productIdentifier) {
-        devLog('[RevenueCat] Purchase successful:', subDetails.productIdentifier);
-
-        await ensureAuthenticated();
         await syncSubscriptionToBackend(customerInfo, {
           pendingTier: downgrade ? selectedTier : undefined,
         });
-        if (downgrade) {
-          showToast(
-            'Downgrade scheduled',
-            `You'll keep ${currentName} until ${renewalLabel || 'your next renewal'}, then switch to ${nextName}.`,
-            'info',
-            { duration: 6000 },
-          );
-        } else {
-          showToast('Purchase successful', 'Your subscription is now active', 'success');
-        }
-        await refreshSubscription();
-        setScreen('style');
       } else {
         console.warn('[RevenueCat] Purchase completed but no active subscription found yet');
-        showToast('Purchase completed', 'Subscription will appear shortly. Tap Refresh if it doesn\'t update.', 'warning');
-        await new Promise((r) => setTimeout(r, 2000));
         try {
-          customerInfo = await getCustomerInfo();
-          await ensureAuthenticated();
           await syncSubscriptionToBackend(customerInfo, {
             pendingTier: downgrade ? selectedTier : undefined,
           });
         } catch {}
-        await refreshSubscription();
       }
+
+      const refreshed = await refreshSubscription();
+      const hasAccess =
+        !!subDetails?.productIdentifier || !!refreshed?.subscription;
+
+      if (downgrade) {
+        showToast(
+          'Downgrade scheduled',
+          `You'll keep ${currentName} until ${renewalLabel || 'your next renewal'}, then switch to ${nextName}.`,
+          'info',
+          { duration: 6000 },
+        );
+      } else if (hasAccess) {
+        showToast('Purchase successful', 'Your subscription is now active', 'success');
+      } else {
+        showToast(
+          'Purchase completed',
+          'Subscription will appear shortly. Pull to refresh or reopen the app if it doesn\'t update.',
+          'warning',
+        );
+      }
+
+      // Always leave the paywall once Play accepted the purchase — don't strand
+      // the user on "Select a plan" while entitlements/backend catch up.
+      setScreen('style');
     } catch (err) {
       console.error('[RevenueCat] Purchase error code:', err?.code);
       console.error('[RevenueCat] Purchase error message:', err?.message);
@@ -1191,9 +1272,11 @@ function AppContent({ fontsLoaded }) {
         return;
       }
 
+      let customerInfoAtFail = null;
       let billingAtFail = null;
       try {
-        billingAtFail = getSubscriptionBillingState(await getCustomerInfo());
+        customerInfoAtFail = await getCustomerInfo();
+        billingAtFail = getSubscriptionBillingState(customerInfoAtFail);
       } catch {
         billingAtFail = getSubscriptionBillingState(null);
       }
@@ -1209,6 +1292,29 @@ function AppContent({ fontsLoaded }) {
         cancelAtPeriodEnd,
         expirationDate: until,
       });
+
+      // Already owned / active on Play — sync and leave paywall instead of looping.
+      if (
+        described.kind === 'already_owned' ||
+        (described.kind === 'invalid_arguments' && billingAtFail?.productIdentifier)
+      ) {
+        try {
+          await ensureAuthenticated();
+          if (customerInfoAtFail) {
+            await syncSubscriptionToBackend(customerInfoAtFail);
+          }
+          await refreshSubscription();
+        } catch (syncErr) {
+          console.warn('[RevenueCat] already-owned sync failed:', syncErr);
+        }
+        showToast(
+          described.title || 'Already subscribed',
+          described.message || 'Your subscription is already active.',
+          'success',
+        );
+        setScreen('style');
+        return;
+      }
 
       if (described.shouldReport) {
         captureAppError(err, {
@@ -1236,11 +1342,7 @@ function AppContent({ fontsLoaded }) {
 
   const handleRestorePurchases = async () => {
     if (!isOnline) {
-      showToast(
-        'Check your internet connectivity',
-        'Connect to the internet to restore purchases.',
-        'warning',
-      );
+      showToast(NO_INTERNET_TITLE, NO_INTERNET_MESSAGE, 'warning');
       return;
     }
     if (!hasRcKey) {
@@ -1294,11 +1396,7 @@ function AppContent({ fontsLoaded }) {
 
   const handleUploadStart = async ({ imageUri, imageDataUrl }) => {
     if (!isOnline) {
-      showToast(
-        'Check your internet connectivity',
-        'Connect to the internet to generate caricatures.',
-        'warning',
-      );
+      showToast(NO_INTERNET_TITLE, NO_INTERNET_MESSAGE, 'warning');
       return;
     }
     if (loading) {
@@ -1451,11 +1549,7 @@ function AppContent({ fontsLoaded }) {
 
   const handleRegenerate = () => {
     if (!isOnline) {
-      showToast(
-        'Check your internet connectivity',
-        'Connect to the internet to generate caricatures.',
-        'warning',
-      );
+      showToast(NO_INTERNET_TITLE, NO_INTERNET_MESSAGE, 'warning');
       return;
     }
     if (loading) {
@@ -1532,11 +1626,7 @@ function AppContent({ fontsLoaded }) {
 
   const handleRegenerateStickerPack = () => {
     if (!isOnline) {
-      showToast(
-        'Check your internet connectivity',
-        'Connect to the internet to generate a sticker pack.',
-        'warning',
-      );
+      showToast(NO_INTERNET_TITLE, NO_INTERNET_MESSAGE, 'warning');
       return;
     }
     if (loading) {
@@ -1571,11 +1661,23 @@ function AppContent({ fontsLoaded }) {
     runStickerPack();
   };
 
+  const handleOnboardingDone = useCallback(() => {
+    markOnboardingSeen();
+    setNeedsOnboarding(false);
+    setScreen('style');
+  }, []);
+
   const handleMenuSelect = useCallback((id) => {
     setRestyleMode(false);
     if (id === 'contact') {
       openContactSupport(() => {
         showToast('Email', `Contact us at ${SUPPORT_EMAIL}`, 'info');
+      });
+      return;
+    }
+    if (id === 'request-style') {
+      openStyleRequest(() => {
+        showToast('Email', `Request a style at ${SUPPORT_EMAIL}`, 'info');
       });
       return;
     }
@@ -1738,6 +1840,10 @@ function AppContent({ fontsLoaded }) {
         setScreen('upload');
         return true;
       }
+      if (screen === 'onboarding') {
+        handleOnboardingDone();
+        return true;
+      }
       if (screen === 'subscription' || screen === 'usage' || screen === 'privacy' || screen === 'terms' || screen === 'gallery' || screen === 'menu') {
         setScreen('style');
         return true;
@@ -1760,7 +1866,7 @@ function AppContent({ fontsLoaded }) {
       }
       return confirmExit();
     };
-  }, [screen, restyleMode, showToast, styleReturnCategory]);
+  }, [screen, restyleMode, showToast, styleReturnCategory, handleOnboardingDone]);
 
   useEffect(() => {
     const sub = BackHandler.addEventListener(
@@ -1792,26 +1898,28 @@ function AppContent({ fontsLoaded }) {
     />
   );
 
-  if (!splashHidden) {
-    return (
-      <AppShell>
-        {updateDialogEl}
-        <AppSplash />
-      </AppShell>
-    );
-  }
+  // Keep one continuous brand splash from native hide → first styles paint.
+  // Also hold until onboarding is decided/shown so StyleScreen never flashes first.
+  const holdForOnboarding =
+    !onboardingReady || (needsOnboarding && screen !== 'onboarding');
 
-  if (stylesLoading && availableStyles.length === 0) {
+  if (
+    !splashHidden ||
+    (stylesLoading && availableStyles.length === 0) ||
+    holdForOnboarding
+  ) {
     return (
       <AppShell>
         {updateDialogEl}
-        <StylesLaunchLoader />
+        <AppSplash waiting={splashHidden || holdForOnboarding} />
       </AppShell>
     );
   }
 
   let overlay = null;
-  if (screen === 'menu') {
+  if (screen === 'onboarding') {
+    overlay = <OnboardingScreen onDone={handleOnboardingDone} />;
+  } else if (screen === 'menu') {
     overlay = (
       <MenuScreen
         onBack={() => setScreen('style')}
@@ -1980,11 +2088,7 @@ function AppContent({ fontsLoaded }) {
               setStyleReturnCategory(s?.categoryId || getStyleCategory(s?.id) || null);
               if (restyleMode && original?.imageDataUrl) {
                 if (!isOnline) {
-                  showToast(
-                    'Check your internet connectivity',
-                    'Connect to the internet to generate caricatures.',
-                    'warning',
-                  );
+                  showToast(NO_INTERNET_TITLE, NO_INTERNET_MESSAGE, 'warning');
                   return;
                 }
                 setRestyleMode(false);
