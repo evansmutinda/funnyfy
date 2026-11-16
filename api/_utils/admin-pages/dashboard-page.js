@@ -1044,6 +1044,42 @@
     }
   }
 
+  async function saveAppVersionGates() {
+    const latestInput = document.getElementById('sys-latest-input');
+    const minRequiredInput = document.getElementById('sys-min-required-input');
+    const minCatalogInput = document.getElementById('sys-min-catalog-input');
+    const storeInput = document.getElementById('sys-store-input');
+    try {
+      const d = await apiFetch('/api/admin?resource=runtime&action=save-app-version', {
+        method: 'POST',
+        body: JSON.stringify({
+          latestAppVersion: latestInput ? latestInput.value : '',
+          minRequiredAppVersion: minRequiredInput ? minRequiredInput.value : '',
+          minAppVersion: minCatalogInput ? minCatalogInput.value : '',
+          storeUrl: storeInput ? storeInput.value : '',
+        }),
+      });
+      alert(d.message || (d.ok ? 'Saved' : d.error || 'Failed'));
+      if (d.ok) loadSystem();
+    } catch (e) {
+      alert('Save failed');
+    }
+  }
+
+  async function resetAppVersionGates() {
+    if (!confirm('Clear admin overrides and use Vercel env defaults?')) return;
+    try {
+      const d = await apiFetch('/api/admin?resource=runtime&action=clear-app-version', {
+        method: 'POST',
+        body: JSON.stringify({ reason: 'Reset app version gates to env defaults' }),
+      });
+      alert(d.message || (d.ok ? 'Reset' : d.error || 'Failed'));
+      if (d.ok) loadSystem();
+    } catch (e) {
+      alert('Reset failed');
+    }
+  }
+
   function renderSystem(d) {
     const dep = d.deployment || {};
     const closed = d.closedTest || {};
@@ -1068,10 +1104,31 @@
     }
     setText('sys-closed-total', closed.enabled ? String(closed.totalQuota) : '0 (paywall)');
     setText('sys-closed-daily', closed.enabled ? String(closed.dailyQuota) : '—');
-    setText('sys-latest', ver.latestAppVersion || 'Off');
-    setText('sys-min-required', ver.minRequiredAppVersion || 'Off');
-    setText('sys-min-catalog', ver.minAppVersion || 'Off');
-    setText('sys-store', ver.storeUrl || '—');
+    const latestInput = document.getElementById('sys-latest-input');
+    const minRequiredInput = document.getElementById('sys-min-required-input');
+    const minCatalogInput = document.getElementById('sys-min-catalog-input');
+    const storeInput = document.getElementById('sys-store-input');
+    if (latestInput) latestInput.value = ver.latestAppVersion || '';
+    if (minRequiredInput) minRequiredInput.value = ver.minRequiredAppVersion || '';
+    if (minCatalogInput) minCatalogInput.value = ver.minAppVersion || '';
+    if (storeInput) storeInput.value = ver.storeUrl || '';
+    const versionBadge = document.getElementById('sys-version-badge');
+    if (versionBadge) {
+      const fromAdmin = ver.source === 'admin';
+      versionBadge.textContent = fromAdmin ? 'Admin' : 'Env';
+      versionBadge.className = 'badge ' + (fromAdmin ? 'badge-indigo' : 'badge-gray');
+    }
+    const env = ver.envFallback || {};
+    const metaBits = [];
+    if (ver.updatedAt) metaBits.push('Updated ' + String(ver.updatedAt).replace('T', ' ').slice(0, 19) + ' UTC');
+    if (ver.updatedBy) metaBits.push('by ' + String(ver.updatedBy).slice(0, 8));
+    metaBits.push(
+      'Env fallback: latest ' +
+        (env.latestAppVersion || 'Off') +
+        ', force ' +
+        (env.minRequiredAppVersion || 'Off'),
+    );
+    setText('sys-version-meta', metaBits.join(' · '));
     setText('sys-cap', fmtMoney(spend.capUsd, 2));
     setText('sys-today', fmtMoney(spend.todayCostUsd, 2));
     setText('sys-pause', spend.paused ? (spend.pauseReason || 'Paused') : 'Running');
@@ -1756,6 +1813,11 @@
   });
   document.getElementById('sec-type').addEventListener('change', loadSecurity);
   document.getElementById('sec-success').addEventListener('change', loadSecurity);
+
+  const versionSaveBtn = document.getElementById('sys-version-save');
+  if (versionSaveBtn) versionSaveBtn.addEventListener('click', saveAppVersionGates);
+  const versionResetBtn = document.getElementById('sys-version-reset');
+  if (versionResetBtn) versionResetBtn.addEventListener('click', resetAppVersionGates);
 
   document.body.addEventListener('click', function (e) {
     const refresh = e.target.closest('[data-refresh]');

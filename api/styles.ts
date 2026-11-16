@@ -4,6 +4,7 @@ import { STYLE_CATEGORIES } from './_utils/style-catalog';
 import {
   buildAppConfigPayload,
   filterStylesForClientVersion,
+  getAppVersionConfig,
   resolveClientAppVersion,
 } from './_utils/app-version';
 import { tryServeSignedStyleRef } from './_utils/serve-style-ref';
@@ -45,7 +46,8 @@ export default async function handler(
     req.headers['x-app-version'],
     req.query.appVersion,
   );
-  const appConfig = buildAppConfigPayload(clientVersion);
+  const versionConfig = await getAppVersionConfig();
+  const appConfig = buildAppConfigPayload(clientVersion, versionConfig);
 
   // Lightweight config-only response (also served via /api/app-config rewrite).
   if (wantsAppConfigOnly(req)) {
@@ -62,7 +64,11 @@ export default async function handler(
     });
   }
 
-  const styles = filterStylesForClientVersion(getEnabledStyles(), clientVersion);
+  const styles = filterStylesForClientVersion(
+    getEnabledStyles(),
+    clientVersion,
+    versionConfig,
+  );
 
   // Public catalog — safe to cache at Vercel edge (no auth / user data).
   // Vary on app version so filtered catalogs aren't mixed across clients.

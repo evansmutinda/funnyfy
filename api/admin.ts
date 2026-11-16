@@ -33,7 +33,11 @@ import { getUsdToKesRate } from './_utils/exchange-rate';
 import { getModelDisplayLabel } from './_utils/job-cost';
 import { MODEL_COST_USD, getModelCost } from './_utils/cost-protection';
 import { getClosedTestQuotaConfig, getClosedTestUsage } from './_utils/closed-test-quota';
-import { getAppVersionConfig } from './_utils/app-version';
+import {
+  clearAppVersionOverrides,
+  getAppVersionAdminView,
+  setAppVersionConfig,
+} from './_utils/app-version';
 import { getAdminTimeZone } from './_utils/admin-time';
 import { STYLES_CONFIG } from './_utils/styles-config';
 import { logAdminAction, normalizeAdminReason } from './_utils/admin-audit';
@@ -1209,8 +1213,64 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (resource === 'runtime') {
+      if (req.method === 'POST') {
+        const action = String(req.query.action || 'save-app-version');
+        const body = readJsonBody(req);
+
+        if (action === 'clear-app-version') {
+          const reason = normalizeAdminReason(body.reason) || 'Reset app version gates to env defaults';
+          const appVersion = await clearAppVersionOverrides();
+          await logAdminAction(req, adminId, 'admin_app_version_clear', true, { reason });
+          return res.status(200).json({
+            ok: true,
+            message: 'App version gates reset to Vercel env defaults.',
+            appVersion,
+          });
+        }
+
+        if (action === 'save-app-version') {
+          try {
+            const appVersion = await setAppVersionConfig(
+              {
+                latestAppVersion: body.latestAppVersion,
+                minAppVersion: body.minAppVersion,
+                minRequiredAppVersion: body.minRequiredAppVersion,
+                storeUrl: body.storeUrl,
+              },
+              adminId,
+            );
+            await logAdminAction(req, adminId, 'admin_app_version_save', true, {
+              latestAppVersion: appVersion.latestAppVersion,
+              minRequiredAppVersion: appVersion.minRequiredAppVersion,
+              minAppVersion: appVersion.minAppVersion,
+            });
+            return res.status(200).json({
+              ok: true,
+              message: 'App version gates saved. Soft nudge uses Latest after Play has the build.',
+              appVersion,
+            });
+          } catch (err: any) {
+            const code = String(err?.message || '');
+            if (code === 'INVALID_LATEST' || code === 'INVALID_MIN' || code === 'INVALID_MIN_REQUIRED') {
+              return safeErrorResponse(
+                res,
+                400,
+                code,
+                'Use a version like 1.3.26 or 1.3.26+401 (or leave blank for Off).',
+              );
+            }
+            if (code === 'INVALID_STORE_URL') {
+              return safeErrorResponse(res, 400, code, 'Store URL must be https://… or blank.');
+            }
+            throw err;
+          }
+        }
+
+        return safeErrorResponse(res, 400, 'UNKNOWN_ACTION', `Unknown action: ${action}`);
+      }
+
       const closedTest = getClosedTestQuotaConfig();
-      const appVersion = getAppVersionConfig();
+      const appVersion = await getAppVersionAdminView();
       const pauseCheck = await shouldPauseQueue();
       const sha = process.env.VERCEL_GIT_COMMIT_SHA || '';
       return res.status(200).json({
@@ -1232,6 +1292,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           minAppVersion: appVersion.minAppVersion,
           minRequiredAppVersion: appVersion.minRequiredAppVersion,
           storeUrl: appVersion.storeUrl,
+          source: appVersion.source,
+          envFallback: appVersion.envFallback,
+          updatedAt: appVersion.updatedAt,
+          updatedBy: appVersion.updatedBy,
         },
         spending: {
           capUsd: pauseCheck.cap,
