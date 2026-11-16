@@ -593,7 +593,7 @@ const CURATED_PAIR_PATHS = {
     after: 'after/Drawings/pen.jpg',
   },
   'cross-hatched': {
-    before: 'before/lady9.png',
+    before: 'before/lady14.png',
     after: 'after/Drawings/cross-hatched.jpeg',
   },
   'line-art': {

@@ -415,7 +415,7 @@ Run `npm run build-comparison-assets` after adding or replacing source files. Fo
 | `charcoal` | `before/man6.png` | `after/Drawings/Charcoal.jpg` |
 | `ink` | `before/lady10.png` | `after/Drawings/ink.jpg` |
 | `pen` | `before/lady9.png` | `after/Drawings/pen.jpg` |
-| `cross-hatched` | `before/lady9.png` | `after/Drawings/cross-hatched.jpeg` |
+| `cross-hatched` | `before/lady14.png` | `after/Drawings/cross-hatched.jpeg` |
 | `line-art` | `before/man8.png` | `after/Drawings/line-art.jpg` |
 | `fashion` | `before/lady.png` | `after/Drawings/fashion.jpeg` |
 | `marker` | `before/lady3.png` | `after/Drawings/marker.jpg` |
